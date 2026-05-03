@@ -8,7 +8,7 @@ export default async function TutorLayout({ children }: { children: React.ReactN
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/auth/signin');
+    redirect('/login');
   }
 
   const role = user.app_metadata?.role === 'admin' ? 'Quản trị viên' : 'Gia sư';
@@ -26,7 +26,7 @@ export default async function TutorLayout({ children }: { children: React.ReactN
           </div>
         </div>
         <div className="flex items-center gap-4 hidden md:flex">
-             <Link href="/tutor/dashboard" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Lịch Dạy & Điểm Danh</Link>
+             <Link href="/tutor/dashboard" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Trang chủ</Link>
         </div>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">

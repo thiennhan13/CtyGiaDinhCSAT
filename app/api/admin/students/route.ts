@@ -12,21 +12,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Quyền truy cập bị từ chối. Chỉ Admin mới có thể thực hiện.' }, { status: 403 });
     }
 
-    const { action, name, student_id } = await request.json();
+    const body = await request.json();
+    const { action, student_id, name, age, province, parent_phone, facebook_link, status, default_tuition_fee } = body;
     const adminClient = createAdminClient();
 
     if (action === 'create') {
-      if (!name) return NextResponse.json({ error: 'Thiếu tên học sinh' }, { status: 400 });
-      const { data, error } = await adminClient.from('students').insert([{ name }]).select().single();
+      if (!name || !age || !province || !parent_phone) return NextResponse.json({ error: 'Vui lòng điền đủ thông tin bắt buộc' }, { status: 400 });
+      const { data, error } = await adminClient.from('students').insert([{ 
+        name, age: parseInt(age, 10), province, parent_phone, facebook_link, status: status || 'Đang học', default_tuition_fee: default_tuition_fee ? parseInt(default_tuition_fee, 10) : 100000
+      }]).select().single();
       if (error) throw error;
       return NextResponse.json({ message: 'Thêm học sinh thành công', data });
     }
 
+    if (action === 'update') {
+      if (!student_id) return NextResponse.json({ error: 'Thiếu mã học sinh' }, { status: 400 });
+      const { data, error } = await adminClient.from('students').update({ 
+        name, age: age ? parseInt(age, 10) : null, province, parent_phone, facebook_link, status, default_tuition_fee: default_tuition_fee ? parseInt(default_tuition_fee, 10) : null
+      }).eq('student_id', student_id).select().single();
+      if (error) throw error;
+      return NextResponse.json({ message: 'Cập nhật thành công', data });
+    }
+
     if (action === 'delete') {
       if (!student_id) return NextResponse.json({ error: 'Thiếu mã học sinh' }, { status: 400 });
-      const { error } = await adminClient.from('students').update({ is_deleted: true }).eq('student_id', student_id);
+      // Soft Delete
+      const { error } = await adminClient.from('students').update({ is_deleted: true, status: 'Đã nghỉ' }).eq('student_id', student_id);
       if (error) throw error;
-      return NextResponse.json({ message: 'Xóa học sinh thành công' });
+      return NextResponse.json({ message: 'Đã chuyển học sinh vào danh sách đã xóa/cũ' });
     }
 
     return NextResponse.json({ error: 'Hành động không hợp lệ' }, { status: 400 });

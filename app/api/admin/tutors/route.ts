@@ -62,19 +62,12 @@ export async function POST(request: Request) {
     if (action === 'delete') {
       if (!tutor_id) return NextResponse.json({ error: 'Thiếu mã gia sư' }, { status: 400 });
 
-      // Lấy thông tin gia sư để lấy auth_uid
-      const { data: tutor } = await adminClient.from('tutors').select('auth_uid').eq('tutor_id', tutor_id).single();
-      
-      if (tutor?.auth_uid) {
-        // Xóa Auth User trước
-        await adminClient.auth.admin.deleteUser(tutor.auth_uid);
-      }
+      // Cập nhật trạng thái thành is_deleted thay vì xóa cứng
+      const { error: updateError } = await adminClient.from('tutors').update({ is_deleted: true, status: 'inactive' }).eq('tutor_id', tutor_id);
+      if (updateError) throw updateError;
 
-      // Xóa trong bảng tutors (Cascade sẽ lo phần còn lại nếu có)
-      const { error: delError } = await adminClient.from('tutors').delete().eq('tutor_id', tutor_id);
-      if (delError) throw delError;
-
-      return NextResponse.json({ message: 'Xóa gia sư thành công' });
+      // Không xóa Auth User để giữ lịch sử nếu cần thiết, hoặc có thể ban user đó
+      return NextResponse.json({ message: 'Xóa gia sư thành công (Soft delete)' });
     }
 
     return NextResponse.json({ error: 'Hành động không hợp lệ' }, { status: 400 });

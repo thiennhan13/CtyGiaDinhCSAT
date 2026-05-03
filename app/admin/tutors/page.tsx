@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client';
 export default function TutorsPage() {
   const [tutors, setTutors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'current' | 'old'>('current');
   
   // form
   const [name, setName] = useState('');
@@ -17,10 +18,6 @@ export default function TutorsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const supabase = createClient();
-
-  useEffect(() => {
-    fetchTutors();
-  }, []);
 
   async function fetchTutors() {
     setLoading(true);
@@ -34,6 +31,11 @@ export default function TutorsPage() {
     }
     setLoading(false);
   }
+
+  useEffect(() => {
+    fetchTutors();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleAddTutor(e: React.FormEvent) {
     e.preventDefault();
@@ -74,9 +76,27 @@ export default function TutorsPage() {
     }
   }
 
+  const filteredTutors = tutors.filter(t => viewMode === 'current' ? !t.is_deleted : t.is_deleted);
+
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold tracking-tight text-gray-900">Quản lý Gia Sư</h2>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <h2 className="text-3xl font-bold tracking-tight text-slate-900">Quản lý Gia Sư</h2>
+        <div className="flex bg-slate-100 p-1 rounded-md shrink-0">
+          <button 
+            className={`px-4 py-2 text-sm font-medium rounded-sm transition-colors ${viewMode === 'current' ? 'bg-white shadow pointer-events-none' : 'text-slate-600 hover:text-slate-900'}`}
+            onClick={() => setViewMode('current')}
+          >
+            Đang hoạt động
+          </button>
+          <button 
+            className={`px-4 py-2 text-sm font-medium rounded-sm transition-colors ${viewMode === 'old' ? 'bg-white shadow pointer-events-none' : 'text-slate-600 hover:text-slate-900'}`}
+            onClick={() => setViewMode('old')}
+          >
+            Đã vô hiệu hóa
+          </button>
+        </div>
+      </div>
       
       <Card>
         <CardHeader>
@@ -121,19 +141,23 @@ export default function TutorsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tutors.map(t => (
+                {filteredTutors.map(t => (
                   <TableRow key={t.tutor_id}>
                     <TableCell className="font-medium">{t.name}</TableCell>
                     <TableCell>{t.phone}</TableCell>
-                    <TableCell>{t.status}</TableCell>
+                    <TableCell>
+                      {t.is_deleted ? <span className="text-red-500 font-medium">Đã vô hiệu hóa</span> : <span className="text-emerald-500 font-medium">Đang hoạt động ({t.status})</span>}
+                    </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="destructive" size="sm" onClick={() => handleDelete(t.tutor_id)}>
-                        Xóa
-                      </Button>
+                      {viewMode === 'current' && (
+                        <Button variant="destructive" size="sm" onClick={() => handleDelete(t.tutor_id)}>
+                          Vô hiệu hóa
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
-                {tutors.length === 0 && (
+                {filteredTutors.length === 0 && (
                   <TableRow>
                      <TableCell colSpan={4} className="text-center py-4">Chưa có dữ liệu</TableCell>
                   </TableRow>

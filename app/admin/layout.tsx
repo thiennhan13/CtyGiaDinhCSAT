@@ -8,7 +8,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/auth/signin');
+    redirect('/login');
   }
 
   const role = user.app_metadata?.role === 'admin' ? 'Quản trị viên' : 'Gia sư';
@@ -29,6 +29,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
         
         <nav className="flex-1 py-6 px-4 space-y-1 overflow-y-auto">
+          <Link href="/admin/dashboard" className="px-4 py-2.5 rounded-lg flex items-center gap-3 text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors">
+            <span className="w-2 h-2 rounded-full bg-slate-600"></span>
+            Trang chủ
+          </Link>
           <Link href="/admin/students" className="px-4 py-2.5 rounded-lg flex items-center gap-3 text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors">
             <span className="w-2 h-2 rounded-full bg-slate-600"></span>
             Học sinh - Học phí

@@ -1,5 +1,5 @@
 -- Supabase Database Schema for Công Ty Gia Đình (CSAT TUTOR)
--- Phiên bản hoàn thiện: Hỗ trợ Admin Role, RLS chặt chẽ và logic bù trừ phí
+-- Phiên bản hoàn thiện: Hỗ trợ Admin Role, RLS chặt chẽ, logic bù trừ phí CSAT và quản lý học phí
 
 -- 1. Khởi tạo Extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -25,8 +25,13 @@ EXCEPTION WHEN duplicate_object THEN null; END $$;
 CREATE TABLE IF NOT EXISTS students (
   student_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(255) NOT NULL,
+  age INTEGER,
+  province VARCHAR(100),
+  parent_phone VARCHAR(20),
+  facebook_link VARCHAR(255),
   status VARCHAR(255) DEFAULT 'Đang học',
   is_deleted BOOLEAN DEFAULT false,
+  default_tuition_fee DECIMAL(10,2) NOT NULL DEFAULT 100000.00,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -46,6 +51,7 @@ CREATE TABLE IF NOT EXISTS classes (
   tutor_id UUID REFERENCES tutors(tutor_id) ON DELETE SET NULL,
   name VARCHAR(255) NOT NULL,
   status VARCHAR(255) DEFAULT 'active',
+  csat_fee_per_session DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -67,6 +73,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
   status session_status DEFAULT 'scheduled',
+  csat_fee_snapshot DECIMAL(10,2), -- Chốt giá CSAT khi tạo buỏi học
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -76,6 +83,7 @@ CREATE TABLE IF NOT EXISTS session_attendance (
   session_id UUID REFERENCES sessions(session_id) ON DELETE CASCADE,
   student_id UUID REFERENCES students(student_id) ON DELETE CASCADE,
   status attendance_status NOT NULL,
+  tuition_fee_snapshot DECIMAL(10,2), -- Chốt giá học phí của học sinh tại thời điểm điểm danh
   note TEXT,
   UNIQUE(session_id, student_id)
 );
@@ -100,12 +108,6 @@ CREATE TABLE IF NOT EXISTS announcements (
   media_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
--- ==========================================
--- THIẾT LẬP ROLE ADMIN CHO USER CỤ THỂ (Dành cho SQL Editor)
--- ==========================================
--- Lệnh bên dưới dùng để gán quyền Admin cho UID của bạn:
--- UPDATE auth.users SET raw_app_meta_data = raw_app_meta_data || '{"role": "admin"}'::jsonb WHERE id = 'd27df8aa-e62c-4c8c-9f13-6f6295679010';
 
 -- ==========================================
 -- THIẾT LẬP BẢO MẬT (ROW LEVEL SECURITY)

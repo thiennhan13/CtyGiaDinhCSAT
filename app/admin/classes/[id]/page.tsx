@@ -16,6 +16,7 @@ export default function ClassDetailPage() {
   const [classInfo, setClassInfo] = useState<any>(null);
   const [studentsInClass, setStudentsInClass] = useState<any[]>([]);
   const [allStudents, setAllStudents] = useState<any[]>([]);
+  const [classSessions, setClassSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // assign student form
@@ -29,10 +30,6 @@ export default function ClassDetailPage() {
 
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchData();
-  }, [classId]);
-
   async function fetchData() {
     setLoading(true);
     const { data: cls } = await supabase.from('classes').select('*, tutors(name)').eq('class_id', classId).single();
@@ -44,8 +41,16 @@ export default function ClassDetailPage() {
     const { data: stds } = await supabase.from('students').select('*').eq('is_deleted', false);
     if (stds) setAllStudents(stds);
 
+    const { data: sessions } = await supabase.from('sessions').select('*').eq('class_id', classId).order('date', { ascending: false });
+    if (sessions) setClassSessions(sessions);
+
     setLoading(false);
   }
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classId]);
 
   async function handleAssignStudent(e: React.FormEvent) {
     e.preventDefault();
@@ -69,7 +74,13 @@ export default function ClassDetailPage() {
     if (!sessionDate || !startTime || !endTime) return;
 
     const { error } = await supabase.from('sessions').insert([
-       { class_id: classId, date: sessionDate, start_time: startTime, end_time: endTime }
+       { 
+         class_id: classId, 
+         date: sessionDate, 
+         start_time: startTime, 
+         end_time: endTime,
+         csat_fee_snapshot: classInfo?.csat_fee_per_session || 0
+       }
     ]);
     
     if (!error) {
@@ -77,6 +88,15 @@ export default function ClassDetailPage() {
        setSessionDate('');
     } else {
        alert("Lỗi: " + error.message);
+    }
+  }
+
+  async function handleCancelSession(sessionId: string) {
+    if (!confirm('Hủy buổi học này?')) return;
+    const { error } = await supabase.from('sessions').update({ status: 'cancelled' }).eq('session_id', sessionId);
+    if (!error) {
+       alert('Đã hủy buổi học');
+       fetchData();
     }
   }
 
@@ -121,10 +141,10 @@ export default function ClassDetailPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-t-4 border-t-amber-500">
            <CardHeader>
-             <CardTitle>Tạo Buổi Học Mới</CardTitle>
-             <CardDescription>Buổi học này sẽ tự động xuất hiện trên App của Gia sư.</CardDescription>
+             <CardTitle>Tạo Buổi Học Đột Xuất / Dạy Bù</CardTitle>
+             <CardDescription>Buổi học này sẽ ngay lập tức được thêm vào lịch của Gia sư.</CardDescription>
            </CardHeader>
            <CardContent>
              <form onSubmit={handleCreateSession} className="space-y-4">
@@ -178,6 +198,48 @@ export default function ClassDetailPage() {
                 )}
              </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Lịch Sử Buổi Học</CardTitle>
+          <CardDescription>Các buổi học được tạo thủ công hoặc tự động.</CardDescription>
+        </CardHeader>
+        <CardContent>
+           <Table>
+             <TableHeader>
+               <TableRow>
+                 <TableHead>Ngày</TableHead>
+                 <TableHead>Thời Gian</TableHead>
+                 <TableHead>Trạng Thái</TableHead>
+                 <TableHead className="text-right">Action</TableHead>
+               </TableRow>
+             </TableHeader>
+             <TableBody>
+                {classSessions.map(s => (
+                  <TableRow key={s.session_id}>
+                    <TableCell>{s.date}</TableCell>
+                    <TableCell>{s.start_time.substring(0,5)} - {s.end_time.substring(0,5)}</TableCell>
+                    <TableCell>
+                      {s.status === 'scheduled' && <span className="text-blue-500 font-medium">Sắp tới</span>}
+                      {s.status === 'completed' && <span className="text-green-500 font-medium">Đã dạy</span>}
+                      {s.status === 'cancelled' && <span className="text-red-500 font-medium">Đã hủy</span>}
+                    </TableCell>
+                    <TableCell className="text-right">
+                       {s.status === 'scheduled' && (
+                          <Button variant="destructive" size="sm" onClick={() => handleCancelSession(s.session_id)}>Hủy</Button>
+                       )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {classSessions.length === 0 && (
+                   <TableRow>
+                     <TableCell colSpan={4} className="text-center py-4">Chưa có buổi học nào</TableCell>
+                   </TableRow>
+                )}
+             </TableBody>
+           </Table>
         </CardContent>
       </Card>
     </div>

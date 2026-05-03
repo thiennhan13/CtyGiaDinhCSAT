@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/service';
 import { startOfMonth, subMonths, format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 
 export async function GET(request: Request) {
   // Check authorization for Vercel Cron
@@ -12,26 +13,28 @@ export async function GET(request: Request) {
 
   const supabase = createAdminClient();
   
-  // 1. Xác định billing_period là tháng vừa qua
-  // Currently we use Node date
-  const lastMonthDate = subMonths(new Date(), 1);
-  const startOfLastMonthStr = format(startOfMonth(lastMonthDate), 'yyyy-MM-dd');
-  // Simplistic last day
-  const endOfLastMonthStr = format(new Date(lastMonthDate.getFullYear(), lastMonthDate.getMonth() + 1, 0), 'yyyy-MM-dd');
+  // 1. Xác định billing_period là tháng vừa qua theo múi giờ GMT+7
+  const VN_TIMEZONE = 'Asia/Ho_Chi_Minh';
+  const nowInVnStr = formatInTimeZone(new Date(), VN_TIMEZONE, 'yyyy-MM-dd HH:mm:ss');
+  const todayVn = new Date(nowInVnStr);
+  const lastMonthDate = subMonths(todayVn, 1);
+
+  const startDateStr = format(startOfMonth(lastMonthDate), 'yyyy-MM-dd'); // 1st of last month
+  const endDateStr = format(startOfMonth(todayVn), 'yyyy-MM-dd'); // 1st of this month
   const billingPeriod = format(lastMonthDate, 'yyyy-MM'); // "2026-04"
 
-  console.log(`Bắt đầu quá trình chốt sổ tháng ${billingPeriod}`);
+  console.log(`Bắt đầu quá trình chốt sổ tháng ${billingPeriod} (Từ ${startDateStr} đến ${endDateStr})`);
 
   try {
-    // 2 & 3. Dùng RPC hoặc truy vấn thủ công. Vì không có RPC sẵn, ta truy vấn thông qua JS.
-    // Lấy tất cả session attendance trong tháng có status = 'attended'
+    // 2 & 3. Dùng RPC hoặc truy vấn thủ công.
+    // Lấy tất cả session attendance trong khoảng thời gian có status = 'attended'
     
-    // We get sessions from last month
     const { data: sessions, error: sessionErr } = await supabase
       .from('sessions')
       .select('session_id, class_id')
-      .gte('date', startOfLastMonthStr)
-      .lte('date', endOfLastMonthStr);
+      .gte('date', startDateStr)
+      .lte('date', endDateStr)
+      .eq('status', 'completed');
 
     if (sessionErr) throw sessionErr;
     if (!sessions || sessions.length === 0) {
@@ -40,10 +43,10 @@ export async function GET(request: Request) {
 
     const sessionIds = sessions.map(s => s.session_id);
 
-    // Lấy attendance cho các session này
+    // Lấy attendance cho các session này kèm theo tuition_fee_snapshot
     const { data: attendances, error: attErr } = await supabase
       .from('session_attendance')
-      .select('session_id, student_id, status')
+      .select('session_id, student_id, status, tuition_fee_snapshot')
       .in('session_id', sessionIds)
       .eq('status', 'attended');
 
@@ -55,37 +58,35 @@ export async function GET(request: Request) {
       sessionClassMap[s.session_id] = s.class_id;
     });
 
-    // Count attendances per student per class
-    // Key: "student_id|class_id" -> count
-    const studentClassCounts: Record<string, number> = {};
+    // Sum up the total fee per student per class based on snapshots
+    // Key: "student_id|class_id" -> totalAmount
+    const studentClassFees: Record<string, number> = {};
     
-    attendances?.forEach(att => {
-      const classId = sessionClassMap[att.session_id];
-      const key = `${att.student_id}|${classId}`;
-      studentClassCounts[key] = (studentClassCounts[key] || 0) + 1;
-    });
-
-    // Lấy thông tin tuition_fee_per_session từ class_students
+    // We also need to fetch fallback tuition fees in case snapshot is null (for backward compatibility)
     const { data: classStudents, error: csErr } = await supabase
       .from('class_students')
       .select('class_id, student_id, tuition_fee_per_session');
 
     if (csErr) throw csErr;
 
-    const feeMap: Record<string, number> = {};
+    const fallbackFeeMap: Record<string, number> = {};
     classStudents?.forEach(cs => {
       const key = `${cs.student_id}|${cs.class_id}`;
-      // ensuring numeric type
-      feeMap[key] = parseFloat(String(cs.tuition_fee_per_session)) || 0;
+      fallbackFeeMap[key] = parseFloat(String(cs.tuition_fee_per_session)) || 0;
+    });
+
+    attendances?.forEach(att => {
+      const classId = sessionClassMap[att.session_id];
+      const key = `${att.student_id}|${classId}`;
+      let fee = att.tuition_fee_snapshot != null ? parseFloat(String(att.tuition_fee_snapshot)) : fallbackFeeMap[key] || 0;
+      studentClassFees[key] = (studentClassFees[key] || 0) + fee;
     });
 
     const paymentsToInsert = [];
 
     // 4 & 5. Tạo payments
-    for (const [key, count] of Object.entries(studentClassCounts)) {
+    for (const [key, totalAmount] of Object.entries(studentClassFees)) {
       const [studentId, classId] = key.split('|');
-      const feePerSession = feeMap[key] || 0;
-      const totalAmount = count * feePerSession;
 
       if (totalAmount > 0) {
         paymentsToInsert.push({

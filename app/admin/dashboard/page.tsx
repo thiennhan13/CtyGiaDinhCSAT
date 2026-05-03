@@ -3,87 +3,36 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Video, Calendar as CalendarIcon, Clock, Link as LinkIcon, X, Plus } from 'lucide-react';
+import { ChevronRight, Video, Calendar as CalendarIcon, Clock, Link as LinkIcon, Plus, X } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
-import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { createClient } from '@/lib/supabase/client';
 
-export default function TutorDashboard() {
+export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [sessions, setSessions] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
-  const [myClasses, setMyClasses] = useState<any[]>([]);
-  
-  // Makeup Request Modal
-  const [isMakeupModalOpen, setIsMakeupModalOpen] = useState(false);
-  const [makeupClassId, setMakeupClassId] = useState('');
-  const [makeupDate, setMakeupDate] = useState('');
-  const [makeupStart, setMakeupStart] = useState('');
-  const [makeupEnd, setMakeupEnd] = useState('');
-  const [submittingMakeup, setSubmittingMakeup] = useState(false);
-
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
   const supabase = createClient();
-  const router = useRouter();
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '', link: '' });
 
   // Generate week days
   const start = startOfWeek(new Date(), { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(start, i));
 
   const fetchSessions = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: tutor } = await supabase.from('tutors').select('tutor_id').eq('auth_uid', user.id).single();
-      if (tutor) {
-        const { data: myClassesData } = await supabase.from('classes').select('*').eq('tutor_id', tutor.tutor_id);
-        if (myClassesData && myClassesData.length > 0) {
-          setMyClasses(myClassesData);
-          const classIds = myClassesData.map(c => c.class_id);
-          const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-          const { data: mySessions } = await supabase
-            .from('sessions')
-            .select('*, classes(name, class_id)')
-            .in('class_id', classIds)
-            .eq('date', formattedDate)
-            .order('start_time', { ascending: true });
-          
-          if (mySessions) setSessions(mySessions);
-          else setSessions([]);
-        }
-      }
-    }
-  };
-
-  const submitMakeupClass = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!makeupClassId || !makeupDate || !makeupStart || !makeupEnd) {
-      alert('Vui lòng điền đủ thông tin');
-      return;
-    }
-    setSubmittingMakeup(true);
-    try {
-      const res = await fetch('/api/tutor/makeup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          class_id: makeupClassId,
-          date: makeupDate,
-          start_time: makeupStart,
-          end_time: makeupEnd
-        })
-      });
-      if (!res.ok) throw new Error('Không thể gửi yêu cầu xin dạy bù.');
-      alert('Xin dạy bù thành công!');
-      setIsMakeupModalOpen(false);
-      fetchSessions();
-    } catch (e: any) {
-      alert(e.message);
-    } finally {
-      setSubmittingMakeup(false);
-    }
+    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+    const { data } = await supabase
+      .from('sessions')
+      .select('*, classes(name)')
+      .eq('date', formattedDate)
+      .order('start_time');
+      
+    if (data) setSessions(data);
   };
 
   const fetchAnnouncements = async () => {
@@ -96,23 +45,56 @@ export default function TutorDashboard() {
     if (data) setAnnouncements(data);
   };
 
+  const fetchStats = async () => {
+    // Current month string
+    const currentMonthStr = format(new Date(), 'yyyy-MM');
+    const { data } = await supabase.from('payments').select('amount').eq('status', 'paid').eq('billing_period', currentMonthStr);
+    if (data) {
+      const sum = data.reduce((acc, p) => acc + (p.amount || 0), 0);
+      setTotalRevenue(sum);
+    }
+  };
+
   useEffect(() => {
     fetchSessions();
     fetchAnnouncements();
+    fetchStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
+  const handleAddAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { error } = await supabase.from('announcements').insert([newAnnouncement]);
+    if (!error) {
+      setIsAnnouncementModalOpen(false);
+      setNewAnnouncement({ title: '', content: '', link: '' });
+      fetchAnnouncements();
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+         <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500">
+           <CardContent className="p-6">
+             <div className="flex items-center justify-between">
+               <div>
+                 <p className="text-sm font-medium text-slate-500 mb-1">Doanh thu đã thu ({format(new Date(), 'MM/yyyy')})</p>
+                 <h3 className="text-2xl font-bold text-slate-900">
+                   {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalRevenue)}
+                 </h3>
+               </div>
+               <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600">
+                 <span className="text-xl font-black">₫</span>
+               </div>
+             </div>
+           </CardContent>
+         </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Calendar & Lessons */}
       <div className="col-span-1 lg:col-span-2 space-y-6">
-        <div className="flex items-center justify-between">
-           <h2 className="text-2xl font-bold text-slate-800">Lịch Dạy</h2>
-           <Button onClick={() => setIsMakeupModalOpen(true)} className="gap-2">
-             <Plus className="w-4 h-4" /> Xin Dạy Bù / Tạo Lịch Tạm
-           </Button>
-        </div>
-
         <Card className="overflow-hidden border-0 shadow-sm border-t-2 border-indigo-500">
           <div className="bg-white px-6 py-4 flex items-center justify-between border-b">
             <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
@@ -153,7 +135,7 @@ export default function TutorDashboard() {
                </div>
              ) : (
                sessions.map((session, idx) => (
-                 <div key={idx} onClick={() => router.push(`/tutor/classes/${session.class_id}/session/${session.session_id}`)} className="flex bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer group">
+                 <div key={idx} className="flex bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer group">
                    <div className="w-24 bg-slate-50 border-r border-slate-100 flex flex-col items-center justify-center py-4 shrink-0 text-slate-500">
                      <span className="font-bold text-sm text-slate-700">{session.start_time?.substring(0,5)}</span>
                      <span className="text-[10px] my-0.5 text-slate-300">|</span>
@@ -182,7 +164,10 @@ export default function TutorDashboard() {
       <div className="col-span-1 space-y-6">
         <Card className="border-0 shadow-sm border-t-2 border-emerald-500">
            <CardHeader className="flex flex-row items-center justify-between pb-2">
-             <CardTitle className="text-lg font-bold text-slate-800">Thông báo từ TT</CardTitle>
+             <CardTitle className="text-lg font-bold text-slate-800">Thông báo mới nhất</CardTitle>
+             <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={() => setIsAnnouncementModalOpen(true)}>
+               <Plus className="w-3.5 h-3.5" /> Tạo mới
+             </Button>
            </CardHeader>
            <CardContent className="pt-2">
              <div className="space-y-4">
@@ -206,47 +191,32 @@ export default function TutorDashboard() {
         </Card>
       </div>
 
-      <Dialog open={isMakeupModalOpen} onOpenChange={setIsMakeupModalOpen}>
+      <Dialog open={isAnnouncementModalOpen} onOpenChange={setIsAnnouncementModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xin Dạy Bù / Tạo Lịch Tạm</DialogTitle>
-            <DialogDescription>
-              Tạo một buổi học đột xuất cho lớp học của bạn. Buổi học này sẽ báo trạng thái "Sắp diễn ra" ở Lịch dạy.
-            </DialogDescription>
+            <DialogTitle>Tạo thông báo mới</DialogTitle>
           </DialogHeader>
-          <form onSubmit={submitMakeupClass} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Chọn Lớp Học</Label>
-              <Select value={makeupClassId} onValueChange={(val) => val && setMakeupClassId(val)} required>
-                <SelectTrigger><SelectValue placeholder="-- Danh sách lớp phụ trách --" /></SelectTrigger>
-                <SelectContent>
-                  {myClasses.map(c => (
-                    <SelectItem key={c.class_id} value={c.class_id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Ngày dạy bù</Label>
-              <Input type="date" value={makeupDate} onChange={e => setMakeupDate(e.target.value)} required />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-               <div className="space-y-2">
-                 <Label>Bắt đầu (Ví dụ 19:00)</Label>
-                 <Input type="time" value={makeupStart} onChange={e => setMakeupStart(e.target.value)} required />
-               </div>
-               <div className="space-y-2">
-                 <Label>Kết thúc (Ví dụ 21:00)</Label>
-                 <Input type="time" value={makeupEnd} onChange={e => setMakeupEnd(e.target.value)} required />
-               </div>
-            </div>
-            <DialogFooter className="pt-2">
-               <Button type="button" variant="outline" onClick={() => setIsMakeupModalOpen(false)}>Hủy</Button>
-               <Button type="submit" disabled={submittingMakeup}>{submittingMakeup ? 'Đang gửi...' : 'Xác nhận tạo'}</Button>
-            </DialogFooter>
+          <form onSubmit={handleAddAnnouncement} className="space-y-4 py-4">
+             <div className="space-y-2">
+               <Label>Tiêu đề</Label>
+               <Input value={newAnnouncement.title} onChange={e => setNewAnnouncement(prev => ({...prev, title: e.target.value}))} required />
+             </div>
+             <div className="space-y-2">
+               <Label>Nội dung</Label>
+               <Textarea value={newAnnouncement.content} onChange={e => setNewAnnouncement(prev => ({...prev, content: e.target.value}))} rows={4} required />
+             </div>
+             <div className="space-y-2">
+               <Label>Đường Link (Google Meet, Tài liệu...)</Label>
+               <Input value={newAnnouncement.link} onChange={e => setNewAnnouncement(prev => ({...prev, link: e.target.value}))} placeholder="https://..." />
+             </div>
+             <DialogFooter className="pt-4">
+               <Button type="button" variant="outline" onClick={() => setIsAnnouncementModalOpen(false)}>Hủy</Button>
+               <Button type="submit">Gửi thông báo</Button>
+             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   );
 }

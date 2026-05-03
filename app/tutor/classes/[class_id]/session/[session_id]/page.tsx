@@ -22,10 +22,6 @@ export default function SessionAttendancePage() {
   const router = useRouter();
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchData();
-  }, [classId, sessionId]);
-
   async function fetchData() {
     setLoading(true);
     // 1. Fetch Session Info
@@ -56,6 +52,11 @@ export default function SessionAttendancePage() {
     }
     setLoading(false);
   }
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classId, sessionId]);
 
   function handleStatusToggle(studentId: string, status: 'attended' | 'absent') {
     setAttendance(prev => ({
@@ -105,6 +106,40 @@ export default function SessionAttendancePage() {
     setSubmitting(false);
   }
 
+  async function handleCancelSession() {
+    if (!confirm('Bạn có chắc chắn muốn hủy buổi học này? Việc này sẽ không được tính học phí.')) return;
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from('sessions').update({ status: 'cancelled' }).eq('session_id', sessionId);
+      if (error) throw error;
+      alert('Đã hủy buổi học thành công.');
+      router.push('/tutor/dashboard');
+    } catch(err: any) {
+      alert('Lỗi khi hủy buổi học: ' + err.message);
+    }
+    setSubmitting(false);
+  }
+
+  if (sessionData?.status === 'cancelled') {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+             <h2 className="text-2xl font-bold tracking-tight text-gray-900">Điểm Danh: {sessionData?.classes?.name}</h2>
+             <p className="text-gray-500">{sessionData?.date}</p>
+          </div>
+          <Button variant="outline" onClick={() => router.back()}>Quay lại</Button>
+        </div>
+        <Card className="bg-red-50 border-red-200">
+          <CardContent className="py-12 flex flex-col items-center justify-center text-red-600">
+            <h3 className="text-xl font-bold mb-2">Buổi học này đã bị hủy</h3>
+            <p>Học sinh được nghỉ và sẽ không tính học phí cho buổi này.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -118,7 +153,7 @@ export default function SessionAttendancePage() {
       <Card>
         <CardHeader>
           <CardTitle>Danh Sách Học Sinh</CardTitle>
-          <CardDescription>Chọn "Có mặt" hoặc "Vắng mặt" (Học phí chỉ tính khi Có mặt)</CardDescription>
+          <CardDescription>Chọn &quot;Có mặt&quot; hoặc &quot;Vắng mặt&quot; (Học phí chỉ tính khi Có mặt)</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? <p>Đang tải...</p> : (
@@ -152,9 +187,12 @@ export default function SessionAttendancePage() {
                  );
                })}
 
-               <div className="pt-6 border-t mt-4">
+               <div className="pt-6 border-t mt-4 flex gap-4">
                  <Button onClick={handleSave} disabled={submitting || students.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg">
                    {submitting ? 'Đang lưu...' : 'Chốt Điểm Danh (Lưu vĩnh viễn)'}
+                 </Button>
+                 <Button onClick={handleCancelSession} disabled={submitting} variant="destructive" className="h-12 px-8">
+                   Hủy buổi học
                  </Button>
                </div>
             </div>

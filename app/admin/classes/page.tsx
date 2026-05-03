@@ -11,82 +11,31 @@ import { createClient } from '@/lib/supabase/client';
 
 export default function ClassesPage() {
   const [classes, setClasses] = useState<any[]>([]);
-  const [tutors, setTutors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  const [name, setName] = useState('');
-  const [tutorId, setTutorId] = useState('');
   
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   async function fetchData() {
     setLoading(true);
-    const [{ data: cls }, { data: tuts }] = await Promise.all([
-      supabase.from('classes').select('*, tutors(name)').order('created_at', { ascending: false }),
-      supabase.from('tutors').select('*')
-    ]);
+    const { data: cls } = await supabase.from('classes').select('*, tutors(name)').order('created_at', { ascending: false });
     
     if (cls) setClasses(cls);
-    if (tuts) setTutors(tuts);
     setLoading(false);
   }
 
-  async function handleAddClass(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name || !tutorId) return;
-    
-    try {
-      const res = await fetch('/api/admin/classes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create', name, tutor_id: tutorId })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      setName('');
-      setTutorId('');
-      fetchData();
-    } catch (err: any) {
-      alert("Lỗi: " + err.message);
-    }
-  }
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold tracking-tight text-gray-900">Quản lý Lớp Học</h2>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Tạo Lớp Mới</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleAddClass} className="flex flex-col sm:flex-row gap-4">
-            <Input 
-              placeholder="Tên lớp..." 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              className="max-w-xs"
-              required 
-            />
-            <Select value={tutorId} onValueChange={(val) => setTutorId(val || '')} required>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Chọn Gia Sư" />
-              </SelectTrigger>
-              <SelectContent>
-                {tutors.map(t => (
-                  <SelectItem key={t.tutor_id} value={t.tutor_id}>{t.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button type="submit">Thêm Lớp</Button>
-          </form>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight text-gray-900">Quản lý Lớp Học</h2>
+        <Link href="/admin/classes/new">
+          <Button>+ Thêm Lớp Mới</Button>
+        </Link>
+      </div>
 
       <Card>
         <CardHeader>
