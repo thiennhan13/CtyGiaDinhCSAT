@@ -211,7 +211,7 @@ export default function TutorDashboard() {
           <DialogHeader>
             <DialogTitle>Xin Dạy Bù / Tạo Lịch Tạm</DialogTitle>
             <DialogDescription>
-              Tạo một buổi học đột xuất cho lớp học của bạn. Buổi học này sẽ báo trạng thái "Sắp diễn ra" ở Lịch dạy.
+              Tạo một buổi học đột xuất cho lớp học của bạn. Buổi học này sẽ báo trạng thái &quot;Sắp diễn ra&quot; ở Lịch dạy.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={submitMakeupClass} className="space-y-4">
