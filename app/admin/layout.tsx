@@ -11,7 +11,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/login');
   }
 
-  const role = user.app_metadata?.role === 'admin' ? 'Quản trị viên' : 'Gia sư';
+  const rawRole = user.app_metadata?.role || 'tutor';
+  const role = rawRole === 'admin' ? 'Admin' : 'Tutor';
   const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Người dùng';
   const initials = name.substring(0, 2).toUpperCase();
 
@@ -20,10 +21,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <aside className="w-full md:w-64 bg-slate-900 text-white flex flex-col shrink-0">
         <div className="p-6 border-b border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-xl">GĐ</div>
+            <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-xl text-white">CSAT</div>
             <div>
-              <h1 className="text-sm font-bold leading-tight uppercase">CÔNG TY GIA ĐÌNH</h1>
-              <p className="text-[10px] text-slate-400 tracking-widest uppercase">CSAT TUTOR MS</p>
+              <h1 className="text-sm font-bold leading-tight uppercase">Hệ Thống CSAT</h1>
+              <p className="text-[10px] text-slate-400 tracking-widest uppercase">Admin System</p>
             </div>
           </div>
         </div>

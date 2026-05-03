@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: 'My Google AI Studio App',
-  description: 'My Google AI Studio App',
+  title: 'CSAT Tutor',
+  description: 'Hệ thống Quản lý Gia sư CSAT',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {

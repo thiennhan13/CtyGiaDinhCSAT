@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Video, Calendar as CalendarIcon, Clock, Link as LinkIcon, X, Plus } from 'lucide-react';
-import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
+import { ChevronRight, ChevronLeft, Video, Calendar as CalendarIcon, Clock, Link as LinkIcon, X, Plus } from 'lucide-react';
+import { format, addDays, startOfWeek, isSameDay, subDays } from 'date-fns';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -30,8 +30,11 @@ export default function TutorDashboard() {
   const router = useRouter();
 
   // Generate week days
-  const start = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const start = startOfWeek(selectedDate, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(start, i));
+
+  const handlePrevWeek = () => setSelectedDate(subDays(selectedDate, 7));
+  const handleNextWeek = () => setSelectedDate(addDays(selectedDate, 7));
 
   const fetchSessions = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -115,12 +118,20 @@ export default function TutorDashboard() {
 
         <Card className="overflow-hidden border-0 shadow-sm border-t-2 border-indigo-500">
           <div className="bg-white px-6 py-4 flex items-center justify-between border-b">
-            <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5 text-indigo-500" />
-              {format(selectedDate, 'dd MMMM, yyyy')}
-            </h3>
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setSelectedDate(new Date())}>
-              <X className="w-4 h-4 text-slate-400" />
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={handlePrevWeek}>
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 px-2">
+                <CalendarIcon className="w-5 h-5 text-indigo-500" />
+                {format(start, 'MM/yyyy')}
+              </h3>
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleNextWeek}>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setSelectedDate(new Date())} title="Về hôm nay">
+              <Clock className="w-4 h-4 text-slate-400" />
             </Button>
           </div>
           

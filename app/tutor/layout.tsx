@@ -11,7 +11,8 @@ export default async function TutorLayout({ children }: { children: React.ReactN
     redirect('/login');
   }
 
-  const role = user.app_metadata?.role === 'admin' ? 'Quản trị viên' : 'Gia sư';
+  const rawRole = user.app_metadata?.role || 'tutor';
+  const role = rawRole === 'admin' ? 'Admin' : 'Tutor';
   const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Người dùng';
   const initials = name.substring(0, 2).toUpperCase();
 
@@ -19,9 +20,9 @@ export default async function TutorLayout({ children }: { children: React.ReactN
     <div className="flex min-h-screen w-full bg-slate-50 font-sans text-slate-800 flex-col">
       <header className="h-16 bg-slate-900 border-b border-slate-800 px-4 md:px-8 flex items-center justify-between shrink-0 sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-lg md:text-xl">GĐ</div>
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-lg md:text-xl">CSAT</div>
           <div>
-            <h1 className="text-sm font-bold leading-tight text-white uppercase">CÔNG TY GIA ĐÌNH</h1>
+            <h1 className="text-sm font-bold leading-tight text-white uppercase">Hệ Thống CSAT</h1>
             <p className="text-[10px] text-slate-400 tracking-widest uppercase truncate hidden sm:block">Gia Sư Portal</p>
           </div>
         </div>
