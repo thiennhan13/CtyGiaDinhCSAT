@@ -48,8 +48,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <main className="flex-1 flex flex-col min-w-0">
         <header className="h-16 bg-white border-b border-slate-200 px-4 md:px-8 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-4">
-            <h2 className="text-lg font-bold text-slate-800">Tổng quan hệ thống</h2>
-            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded uppercase">Hệ thống Sẵn sàng</span>
+            <div className="flex flex-col">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Phiên làm việc</span>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span className="text-sm font-bold text-slate-700">Đang trực tuyến</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-bold text-slate-900 leading-none" id="user-display-name">Admin Hệ Thống</p>
+              <p className="text-[10px] font-bold text-indigo-600 uppercase mt-1">Quản trị viên</p>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 font-bold">
+              AD
+            </div>
           </div>
         </header>
         <div className="p-4 md:p-8 flex-1 overflow-y-auto">
