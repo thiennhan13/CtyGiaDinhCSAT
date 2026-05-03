@@ -6,10 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { createClient } from '@/lib/supabase/client';
-import { format, subMonths } from 'date-fns';
+import { format, subMonths, startOfMonth } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function BillingPage() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -18,6 +21,12 @@ export default function BillingPage() {
   
   const [selectedPeriod, setSelectedPeriod] = useState(format(subMonths(new Date(), 1), 'yyyy-MM'));
   const [stats, setStats] = useState<any>(null);
+
+  // Billing Dialog state
+  const [isBillingDialogOpen, setIsBillingDialogOpen] = useState(false);
+  const [billingStartDate, setBillingStartDate] = useState(format(startOfMonth(subMonths(new Date(), 1)), 'yyyy-MM-dd'));
+  const [billingEndDate, setBillingEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [billingPeriodName, setBillingPeriodName] = useState(format(subMonths(new Date(), 1), 'yyyy-MM'));
   
   // Create last 6 months options
   const monthOptions = Array.from({ length: 6 }).map((_, i) => format(subMonths(new Date(), i), 'yyyy-MM'));
@@ -44,11 +53,11 @@ export default function BillingPage() {
         const res = await fetch(`/api/admin/billing/stats?period=${selectedPeriod}`);
         if (res.ok) {
           const sData = await res.json();
-          setStats(sData);
+          if (mounted) setStats(sData);
         }
       } catch (err) {}
       
-      setLoading(false);
+      if (mounted) setLoading(false);
     }
     loadData();
     return () => { mounted = false; };
@@ -62,15 +71,14 @@ export default function BillingPage() {
   }
 
   async function triggerBillingCron() {
-    if (!confirm('Hệ thống thường tự động chốt sổ vào mùng 1. Bạn có chắc muốn chạy thủ công tiến trình chốt sổ ngay bây giờ?')) return;
-    
     setGenerating(true);
     try {
-      const res = await fetch('/api/cron/generate-billing');
+      const res = await fetch(`/api/cron/generate-billing?startDate=${billingStartDate}&endDate=${billingEndDate}&billingPeriod=${billingPeriodName}`);
       const data = await res.json();
       alert(data.message || 'Xong');
       // Reload current period
-      setSelectedPeriod(format(subMonths(new Date(), 1), 'yyyy-MM')); // assuming it generated last month
+      setSelectedPeriod(billingPeriodName);
+      setIsBillingDialogOpen(false);
     } catch (e: any) {
       alert('Lỗi: ' + e.message);
     }
@@ -126,11 +134,56 @@ export default function BillingPage() {
                ))}
              </SelectContent>
            </Select>
-           <Button onClick={triggerBillingCron} disabled={generating} variant="secondary">
+           <Button onClick={() => setIsBillingDialogOpen(true)} disabled={generating} variant="secondary">
               {generating ? 'Đang chạy...' : 'Chạy Chốt Sổ Thủ Công'}
            </Button>
          </div>
       </div>
+
+      <Dialog open={isBillingDialogOpen} onOpenChange={setIsBillingDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Chốt sổ học phí thủ công</DialogTitle>
+            <DialogDescription>
+              Tùy chỉnh khoảng thời gian để hệ thống tính toán học phí. Mặc định là từ ngày 1 tháng trước tới hôm nay.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Tên kỳ hóa đơn (YYYY-MM)</Label>
+              <Input 
+                type="month" 
+                value={billingPeriodName} 
+                onChange={(e) => setBillingPeriodName(e.target.value)} 
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Từ ngày</Label>
+                <Input 
+                  type="date" 
+                  value={billingStartDate} 
+                  onChange={(e) => setBillingStartDate(e.target.value)} 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Đến ngày</Label>
+                <Input 
+                  type="date" 
+                  value={billingEndDate} 
+                  onChange={(e) => setBillingEndDate(e.target.value)} 
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsBillingDialogOpen(false)}>Hủy</Button>
+            <Button onClick={triggerBillingCron} disabled={generating}>
+              {generating ? 'Đang chạy...' : 'Bắt đầu chốt sổ'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-t-4 border-t-blue-500">

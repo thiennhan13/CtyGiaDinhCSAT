@@ -11,6 +11,8 @@ export async function GET(request: Request) {
     }
   }
 
+  const { searchParams } = new URL(request.url);
+
   const supabase = createAdminClient();
   
   // 1. Xác định billing_period là tháng vừa qua theo múi giờ GMT+7
@@ -19,9 +21,19 @@ export async function GET(request: Request) {
   const todayVn = new Date(nowInVnStr);
   const lastMonthDate = subMonths(todayVn, 1);
 
-  const startDateStr = format(startOfMonth(lastMonthDate), 'yyyy-MM-dd'); // 1st of last month
-  const endDateStr = format(startOfMonth(todayVn), 'yyyy-MM-dd'); // 1st of this month
-  const billingPeriod = format(lastMonthDate, 'yyyy-MM'); // "2026-04"
+  let startDateStr = searchParams.get('startDate');
+  let endDateStr = searchParams.get('endDate');
+  let billingPeriod = searchParams.get('billingPeriod');
+
+  if (!startDateStr) {
+    startDateStr = format(startOfMonth(lastMonthDate), 'yyyy-MM-dd'); // 1st of last month
+  }
+  if (!endDateStr) {
+    endDateStr = format(todayVn, 'yyyy-MM-dd'); // current date
+  }
+  if (!billingPeriod) {
+    billingPeriod = format(new Date(startDateStr), 'yyyy-MM'); // "2026-04"
+  }
 
   console.log(`Bắt đầu quá trình chốt sổ tháng ${billingPeriod} (Từ ${startDateStr} đến ${endDateStr})`);
 
