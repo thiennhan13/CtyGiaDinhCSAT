@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { createClient } from '@/lib/supabase/client';
 
 export default function DashboardPage() {
@@ -16,6 +17,8 @@ export default function DashboardPage() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showAllSchedules, setShowAllSchedules] = useState(true);
   const supabase = createClient();
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '', link: '' });
@@ -27,11 +30,15 @@ export default function DashboardPage() {
   const handlePrevWeek = () => setSelectedDate(subDays(selectedDate, 7));
   const handleNextWeek = () => setSelectedDate(addDays(selectedDate, 7));
 
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user));
+  }, []);
+
   const fetchSessions = async () => {
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
     const { data } = await supabase
       .from('sessions')
-      .select('*, classes(name)')
+      .select('*, classes(name, tutor_id, tutors(name, auth_uid))')
       .eq('date', formattedDate)
       .order('start_time');
       
@@ -99,7 +106,7 @@ export default function DashboardPage() {
       {/* Calendar & Lessons */}
       <div className="col-span-1 lg:col-span-2 space-y-6">
         <Card className="overflow-hidden border-0 shadow-sm border-t-2 border-indigo-500">
-          <div className="bg-white px-6 py-4 flex items-center justify-between border-b">
+          <div className="bg-white px-6 py-4 flex items-center justify-between border-b flex-wrap gap-4">
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" className="h-8 w-8" onClick={handlePrevWeek}>
                 <ChevronLeft className="w-4 h-4" />
@@ -112,9 +119,15 @@ export default function DashboardPage() {
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setSelectedDate(new Date())} title="Về hôm nay">
-              <Clock className="w-4 h-4 text-slate-400" />
-            </Button>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch id="show-all" checked={showAllSchedules} onCheckedChange={setShowAllSchedules} />
+                <Label htmlFor="show-all" className="text-sm font-medium cursor-pointer">Lịch tất cả mọi người</Label>
+              </div>
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setSelectedDate(new Date())} title="Về hôm nay">
+                <Clock className="w-4 h-4 text-slate-400" />
+              </Button>
+            </div>
           </div>
           
           <div className="grid grid-cols-7 border-b bg-slate-50">
@@ -139,33 +152,41 @@ export default function DashboardPage() {
           </div>
 
           <div className="bg-slate-50 p-4 lg:p-6 min-h-[300px] max-h-[500px] overflow-y-auto space-y-3">
-             {sessions.length === 0 ? (
+             {sessions
+               .filter(s => showAllSchedules || s.classes?.tutors?.auth_uid === currentUser?.id)
+               .length === 0 ? (
                <div className="h-full flex flex-col items-center justify-center text-slate-400 py-12">
                  <Clock className="w-12 h-12 mb-3 text-slate-300" />
                  <p className="text-sm font-medium">Không có ca dạy nào trong ngày này</p>
                </div>
              ) : (
-               sessions.map((session, idx) => (
-                 <div key={idx} className="flex bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer group">
-                   <div className="w-24 bg-slate-50 border-r border-slate-100 flex flex-col items-center justify-center py-4 shrink-0 text-slate-500">
-                     <span className="font-bold text-sm text-slate-700">{session.start_time?.substring(0,5)}</span>
-                     <span className="text-[10px] my-0.5 text-slate-300">|</span>
+               sessions
+                .filter(s => showAllSchedules || s.classes?.tutors?.auth_uid === currentUser?.id)
+                .map((session, idx) => {
+                 const isAdminSession = session.classes?.tutors?.auth_uid === currentUser?.id;
+                 return (
+                 <div key={idx} className={`flex rounded-xl shadow-sm border overflow-hidden transition-all cursor-pointer group ${isAdminSession ? 'bg-blue-50 border-blue-200 hover:border-blue-400' : 'bg-white border-slate-100 hover:border-indigo-200 hover:shadow-md'}`}>
+                   <div className={`w-24 border-r flex flex-col items-center justify-center py-4 shrink-0 ${isAdminSession ? 'bg-blue-100/50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
+                     <span className={`font-bold text-sm ${isAdminSession ? 'text-blue-800' : 'text-slate-700'}`}>{session.start_time?.substring(0,5)}</span>
+                     <span className={`text-[10px] my-0.5 ${isAdminSession ? 'text-blue-300' : 'text-slate-300'}`}>|</span>
                      <span className="font-bold text-sm">{session.end_time?.substring(0,5)}</span>
                    </div>
                    <div className="flex-1 p-4 flex flex-col justify-center">
-                     <h4 className="font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
+                     <h4 className={`font-bold mb-1 transition-colors ${isAdminSession ? 'text-blue-900 group-hover:text-blue-700' : 'text-slate-900 group-hover:text-indigo-600'}`}>
                        {session.classes?.name}
                      </h4>
-                     <div className="flex items-center gap-4 text-xs font-medium text-slate-500">
+                     <p className={`text-xs mb-2 ${isAdminSession ? 'text-blue-600' : 'text-slate-500'}`}>Gia sư: {session.classes?.tutors?.name || 'Chưa phân công'}</p>
+                     <div className={`flex items-center gap-4 text-xs font-medium ${isAdminSession ? 'text-blue-700' : 'text-slate-500'}`}>
                         <div className="flex items-center gap-1.5"><Video className="w-3.5 h-3.5" /> Trực tuyến</div>
-                        <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> {session.status === 'scheduled' ? 'Sắp diễn ra' : 'Đã hoàn thành'}</div>
+                        <div className="flex items-center gap-1.5"><span className={`w-1.5 h-1.5 rounded-full ${session.status === 'scheduled' ? 'bg-amber-500' : 'bg-emerald-500'}`}></span> {session.status === 'scheduled' ? 'Sắp diễn ra' : 'Đã hoàn thành'}</div>
                      </div>
                    </div>
-                   <div className="w-12 border-l border-slate-50 flex items-center justify-center bg-white group-hover:bg-indigo-50 transition-colors text-slate-400 group-hover:text-indigo-600">
+                   <div className={`w-12 border-l flex items-center justify-center transition-colors ${isAdminSession ? 'border-blue-200 bg-blue-50 group-hover:bg-blue-100 text-blue-500 group-hover:text-blue-700' : 'border-slate-50 bg-white group-hover:bg-indigo-50 text-slate-400 group-hover:text-indigo-600'}`}>
                      <ChevronRight className="w-5 h-5" />
                    </div>
                  </div>
-               ))
+                 );
+               })
              )}
           </div>
         </Card>

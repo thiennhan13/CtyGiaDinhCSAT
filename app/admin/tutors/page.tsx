@@ -14,7 +14,7 @@ export default function TutorsPage() {
   
   // form
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const supabase = createClient();
@@ -39,21 +39,21 @@ export default function TutorsPage() {
 
   async function handleAddTutor(e: React.FormEvent) {
     e.preventDefault();
-    if (!name || !phone) return;
+    if (!name || !email) return;
     setIsSubmitting(true);
     try {
       const res = await fetch('/api/admin/tutors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create', name, phone })
+        body: JSON.stringify({ action: 'create', name, email })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Có lỗi xảy ra');
       
       setName('');
-      setPhone('');
+      setEmail('');
       fetchTutors();
-      alert('Đã tạo tài khoản Gia sư. Mật khẩu mặc định là số điện thoại.');
+      alert('Đã tạo tài khoản Gia sư. Mật khẩu mặc định là 12345.');
     } catch (err: any) {
       alert("Lỗi: " + err.message);
     }
@@ -112,9 +112,9 @@ export default function TutorsPage() {
               required 
             />
             <Input 
-              placeholder="Số điện thoại..." 
-              value={phone} 
-              onChange={(e) => setPhone(e.target.value)} 
+              placeholder="Email..." 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
               className="max-w-xs"
               required 
             />
@@ -135,7 +135,7 @@ export default function TutorsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Tên Gia Sư</TableHead>
-                  <TableHead>SĐT</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Trạng Thái</TableHead>
                   <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>

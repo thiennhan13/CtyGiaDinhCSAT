@@ -17,20 +17,19 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { action, name, phone, tutor_id } = body;
+    const { action, name, email, tutor_id } = body;
     const adminClient = createAdminClient();
 
     // HÀNH ĐỘNG: TẠO MỚI GIA SƯ
     if (action === 'create') {
-      if (!name || !phone) {
-        return NextResponse.json({ error: 'Thiếu tên hoặc số điện thoại' }, { status: 400 });
+      if (!name || !email) {
+        return NextResponse.json({ error: 'Thiếu tên hoặc email' }, { status: 400 });
       }
 
-      // Bước A: Tạo tài khoản Auth cho Gia sư (Mật khẩu mặc định là số điện thoại)
-      // Lưu ý: Trong môi trường thật nên dùng password ngẫu nhiên và gửi mail
+      // Bước A: Tạo tài khoản Auth cho Gia sư (Mật khẩu mặc định là 12345)
       const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-        email: `${phone}@csattutor.com`, // Email giả lập từ SĐT
-        password: phone,
+        email: email, 
+        password: '12345',
         email_confirm: true,
         user_metadata: { name: name }
       });
@@ -38,12 +37,13 @@ export async function POST(request: Request) {
       if (authError) throw authError;
 
       // Bước B: Lưu vào bảng tutors trong DB
+      // Vì DB cũ đang dùng cột phone, ta truyền email vào cột phone để tránh phải alter table ngay lập tức
       const { data: tutorData, error: dbError } = await adminClient
         .from('tutors')
         .insert([{ 
           auth_uid: authData.user.id, 
           name, 
-          phone,
+          phone: email,
           status: 'active' 
         }])
         .select()
