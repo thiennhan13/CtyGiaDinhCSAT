@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS announcements (
 -- THIẾT LẬP ROLE ADMIN CHO USER CỤ THỂ (Dành cho SQL Editor)
 -- ==========================================
 -- Lệnh bên dưới dùng để gán quyền Admin cho UID của bạn:
--- UPDATE auth.users SET raw_app_metadata = raw_app_metadata || '{"role": "admin"}' WHERE id = 'd27df8aa-e62c-4c8c-9f13-6f6295679010';
+-- UPDATE auth.users SET raw_app_meta_data = raw_app_meta_data || '{"role": "admin"}'::jsonb WHERE id = 'd27df8aa-e62c-4c8c-9f13-6f6295679010';
 
 -- ==========================================
 -- THIẾT LẬP BẢO MẬT (ROW LEVEL SECURITY)
@@ -149,6 +149,37 @@ CREATE POLICY "Tutor_View_Assigned_Students" ON students FOR SELECT TO authentic
 );
 
 CREATE POLICY "Tutor_View_Self" ON tutors FOR SELECT TO authenticated USING (auth_uid = auth.uid());
+
+CREATE POLICY "Tutor_View_Assigned_Classes" ON classes FOR SELECT TO authenticated USING (
+  EXISTS (
+    SELECT 1 FROM tutors t 
+    WHERE t.tutor_id = classes.tutor_id AND t.auth_uid = auth.uid()
+  )
+);
+
+CREATE POLICY "Tutor_View_Class_Students" ON class_students FOR SELECT TO authenticated USING (
+  EXISTS (
+    SELECT 1 FROM classes c
+    JOIN tutors t ON c.tutor_id = t.tutor_id
+    WHERE c.class_id = class_students.class_id AND t.auth_uid = auth.uid()
+  )
+);
+
+CREATE POLICY "Tutor_View_Assigned_Sessions" ON sessions FOR SELECT TO authenticated USING (
+  EXISTS (
+    SELECT 1 FROM classes c
+    JOIN tutors t ON c.tutor_id = t.tutor_id
+    WHERE c.class_id = sessions.class_id AND t.auth_uid = auth.uid()
+  )
+);
+
+CREATE POLICY "Tutor_Update_Assigned_Sessions" ON sessions FOR UPDATE TO authenticated USING (
+  EXISTS (
+    SELECT 1 FROM classes c
+    JOIN tutors t ON c.tutor_id = t.tutor_id
+    WHERE c.class_id = sessions.class_id AND t.auth_uid = auth.uid()
+  )
+);
 
 CREATE POLICY "Tutor_Manage_Attendance" ON session_attendance FOR ALL TO authenticated USING (
   EXISTS (

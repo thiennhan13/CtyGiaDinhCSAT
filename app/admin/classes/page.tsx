@@ -27,7 +27,7 @@ export default function ClassesPage() {
     setLoading(true);
     const [{ data: cls }, { data: tuts }] = await Promise.all([
       supabase.from('classes').select('*, tutors(name)').order('created_at', { ascending: false }),
-      supabase.from('tutors').select('*').eq('is_deleted', false)
+      supabase.from('tutors').select('*')
     ]);
     
     if (cls) setClasses(cls);
