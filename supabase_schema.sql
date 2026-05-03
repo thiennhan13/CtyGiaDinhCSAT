@@ -1,5 +1,5 @@
 -- Supabase Database Schema for Công Ty Gia Đình (CSAT TUTOR)
--- Phiên bản hoàn thiện theo đặc tả dự án
+-- Phiên bản hoàn thiện: Hỗ trợ Admin Role, RLS chặt chẽ và logic bù trừ phí
 
 -- 1. Khởi tạo Extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -33,11 +33,10 @@ CREATE TABLE IF NOT EXISTS students (
 -- 4. Bảng: tutors (Gia sư)
 CREATE TABLE IF NOT EXISTS tutors (
   tutor_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  auth_uid UUID NOT NULL UNIQUE, -- Liên kết với auth.users
+  auth_uid UUID NOT NULL UNIQUE, -- Liên kết với auth.users(id)
   name VARCHAR(255) NOT NULL,
   phone VARCHAR(20),
   status VARCHAR(255) DEFAULT 'active',
-  is_deleted BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -54,7 +53,7 @@ CREATE TABLE IF NOT EXISTS classes (
 CREATE TABLE IF NOT EXISTS class_students (
   class_id UUID REFERENCES classes(class_id) ON DELETE CASCADE,
   student_id UUID REFERENCES students(student_id) ON DELETE CASCADE,
-  tuition_fee_per_session DECIMAL(10,2) NOT NULL DEFAULT 0.00, -- Phí riêng cho từng HS
+  tuition_fee_per_session DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   status class_student_status DEFAULT 'active',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (class_id, student_id)
@@ -77,8 +76,7 @@ CREATE TABLE IF NOT EXISTS session_attendance (
   session_id UUID REFERENCES sessions(session_id) ON DELETE CASCADE,
   student_id UUID REFERENCES students(student_id) ON DELETE CASCADE,
   status attendance_status NOT NULL,
-  notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  note TEXT,
   UNIQUE(session_id, student_id)
 );
 
@@ -87,7 +85,7 @@ CREATE TABLE IF NOT EXISTS payments (
   payment_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   student_id UUID REFERENCES students(student_id) ON DELETE SET NULL,
   class_id UUID REFERENCES classes(class_id) ON DELETE SET NULL,
-  billing_period VARCHAR(7) NOT NULL, -- Định dạng "YYYY-MM"
+  billing_period VARCHAR(7) NOT NULL, -- "YYYY-MM"
   amount DECIMAL(10,2) NOT NULL,
   status payment_status DEFAULT 'unpaid',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -100,15 +98,19 @@ CREATE TABLE IF NOT EXISTS announcements (
   content TEXT,
   link VARCHAR(255),
   media_url TEXT,
-  created_by UUID, -- Thường là admin UID
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- ==========================================
+-- THIẾT LẬP ROLE ADMIN CHO USER CỤ THỂ (Dành cho SQL Editor)
+-- ==========================================
+-- Lệnh bên dưới dùng để gán quyền Admin cho UID của bạn:
+-- UPDATE auth.users SET raw_app_metadata = raw_app_metadata || '{"role": "admin"}' WHERE id = 'd27df8aa-e62c-4c8c-9f13-6f6295679010';
 
 -- ==========================================
 -- THIẾT LẬP BẢO MẬT (ROW LEVEL SECURITY)
 -- ==========================================
 
--- Bật RLS cho tất cả các bảng
 ALTER TABLE students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tutors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
@@ -118,7 +120,7 @@ ALTER TABLE session_attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 
--- Helper Function: Kiểm tra user có phải Admin không (dựa trên app_metadata)
+-- Helper Function: Kiểm tra Admin thông qua JWT app_metadata
 CREATE OR REPLACE FUNCTION is_admin() 
 RETURNS BOOLEAN AS $$
 BEGIN
@@ -126,9 +128,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 1. Chính sách cho bảng students
-CREATE POLICY "Admin full access students" ON students FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Tutor view assigned students" ON students FOR SELECT TO authenticated USING (
+-- Policies: Admin có quyền tối cao (Toàn quyền)
+CREATE POLICY "Admin_Full_Students" ON students FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admin_Full_Tutors" ON tutors FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admin_Full_Classes" ON classes FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admin_Full_Class_Students" ON class_students FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admin_Full_Sessions" ON sessions FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admin_Full_Attendance" ON session_attendance FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admin_Full_Payments" ON payments FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admin_Full_Announcements" ON announcements FOR ALL TO authenticated USING (is_admin());
+
+-- Policies: Tutors (Chỉ xem và sửa dữ liệu liên quan)
+CREATE POLICY "Tutor_View_Assigned_Students" ON students FOR SELECT TO authenticated USING (
   EXISTS (
     SELECT 1 FROM class_students cs
     JOIN classes c ON cs.class_id = c.class_id
@@ -137,31 +148,9 @@ CREATE POLICY "Tutor view assigned students" ON students FOR SELECT TO authentic
   )
 );
 
--- 2. Chính sách cho bảng tutors
-CREATE POLICY "Admin full access tutors" ON tutors FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Tutors view self profile" ON tutors FOR SELECT TO authenticated USING (auth_uid = auth.uid());
+CREATE POLICY "Tutor_View_Self" ON tutors FOR SELECT TO authenticated USING (auth_uid = auth.uid());
 
--- 3. Chính sách cho bảng classes
-CREATE POLICY "Admin full access classes" ON classes FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Tutors view assigned classes" ON classes FOR SELECT TO authenticated USING (
-  tutor_id IN (SELECT tutor_id FROM tutors WHERE auth_uid = auth.uid())
-);
-
--- 4. Chính sách cho bảng class_students
-CREATE POLICY "Admin full access class_students" ON class_students FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Tutors view assigned class_students" ON class_students FOR SELECT TO authenticated USING (
-  class_id IN (SELECT class_id FROM classes WHERE tutor_id IN (SELECT tutor_id FROM tutors WHERE auth_uid = auth.uid()))
-);
-
--- 5. Chính sách cho bảng sessions
-CREATE POLICY "Admin full access sessions" ON sessions FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Tutors view assigned sessions" ON sessions FOR SELECT TO authenticated USING (
-  class_id IN (SELECT class_id FROM classes WHERE tutor_id IN (SELECT tutor_id FROM tutors WHERE auth_uid = auth.uid()))
-);
-
--- 6. Chính sách cho bảng session_attendance
-CREATE POLICY "Admin full access attendance" ON session_attendance FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Tutors manage assigned attendance" ON session_attendance FOR ALL TO authenticated USING (
+CREATE POLICY "Tutor_Manage_Attendance" ON session_attendance FOR ALL TO authenticated USING (
   EXISTS (
     SELECT 1 FROM sessions s
     JOIN classes c ON s.class_id = c.class_id
@@ -170,11 +159,4 @@ CREATE POLICY "Tutors manage assigned attendance" ON session_attendance FOR ALL 
   )
 );
 
--- 7. Chính sách cho bảng payments
-CREATE POLICY "Admin full access payments" ON payments FOR ALL TO authenticated USING (is_admin());
--- Phụ huynh/Gia sư không được xem bảng này (theo đặc tả admin_only)
-
--- 8. Chính sách cho bảng announcements
-CREATE POLICY "Anyone view announcements" ON announcements FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Admin manage announcements" ON announcements FOR ALL TO authenticated USING (is_admin());
-
+CREATE POLICY "Public_View_Announcements" ON announcements FOR SELECT TO authenticated USING (true);

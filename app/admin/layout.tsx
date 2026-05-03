@@ -1,8 +1,20 @@
 import Link from 'next/link';
-import { Users, GraduationCap, Calendar, Receipt, LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { LogOut } from 'lucide-react';
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/auth/signin');
+  }
+
+  const role = user.app_metadata?.role === 'admin' ? 'Quản trị viên' : 'Gia sư';
+  const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Người dùng';
+  const initials = name.substring(0, 2).toUpperCase();
+
   return (
     <div className="flex min-h-screen w-full bg-slate-50 font-sans text-slate-800 flex-col md:flex-row">
       <aside className="w-full md:w-64 bg-slate-900 text-white flex flex-col shrink-0">
@@ -59,11 +71,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-slate-900 leading-none" id="user-display-name">Admin Hệ Thống</p>
-              <p className="text-[10px] font-bold text-indigo-600 uppercase mt-1">Quản trị viên</p>
+              <p className="text-sm font-bold text-slate-900 leading-none">{name}</p>
+              <p className="text-[10px] font-bold text-indigo-600 uppercase mt-1">{role}</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 font-bold">
-              AD
+              {initials}
             </div>
           </div>
         </header>

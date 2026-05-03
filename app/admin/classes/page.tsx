@@ -39,13 +39,20 @@ export default function ClassesPage() {
     e.preventDefault();
     if (!name || !tutorId) return;
     
-    const { error } = await supabase.from('classes').insert([{ name, tutor_id: tutorId }]);
-    if (!error) {
+    try {
+      const res = await fetch('/api/admin/classes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', name, tutor_id: tutorId })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
       setName('');
       setTutorId('');
       fetchData();
-    } else {
-      alert("Lỗi: " + error.message);
+    } catch (err: any) {
+      alert("Lỗi: " + err.message);
     }
   }
 

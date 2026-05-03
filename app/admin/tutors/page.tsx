@@ -41,10 +41,10 @@ export default function TutorsPage() {
     if (!name || !phone) return;
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/admin/create-tutor', {
+      const res = await fetch('/api/admin/tutors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone })
+        body: JSON.stringify({ action: 'create', name, phone })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Có lỗi xảy ra');
@@ -61,8 +61,18 @@ export default function TutorsPage() {
 
   async function handleDelete(id: string) {
     if (!confirm('Xóa gia sư này?')) return;
-    const { error } = await supabase.from('tutors').update({ is_deleted: true }).eq('tutor_id', id);
-    if (!error) fetchTutors();
+    try {
+      const res = await fetch('/api/admin/tutors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', tutor_id: id })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Có lỗi xảy ra');
+      fetchTutors();
+    } catch (err: any) {
+      alert("Lỗi: " + err.message);
+    }
   }
 
   return (

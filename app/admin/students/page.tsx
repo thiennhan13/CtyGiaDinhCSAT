@@ -37,19 +37,36 @@ export default function StudentsPage() {
     e.preventDefault();
     if (!name) return;
     
-    const { error } = await supabase.from('students').insert([{ name }]);
-    if (!error) {
+    try {
+      const res = await fetch('/api/admin/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', name })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
       setName('');
       fetchStudents();
-    } else {
-      alert("Lỗi: " + error.message);
+    } catch (err: any) {
+      alert("Lỗi: " + err.message);
     }
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Xác nhận xóa học sinh?')) return;
-    const { error } = await supabase.from('students').update({ is_deleted: true }).eq('student_id', id);
-    if (!error) fetchStudents();
+    try {
+      const res = await fetch('/api/admin/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', student_id: id })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      fetchStudents();
+    } catch (err: any) {
+      alert("Lỗi: " + err.message);
+    }
   }
 
   return (
