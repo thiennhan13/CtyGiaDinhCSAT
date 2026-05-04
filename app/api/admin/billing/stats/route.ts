@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     // 1. Fetch completed sessions in the month
     const { data: sessions, error: sessionErr } = await supabase
       .from('sessions')
-      .select('session_id, class_id, csat_fee_snapshot, tutors(tutor_id, name), classes(name, csat_fee_per_session)')
+      .select('session_id, class_id, csat_fee_snapshot, classes(name, csat_fee_per_session, tutors(tutor_id, name))')
       .gte('date', startDateStr)
       .lt('date', endDateStr) // until 1st of next month
       .eq('status', 'completed');
@@ -49,7 +49,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ 
         totalStudentTuition: 0, 
         tutorSalaries: [], 
-        totalCenterRevenue: 0 
+        totalCenterRevenue: 0,
+        totalCsatRevenue: 0
       });
     }
 
@@ -87,9 +88,9 @@ export async function GET(request: Request) {
 
     sessions.forEach(session => {
       const classId = session.class_id;
-      const tutor = session.tutors as any;
       const cls = session.classes as any;
-      const tutorId = tutor?.tutor_id;
+      const tutor = cls?.tutors as any;
+      const tutorId = tutor?.tutor_id || 'unknown';
       
       const csatFee = session.csat_fee_snapshot != null ? parseFloat(String(session.csat_fee_snapshot)) : (cls?.csat_fee_per_session ? parseFloat(String(cls.csat_fee_per_session)) : 0);
       

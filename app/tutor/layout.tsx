@@ -3,6 +3,7 @@ import { LogOut } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Image from 'next/image';
+import csatLogo from '@/public/icon/favicon-32x32.png';
 
 export default async function TutorLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -22,7 +23,7 @@ export default async function TutorLayout({ children }: { children: React.ReactN
       <header className="h-16 bg-slate-900 border-b border-slate-800 px-4 md:px-8 flex items-center justify-between shrink-0 sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-lg md:text-xl relative overflow-hidden">
-             <Image src="/icon/favicon-32x32.png" alt="CSAT Logo" fill className="object-contain p-0.5" />
+             <Image src={csatLogo} alt="CSAT Logo" fill className="object-contain p-0.5" />
           </div>
           <div>
             <h1 className="text-sm font-bold leading-tight text-white uppercase">Hệ Thống CSAT</h1>

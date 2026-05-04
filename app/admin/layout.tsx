@@ -3,6 +3,7 @@ import { LogOut } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Image from 'next/image';
+import csatLogo from '@/public/icon/favicon-32x32.png';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -23,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="p-6 border-b border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-xl text-white relative overflow-hidden">
-              <Image src="/icon/favicon-32x32.png" alt="CSAT Logo" fill className="object-contain p-1" />
+              <Image src={csatLogo} alt="CSAT Logo" fill className="object-contain p-1" />
             </div>
             <div>
               <h1 className="text-sm font-bold leading-tight uppercase">Hệ Thống CSAT</h1>
