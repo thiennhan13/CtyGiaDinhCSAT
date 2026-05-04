@@ -34,7 +34,7 @@ export default function StudentsPage() {
   
   // Search & Filter
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('Tất cả');
+  const [statusFilter, setStatusFilter] = useState('Đang học');
 
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -417,7 +417,7 @@ export default function StudentsPage() {
           <DialogHeader>
             <DialogTitle>Xác nhận Xóa</DialogTitle>
             <DialogDescription>
-              Hành động này sẽ xóa học sinh <strong className="text-slate-900">{selectedStudent?.name}</strong>. Học sinh sẽ bị ẩn khỏi danh sách.
+              Hành động này sẽ xóa <strong>VĨNH VIỄN</strong> học sinh <strong className="text-slate-900">{selectedStudent?.name}</strong> cùng toàn bộ dữ liệu lịch sử điểm danh và học phí. Không thể khôi phục.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">

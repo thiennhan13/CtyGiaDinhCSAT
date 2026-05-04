@@ -20,7 +20,7 @@ export default function TutorDashboard() {
   const [tutorId, setTutorId] = useState<string | null>(null);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [myClasses, setMyClasses] = useState<any[]>([]);
-  const [lastMonthStats, setLastMonthStats] = useState({ sessionsCount: 0, earning: 0 });
+  const [currentMonthStats, setCurrentMonthStats] = useState({ sessionsCount: 0, earning: 0 });
   
   // Makeup Request Modal
   const [isMakeupModalOpen, setIsMakeupModalOpen] = useState(false);
@@ -67,7 +67,7 @@ export default function TutorDashboard() {
     if (classIds.length === 0) {
         classIds = await fetchTutorDataAndClasses();
         // Fetch stats here once we know classes
-        fetchLastMonthStats(classIds);
+        fetchCurrentMonthStats(classIds);
     }
     
     if (classIds.length === 0) {
@@ -140,15 +140,15 @@ export default function TutorDashboard() {
     if (data) setAnnouncements(data);
   };
 
-  const fetchLastMonthStats = async (classes: string[]) => {
+  const fetchCurrentMonthStats = async (classes: string[]) => {
     if (classes.length === 0) return;
     
     const today = new Date();
-    const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-    const lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+    const firstDayThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDayThisMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     
-    const startStr = format(firstDayLastMonth, 'yyyy-MM-dd');
-    const endStr = format(lastDayLastMonth, 'yyyy-MM-dd');
+    const startStr = format(firstDayThisMonth, 'yyyy-MM-dd');
+    const endStr = format(lastDayThisMonth, 'yyyy-MM-dd');
 
     const { data: sessionData } = await supabase
         .from('sessions')
@@ -197,7 +197,7 @@ export default function TutorDashboard() {
             }
         });
         
-        setLastMonthStats({ sessionsCount, earning: totalEarnings });
+        setCurrentMonthStats({ sessionsCount, earning: totalEarnings });
     }
   };
 
@@ -301,18 +301,18 @@ export default function TutorDashboard() {
 
       {/* Announcements */}
       <div className="col-span-1 space-y-6">
-        {/* Thu nhập tháng trước */}
+        {/* Thu nhập tháng này */}
         <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500 bg-white">
           <CardContent className="p-6">
-            <h3 className="text-sm font-semibold uppercase text-slate-500 tracking-wider mb-2">Thống Kê Tháng Trước ({format(subDays(new Date(), new Date().getDate()), 'MM/yyyy')})</h3>
+            <h3 className="text-sm font-semibold uppercase text-slate-500 tracking-wider mb-2">Thống Kê Tháng Hiện Tại ({format(new Date(), 'MM/yyyy')})</h3>
             <div className="space-y-4">
               <div>
                  <p className="text-sm text-slate-500 mb-1">Thu Nhập Ước Tính</p>
-                 <h2 className="text-3xl font-black text-slate-900">{new Intl.NumberFormat('vi-VN').format(lastMonthStats.earning)}đ</h2>
+                 <h2 className="text-3xl font-black text-slate-900">{new Intl.NumberFormat('vi-VN').format(currentMonthStats.earning)}đ</h2>
               </div>
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                  <p className="text-sm text-slate-500">Số buổi hoàn thành</p>
-                 <span className="font-bold text-slate-800">{lastMonthStats.sessionsCount} buổi</span>
+                 <span className="font-bold text-slate-800">{currentMonthStats.sessionsCount} buổi</span>
               </div>
             </div>
           </CardContent>

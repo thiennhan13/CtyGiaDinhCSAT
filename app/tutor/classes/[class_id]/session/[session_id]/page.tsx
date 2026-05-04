@@ -32,22 +32,27 @@ export default function SessionAttendancePage() {
     const { data: classStds } = await supabase.from('class_students').select('student_id, students(student_id, name)').eq('class_id', classId).eq('status', 'active');
     
     // 3. Fetch existing attendance for this session
-    const { data: existingAtt } = await supabase.from('session_attendance').select('*').eq('session_id', sessionId);
+    const { data: existingAtt } = await supabase.from('session_attendance').select('*, students(student_id, name)').eq('session_id', sessionId);
     
     if (classStds) {
-      const stdList = classStds.map(cs => cs.students);
-      setStudents(stdList || []);
+      const stdList: any[] = classStds.map(cs => Array.isArray(cs.students) ? cs.students[0] : cs.students).filter(Boolean);
       
       const attMap: any = {};
       if (existingAtt && existingAtt.length > 0) {
         existingAtt.forEach(a => {
           attMap[a.student_id] = { status: a.status, notes: a.notes || '' };
+          // Giữ lại học sinh cũ đã điểm danh nhưng hiện tại bị đuổi/khoá để không bị mất hiển thị
+          if (!stdList.find(s => s?.student_id === a.student_id) && a.students) {
+             const studentToAdd = Array.isArray(a.students) ? a.students[0] : a.students;
+             if (studentToAdd) stdList.push(studentToAdd);
+          }
         });
       } else {
         stdList.forEach((s: any) => {
-          attMap[s.student_id] = { status: 'attended', notes: '' }; // default attended
+          attMap[s?.student_id] = { status: 'attended', notes: '' }; // default attended
         });
       }
+      setStudents(stdList || []);
       setAttendance(attMap);
     }
     setLoading(false);

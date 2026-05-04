@@ -81,10 +81,15 @@ export async function POST(request: Request) {
     }
 
     if (parsed.data.action === 'delete') {
-      // Soft Delete: Không bao giờ dùng lệnh DELETE cho Học sinh và Gia sư. Thay vào đó, update trường is_deleted = true.
-      const { error } = await adminClient.from('students').update({ is_deleted: true }).eq('student_id', parsed.data.student_id);
+      const studentId = parsed.data.student_id;
+      // Hard Delete: Xóa liên kết trước để tránh lỗi Foreign Key
+      await adminClient.from('session_attendance').delete().eq('student_id', studentId);
+      await adminClient.from('class_students').delete().eq('student_id', studentId);
+      await adminClient.from('payments').delete().eq('student_id', studentId);
+      
+      const { error } = await adminClient.from('students').delete().eq('student_id', studentId);
       if (error) throw error;
-      return NextResponse.json({ message: 'Đã xóa học sinh tàng hình (soft delete)' });
+      return NextResponse.json({ message: 'Đã xóa hoàn toàn học sinh (hard delete)' });
     }
 
     return NextResponse.json({ error: 'Hành động không hợp lệ' }, { status: 400 });

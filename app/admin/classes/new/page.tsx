@@ -47,8 +47,8 @@ export default function NewClassPage() {
   useEffect(() => {
     async function fetchData() {
       const [{ data: tuts }, { data: stds }] = await Promise.all([
-        supabase.from('tutors').select('*'),
-        supabase.from('students').select('*')
+        supabase.from('tutors').select('*').eq('is_deleted', false),
+        supabase.from('students').select('*').eq('is_deleted', false)
       ]);
       if (tuts) setTutors(tuts);
       if (stds) setAllStudents(stds);
@@ -72,10 +72,6 @@ export default function NewClassPage() {
   };
 
   const addScheduleRow = () => {
-    if (schedules.length >= 3) {
-      alert("Bạn chỉ có thể tạo tối đa 3 lịch cố định 1 tuần.");
-      return;
-    }
     setSchedules([...schedules, { dayOfWeek: '1', startTime: '18:00', endTime: '19:30' }]);
   };
 
@@ -380,11 +376,9 @@ export default function NewClassPage() {
                 </div>
               ))}
 
-              {schedules.length < 3 && (
-                <Button variant="outline" type="button" onClick={addScheduleRow} className="w-full border-dashed border-2 py-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-colors">
-                  + Thêm Lịch Cố Định (Tối đa 3 buổi / tuần)
-                </Button>
-              )}
+              <Button variant="outline" type="button" onClick={addScheduleRow} className="w-full border-dashed border-2 py-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-colors">
+                + Thêm Lịch Cố Định
+              </Button>
             </div>
 
             <div className="flex justify-between pt-4 border-t">

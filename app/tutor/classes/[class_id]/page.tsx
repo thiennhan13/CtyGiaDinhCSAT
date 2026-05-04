@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Plus, Trash2, ArrowLeft, Calendar as CalendarIcon, User as UserIcon } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 
 export default function TutorClassDetailPage() {
@@ -27,6 +28,19 @@ export default function TutorClassDetailPage() {
   const [newSessionDate, setNewSessionDate] = useState('');
   const [newSessionStart, setNewSessionStart] = useState('18:00');
   const [newSessionEnd, setNewSessionEnd] = useState('19:30');
+
+  // bulk delete state
+  const [bulkDeleteSession, setBulkDeleteSession] = useState<any>(null);
+  const [bulkDelStart, setBulkDelStart] = useState('');
+  const [bulkDelEnd, setBulkDelEnd] = useState('');
+
+  // bulk add state
+  const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
+  const [bulkAddStart, setBulkAddStart] = useState('');
+  const [bulkAddEnd, setBulkAddEnd] = useState('');
+  const [bulkAddDay, setBulkAddDay] = useState('1'); 
+  const [bulkAddStartTime, setBulkAddStartTime] = useState('18:00');
+  const [bulkAddEndTime, setBulkAddEndTime] = useState('20:00');
 
   async function fetchClassDetails() {
     setLoading(true);
@@ -114,10 +128,126 @@ export default function TutorClassDetailPage() {
     }
   };
 
+  const openBulkDelete = (s: any) => {
+    setBulkDeleteSession(s);
+    setBulkDelStart(s.date);
+    setBulkDelEnd(s.date);
+  };
+
+  const handleBulkDelete = async () => {
+    if(!bulkDelStart || !bulkDelEnd || !bulkDeleteSession) return;
+    
+    const dDate = new Date(bulkDeleteSession.date);
+    const dayOfWeek = dDate.getDay();
+
+    const { data: toDelete } = await supabase.from('sessions')
+      .select('session_id, date')
+      .eq('class_id', classId)
+      .eq('start_time', bulkDeleteSession.start_time)
+      .eq('end_time', bulkDeleteSession.end_time)
+      .gte('date', bulkDelStart)
+      .lte('date', bulkDelEnd)
+      .eq('status', 'scheduled');
+
+    if(!toDelete || toDelete.length === 0) {
+      alert("Không tìm thấy buổi học nào phù hợp để xóa.");
+      return;
+    }
+    
+    const filteredToDelete = toDelete.filter(s => new Date(s.date).getDay() === dayOfWeek);
+
+    if(filteredToDelete.length === 0) {
+       alert("Không tìm thấy buổi học nào phù hợp để xóa.");
+       return;
+    }
+
+    if(!confirm(`Tìm thấy ${filteredToDelete.length} buổi học. Bạn có chắc muốn xóa tất cả?`)) return;
+
+    for(const s of filteredToDelete) {
+       await supabase.from('sessions').delete().eq('session_id', s.session_id);
+    }
+    alert("Đã xóa loạt buổi học.");
+    setBulkDeleteSession(null);
+    fetchClassDetails();
+  };
+
+  const handleBulkAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if(!bulkAddStart || !bulkAddEnd || !bulkAddStartTime || !bulkAddEndTime) return;
+    
+    const generatedSessions = [];
+    let curr = new Date(bulkAddStart);
+    const end = new Date(bulkAddEnd);
+
+    while(curr <= end) {
+       if(curr.getDay().toString() === bulkAddDay) {
+          generatedSessions.push({
+             class_id: classId,
+             date: format(curr, 'yyyy-MM-dd'),
+             start_time: bulkAddStartTime,
+             end_time: bulkAddEndTime,
+             csat_fee_snapshot: classData?.csat_fee_per_session || 0,
+             status: 'scheduled'
+          });
+       }
+       curr.setDate(curr.getDate() + 1);
+    }
+    
+    if(generatedSessions.length === 0) {
+       alert("Không có buổi học nào được tạo trong khoảng thời gian này.");
+       return;
+    }
+
+    const { error } = await supabase.from('sessions').insert(generatedSessions);
+    if(error) {
+       alert("Lỗi: " + error.message);
+    } else {
+       // if bulk end is greater than class end date, update class end date via API
+       if(new Date(bulkAddEnd) > new Date(classData.end_date)) {
+           try {
+             // Lấy thêm tutor_id cho endpoint renew
+             const { data: { user } } = await supabase.auth.getUser();
+             if (user) {
+                const { data: tutorData } = await supabase.from('tutors').select('tutor_id').eq('auth_uid', user.id).single();
+                if (tutorData) {
+                    await fetch('/api/tutor/classes/renew', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            class_id: classId,
+                            tutor_id: tutorData.tutor_id,
+                            new_end_date: bulkAddEnd
+                        })
+                    });
+                }
+             }
+           } catch (e) {
+               console.error('Failed to renew automatically', e);
+           }
+       }
+       alert(`Đã tạo thành công ${generatedSessions.length} buổi học.`);
+       setIsBulkAddOpen(false);
+       fetchClassDetails();
+    }
+  };
+
   if (loading) return <div className="p-8">Đang tải dữ liệu...</div>;
+
+  const isEndingOrEnded = classData && new Date(classData.end_date) <= new Date();
 
   return (
     <div className="space-y-6">
+      {isEndingOrEnded && (
+        <div className="bg-amber-100 border border-amber-400 text-amber-700 px-4 py-3 rounded-lg flex flex-col sm:flex-row justify-between items-center shadow-sm">
+           <div>
+             <strong className="font-bold">Nhắc nhở: </strong>
+             <span className="block sm:inline"> Lớp học này đã kết thúc thời gian dự kiến <strong>({format(new Date(classData.end_date), 'dd/MM/yyyy')})</strong>. Bạn có muốn gia hạn thêm?</span>
+             <br/>
+             <span className="text-sm opacity-80 mt-1 block">Bấm "Gia hạn" để tạo thêm lịch học các tuần tiếp theo. Hệ thống sẽ tự động cập nhật ngày kết thúc của lớp.</span>
+           </div>
+           <Button variant="outline" className="mt-3 sm:mt-0 border-amber-500 text-amber-700 bg-white hover:bg-amber-50 shrink-0" onClick={() => setIsBulkAddOpen(true)}>Gia hạn lớp học</Button>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" onClick={() => router.push('/tutor/classes')}><ArrowLeft className="h-4 w-4" /></Button>
@@ -159,23 +289,31 @@ export default function TutorClassDetailPage() {
          <Card>
            <CardHeader className="flex flex-row items-center justify-between pb-2">
              <CardTitle className="flex items-center gap-2"><CalendarIcon className="w-5 h-5 text-indigo-500"/>Lịch Dạy & Buổi Học</CardTitle>
-             <Button size="sm" onClick={() => setIsAddSessionModalOpen(true)}><Plus className="w-4 h-4 mr-1"/> Thêm Buổi Tăng Cường</Button>
+             <div className="flex gap-2">
+               <Button size="sm" onClick={() => setIsAddSessionModalOpen(true)}><Plus className="w-4 h-4 mr-1"/> Buổi lẻ</Button>
+               <Button size="sm" variant="outline" className="border-indigo-200 text-indigo-600" onClick={() => setIsBulkAddOpen(true)}><CalendarIcon className="w-4 h-4 mr-1" /> Thêm loạt</Button>
+             </div>
            </CardHeader>
            <CardContent>
                <div className="h-[400px] overflow-y-auto pr-2 space-y-3">
                    {sessions.map((sess) => (
-                       <div key={sess.session_id} className="flex items-center justify-between p-3 border rounded-lg">
+                       <div key={sess.session_id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg gap-2">
                            <div>
-                               <p className="font-semibold text-slate-800">{format(new Date(sess.date), 'dd/MM/yyyy')}</p>
+                               <p className="font-semibold text-slate-800">{format(new Date(sess.date), 'dd/MM/yyyy')} <span className="text-xs font-normal text-slate-500">(Thứ {new Date(sess.date).getDay() === 0 ? 'CN' : new Date(sess.date).getDay() + 1})</span></p>
                                <p className="text-sm text-slate-500">{sess.start_time.substring(0,5)} - {sess.end_time.substring(0,5)}</p>
                            </div>
-                           <div className="flex items-center gap-3">
+                           <div className="flex flex-wrap items-center gap-2">
                                <span className={`px-2 py-0.5 text-xs font-semibold rounded-sm ${sess.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
                                    {sess.status === 'completed' ? 'Đã dạy' : 'Chưa dạy'}
                                </span>
-                               <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700 h-8 w-8" onClick={() => handleDeleteSession(sess.session_id)} disabled={sess.status === 'completed'}>
-                                   <Trash2 className="w-4 h-4" />
-                               </Button>
+                               {sess.status === 'scheduled' && (
+                                   <>
+                                      <Button variant="outline" size="sm" className="h-8" onClick={() => openBulkDelete(sess)}>Xóa định kỳ</Button>
+                                      <Button variant="destructive" size="sm" className="h-8 w-8 p-0" title="Hủy 1 buổi" onClick={() => handleDeleteSession(sess.session_id)}>
+                                          <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                   </>
+                               )}
                            </div>
                        </div>
                    ))}
@@ -209,6 +347,92 @@ export default function TutorClassDetailPage() {
                <Button type="button" variant="outline" onClick={() => setIsAddSessionModalOpen(false)}>Hủy</Button>
                <Button type="submit">Lưu buổi học</Button>
             </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Delete Modal */}
+      <Dialog open={!!bulkDeleteSession} onOpenChange={(open) => !open && setBulkDeleteSession(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xóa Loạt Buổi Học Định Kỳ</DialogTitle>
+            <DialogDescription>
+              Xóa tất cả các buổi học <strong>{bulkDeleteSession?.start_time.substring(0,5)} - {bulkDeleteSession?.end_time.substring(0,5)}</strong> cùng <strong>Thứ {bulkDeleteSession && new Date(bulkDeleteSession.date).getDay() === 0 ? 'Chủ Nhật' : bulkDeleteSession && (new Date(bulkDeleteSession.date).getDay() + 1)}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4 mt-2">
+             <div className="grid grid-cols-2 gap-4">
+               <div>
+                 <label className="text-sm font-medium">Bắt đầu từ ngày</label>
+                 <Input type="date" value={bulkDelStart} onChange={(e) => setBulkDelStart(e.target.value)} />
+               </div>
+               <div>
+                 <label className="text-sm font-medium">Đến ngày</label>
+                 <Input type="date" value={bulkDelEnd} onChange={(e) => setBulkDelEnd(e.target.value)} />
+               </div>
+             </div>
+          </div>
+          <DialogFooter>
+             <Button variant="outline" onClick={() => setBulkDeleteSession(null)}>Hủy</Button>
+             <Button variant="destructive" onClick={handleBulkDelete}>Xóa {bulkDeleteSession && new Date(bulkDeleteSession.date).getDay() === 0 ? 'Chủ Nhật' : bulkDeleteSession && ('Thứ ' + (new Date(bulkDeleteSession.date).getDay() + 1))} định kỳ</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Bulk Add Modal */}
+      <Dialog open={isBulkAddOpen} onOpenChange={setIsBulkAddOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Thêm Loạt Buổi Học Định Kỳ</DialogTitle>
+            <DialogDescription>
+              Tạo hàng loạt buổi học theo lịch cố định hàng tuần.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleBulkAdd} className="space-y-4 py-4">
+             <div className="grid grid-cols-2 gap-4">
+               <div>
+                 <label className="text-sm font-medium">Từ ngày (Bắt đầu)</label>
+                 <Input type="date" value={bulkAddStart} onChange={(e) => setBulkAddStart(e.target.value)} required />
+               </div>
+               <div>
+                 <label className="text-sm font-medium">Đến ngày (Kết thúc)</label>
+                 <Input type="date" value={bulkAddEnd} onChange={(e) => setBulkAddEnd(e.target.value)} required />
+               </div>
+             </div>
+             
+             <div>
+               <label className="text-sm font-medium">Ngày Trong Tuần</label>
+               <Select value={bulkAddDay} onValueChange={(val) => setBulkAddDay(val || '1')}>
+                 <SelectTrigger>
+                   <SelectValue />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="1">Thứ Hai</SelectItem>
+                   <SelectItem value="2">Thứ Ba</SelectItem>
+                   <SelectItem value="3">Thứ Tư</SelectItem>
+                   <SelectItem value="4">Thứ Năm</SelectItem>
+                   <SelectItem value="5">Thứ Sáu</SelectItem>
+                   <SelectItem value="6">Thứ Bảy</SelectItem>
+                   <SelectItem value="0">Chủ Nhật</SelectItem>
+                 </SelectContent>
+               </Select>
+             </div>
+
+             <div className="grid grid-cols-2 gap-4">
+               <div>
+                 <label className="text-sm font-medium">Khung Giờ Bắt Đầu</label>
+                 <Input type="time" value={bulkAddStartTime} onChange={(e) => setBulkAddStartTime(e.target.value)} required />
+               </div>
+               <div>
+                 <label className="text-sm font-medium">Khung Giờ Kết Thúc</label>
+                 <Input type="time" value={bulkAddEndTime} onChange={(e) => setBulkAddEndTime(e.target.value)} required />
+               </div>
+             </div>
+             
+             <DialogFooter className="pt-4">
+                <Button type="button" variant="outline" onClick={() => setIsBulkAddOpen(false)}>Hủy</Button>
+                <Button type="submit">Tạo Lịch Định Kỳ</Button>
+             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
