@@ -73,7 +73,7 @@ export default function BillingPage() {
   async function triggerBillingCron() {
     setGenerating(true);
     try {
-      const res = await fetch(`/api/cron/generate-billing?startDate=${billingStartDate}&endDate=${billingEndDate}&billingPeriod=${billingPeriodName}`);
+      const res = await fetch(`/api/admin/billing/generate?startDate=${billingStartDate}&endDate=${billingEndDate}&billingPeriod=${billingPeriodName}`);
       const data = await res.json();
       alert(data.message || 'Xong');
       // Reload current period

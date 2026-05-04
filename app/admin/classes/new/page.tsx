@@ -30,6 +30,8 @@ export default function NewClassPage() {
   const [selectedStudents, setSelectedStudents] = useState<{ id: string, name: string, fee: number }[]>([]);
 
   // Step 2: Fixed Schedule
+  const [startDate, setStartDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [endDate, setEndDate] = useState<string>(format(addDays(new Date(), 30), 'yyyy-MM-dd'));
   const [schedules, setSchedules] = useState<{ dayOfWeek: string, startTime: string, endTime: string }[]>([]);
   
   const daysOfWeek = [
@@ -46,7 +48,7 @@ export default function NewClassPage() {
     async function fetchData() {
       const [{ data: tuts }, { data: stds }] = await Promise.all([
         supabase.from('tutors').select('*'),
-        supabase.from('students').select('*').eq('is_deleted', false)
+        supabase.from('students').select('*')
       ]);
       if (tuts) setTutors(tuts);
       if (stds) setAllStudents(stds);
@@ -80,8 +82,8 @@ export default function NewClassPage() {
   const updateSchedule = (index: number, field: string, value: string) => {
     const newSch = [...schedules];
     (newSch[index] as any)[field] = value;
-    if (field === 'startTime') {
-      // auto set end time (+1.5 hours)
+    if (field === 'startTime' && newSch[index].endTime === '19:30') {
+      // auto set end time (+1.5 hours) ONLY IF it hasn't been manually changed much
       const [h, m] = value.split(':').map(Number);
       const startD = new Date();
       startD.setHours(h, m, 0);
@@ -109,12 +111,10 @@ export default function NewClassPage() {
     
     // 1. Generate dates for current month based on selected days of week
     const generatedSessions: { date: string, start_time: string, end_time: string }[] = [];
-    const today = new Date();
-    // Default: generated until the end of next month
-    const endOfNextMonth = endOfMonth(addDays(today, 30));
+    let currentDate = new Date(startDate);
+    const endGenerationDate = new Date(endDate);
     
-    let currentDate = today;
-    while (currentDate <= endOfNextMonth) {
+    while (currentDate <= endGenerationDate) {
       const dayIndex = currentDate.getDay().toString(); // 0-6
       
       const foundSchedules = schedules.filter(s => s.dayOfWeek === dayIndex);
@@ -171,7 +171,9 @@ export default function NewClassPage() {
         .insert([{
            name: className,
            tutor_id: tutorId,
-           csat_fee_per_session: csatFee
+           csat_fee_per_session: csatFee,
+           start_date: startDate,
+           end_date: endDate
         }])
         .select()
         .single();
@@ -335,6 +337,17 @@ export default function NewClassPage() {
              <CardDescription>Thiết lập lịch dạy cố định hàng tuần. Hệ thống sẽ tự kiểm tra trùng lịch của Gia sư.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Bắt đầu học từ ngày</label>
+                <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Kết thúc ngày</label>
+                <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+              </div>
+            </div>
+
             <div className="space-y-4">
               {schedules.map((schedule, index) => (
                 <div key={index} className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
@@ -357,7 +370,7 @@ export default function NewClassPage() {
                   </div>
                   <div className="space-y-1.5 w-32">
                     <label className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Kết Thúc</label>
-                    <Input type="time" value={schedule.endTime} disabled className="bg-slate-100 text-slate-500 font-medium" />
+                    <Input type="time" value={schedule.endTime} onChange={(e) => updateSchedule(index, 'endTime', e.target.value)} className="bg-white" />
                   </div>
                   <div className="pt-6">
                     <Button variant="ghost" size="icon" onClick={() => removeSchedule(index)} className="text-red-500 hover:text-red-700 hover:bg-red-50">

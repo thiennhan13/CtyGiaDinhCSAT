@@ -1,12 +1,28 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { z } from 'zod';
+
+const querySchema = z.object({
+  period: z.string().regex(/^\d{4}-\d{2}$/, "Period must be YYYY-MM"),
+});
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const period = searchParams.get('period'); // "YYYY-MM"
-  if (!period) return NextResponse.json({ error: 'Missing period' }, { status: 400 });
-
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user || (user.app_metadata?.role !== 'admin' && user.user_metadata?.role !== 'admin')) {
+    return NextResponse.json({ error: 'Unauthorized.' }, { status: 403 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const periodParam = searchParams.get('period');
+  
+  const parsed = querySchema.safeParse({ period: periodParam });
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+  }
+
+  const period = parsed.data.period;
 
   // Parse period to dates
   const year = parseInt(period.split('-')[0], 10);

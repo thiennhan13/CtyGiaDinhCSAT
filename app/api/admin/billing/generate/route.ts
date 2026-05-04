@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/service';
+import { createClient } from '@/lib/supabase/server';
 import { startOfMonth, subMonths, format } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 
 export async function GET(request: Request) {
-  // Check authorization for Vercel Cron
-  if (process.env.CRON_SECRET) {
-    if (request.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  // Check authorization via Supabase Auth
+  const supabaseAuth = await createClient();
+  const { data: { user } } = await supabaseAuth.auth.getUser();
+
+  if (!user || (user.user_metadata?.role !== 'admin' && user.app_metadata?.role !== 'admin')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);

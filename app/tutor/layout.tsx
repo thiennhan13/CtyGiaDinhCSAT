@@ -28,6 +28,7 @@ export default async function TutorLayout({ children }: { children: React.ReactN
         </div>
         <div className="flex items-center gap-4 hidden md:flex">
              <Link href="/tutor/dashboard" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Trang chủ</Link>
+             <Link href="/tutor/classes" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Lớp giảng dạy</Link>
         </div>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">

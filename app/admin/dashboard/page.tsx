@@ -14,7 +14,9 @@ import { createClient } from '@/lib/supabase/client';
 
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [sessions, setSessions] = useState<any[]>([]);
+  const [sessionsByDate, setSessionsByDate] = useState<Record<string, any[]>>({});
+  const [currentMonthStr, setCurrentMonthStr] = useState('');
+  const [loadingSessions, setLoadingSessions] = useState(false);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -34,16 +36,37 @@ export default function DashboardPage() {
     supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user));
   }, []);
 
-  const fetchSessions = async () => {
-    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+  const fetchSessionsForMonth = async (date: Date) => {
+    const monthStr = format(date, 'yyyy-MM');
+    if (monthStr === currentMonthStr) return; // already fetched
+    
+    setLoadingSessions(true);
+    setCurrentMonthStr(monthStr);
+    
+    // Fetch from start of month - 7 days to end of month + 7 days to cover the fully visible weeks
+    const startStr = format(subDays(startOfWeek(new Date(date.getFullYear(), date.getMonth(), 1), { weekStartsOn: 1 }), 7), 'yyyy-MM-dd');
+    const endStr = format(addDays(new Date(date.getFullYear(), date.getMonth() + 1, 0), 7), 'yyyy-MM-dd');
+
     const { data } = await supabase
       .from('sessions')
       .select('*, classes(name, tutor_id, tutors(name, auth_uid))')
-      .eq('date', formattedDate)
+      .gte('date', startStr)
+      .lte('date', endStr)
       .order('start_time');
       
-    if (data) setSessions(data);
+    if (data) {
+      const grouped: Record<string, any[]> = {};
+      data.forEach(s => {
+        if (!grouped[s.date]) grouped[s.date] = [];
+        grouped[s.date].push(s);
+      });
+      setSessionsByDate(grouped);
+    }
+    setLoadingSessions(false);
   };
+  
+  const formattedSelectedDate = format(selectedDate, 'yyyy-MM-dd');
+  const sessionForSelected = sessionsByDate[formattedSelectedDate] || [];
 
   const fetchAnnouncements = async () => {
     const { data } = await supabase
@@ -66,11 +89,15 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    fetchSessions();
+    fetchSessionsForMonth(selectedDate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [format(selectedDate, 'yyyy-MM')]);
+
+  useEffect(() => {
     fetchAnnouncements();
     fetchStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, []);
 
   const handleAddAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,7 +179,11 @@ export default function DashboardPage() {
           </div>
 
           <div className="bg-slate-50 p-4 lg:p-6 min-h-[300px] max-h-[500px] overflow-y-auto space-y-3">
-             {sessions
+             {loadingSessions ? (
+                <div className="h-full flex flex-col items-center justify-center text-slate-400 py-12">
+                   Đang tải lịch...
+                </div>
+             ) : sessionForSelected
                .filter(s => showAllSchedules || s.classes?.tutors?.auth_uid === currentUser?.id)
                .length === 0 ? (
                <div className="h-full flex flex-col items-center justify-center text-slate-400 py-12">
@@ -160,7 +191,7 @@ export default function DashboardPage() {
                  <p className="text-sm font-medium">Không có ca dạy nào trong ngày này</p>
                </div>
              ) : (
-               sessions
+               sessionForSelected
                 .filter(s => showAllSchedules || s.classes?.tutors?.auth_uid === currentUser?.id)
                 .map((session, idx) => {
                  const isAdminSession = session.classes?.tutors?.auth_uid === currentUser?.id;

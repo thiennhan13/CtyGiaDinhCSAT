@@ -38,7 +38,7 @@ export default function ClassDetailPage() {
     const { data: classStds } = await supabase.from('class_students').select('*, students(name)').eq('class_id', classId);
     if (classStds) setStudentsInClass(classStds);
 
-    const { data: stds } = await supabase.from('students').select('*').eq('is_deleted', false);
+    const { data: stds } = await supabase.from('students').select('*');
     if (stds) setAllStudents(stds);
 
     const { data: sessions } = await supabase.from('sessions').select('*').eq('class_id', classId).order('date', { ascending: false });

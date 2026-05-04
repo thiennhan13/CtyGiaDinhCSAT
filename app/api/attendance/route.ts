@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/service';
 import { createClient } from '@/lib/supabase/server';
+import { z } from 'zod';
+
+const attendanceSchema = z.object({
+  sessionId: z.string().uuid("Session ID không hợp lệ"),
+  attendanceData: z.array(z.object({
+    session_id: z.string().uuid(),
+    student_id: z.string().uuid(),
+    status: z.enum(['attended', 'absent']),
+    notes: z.string().optional().nullable(),
+  })).min(1, "Không có dữ liệu điểm danh"),
+});
 
 export async function POST(request: Request) {
   try {
@@ -11,11 +22,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
     }
 
-    const { sessionId, attendanceData } = await request.json();
+    const body = await request.json();
+    const parsed = attendanceSchema.safeParse(body);
 
-    if (!sessionId || !attendanceData || !Array.isArray(attendanceData)) {
-      return NextResponse.json({ error: 'Invalid input.' }, { status: 400 });
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
     }
+
+    const { sessionId, attendanceData } = parsed.data;
 
     const adminClient = createAdminClient();
 

@@ -93,7 +93,7 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex flex-col text-sm text-gray-500 text-center">
           <p>Dành cho nội bộ Hệ Thống CSAT.</p>
-          <p>Đối với gia sư, sử dụng Email được cấp. Mật khẩu mặc định là 12345.</p>
+          <p>Đối với gia sư, sử dụng Email được cấp. Mật khẩu mặc định là số điện thoại.</p>
         </CardFooter>
       </Card>
     </div>

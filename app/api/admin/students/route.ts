@@ -1,6 +1,43 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/service';
 import { createClient } from '@/lib/supabase/server';
+import { z } from 'zod';
+
+const createStudentSchema = z.object({
+  action: z.literal('create'),
+  name: z.string().min(2, "Tên phải có ít nhất 2 ký tự"),
+  age: z.union([z.string(), z.number()]).transform(val => Number(val)),
+  province: z.string().min(2, "Vui lòng nhập tỉnh thành"),
+  contact_phone: z.string().optional(),
+  contact_link: z.string().optional(),
+  status: z.string().optional().default('Đang học'),
+  default_tuition_fee: z.union([z.string(), z.number()]).transform(val => Number(val)).optional().default(100000),
+  notes: z.string().optional(),
+});
+
+const updateStudentSchema = z.object({
+  action: z.literal('update'),
+  student_id: z.string().uuid("Student ID không hợp lệ"),
+  name: z.string().min(2).optional(),
+  age: z.union([z.string(), z.number()]).transform(val => Number(val)).optional(),
+  province: z.string().optional(),
+  contact_phone: z.string().optional(),
+  contact_link: z.string().optional(),
+  status: z.string().optional(),
+  default_tuition_fee: z.union([z.string(), z.number()]).transform(val => Number(val)).optional(),
+  notes: z.string().optional(),
+});
+
+const deleteStudentSchema = z.object({
+  action: z.literal('delete'),
+  student_id: z.string().uuid("Student ID không hợp lệ"),
+});
+
+const studentActionSchema = z.discriminatedUnion('action', [
+  createStudentSchema,
+  updateStudentSchema,
+  deleteStudentSchema
+]);
 
 export async function POST(request: Request) {
   try {
@@ -8,38 +45,46 @@ export async function POST(request: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     
     // Kiểm tra quyền Admin
-    if (!user || user.app_metadata?.role !== 'admin') {
+    if (!user || (user.app_metadata?.role !== 'admin' && user.user_metadata?.role !== 'admin')) {
       return NextResponse.json({ error: 'Quyền truy cập bị từ chối. Chỉ Admin mới có thể thực hiện.' }, { status: 403 });
     }
 
     const body = await request.json();
-    const { action, student_id, name, age, province, parent_phone, facebook_link, status, default_tuition_fee } = body;
+    const parsed = studentActionSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+    }
+
     const adminClient = createAdminClient();
 
-    if (action === 'create') {
-      if (!name || !age || !province || !parent_phone) return NextResponse.json({ error: 'Vui lòng điền đủ thông tin bắt buộc' }, { status: 400 });
+    if (parsed.data.action === 'create') {
       const { data, error } = await adminClient.from('students').insert([{ 
-        name, age: parseInt(age, 10), province, parent_phone, facebook_link, status: status || 'Đang học', default_tuition_fee: default_tuition_fee ? parseInt(default_tuition_fee, 10) : 100000
+        name: parsed.data.name, 
+        age: parsed.data.age, 
+        province: parsed.data.province, 
+        contact_phone: parsed.data.contact_phone, 
+        contact_link: parsed.data.contact_link, 
+        status: parsed.data.status, 
+        default_tuition_fee: parsed.data.default_tuition_fee, 
+        notes: parsed.data.notes
       }]).select().single();
       if (error) throw error;
       return NextResponse.json({ message: 'Thêm học sinh thành công', data });
     }
 
-    if (action === 'update') {
-      if (!student_id) return NextResponse.json({ error: 'Thiếu mã học sinh' }, { status: 400 });
-      const { data, error } = await adminClient.from('students').update({ 
-        name, age: age ? parseInt(age, 10) : null, province, parent_phone, facebook_link, status, default_tuition_fee: default_tuition_fee ? parseInt(default_tuition_fee, 10) : null
-      }).eq('student_id', student_id).select().single();
+    if (parsed.data.action === 'update') {
+      const { action, student_id, ...updateData } = parsed.data;
+      const { data, error } = await adminClient.from('students').update(updateData).eq('student_id', student_id).select().single();
       if (error) throw error;
       return NextResponse.json({ message: 'Cập nhật thành công', data });
     }
 
-    if (action === 'delete') {
-      if (!student_id) return NextResponse.json({ error: 'Thiếu mã học sinh' }, { status: 400 });
-      // Soft Delete
-      const { error } = await adminClient.from('students').update({ is_deleted: true, status: 'Đã nghỉ' }).eq('student_id', student_id);
+    if (parsed.data.action === 'delete') {
+      // Soft Delete: Không bao giờ dùng lệnh DELETE cho Học sinh và Gia sư. Thay vào đó, update trường is_deleted = true.
+      const { error } = await adminClient.from('students').update({ is_deleted: true }).eq('student_id', parsed.data.student_id);
       if (error) throw error;
-      return NextResponse.json({ message: 'Đã chuyển học sinh vào danh sách đã xóa/cũ' });
+      return NextResponse.json({ message: 'Đã xóa học sinh tàng hình (soft delete)' });
     }
 
     return NextResponse.json({ error: 'Hành động không hợp lệ' }, { status: 400 });

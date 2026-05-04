@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/service';
 import { createClient } from '@/lib/supabase/server';
+import { z } from 'zod';
+
+const makeupSchema = z.object({
+  class_id: z.string().uuid("Class ID không hợp lệ"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format date must be YYYY-MM-DD"),
+  start_time: z.string().regex(/^\d{2}:\d{2}$/, "Start time must be HH:MM"),
+  end_time: z.string().regex(/^\d{2}:\d{2}$/, "End time must be HH:MM"),
+});
 
 export async function POST(request: Request) {
   try {
@@ -11,11 +19,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { class_id, date, start_time, end_time } = await request.json();
+    const body = await request.json();
+    const parsed = makeupSchema.safeParse(body);
 
-    if (!class_id || !date || !start_time || !end_time) {
-      return NextResponse.json({ error: 'Vui lòng cung cấp đủ thông tin.' }, { status: 400 });
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
     }
+
+    const { class_id, date, start_time, end_time } = parsed.data;
 
     // Initialize Admin Supabase to bypass RLS for session insert
     // Or we could check if user has the right to this class, then insert using Admin Client
