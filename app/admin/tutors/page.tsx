@@ -27,6 +27,10 @@ export default function TutorsPage() {
       .neq('is_deleted', true)
       .order('created_at', { ascending: false });
     
+    if (error) {
+      console.error("Error fetching tutors:", error);
+    }
+    
     if (!error && data) {
       setTutors(data);
     }
@@ -34,6 +38,7 @@ export default function TutorsPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTutors();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

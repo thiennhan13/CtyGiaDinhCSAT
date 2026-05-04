@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS students (
   contact_phone VARCHAR(20),
   contact_link VARCHAR(255),
   status VARCHAR(255) DEFAULT 'Đang học',
+  is_deleted BOOLEAN DEFAULT false,
   notes TEXT,
   default_tuition_fee DECIMAL(10,2) NOT NULL DEFAULT 100000.00,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -42,6 +43,7 @@ CREATE TABLE IF NOT EXISTS tutors (
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255),
   status VARCHAR(255) DEFAULT 'active',
+  is_deleted BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

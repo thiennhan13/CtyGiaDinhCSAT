@@ -59,6 +59,10 @@ export default function StudentsPage() {
       .neq('is_deleted', true)
       .order('name', { ascending: true }); // Base order
     
+    if (error) {
+      console.error("Error fetching students:", error);
+    }
+    
     if (!error && data) {
       setStudents(data);
       setTotalStudents(data.length);

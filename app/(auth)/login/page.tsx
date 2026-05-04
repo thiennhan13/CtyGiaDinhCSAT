@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { AlertCircle } from 'lucide-react';
 
@@ -47,9 +48,12 @@ export default function LoginPage() {
   return (
     <div className="flex h-screen w-full items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md shadow-lg border-t-4 border-t-blue-600">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold tracking-tight">Đăng nhập</CardTitle>
-          <CardDescription>
+        <CardHeader className="space-y-1 flex flex-col items-center justify-center">
+          <div className="w-16 h-16 mb-2 relative">
+            <Image src="/icon/android-chrome-192x192.png" alt="CSAT Logo" fill className="object-contain" />
+          </div>
+          <CardTitle className="text-2xl font-bold tracking-tight text-center">Đăng nhập</CardTitle>
+          <CardDescription className="text-center">
             Hệ thống quản lý CSAT Tutor
           </CardDescription>
         </CardHeader>
