@@ -137,7 +137,12 @@ export default function TutorClassDetailPage() {
   const handleBulkDelete = async () => {
     if(!bulkDelStart || !bulkDelEnd || !bulkDeleteSession) return;
     
-    const dDate = new Date(bulkDeleteSession.date);
+    const parseLocalDate = (dateStr: string) => {
+      const [y, m, d] = dateStr.split('-');
+      return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    };
+
+    const dDate = parseLocalDate(bulkDeleteSession.date);
     const dayOfWeek = dDate.getDay();
 
     const { data: toDelete } = await supabase.from('sessions')
@@ -154,7 +159,7 @@ export default function TutorClassDetailPage() {
       return;
     }
     
-    const filteredToDelete = toDelete.filter(s => new Date(s.date).getDay() === dayOfWeek);
+    const filteredToDelete = toDelete.filter(s => parseLocalDate(s.date).getDay() === dayOfWeek);
 
     if(filteredToDelete.length === 0) {
        alert("Không tìm thấy buổi học nào phù hợp để xóa.");
@@ -357,7 +362,7 @@ export default function TutorClassDetailPage() {
           <DialogHeader>
             <DialogTitle>Xóa Loạt Buổi Học Định Kỳ</DialogTitle>
             <DialogDescription>
-              Xóa tất cả các buổi học <strong>{bulkDeleteSession?.start_time.substring(0,5)} - {bulkDeleteSession?.end_time.substring(0,5)}</strong> cùng <strong>Thứ {bulkDeleteSession && new Date(bulkDeleteSession.date).getDay() === 0 ? 'Chủ Nhật' : bulkDeleteSession && (new Date(bulkDeleteSession.date).getDay() + 1)}</strong>.
+              Xóa tất cả các buổi học <strong>{bulkDeleteSession?.start_time.substring(0,5)} - {bulkDeleteSession?.end_time.substring(0,5)}</strong> cùng <strong>Thứ {bulkDeleteSession && new Date(parseInt(bulkDeleteSession.date.split('-')[0]), parseInt(bulkDeleteSession.date.split('-')[1]) - 1, parseInt(bulkDeleteSession.date.split('-')[2])).getDay() === 0 ? 'Chủ Nhật' : bulkDeleteSession && (new Date(parseInt(bulkDeleteSession.date.split('-')[0]), parseInt(bulkDeleteSession.date.split('-')[1]) - 1, parseInt(bulkDeleteSession.date.split('-')[2])).getDay() + 1)}</strong>.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4 mt-2">
@@ -374,7 +379,7 @@ export default function TutorClassDetailPage() {
           </div>
           <DialogFooter>
              <Button variant="outline" onClick={() => setBulkDeleteSession(null)}>Hủy</Button>
-             <Button variant="destructive" onClick={handleBulkDelete}>Xóa {bulkDeleteSession && new Date(bulkDeleteSession.date).getDay() === 0 ? 'Chủ Nhật' : bulkDeleteSession && ('Thứ ' + (new Date(bulkDeleteSession.date).getDay() + 1))} định kỳ</Button>
+             <Button variant="destructive" onClick={handleBulkDelete}>Xóa {bulkDeleteSession && new Date(parseInt(bulkDeleteSession.date.split('-')[0]), parseInt(bulkDeleteSession.date.split('-')[1]) - 1, parseInt(bulkDeleteSession.date.split('-')[2])).getDay() === 0 ? 'Chủ Nhật' : bulkDeleteSession && ('Thứ ' + (new Date(parseInt(bulkDeleteSession.date.split('-')[0]), parseInt(bulkDeleteSession.date.split('-')[1]) - 1, parseInt(bulkDeleteSession.date.split('-')[2])).getDay() + 1))} định kỳ</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
