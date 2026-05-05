@@ -108,13 +108,17 @@ export async function GET(request: Request) {
         sessionTuition += fee;
       });
 
-      const tutorSessionSalary = sessionTuition - csatFee;
+      // Nếu không có học sinh nào đi học (sessionTuition = 0), không thu phí CSAT của trung tâm 
+      // để tránh âm lương gia sư.
+      const actualCsatFee = sessionTuition > 0 ? csatFee : 0;
+
+      const tutorSessionSalary = sessionTuition - actualCsatFee;
 
       totalStudentTuition += sessionTuition;
-      totalCsatRevenue += csatFee; // Center revenue per session
+      totalCsatRevenue += actualCsatFee; // Center revenue per session
       
       tutorStatsMap[tutorId].tuition_collected += sessionTuition;
-      tutorStatsMap[tutorId].csat_deducted += csatFee;
+      tutorStatsMap[tutorId].csat_deducted += actualCsatFee;
       tutorStatsMap[tutorId].salary += tutorSessionSalary;
       totalTutorSalary += tutorSessionSalary;
     });

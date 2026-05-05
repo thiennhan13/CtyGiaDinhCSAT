@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { createClient } from '@/lib/supabase/client';
 import { useParams } from 'next/navigation';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { Trash2 } from 'lucide-react';
 
 export default function ClassDetailPage() {
@@ -44,6 +44,8 @@ export default function ClassDetailPage() {
   const [bulkAddStartTime, setBulkAddStartTime] = useState('18:00');
   const [bulkAddEndTime, setBulkAddEndTime] = useState('20:00');
 
+  const [studentStatusFilter, setStudentStatusFilter] = useState('active');
+
   const supabase = createClient();
 
   async function fetchData() {
@@ -51,10 +53,10 @@ export default function ClassDetailPage() {
     const { data: cls } = await supabase.from('classes').select('*, tutors(name)').eq('class_id', classId).single();
     if (cls) setClassInfo(cls);
 
-    const { data: classStds } = await supabase.from('class_students').select('*, students(name)').eq('class_id', classId).eq('status', 'active');
+    const { data: classStds } = await supabase.from('class_students').select('*, students(name)').eq('class_id', classId);
     if (classStds) setStudentsInClass(classStds);
 
-    const { data: stds } = await supabase.from('students').select('*').eq('is_deleted', false);
+    const { data: stds } = await supabase.from('students').select('*').neq('is_deleted', true);
     if (stds) setAllStudents(stds);
 
     const { data: sessions } = await supabase.from('sessions').select('*').eq('class_id', classId).order('date', { ascending: false });
@@ -86,10 +88,10 @@ export default function ClassDetailPage() {
   }
 
   async function handleRemoveStudent(studentId: string) {
-    if (!confirm('Xóa học sinh này khỏi lớp?')) return;
-    const { error } = await supabase.from('class_students').update({ status: 'inactive' }).eq('class_id', classId).eq('student_id', studentId);
+    if (!confirm('Bạn có chắc chắn muốn cho học sinh này Dừng học (Đã nghỉ) tại lớp này không?\nHọc sinh sẽ không bị xóa khỏi hệ thống, nhưng sẽ không được điểm danh và không bị tính học phí cho các buổi học sau.')) return;
+    const { error } = await supabase.from('class_students').update({ status: 'dropped' }).eq('class_id', classId).eq('student_id', studentId);
     if (!error) {
-      alert('Đã xóa học sinh khỏi lớp');
+      alert('Đã cập nhật trạng thái học sinh thành Đã nghỉ');
       fetchData();
     } else {
       alert("Lỗi: " + error.message);
@@ -136,7 +138,12 @@ export default function ClassDetailPage() {
   const handleBulkDelete = async () => {
     if(!bulkDelStart || !bulkDelEnd || !bulkDeleteSession) return;
     
-    const dDate = new Date(bulkDeleteSession.date);
+    const parseLocalDate = (dateStr: string) => {
+      const [y, m, d] = dateStr.split('-');
+      return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    };
+
+    const dDate = parseLocalDate(bulkDeleteSession.date);
     const dayOfWeek = dDate.getDay();
 
     const { data: toDelete } = await supabase.from('sessions')
@@ -153,7 +160,7 @@ export default function ClassDetailPage() {
       return;
     }
     
-    const filteredToDelete = toDelete.filter(s => new Date(s.date).getDay() === dayOfWeek);
+    const filteredToDelete = toDelete.filter(s => parseLocalDate(s.date).getDay() === dayOfWeek);
 
     if(filteredToDelete.length === 0) {
        alert("Không tìm thấy buổi học nào phù hợp để xóa.");
@@ -170,13 +177,42 @@ export default function ClassDetailPage() {
     fetchData();
   };
 
+  const [isExtendOpen, setIsExtendOpen] = useState(false);
+  const [extendEndDate, setExtendEndDate] = useState<string>(format(addDays(new Date(), 30), 'yyyy-MM-dd'));
+
+  const handleExtend = async (e: React.FormEvent) => {
+     e.preventDefault();
+     if(!extendEndDate) return;
+     if(!confirm(`Gia hạn lớp học đến ngày ${extendEndDate} dựa trên lịch hiện tại?`)) return;
+
+     const res = await fetch('/api/admin/classes', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({ action: 'extend', class_id: classId, end_date: extendEndDate })
+     });
+     
+     const data = await res.json();
+     if (!res.ok) {
+       alert("Lỗi: " + data.error);
+     } else {
+       alert(data.message);
+       setIsExtendOpen(false);
+       fetchData();
+     }
+  };
+
   const handleBulkAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if(!bulkAddStart || !bulkAddEnd || !bulkAddStartTime || !bulkAddEndTime) return;
     
     const generatedSessions = [];
-    let curr = new Date(bulkAddStart);
-    const end = new Date(bulkAddEnd);
+    const parseLocalDate = (dateStr: string) => {
+      const [y, m, d] = dateStr.split('-');
+      return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    };
+
+    let curr = parseLocalDate(bulkAddStart);
+    const end = parseLocalDate(bulkAddEnd);
 
     while(curr <= end) {
        if(curr.getDay().toString() === bulkAddDay) {
@@ -269,9 +305,12 @@ export default function ClassDetailPage() {
                    <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} required />
                  </div>
                </div>
-               <div className="flex gap-2">
-                 <Button type="submit" variant="secondary" className="w-full">Tạo Buổi Lẻ</Button>
-                 <Button type="button" variant="outline" className="w-full" onClick={() => setIsBulkAddOpen(true)}>Thêm Loạt Buổi</Button>
+               <div className="flex flex-col gap-2">
+                 <div className="flex gap-2">
+                   <Button type="submit" variant="secondary" className="w-full">Tạo Buổi Lẻ</Button>
+                   <Button type="button" variant="outline" className="w-full" onClick={() => setIsExtendOpen(true)}>Gia hạn (theo ngày)</Button>
+                 </div>
+                 <Button type="button" variant="ghost" className="w-full text-xs" onClick={() => setIsBulkAddOpen(true)}>Thêm Loạt Buổi Nâng Cao</Button>
                </div>
              </form>
            </CardContent>
@@ -279,8 +318,20 @@ export default function ClassDetailPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Danh Sách Học Sinh Trong Lớp ({studentsInClass.length})</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <div className="space-y-1">
+            <CardTitle>Danh Sách Học Sinh Trong Lớp ({studentsInClass.filter(cs => studentStatusFilter === 'all' || cs.status === studentStatusFilter).length})</CardTitle>
+          </div>
+          <Select value={studentStatusFilter} onValueChange={(val) => setStudentStatusFilter(val || 'all')}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Lọc trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Đang học</SelectItem>
+              <SelectItem value="dropped">Đã nghỉ</SelectItem>
+              <SelectItem value="all">Tất cả</SelectItem>
+            </SelectContent>
+          </Select>
         </CardHeader>
         <CardContent>
           <Table>
@@ -294,20 +345,28 @@ export default function ClassDetailPage() {
                </TableRow>
              </TableHeader>
              <TableBody>
-                {studentsInClass.map(cs => (
+                {studentsInClass.filter(cs => studentStatusFilter === 'all' || cs.status === studentStatusFilter).map(cs => (
                   <TableRow key={cs.student_id}>
                      <TableCell className="font-mono text-xs">{cs.student_id.split('-')[0]}</TableCell>
                      <TableCell className="font-medium">{cs.students?.name}</TableCell>
                      <TableCell>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(cs.tuition_fee_per_session)}</TableCell>
-                     <TableCell>{cs.status}</TableCell>
+                     <TableCell>
+                       {cs.status === 'active' ? (
+                         <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-sm font-semibold">Đang học</span>
+                       ) : (
+                         <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-sm font-semibold">Đã nghỉ</span>
+                       )}
+                     </TableCell>
                      <TableCell className="text-right">
-                       <Button variant="ghost" size="sm" onClick={() => handleRemoveStudent(cs.student_id)} className="text-red-500 hover:text-red-700">
-                         <Trash2 className="w-4 h-4 mr-1" /> Xóa
-                       </Button>
+                       {cs.status === 'active' && (
+                         <Button variant="ghost" size="sm" onClick={() => handleRemoveStudent(cs.student_id)} className="text-amber-600 hover:text-amber-700 hover:bg-amber-50">
+                           <Trash2 className="w-4 h-4 mr-1" /> Dừng học
+                         </Button>
+                       )}
                      </TableCell>
                   </TableRow>
                 ))}
-                {studentsInClass.length === 0 && (
+                {studentsInClass.filter(cs => studentStatusFilter === 'all' || cs.status === studentStatusFilter).length === 0 && (
                    <TableRow>
                      <TableCell colSpan={5} className="text-center py-4">Lớp chưa có học sinh</TableCell>
                    </TableRow>
@@ -368,7 +427,7 @@ export default function ClassDetailPage() {
           <DialogHeader>
             <DialogTitle>Xóa Loạt Buổi Học</DialogTitle>
             <DialogDescription>
-              Xóa tất cả các buổi học <strong>{bulkDeleteSession?.start_time.substring(0,5)} - {bulkDeleteSession?.end_time.substring(0,5)}</strong> cùng <strong>Thứ {bulkDeleteSession && new Date(bulkDeleteSession.date).getDay() === 0 ? 'Chủ Nhật' : bulkDeleteSession && (new Date(bulkDeleteSession.date).getDay() + 1)}</strong> trong khoảng thời gian diễn ra từ:
+              Xóa tất cả các buổi học <strong>{bulkDeleteSession?.start_time.substring(0,5)} - {bulkDeleteSession?.end_time.substring(0,5)}</strong> cùng <strong>Thứ {bulkDeleteSession && new Date(parseInt(bulkDeleteSession.date.split('-')[0]), parseInt(bulkDeleteSession.date.split('-')[1]) - 1, parseInt(bulkDeleteSession.date.split('-')[2])).getDay() === 0 ? 'Chủ Nhật' : bulkDeleteSession && (new Date(parseInt(bulkDeleteSession.date.split('-')[0]), parseInt(bulkDeleteSession.date.split('-')[1]) - 1, parseInt(bulkDeleteSession.date.split('-')[2])).getDay() + 1)}</strong> trong khoảng thời gian diễn ra từ:
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4 mt-2">
@@ -387,6 +446,28 @@ export default function ClassDetailPage() {
              <Button variant="outline" onClick={() => setBulkDeleteSession(null)}>Đóng</Button>
              <Button variant="destructive" onClick={handleBulkDelete}>Xóa loạt ngay</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Extend Modal */}
+      <Dialog open={isExtendOpen} onOpenChange={setIsExtendOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Gia hạn khóa học</DialogTitle>
+            <DialogDescription>
+              Tự động sao chép lịch học (các thứ trong tuần) từ tuần học gần nhất để làm mẫu tạo buổi học mới, kéo dài đến ngày kết thúc đã chọn.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleExtend} className="space-y-4 py-4">
+             <div>
+               <label className="text-sm font-medium">Ngày kết thúc gia hạn</label>
+               <Input type="date" value={extendEndDate} onChange={(e) => setExtendEndDate(e.target.value)} required />
+             </div>
+             <DialogFooter className="pt-4">
+                <Button type="button" variant="outline" onClick={() => setIsExtendOpen(false)}>Hủy</Button>
+                <Button type="submit">Xác nhận</Button>
+             </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
       

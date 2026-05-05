@@ -411,18 +411,24 @@ export default function StudentsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Xóa cứng / Xóa mềm Modal */}
+      {/* Xóa cứng Modal */}
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xác nhận Xóa</DialogTitle>
-            <DialogDescription>
-              Hành động này sẽ xóa <strong>VĨNH VIỄN</strong> học sinh <strong className="text-slate-900">{selectedStudent?.name}</strong> cùng toàn bộ dữ liệu lịch sử điểm danh và học phí. Không thể khôi phục.
+            <DialogTitle className="text-red-600">CẢNH BÁO: XÓA HOÀN TOÀN (HARD DELETE)</DialogTitle>
+            <DialogDescription className="space-y-2 mt-2 text-slate-800">
+              <p>
+                Đây là hành động <strong>XÓA CỨNG</strong> và <strong>KHÔNG PHẢI TẠM DỪNG (SOFT DELETE)</strong>.
+              </p>
+              <p>
+                Hành động này sẽ xóa <strong>VĨNH VIỄN</strong> học sinh <strong className="text-slate-900">{selectedStudent?.name}</strong> cùng toàn bộ dữ liệu lịch sử điểm danh và học phí. Không thể khôi phục.
+              </p>
+              <p className="text-red-600 font-medium">Lưu ý: Chỉ sử dụng tính năng này khi tạo sai dữ liệu. Nếu học sinh nghỉ học, vui lòng đánh dấu Đã nghỉ (chuyển trạng thái) thay vì Xóa cứng.</p>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">
              <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Hủy</Button>
-             <Button variant="destructive" onClick={handleDeleteConfirm}>Xác nhận Xóa</Button>
+             <Button variant="destructive" onClick={handleDeleteConfirm}>Xác nhận Xóa Hoàn Toàn</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -47,8 +47,8 @@ export default function NewClassPage() {
   useEffect(() => {
     async function fetchData() {
       const [{ data: tuts }, { data: stds }] = await Promise.all([
-        supabase.from('tutors').select('*').eq('is_deleted', false),
-        supabase.from('students').select('*').eq('is_deleted', false)
+        supabase.from('tutors').select('*').neq('is_deleted', true),
+        supabase.from('students').select('*').neq('is_deleted', true)
       ]);
       if (tuts) setTutors(tuts);
       if (stds) setAllStudents(stds);
@@ -105,10 +105,16 @@ export default function NewClassPage() {
 
     setSubmitting(true);
     
-    // 1. Generate dates for current month based on selected days of week
+    // Ensure timezone-safe parsing: YYYY-MM-DD to local Midnight
+    const parseLocalDate = (dateStr: string) => {
+      const [y, m, d] = dateStr.split('-');
+      return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    };
+
+    // 1. Generate dates based on selected days of week
     const generatedSessions: { date: string, start_time: string, end_time: string }[] = [];
-    let currentDate = new Date(startDate);
-    const endGenerationDate = new Date(endDate);
+    let currentDate = parseLocalDate(startDate);
+    const endGenerationDate = parseLocalDate(endDate);
     
     while (currentDate <= endGenerationDate) {
       const dayIndex = currentDate.getDay().toString(); // 0-6

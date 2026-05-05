@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { createClient } from '@/lib/supabase/client';
-import { Search } from 'lucide-react';
+import { Search, Trash2, Archive } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function ClassesPage() {
@@ -33,6 +33,40 @@ export default function ClassesPage() {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function handleArchiveClass(classId: string) {
+    if (!confirm('Bạn có chắc chắn muốn ngừng dạy lớp này? Các lịch học sắp tới sẽ bị hủy và học sinh sẽ được đánh dấu đã nghỉ.')) return;
+    try {
+      const res = await fetch('/api/admin/classes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'archive', class_id: classId })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      alert('Đã ngừng dạy lớp thành công!');
+      fetchData();
+    } catch (err: any) {
+      alert("Lỗi: " + err.message);
+    }
+  }
+
+  async function handleDeleteClass(classId: string) {
+    if (!confirm('CẢNH BÁO: ĐÂY LÀ HÀNH ĐỘNG XÓA HOÀN TOÀN (HARD DELETE) KHÔNG THỂ KHÔI PHỤC.\n\nBạn có chắc chắn muốn xóa lớp này VĨNH VIỄN không?\nNếu bạn chỉ muốn dừng dạy lớp này, VUI LÒNG HỦY THAO TÁC NÀY và dùng nút "Dừng Dạy lớp này" (Icon Lưu trữ).\n\nViệc xóa cứng chỉ nên dùng khi lớp bị tạo sai.')) return;
+    try {
+      const res = await fetch('/api/admin/classes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'hard_delete', class_id: classId })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      alert('Đã xóa lớp thành công!');
+      fetchData();
+    } catch (err: any) {
+      alert("Lỗi: " + err.message);
+    }
+  }
 
   const filteredClasses = useMemo(() => {
     let result = classes;
@@ -131,10 +165,18 @@ export default function ClassesPage() {
                           {translateStatus(c.status)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right flex items-center justify-end gap-2">
                          <Link href={`/admin/classes/${c.class_id}`}>
                            <Button variant="outline" size="sm">Chi tiết</Button>
                          </Link>
+                         {c.status !== 'inactive' && (
+                           <Button variant="ghost" size="sm" onClick={() => handleArchiveClass(c.class_id)} title="Dừng dạy lớp này" className="text-amber-600 hover:text-amber-800 hover:bg-amber-50">
+                             <Archive className="h-4 w-4" />
+                           </Button>
+                         )}
+                         <Button variant="ghost" size="sm" onClick={() => handleDeleteClass(c.class_id)} title="Xóa cứng lớp này" className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                           <Trash2 className="h-4 w-4" />
+                         </Button>
                       </TableCell>
                     </TableRow>
                   ))
