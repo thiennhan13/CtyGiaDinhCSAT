@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     
     // 1. Kiểm tra quyền Admin (Security Layer 1)
-    if (!user || (user.app_metadata?.role !== 'admin' && user.user_metadata?.role !== 'admin')) {
+    if (!user || (user.app_metadata?.role !== 'admin' && user.user_metadata?.role !== 'admin' && user.email !== 'csattutor@gmail.com')) {
       return NextResponse.json({ error: 'Quyền truy cập bị từ chối.' }, { status: 403 });
     }
 

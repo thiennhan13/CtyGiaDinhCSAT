@@ -1,6 +1,18 @@
 -- Supabase Database Schema for Công Ty Gia Đình (CSAT TUTOR)
 -- Phiên bản hoàn thiện: Hỗ trợ Admin Role, RLS chặt chẽ, logic bù trừ phí CSAT và quản lý học phí
 
+-- ==========================================
+-- 0. XÓA BẢNG CŨ ĐỂ LÀM SẠCH DATABASE
+-- ==========================================
+DROP TABLE IF EXISTS announcements CASCADE;
+DROP TABLE IF EXISTS payments CASCADE;
+DROP TABLE IF EXISTS session_attendance CASCADE;
+DROP TABLE IF EXISTS sessions CASCADE;
+DROP TABLE IF EXISTS class_students CASCADE;
+DROP TABLE IF EXISTS classes CASCADE;
+DROP TABLE IF EXISTS tutors CASCADE;
+DROP TABLE IF EXISTS students CASCADE;
+
 -- 1. Khởi tạo Extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -136,11 +148,16 @@ ALTER TABLE session_attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 
--- Helper Function: Kiểm tra Admin thông qua JWT app_metadata
+-- Helper Function: Kiểm tra Admin thông qua JWT (hỗ trợ app_metadata, user_metadata và email csattutor@gmail.com)
 CREATE OR REPLACE FUNCTION is_admin() 
 RETURNS BOOLEAN AS $$
+DECLARE
+  user_email VARCHAR;
 BEGIN
-  RETURN (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin';
+  user_email := auth.jwt() ->> 'email';
+  RETURN (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+      OR (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+      OR user_email = 'csattutor@gmail.com';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -381,22 +398,87 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Hướng dẫn: Nếu database thực tế trên Supabase của bạn được tạo từ phiên bản cũ và thiếu cột,
 -- hãy copy toàn bộ đoạn mã SQL dưới đây và chạy trong SQL Editor của Supabase:
 
--- 1. Bổ sung cột email vào bảng tutors (Sửa lỗi thiếu cột email)
+-- 1. Viết lại hàm kiểm tra admin hỗ trợ cả user_metadata, app_metadata và email csattutor@gmail.com
+CREATE OR REPLACE FUNCTION is_admin() 
+RETURNS BOOLEAN AS $$
+DECLARE
+  user_email VARCHAR;
+BEGIN
+  user_email := auth.jwt() ->> 'email';
+  RETURN (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+      OR (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+      OR user_email = 'csattutor@gmail.com';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 2. Bổ sung cột email vào bảng tutors (Sửa lỗi thiếu cột email)
 ALTER TABLE public.tutors 
 ADD COLUMN IF NOT EXISTS email VARCHAR(255);
 
--- 2. Bổ sung cột billing_period và csat_fee_snapshot vào bảng sessions
+-- 3. Bổ sung cột billing_period và csat_fee_snapshot vào bảng sessions
 ALTER TABLE public.sessions 
 ADD COLUMN IF NOT EXISTS billing_period VARCHAR(255),
 ADD COLUMN IF NOT EXISTS csat_fee_snapshot DECIMAL(10,2);
 
--- 3. Bổ sung cột tuition_fee_snapshot vào bảng session_attendance
+-- 4. Bổ sung cột tuition_fee_snapshot vào bảng session_attendance
 ALTER TABLE public.session_attendance 
 ADD COLUMN IF NOT EXISTS tuition_fee_snapshot DECIMAL(10,2);
 
--- 4. Khắc phục lỗi Permission Denied (42501) - Cấp quyền đầy đủ cho các bảng hiện có
+-- 5. Khắc phục lỗi Permission Denied (42501) - Cấp quyền đầy đủ cho các bảng hiện có
 GRANT USAGE ON SCHEMA public TO postgres, service_role, authenticated, anon;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres, service_role, authenticated, anon;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO postgres, service_role, authenticated, anon;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO postgres, service_role, authenticated, anon;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres, service_role, authenticated, anon;
+
+-- ==========================================
+-- 6. TẠO TÀI KHOẢN ADMIN MẶC ĐỊNH (csattutor@gmail.com)
+-- ==========================================
+-- Mật khẩu mặc định sẽ là: csattutor123
+DO $$
+DECLARE
+  v_user_id UUID;
+BEGIN
+  -- Kiểm tra xem user csattutor@gmail.com đã tồn tại trong hệ thống Auth chưa
+  SELECT id INTO v_user_id FROM auth.users WHERE email = 'csattutor@gmail.com' LIMIT 1;
+  
+  -- Nếu chưa tồn tại, tạo mới
+  IF v_user_id IS NULL THEN
+    v_user_id := uuid_generate_v4();
+    
+    -- 1. Thêm vào bảng auth.users
+    INSERT INTO auth.users (
+      instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, 
+      raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+      confirmation_token, email_change, email_change_token_new, recovery_token
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000', v_user_id, 'authenticated', 'authenticated', 'csattutor@gmail.com', 
+      crypt('csattutor123', gen_salt('bf')), -- Mật khẩu mặc định
+      current_timestamp, 
+      '{"provider":"email","providers":["email"],"role":"admin"}', 
+      '{"name":"Admin CSAT","role":"admin"}', 
+      current_timestamp, current_timestamp,
+      '', '', '', ''
+    );
+    
+    -- 2. Thêm vào bảng auth.identities (Bắt buộc cho Supabase)
+    INSERT INTO auth.identities (
+      id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at
+    ) VALUES (
+      uuid_generate_v4(), v_user_id, v_user_id::text, format('{"sub":"%s","email":"%s"}', v_user_id::text, 'csattutor@gmail.com')::jsonb, 'email', current_timestamp, current_timestamp, current_timestamp
+    );
+  ELSE
+    -- Nếu đã tồn tại, đảm bảo set lại role admin
+    UPDATE auth.users 
+    SET raw_app_meta_data = '{"provider":"email","providers":["email"],"role":"admin"}',
+        raw_user_meta_data = '{"name":"Admin CSAT","role":"admin"}'
+    WHERE id = v_user_id;
+  END IF;
+
+  -- 3. Đưa tài khoản này vào bảng tutors (Gia sư) để có thể hiển thị trên giao diện
+  IF NOT EXISTS (SELECT 1 FROM public.tutors WHERE auth_uid = v_user_id) THEN
+    INSERT INTO public.tutors (auth_uid, name, email, status)
+    VALUES (v_user_id, 'Admin CSAT', 'csattutor@gmail.com', 'active');
+  END IF;
+  
+END $$;

@@ -12,8 +12,8 @@ export async function GET(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user || (user.app_metadata?.role !== 'admin' && user.user_metadata?.role !== 'admin')) {
-    return NextResponse.json({ error: 'Unauthorized.' }, { status: 403 });
+  if (!user || (user.app_metadata?.role !== 'admin' && user.user_metadata?.role !== 'admin' && user.email !== 'csattutor@gmail.com')) {
+    return NextResponse.json({ error: 'Quyền truy cập bị từ chối' }, { status: 403 });
   }
 
   const { searchParams } = new URL(request.url);

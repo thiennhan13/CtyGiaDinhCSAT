@@ -9,8 +9,8 @@ export async function GET(request: Request) {
   const supabaseAuth = await createClient();
   const { data: { user } } = await supabaseAuth.auth.getUser();
 
-  if (!user || (user.user_metadata?.role !== 'admin' && user.app_metadata?.role !== 'admin')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user || (user.user_metadata?.role !== 'admin' && user.app_metadata?.role !== 'admin' && user.email !== 'csattutor@gmail.com')) {
+    return NextResponse.json({ error: 'Quyền truy cập bị từ chối' }, { status: 403 });
   }
 
   const { searchParams } = new URL(request.url);

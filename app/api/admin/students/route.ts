@@ -45,8 +45,8 @@ export async function POST(request: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     
     // Kiểm tra quyền Admin
-    if (!user || (user.app_metadata?.role !== 'admin' && user.user_metadata?.role !== 'admin')) {
-      return NextResponse.json({ error: 'Quyền truy cập bị từ chối. Chỉ Admin mới có thể thực hiện.' }, { status: 403 });
+    if (!user || (user.app_metadata?.role !== 'admin' && user.user_metadata?.role !== 'admin' && user.email !== 'csattutor@gmail.com')) {
+      return NextResponse.json({ error: 'Quyền truy cập bị từ chối.' }, { status: 403 });
     }
 
     const body = await request.json();
