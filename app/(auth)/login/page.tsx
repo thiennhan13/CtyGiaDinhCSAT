@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -48,6 +49,9 @@ export default function LoginPage() {
     <div className="flex h-screen w-full items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md shadow-lg border-t-4 border-t-blue-600">
         <CardHeader className="space-y-1">
+          <div className="flex justify-center mb-2">
+            <Image src="/icon/android-chrome-192x192.png" alt="CSAT Logo" width={64} height={64} className="rounded-xl shadow-sm" unoptimized />
+          </div>
           <CardTitle className="text-2xl font-bold tracking-tight text-center">Đăng nhập</CardTitle>
           <CardDescription className="text-center">
             Hệ thống quản lý CSAT Tutor

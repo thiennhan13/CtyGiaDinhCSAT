@@ -9,7 +9,13 @@ export const metadata: Metadata = {
   title: 'CSAT Tutor',
   description: 'Hệ thống Quản lý Gia sư CSAT',
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/icon/favicon.ico' },
+      { url: '/icon/favicon-32x32.png', sizes: '32x32', type: 'image/png' }
+    ],
+    apple: [
+      { url: '/icon/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' }
+    ]
   },
 };
 

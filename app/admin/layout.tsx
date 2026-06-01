@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { LogOut } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
@@ -21,7 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <aside className="w-full md:w-64 bg-slate-900 text-white flex flex-col shrink-0">
         <div className="p-6 border-b border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-xl text-white">CSAT</div>
+            <Image src="/icon/favicon-32x32.png" alt="CSAT Logo" width={32} height={32} className="w-10 h-10 rounded-lg bg-white" unoptimized />
             <div>
               <h1 className="text-sm font-bold leading-tight uppercase">Hệ Thống CSAT</h1>
               <p className="text-[10px] text-slate-400 tracking-widest uppercase">Admin System</p>
