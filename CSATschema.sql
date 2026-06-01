@@ -114,6 +114,15 @@ CREATE TABLE IF NOT EXISTS announcements (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 11. Chỉ mục (Indexes) để tối ưu hoá hiệu năng truy vấn
+CREATE INDEX IF NOT EXISTS idx_classes_tutor_id ON public.classes(tutor_id);
+CREATE INDEX IF NOT EXISTS idx_class_students_student_id ON public.class_students(student_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_class_id ON public.sessions(class_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_date ON public.sessions(date);
+CREATE INDEX IF NOT EXISTS idx_session_attendance_student_id ON public.session_attendance(student_id);
+CREATE INDEX IF NOT EXISTS idx_payments_student_id ON public.payments(student_id);
+CREATE INDEX IF NOT EXISTS idx_payments_billing_period ON public.payments(billing_period);
+
 -- ==========================================
 -- THIẾT LẬP BẢO MẬT (ROW LEVEL SECURITY)
 -- ==========================================
@@ -199,21 +208,16 @@ CREATE POLICY "Tutor_Manage_Attendance" ON session_attendance FOR ALL TO authent
 
 CREATE POLICY "Public_View_Announcements" ON announcements FOR SELECT TO authenticated USING (true);
 
--- 1. Cấp quyền cho service_role (Dùng cho Backend API)
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO service_role;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO service_role;
+-- 1. Cấp quyền sử dụng schema public cho tất cả các vai trò kết nối
+GRANT USAGE ON SCHEMA public TO postgres, service_role, authenticated, anon;
 
--- 2. Cấp quyền cho authenticated (Dùng cho User/Tutor/Admin đã đăng nhập trên Client)
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO authenticated;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+-- 2. Cấp quyền thao tác chi tiết trên toàn bộ các bảng hiện có trong schema public
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres, service_role, authenticated, anon;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO postgres, service_role, authenticated, anon;
 
--- 3. Cấp quyền cho anon (Dùng cho User chưa đăng nhập)
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO anon;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO anon;
-
--- 4. Set mặc định: Các bảng tạo mới trong tương lai cũng sẽ tự động được cấp quyền này
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO postgres, anon, authenticated, service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres, anon, authenticated, service_role;
+-- 3. Cấu hình mặc định: Các bảng và sequence tạo mới trong tương lai sẽ tự động được cấp quyền này
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO postgres, service_role, authenticated, anon;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres, service_role, authenticated, anon;
 
 -- 1. Xóa tất cả policies cũ để dọn dẹp (Tránh xung đột)
 DO $$ 
@@ -389,3 +393,10 @@ ADD COLUMN IF NOT EXISTS csat_fee_snapshot DECIMAL(10,2);
 -- 3. Bổ sung cột tuition_fee_snapshot vào bảng session_attendance
 ALTER TABLE public.session_attendance 
 ADD COLUMN IF NOT EXISTS tuition_fee_snapshot DECIMAL(10,2);
+
+-- 4. Khắc phục lỗi Permission Denied (42501) - Cấp quyền đầy đủ cho các bảng hiện có
+GRANT USAGE ON SCHEMA public TO postgres, service_role, authenticated, anon;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres, service_role, authenticated, anon;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO postgres, service_role, authenticated, anon;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO postgres, service_role, authenticated, anon;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres, service_role, authenticated, anon;
