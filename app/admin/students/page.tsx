@@ -73,6 +73,7 @@ export default function StudentsPage() {
 
     const { data, count, error } = await query
       .order('name', { ascending: true })
+      .order('student_id', { ascending: true })
       .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
     
     if (error) {

@@ -41,6 +41,7 @@ export default function ClassesPage() {
 
     const { data, count, error } = await query
       .order('created_at', { ascending: false })
+      .order('class_id', { ascending: true })
       .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
     
     if (!error && data) {

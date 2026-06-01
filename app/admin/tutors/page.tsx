@@ -32,6 +32,7 @@ export default function TutorsPage() {
       .select('*', { count: 'exact' })
       .neq('is_deleted', true)
       .order('created_at', { ascending: false })
+      .order('tutor_id', { ascending: true })
       .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
     
     if (error) {
