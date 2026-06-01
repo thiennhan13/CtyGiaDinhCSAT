@@ -3,7 +3,9 @@ import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
 
 const querySchema = z.object({
-  period: z.string().regex(/^\d{4}-\d{2}$/, "Period must be YYYY-MM"),
+  billingPeriod: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
 });
 
 export async function GET(request: Request) {
@@ -15,33 +17,27 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const periodParam = searchParams.get('period');
-  
-  const parsed = querySchema.safeParse({ period: periodParam });
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
-  }
-
-  const period = parsed.data.period;
-
-  // Parse period to dates
-  const year = parseInt(period.split('-')[0], 10);
-  const month = parseInt(period.split('-')[1], 10);
-  
-  // start is "YYYY-MM-01"
-  const startDateStr = `${period}-01`;
-  const nextMonth = month === 12 ? 1 : month + 1;
-  const nextYear = month === 12 ? year + 1 : year;
-  const endDateStr = `${nextYear}-${nextMonth.toString().padStart(2, '0')}-01`;
+  const billingPeriod = searchParams.get('billingPeriod');
+  const startDateStr = searchParams.get('startDate');
+  const endDateStr = searchParams.get('endDate');
 
   try {
-    // 1. Fetch completed sessions in the month
-    const { data: sessions, error: sessionErr } = await supabase
+    let query = supabase
       .from('sessions')
       .select('session_id, class_id, csat_fee_snapshot, classes(name, csat_fee_per_session, tutors(tutor_id, name))')
-      .gte('date', startDateStr)
-      .lt('date', endDateStr) // until 1st of next month
       .eq('status', 'completed');
+
+    if (billingPeriod) {
+      // Historical view
+      query = query.eq('billing_period', billingPeriod);
+    } else if (startDateStr && endDateStr) {
+      // Preview mode for unbilled sessions
+      query = query.gte('date', startDateStr).lte('date', endDateStr).is('billing_period', null);
+    } else {
+      return NextResponse.json({ error: 'Must provide billingPeriod or both startDate and endDate' }, { status: 400 });
+    }
+
+    const { data: sessions, error: sessionErr } = await query;
 
     if (sessionErr) throw sessionErr;
 

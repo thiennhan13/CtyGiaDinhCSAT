@@ -7,6 +7,18 @@ const createClassSchema = z.object({
   action: z.literal('create'),
   name: z.string().min(2, "Tên lớp phải có ít nhất 2 ký tự"),
   tutor_id: z.string().uuid("Tutor ID không hợp lệ"),
+  csat_fee_per_session: z.number().min(0, "CSAT fee không được âm"),
+  start_date: z.string().date("Ngày bắt đầu không hợp lệ"),
+  end_date: z.string().date("Ngày kết thúc không hợp lệ"),
+  students: z.array(z.object({
+    student_id: z.string().uuid(),
+    tuition_fee_per_session: z.number().min(0)
+  })),
+  sessions: z.array(z.object({
+    date: z.string().date(),
+    start_time: z.string().regex(/^([01]\d|2[0-3]):?([0-5]\d)$/, "Giờ không hợp lệ"),
+    end_time: z.string().regex(/^([01]\d|2[0-3]):?([0-5]\d)$/, "Giờ không hợp lệ")
+  }))
 });
 
 const archiveClassSchema = z.object({
@@ -52,9 +64,52 @@ export async function POST(request: Request) {
     const adminClient = createAdminClient();
 
     if (parsed.data.action === 'create') {
-      const { data, error } = await adminClient.from('classes').insert([{ name: parsed.data.name, tutor_id: parsed.data.tutor_id }]).select().single();
+      const { name, tutor_id, csat_fee_per_session, start_date, end_date, students, sessions } = parsed.data;
+
+      // 1. Check for conflicts
+      if (sessions.length > 0) {
+        const { data: existingSessions, error: fetchErr } = await adminClient
+          .from('sessions')
+          .select('date, start_time, end_time, classes!inner(name, tutor_id)')
+          .eq('classes.tutor_id', tutor_id)
+          .in('date', sessions.map(s => s.date));
+
+        if (fetchErr) throw fetchErr;
+
+        let conflictFound = false;
+        let conflictMsg = '';
+        for (const newSession of sessions) {
+          const existingOnSameDate = existingSessions?.filter(s => s.date === newSession.date);
+          if (existingOnSameDate && existingOnSameDate.length > 0) {
+            for (const existing of existingOnSameDate) {
+              if (newSession.start_time < existing.end_time && newSession.end_time > existing.start_time) {
+                conflictFound = true;
+                conflictMsg = `Trùng lịch gia sư: Ngày ${newSession.date}, Giờ mới: ${newSession.start_time}-${newSession.end_time}, Giờ cũ (${(existing.classes as any).name}): ${existing.start_time}-${existing.end_time}`;
+                break;
+              }
+            }
+          }
+          if (conflictFound) break;
+        }
+
+        if (conflictFound) {
+          return NextResponse.json({ error: conflictMsg }, { status: 400 });
+        }
+      }
+
+      // 2. Call RPC create_class_full
+      const { data, error } = await adminClient.rpc('create_class_full', {
+        p_name: name,
+        p_tutor_id: tutor_id,
+        p_csat_fee: csat_fee_per_session,
+        p_start_date: start_date,
+        p_end_date: end_date,
+        p_students: students,
+        p_sessions: sessions
+      });
+
       if (error) throw error;
-      return NextResponse.json({ message: 'Tạo lớp thành công', data });
+      return NextResponse.json({ message: 'Tạo lớp và lịch dạy thành công', data: { class_id: data } });
     }
 
     if (parsed.data.action === 'archive') {

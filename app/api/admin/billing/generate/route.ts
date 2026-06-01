@@ -15,29 +15,17 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
 
+  const startDateStr = searchParams.get('startDate');
+  const endDateStr = searchParams.get('endDate');
+  const billingPeriod = searchParams.get('billingPeriod');
+
+  if (!startDateStr || !endDateStr || !billingPeriod) {
+    return NextResponse.json({ error: 'Thiếu thông tin ngày bắt đầu, ngày kết thúc hoặc tên kỳ hóa đơn.' }, { status: 400 });
+  }
+
   const supabase = createAdminClient();
-  
-  // 1. Xác định billing_period là tháng vừa qua theo múi giờ GMT+7
-  const VN_TIMEZONE = 'Asia/Ho_Chi_Minh';
-  const nowInVnStr = formatInTimeZone(new Date(), VN_TIMEZONE, 'yyyy-MM-dd HH:mm:ss');
-  const todayVn = new Date(nowInVnStr);
-  const lastMonthDate = subMonths(todayVn, 1);
 
-  let startDateStr = searchParams.get('startDate');
-  let endDateStr = searchParams.get('endDate');
-  let billingPeriod = searchParams.get('billingPeriod');
-
-  if (!startDateStr) {
-    startDateStr = format(startOfMonth(lastMonthDate), 'yyyy-MM-dd'); // 1st of last month
-  }
-  if (!endDateStr) {
-    endDateStr = format(todayVn, 'yyyy-MM-dd'); // current date
-  }
-  if (!billingPeriod) {
-    billingPeriod = format(new Date(startDateStr), 'yyyy-MM'); // "2026-04"
-  }
-
-  console.log(`Bắt đầu quá trình chốt sổ tháng ${billingPeriod} (Từ ${startDateStr} đến ${endDateStr})`);
+  console.log(`Bắt đầu quá trình chốt sổ đợt ${billingPeriod} (Từ ${startDateStr} đến ${endDateStr})`);
 
   try {
     // 2 & 3. Dùng RPC hoặc truy vấn thủ công.
@@ -48,11 +36,12 @@ export async function GET(request: Request) {
       .select('session_id, class_id')
       .gte('date', startDateStr)
       .lte('date', endDateStr)
-      .eq('status', 'completed');
+      .eq('status', 'completed')
+      .is('billing_period', null);
 
     if (sessionErr) throw sessionErr;
     if (!sessions || sessions.length === 0) {
-      return NextResponse.json({ message: 'No sessions found for last month.' });
+      return NextResponse.json({ message: 'Không có buổi học nào chưa chốt sổ trong khoảng thời gian này.' });
     }
 
     const sessionIds = sessions.map(s => s.session_id);
@@ -130,6 +119,14 @@ export async function GET(request: Request) {
         .insert(paymentsToInsert);
         
       if (insertErr) throw insertErr;
+
+      // Mark sessions as billed
+      const { error: updateErr } = await supabase
+        .from('sessions')
+        .update({ billing_period: billingPeriod })
+        .in('session_id', sessionIds);
+
+      if (updateErr) throw updateErr;
     }
 
     return NextResponse.json({ message: `Đã chốt sổ thành công cho ${paymentsToInsert.length} hóa đơn.`, billingPeriod });

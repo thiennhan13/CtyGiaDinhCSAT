@@ -15,23 +15,40 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function BillingPage() {
+  const [viewMode, setViewMode] = useState<'preview' | 'historical'>('preview');
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  
-  const [selectedPeriod, setSelectedPeriod] = useState(format(subMonths(new Date(), 1), 'yyyy-MM'));
   const [stats, setStats] = useState<any>(null);
+
+  // Preview Mode State
+  const [startDate, setStartDate] = useState(format(startOfMonth(subMonths(new Date(), 1)), 'yyyy-MM-dd'));
+  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+
+  // Historical Mode State
+  const [historicalPeriods, setHistoricalPeriods] = useState<string[]>([]);
+  const [selectedHistoricalPeriod, setSelectedHistoricalPeriod] = useState<string>('');
 
   // Billing Dialog state
   const [isBillingDialogOpen, setIsBillingDialogOpen] = useState(false);
-  const [billingStartDate, setBillingStartDate] = useState(format(startOfMonth(subMonths(new Date(), 1)), 'yyyy-MM-dd'));
-  const [billingEndDate, setBillingEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [billingPeriodName, setBillingPeriodName] = useState(format(subMonths(new Date(), 1), 'yyyy-MM'));
+  const [billingPeriodName, setBillingPeriodName] = useState(`Đợt ${format(new Date(), 'dd/MM/yyyy')}`);
   
-  // Create last 6 months options
-  const monthOptions = Array.from({ length: 6 }).map((_, i) => format(subMonths(new Date(), i), 'yyyy-MM'));
-
   const supabase = createClient();
+
+  // Fetch unique historical periods
+  useEffect(() => {
+    async function loadHistoricalPeriods() {
+      const { data } = await supabase.from('payments').select('billing_period');
+      if (data) {
+        const unique = Array.from(new Set(data.map(d => d.billing_period)));
+        setHistoricalPeriods(unique as string[]);
+        if (unique.length > 0 && !selectedHistoricalPeriod) {
+          setSelectedHistoricalPeriod(unique[0] as string);
+        }
+      }
+    }
+    loadHistoricalPeriods();
+  }, [supabase]);
 
   useEffect(() => {
     let mounted = true;
@@ -39,21 +56,31 @@ export default function BillingPage() {
       if (!mounted) return;
       setLoading(true);
       
-      // Load Payments
-      const { data: pData } = await supabase
-        .from('payments')
-        .select('*, students(name), classes(name)')
-        .eq('billing_period', selectedPeriod)
-        .order('created_at', { ascending: false });
-        
-      if (pData) setPayments(pData);
-      
-      // Load Stats
       try {
-        const res = await fetch(`/api/admin/billing/stats?period=${selectedPeriod}`);
-        if (res.ok) {
-          const sData = await res.json();
-          if (mounted) setStats(sData);
+        if (viewMode === 'historical' && selectedHistoricalPeriod) {
+          // Load Payments
+          const { data: pData } = await supabase
+            .from('payments')
+            .select('*, students(name), classes(name)')
+            .eq('billing_period', selectedHistoricalPeriod)
+            .order('created_at', { ascending: false });
+            
+          if (pData) setPayments(pData);
+          
+          // Load Stats
+          const res = await fetch(`/api/admin/billing/stats?billingPeriod=${encodeURIComponent(selectedHistoricalPeriod)}`);
+          if (res.ok) {
+            const sData = await res.json();
+            if (mounted) setStats(sData);
+          }
+        } else if (viewMode === 'preview') {
+          setPayments([]); // Preview mode does not have payments yet
+          
+          const res = await fetch(`/api/admin/billing/stats?startDate=${startDate}&endDate=${endDate}`);
+          if (res.ok) {
+            const sData = await res.json();
+            if (mounted) setStats(sData);
+          }
         }
       } catch (err) {}
       
@@ -61,7 +88,7 @@ export default function BillingPage() {
     }
     loadData();
     return () => { mounted = false; };
-  }, [selectedPeriod, supabase]);
+  }, [viewMode, selectedHistoricalPeriod, startDate, endDate, supabase]);
 
   async function handleMarkAsPaid(id: string) {
     const { error } = await supabase.from('payments').update({ status: 'paid' }).eq('payment_id', id);
@@ -73,11 +100,15 @@ export default function BillingPage() {
   async function triggerBillingCron() {
     setGenerating(true);
     try {
-      const res = await fetch(`/api/admin/billing/generate?startDate=${billingStartDate}&endDate=${billingEndDate}&billingPeriod=${billingPeriodName}`);
+      const res = await fetch(`/api/admin/billing/generate?startDate=${startDate}&endDate=${endDate}&billingPeriod=${encodeURIComponent(billingPeriodName)}`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || 'Lỗi hệ thống');
       alert(data.message || 'Xong');
-      // Reload current period
-      setSelectedPeriod(billingPeriodName);
+      
+      // Reload historical periods and switch to historical view
+      setHistoricalPeriods(prev => Array.from(new Set([billingPeriodName, ...prev])));
+      setSelectedHistoricalPeriod(billingPeriodName);
+      setViewMode('historical');
       setIsBillingDialogOpen(false);
     } catch (e: any) {
       alert('Lỗi: ' + e.message);
@@ -89,7 +120,7 @@ export default function BillingPage() {
 
   const exportTutorSalaries = () => {
     if (!stats || !stats.tutorSalaries || stats.tutorSalaries.length === 0) {
-      alert("Không có liệu lương gia sư để xuất!");
+      alert("Không có dữ liệu lương gia sư để xuất!");
       return;
     }
     const ws = XLSX.utils.json_to_sheet(stats.tutorSalaries.map((t: any) => ({
@@ -100,7 +131,7 @@ export default function BillingPage() {
     })));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Lương Gia Sư");
-    XLSX.writeFile(wb, `luong_gia_su_${selectedPeriod}.xlsx`);
+    XLSX.writeFile(wb, `luong_gia_su_${selectedHistoricalPeriod || 'preview'}.xlsx`);
   };
 
   const exportCustomerPayments = () => {
@@ -116,70 +147,75 @@ export default function BillingPage() {
     })));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Học Phí Học Viên");
-    XLSX.writeFile(wb, `hoc_phi_hoc_vien_${selectedPeriod}.xlsx`);
+    XLSX.writeFile(wb, `hoc_phi_hoc_vien_${selectedHistoricalPeriod}.xlsx`);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
          <h2 className="text-3xl font-bold tracking-tight text-gray-900">Kế Toán & Chốt Sổ</h2>
+         
          <div className="flex items-center gap-3">
-           <Select value={selectedPeriod} onValueChange={(val) => val && setSelectedPeriod(val)}>
+           <Select value={viewMode} onValueChange={(val: any) => setViewMode(val)}>
              <SelectTrigger className="w-[180px]">
-               <SelectValue placeholder="Chọn tháng" />
+               <SelectValue placeholder="Chế độ xem" />
              </SelectTrigger>
              <SelectContent>
-               {monthOptions.map(m => (
-                 <SelectItem key={m} value={m}>Tháng {m}</SelectItem>
-               ))}
+               <SelectItem value="preview">Dự kiến (Chưa chốt)</SelectItem>
+               <SelectItem value="historical">Lịch sử (Đã chốt)</SelectItem>
              </SelectContent>
            </Select>
-           <Button onClick={() => setIsBillingDialogOpen(true)} disabled={generating} variant="secondary">
-              {generating ? 'Đang chạy...' : 'Chạy Chốt Sổ Thủ Công'}
-           </Button>
+
+           {viewMode === 'preview' ? (
+             <div className="flex items-center gap-2">
+               <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-[140px]" />
+               <span>đến</span>
+               <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-[140px]" />
+               <Button onClick={() => setIsBillingDialogOpen(true)} disabled={generating} variant="secondary">
+                 {generating ? 'Đang chạy...' : 'Thực Hiện Chốt Sổ'}
+               </Button>
+             </div>
+           ) : (
+             <div className="flex items-center gap-2">
+                <Select value={selectedHistoricalPeriod} onValueChange={(val) => val && setSelectedHistoricalPeriod(val)}>
+                  <SelectTrigger className="w-[200px]">
+                   <SelectValue placeholder="Chọn kỳ hóa đơn" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   {historicalPeriods.map(m => (
+                     <SelectItem key={m} value={m}>{m}</SelectItem>
+                   ))}
+                   {historicalPeriods.length === 0 && <SelectItem value="none" disabled>Không có dữ liệu</SelectItem>}
+                 </SelectContent>
+               </Select>
+             </div>
+           )}
          </div>
       </div>
 
       <Dialog open={isBillingDialogOpen} onOpenChange={setIsBillingDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Chốt sổ học phí thủ công</DialogTitle>
+            <DialogTitle>Xác nhận tạo hóa đơn (Chốt sổ)</DialogTitle>
             <DialogDescription>
-              Tùy chỉnh khoảng thời gian để hệ thống tính toán học phí. Mặc định là từ ngày 1 tháng trước tới hôm nay.
+              Hệ thống sẽ tổng hợp các buổi học CHƯA CHỐT SỔ từ <strong>{startDate}</strong> đến <strong>{endDate}</strong> và đưa vào kỳ hóa đơn bên dưới. Lưu ý: Thao tác này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Tên kỳ hóa đơn (YYYY-MM)</Label>
+              <Label>Tên kỳ hóa đơn (Tùy chọn ghi chú)</Label>
               <Input 
-                type="month" 
+                type="text" 
                 value={billingPeriodName} 
                 onChange={(e) => setBillingPeriodName(e.target.value)} 
+                placeholder="VD: Kỳ 1 tháng 5/2026"
               />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Từ ngày</Label>
-                <Input 
-                  type="date" 
-                  value={billingStartDate} 
-                  onChange={(e) => setBillingStartDate(e.target.value)} 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Đến ngày</Label>
-                <Input 
-                  type="date" 
-                  value={billingEndDate} 
-                  onChange={(e) => setBillingEndDate(e.target.value)} 
-                />
-              </div>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsBillingDialogOpen(false)}>Hủy</Button>
             <Button onClick={triggerBillingCron} disabled={generating}>
-              {generating ? 'Đang chạy...' : 'Bắt đầu chốt sổ'}
+              {generating ? 'Đang chạy...' : 'Chốt sổ ngay'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -220,7 +256,7 @@ export default function BillingPage() {
                <CardTitle>Phần 1: Học Phí Khách Hàng (Học Sinh)</CardTitle>
                <CardDescription>Các hóa đơn tính toán từ buổi học đã điểm danh</CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={exportCustomerPayments} className="ml-4 gap-2 border-slate-300 text-slate-700">
+            <Button variant="outline" size="sm" onClick={exportCustomerPayments} className="ml-4 gap-2 border-slate-300 text-slate-700" disabled={viewMode === 'preview'}>
                <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Xuất Excel
             </Button>
           </CardHeader>
@@ -237,7 +273,14 @@ export default function BillingPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {payments.map(p => (
+                  {viewMode === 'preview' && (
+                    <TableRow>
+                       <TableCell colSpan={5} className="text-center py-4 text-slate-500 italic">
+                         Danh sách hóa đơn chỉ hiển thị trong chế độ Lịch sử (Đã chốt sổ).
+                       </TableCell>
+                    </TableRow>
+                  )}
+                  {viewMode === 'historical' && payments.map(p => (
                     <TableRow key={p.payment_id}>
                       <TableCell>{p.students?.name || '---'}</TableCell>
                       <TableCell>{p.classes?.name || '---'}</TableCell>
@@ -259,9 +302,9 @@ export default function BillingPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {payments.length === 0 && (
+                  {viewMode === 'historical' && payments.length === 0 && (
                     <TableRow>
-                       <TableCell colSpan={5} className="text-center py-4">Chưa có dữ liệu học phí tháng này</TableCell>
+                       <TableCell colSpan={5} className="text-center py-4">Chưa có dữ liệu học phí</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -302,7 +345,7 @@ export default function BillingPage() {
                    ))}
                    {(!stats?.tutorSalaries || stats?.tutorSalaries?.length === 0) && (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center py-4">Không có dữ liệu buổi dạy tháng {selectedPeriod}</TableCell>
+                        <TableCell colSpan={4} className="text-center py-4">Không có dữ liệu buổi dạy</TableCell>
                       </TableRow>
                    )}
                 </TableBody>

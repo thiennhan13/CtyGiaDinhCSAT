@@ -156,9 +156,9 @@ export default function StudentDetailPage() {
                  <CardContent className="p-0">
                     <Tabs defaultValue="attendance" className="w-full">
                         <TabsList className="w-full grid justify-start grid-cols-3 rounded-none border-b bg-transparent h-14 p-0">
-                            <TabsTrigger value="attendance" className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none h-14 data-[state=active]:shadow-none"><Activity className="w-4 h-4 mr-2"/>Điểm danh</TabsTrigger>
-                            <TabsTrigger value="classes" className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none h-14 data-[state=active]:shadow-none"><BookOpen className="w-4 h-4 mr-2"/>Lớp học</TabsTrigger>
-                            <TabsTrigger value="payments" className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none h-14 data-[state=active]:shadow-none"><CreditCard className="w-4 h-4 mr-2"/>Học phí</TabsTrigger>
+                            <TabsTrigger value="attendance" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-14 data-[state=active]:shadow-none"><Activity className="w-4 h-4 mr-2"/>Điểm danh</TabsTrigger>
+                            <TabsTrigger value="classes" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-14 data-[state=active]:shadow-none"><BookOpen className="w-4 h-4 mr-2"/>Lớp học</TabsTrigger>
+                            <TabsTrigger value="payments" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-14 data-[state=active]:shadow-none"><CreditCard className="w-4 h-4 mr-2"/>Học phí</TabsTrigger>
                         </TabsList>
                         
                         <TabsContent value="attendance" className="p-6 m-0 border-none outline-none">
@@ -215,7 +215,7 @@ export default function StudentDetailPage() {
                                             const classData = Array.isArray(c.classes) ? c.classes[0] : c.classes;
                                             const tutorName = Array.isArray(classData?.tutors) ? classData?.tutors[0]?.name : classData?.tutors?.name;
                                             return (
-                                            <div key={idx} className="flex justify-between items-start p-4 border rounded-xl hover:border-indigo-200 transition-colors bg-white">
+                                            <div key={idx} className="flex justify-between items-start p-4 border rounded-lg hover:border-blue-200 transition-colors bg-white">
                                                 <div>
                                                     <h4 className="font-bold text-slate-900">{classData?.name}</h4>
                                                     <div className="text-sm text-slate-600 mt-1">Gia sư: <span className="font-medium">{tutorName || '---'}</span></div>

@@ -130,90 +130,39 @@ export default function NewClassPage() {
       currentDate = addDays(currentDate, 1);
     }
 
-    // 2. Fetch existing sessions of the tutor to check conflict
-    const { data: existingSessions, error: fetchErr } = await supabase
-      .from('sessions')
-      .select('date, start_time, end_time, classes!inner(name, tutor_id)')
-      .eq('classes.tutor_id', tutorId)
-      .in('date', generatedSessions.map(s => s.date));
-
-    if (fetchErr) {
-      alert("Lỗi khi kiểm tra lịch gia sư: " + fetchErr.message);
-      setSubmitting(false);
-      return;
-    }
-
-    // 3. Conflict comparison
-    let conflictFound = false;
-    for (const newSession of generatedSessions) {
-      const existingOnSameDate = existingSessions?.filter(s => s.date === newSession.date);
-      if (existingOnSameDate && existingOnSameDate.length > 0) {
-        for (const existing of existingOnSameDate) {
-          // Compare time strings directly since they are HH:MM
-          if (newSession.start_time < existing.end_time && newSession.end_time > existing.start_time) {
-            conflictFound = true;
-            alert(`Phát hiện trùng lịch khóa học của gia sư này:\n\nTrùng vào ngày: ${newSession.date}\nGiờ mới: ${newSession.start_time} - ${newSession.end_time}\nGiờ cũ đang có (${(existing.classes as any).name}): ${existing.start_time} - ${existing.end_time}`);
-            break;
-          }
-        }
-      }
-      if (conflictFound) break;
-    }
-
-    if (conflictFound) {
-      setSubmitting(false);
-      return;
-    }
-
-    // 4. No conflict -> Save class, students, and sessions
     try {
-      // 4.1 Create Class
-      const { data: classData, error: classErr } = await supabase
-        .from('classes')
-        .insert([{
-           name: className,
-           tutor_id: tutorId,
-           csat_fee_per_session: csatFee,
-           start_date: startDate,
-           end_date: endDate
-        }])
-        .select()
-        .single();
-      
-      if (classErr) throw classErr;
-      const newClassId = classData.class_id;
-
-      // 4.2 Add Students
-      if (selectedStudents.length > 0) {
-        const classStudentsPayload = selectedStudents.map(s => ({
-          class_id: newClassId,
+      const payload = {
+        action: 'create',
+        name: className,
+        tutor_id: tutorId,
+        csat_fee_per_session: csatFee,
+        start_date: startDate,
+        end_date: endDate,
+        students: selectedStudents.map(s => ({
           student_id: s.id,
           tuition_fee_per_session: s.fee
-        }));
-        const { error: studentErr } = await supabase.from('class_students').insert(classStudentsPayload);
-        if (studentErr) throw studentErr;
+        })),
+        sessions: generatedSessions
+      };
+
+      const res = await fetch('/api/admin/classes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Lỗi hệ thống');
       }
 
-      // 4.3 Add Sessions
-      if (generatedSessions.length > 0) {
-        const sessionsPayload = generatedSessions.map(s => ({
-          class_id: newClassId,
-          date: s.date,
-          start_time: s.start_time,
-          end_time: s.end_time,
-          status: 'scheduled' as any,
-          csat_fee_snapshot: csatFee
-        }));
-        const { error: sessionErr } = await supabase.from('sessions').insert(sessionsPayload);
-        if (sessionErr) throw sessionErr;
-      }
-
-      // Success
-      alert("Tạo lớp học, học sinh, và lên lịch thành công!");
-      router.push(`/admin/classes/${newClassId}`);
+      alert(data.message || "Tạo lớp học và lên lịch thành công!");
+      router.push(`/admin/classes/${data.data?.class_id || ''}`);
 
     } catch (error: any) {
       alert("Có lỗi xảy ra: " + error.message);
+    } finally {
       setSubmitting(false);
     }
   };
@@ -352,7 +301,7 @@ export default function NewClassPage() {
 
             <div className="space-y-4">
               {schedules.map((schedule, index) => (
-                <div key={index} className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div key={index} className="flex items-center gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
                   <div className="space-y-1.5 flex-1">
                     <label className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Ngày Trong Tuần</label>
                     <Select value={schedule.dayOfWeek} onValueChange={(val) => val && updateSchedule(index, 'dayOfWeek', val)}>

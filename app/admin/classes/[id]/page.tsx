@@ -135,7 +135,7 @@ export default function ClassDetailPage() {
     setBulkDelEnd(s.date);
   };
 
-  const handleBulkDelete = async () => {
+  const handleMassUpdate = async (action: 'cancel' | 'delete') => {
     if(!bulkDelStart || !bulkDelEnd || !bulkDeleteSession) return;
     
     const parseLocalDate = (dateStr: string) => {
@@ -146,7 +146,7 @@ export default function ClassDetailPage() {
     const dDate = parseLocalDate(bulkDeleteSession.date);
     const dayOfWeek = dDate.getDay();
 
-    const { data: toDelete } = await supabase.from('sessions')
+    const { data: toUpdate } = await supabase.from('sessions')
       .select('session_id, date')
       .eq('class_id', classId)
       .eq('start_time', bulkDeleteSession.start_time)
@@ -155,24 +155,31 @@ export default function ClassDetailPage() {
       .lte('date', bulkDelEnd)
       .eq('status', 'scheduled');
 
-    if(!toDelete || toDelete.length === 0) {
-      alert("Không tìm thấy buổi học nào phù hợp để xóa.");
+    if(!toUpdate || toUpdate.length === 0) {
+      alert("Không tìm thấy buổi học nào phù hợp.");
       return;
     }
     
-    const filteredToDelete = toDelete.filter(s => parseLocalDate(s.date).getDay() === dayOfWeek);
+    const filteredToUpdate = toUpdate.filter(s => parseLocalDate(s.date).getDay() === dayOfWeek);
 
-    if(filteredToDelete.length === 0) {
-       alert("Không tìm thấy buổi học nào phù hợp để xóa.");
+    if(filteredToUpdate.length === 0) {
+       alert("Không tìm thấy buổi học nào phù hợp.");
        return;
     }
 
-    if(!confirm(`Tìm thấy ${filteredToDelete.length} buổi học. Bạn có chắc muốn xóa tất cả?`)) return;
+    const actionText = action === 'cancel' ? 'BÁO NGHỈ LỄ (Hủy)' : 'XÓA VĨNH VIỄN';
+    if(!confirm(`Tìm thấy ${filteredToUpdate.length} buổi học. Bạn có chắc muốn ${actionText} tất cả?`)) return;
 
-    for(const s of filteredToDelete) {
-       await supabase.from('sessions').delete().eq('session_id', s.session_id);
+    const sessionIds = filteredToUpdate.map(s => s.session_id);
+    
+    if (action === 'cancel') {
+       await supabase.from('sessions').update({ status: 'cancelled' }).in('session_id', sessionIds);
+       alert("Đã cập nhật trạng thái các buổi học thành Đã Hủy (Nghỉ Lễ).");
+    } else {
+       await supabase.from('sessions').delete().in('session_id', sessionIds);
+       alert("Đã xóa vĩnh viễn các buổi học.");
     }
-    alert("Đã xóa loạt buổi học.");
+    
     setBulkDeleteSession(null);
     fetchData();
   };
@@ -404,7 +411,7 @@ export default function ClassDetailPage() {
                     <TableCell className="text-right space-x-2">
                        {s.status === 'scheduled' && (
                           <>
-                            <Button variant="outline" size="sm" onClick={() => openBulkDelete(s)}>Xóa loạt</Button>
+                            <Button variant="outline" size="sm" onClick={() => openBulkDelete(s)}>Cập nhật loạt</Button>
                             <Button variant="destructive" size="sm" onClick={() => handleCancelSession(s.session_id)}>Hủy lẻ</Button>
                           </>
                        )}
@@ -421,13 +428,13 @@ export default function ClassDetailPage() {
         </CardContent>
       </Card>
 
-      {/* Bulk Delete Modal */}
+      {/* Mass Update Modal */}
       <Dialog open={!!bulkDeleteSession} onOpenChange={(open) => !open && setBulkDeleteSession(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Xóa Loạt Buổi Học</DialogTitle>
+            <DialogTitle>Cập Nhật Lịch Hàng Loạt</DialogTitle>
             <DialogDescription>
-              Xóa tất cả các buổi học <strong>{bulkDeleteSession?.start_time.substring(0,5)} - {bulkDeleteSession?.end_time.substring(0,5)}</strong> cùng <strong>Thứ {bulkDeleteSession && new Date(parseInt(bulkDeleteSession.date.split('-')[0]), parseInt(bulkDeleteSession.date.split('-')[1]) - 1, parseInt(bulkDeleteSession.date.split('-')[2])).getDay() === 0 ? 'Chủ Nhật' : bulkDeleteSession && (new Date(parseInt(bulkDeleteSession.date.split('-')[0]), parseInt(bulkDeleteSession.date.split('-')[1]) - 1, parseInt(bulkDeleteSession.date.split('-')[2])).getDay() + 1)}</strong> trong khoảng thời gian diễn ra từ:
+              Tác động đến tất cả các buổi học <strong>{bulkDeleteSession?.start_time.substring(0,5)} - {bulkDeleteSession?.end_time.substring(0,5)}</strong> cùng <strong>Thứ {bulkDeleteSession && new Date(parseInt(bulkDeleteSession.date.split('-')[0]), parseInt(bulkDeleteSession.date.split('-')[1]) - 1, parseInt(bulkDeleteSession.date.split('-')[2])).getDay() === 0 ? 'Chủ Nhật' : bulkDeleteSession && (new Date(parseInt(bulkDeleteSession.date.split('-')[0]), parseInt(bulkDeleteSession.date.split('-')[1]) - 1, parseInt(bulkDeleteSession.date.split('-')[2])).getDay() + 1)}</strong> trong khoảng thời gian diễn ra từ:
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4 mt-2">
@@ -442,9 +449,10 @@ export default function ClassDetailPage() {
                </div>
              </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
              <Button variant="outline" onClick={() => setBulkDeleteSession(null)}>Đóng</Button>
-             <Button variant="destructive" onClick={handleBulkDelete}>Xóa loạt ngay</Button>
+             <Button variant="secondary" onClick={() => handleMassUpdate('cancel')}>Báo Nghỉ Lễ (Hủy)</Button>
+             <Button variant="destructive" onClick={() => handleMassUpdate('delete')}>Xóa Vĩnh Viễn</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

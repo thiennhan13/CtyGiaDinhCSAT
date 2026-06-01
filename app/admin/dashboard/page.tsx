@@ -112,17 +112,17 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500">
+         <Card className="border border-slate-200 shadow-none">
            <CardContent className="p-6">
              <div className="flex items-center justify-between">
                <div>
-                 <p className="text-sm font-medium text-slate-500 mb-1">Doanh thu đã thu ({format(new Date(), 'MM/yyyy')})</p>
+                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Doanh thu đã thu ({format(new Date(), 'MM/yyyy')})</p>
                  <h3 className="text-2xl font-bold text-slate-900">
                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalRevenue)}
                  </h3>
                </div>
-               <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600">
-                 <span className="text-xl font-black">₫</span>
+               <div className="w-10 h-10 bg-emerald-50 rounded-sm flex items-center justify-center text-emerald-600 shrink-0">
+                 <span className="text-lg font-black">₫</span>
                </div>
              </div>
            </CardContent>
@@ -132,14 +132,14 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Calendar & Lessons */}
       <div className="col-span-1 lg:col-span-2 space-y-6">
-        <Card className="overflow-hidden border-0 shadow-sm border-t-2 border-indigo-500">
-          <div className="bg-white px-6 py-4 flex items-center justify-between border-b flex-wrap gap-4">
+        <Card className="overflow-hidden border border-slate-200 shadow-none">
+          <div className="bg-white px-4 md:px-6 py-3 flex items-center justify-between border-b flex-wrap gap-4">
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" className="h-8 w-8" onClick={handlePrevWeek}>
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 px-2">
-                <CalendarIcon className="w-5 h-5 text-indigo-500" />
+              <h3 className="font-bold text-slate-800 text-base flex items-center gap-2 px-1">
+                <CalendarIcon className="w-4 h-4 text-blue-600" />
                 {format(start, 'MM/yyyy')}
               </h3>
               <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleNextWeek}>
@@ -149,75 +149,79 @@ export default function DashboardPage() {
             <div className="flex items-center gap-4">
               <div className="flex items-center space-x-2">
                 <Switch id="show-all" checked={showAllSchedules} onCheckedChange={setShowAllSchedules} />
-                <Label htmlFor="show-all" className="text-sm font-medium cursor-pointer">Lịch tất cả mọi người</Label>
+                <Label htmlFor="show-all" className="text-xs font-semibold text-slate-600 cursor-pointer">Lịch tất cả</Label>
               </div>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setSelectedDate(new Date())} title="Về hôm nay">
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-sm" onClick={() => setSelectedDate(new Date())} title="Về hôm nay">
                 <Clock className="w-4 h-4 text-slate-400" />
               </Button>
             </div>
           </div>
           
-          <div className="grid grid-cols-7 border-b bg-slate-50">
+          <div className="grid grid-cols-7 border-b bg-[#f8f9fa]">
             {weekDays.map((day, idx) => {
               const isActive = isSameDay(day, selectedDate);
+              const dayIndex = day.getDay();
+              const shortNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+              const dayName = shortNames[dayIndex];
+
               return (
                 <div 
                   key={idx} 
                   onClick={() => setSelectedDate(day)}
-                  className={`py-3 flex flex-col items-center justify-center cursor-pointer transition-colors relative ${isActive ? 'bg-indigo-50' : 'hover:bg-slate-100'}`}
+                  className={`py-2.5 flex flex-col items-center justify-center cursor-pointer transition-colors relative ${isActive ? 'bg-blue-50/40' : 'hover:bg-slate-100'}`}
                 >
-                  <span className={`text-[10px] font-bold uppercase mb-1 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`}>
-                    {format(day, 'EEE')}
+                  <span className={`text-[10px] font-bold uppercase mb-0.5 ${isActive ? 'text-blue-600 font-semibold' : 'text-slate-400'}`}>
+                    {dayName}
                   </span>
-                  <span className={`text-lg font-bold ${isActive ? 'text-indigo-700' : 'text-slate-700'}`}>
+                  <span className={`text-base font-bold ${isActive ? 'text-blue-700' : 'text-slate-700'}`}>
                     {format(day, 'dd')}
                   </span>
-                  {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500" />}
+                  {isActive && <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-blue-600" />}
                 </div>
               );
             })}
           </div>
 
-          <div className="bg-slate-50 p-4 lg:p-6 min-h-[300px] max-h-[500px] overflow-y-auto space-y-3">
+          <div className="bg-[#f8f9fa]/40 p-4 lg:p-6 min-h-[300px] max-h-[500px] overflow-y-auto space-y-3">
              {loadingSessions ? (
-                <div className="h-full flex flex-col items-center justify-center text-slate-400 py-12">
+                <div className="h-full flex flex-col items-center justify-center text-slate-400 py-12 text-sm font-medium">
                    Đang tải lịch...
                 </div>
              ) : sessionForSelected
                .filter(s => showAllSchedules || s.classes?.tutors?.auth_uid === currentUser?.id)
                .length === 0 ? (
-               <div className="h-full flex flex-col items-center justify-center text-slate-400 py-12">
-                 <Clock className="w-12 h-12 mb-3 text-slate-300" />
-                 <p className="text-sm font-medium">Không có ca dạy nào trong ngày này</p>
-               </div>
+                <div className="h-full flex flex-col items-center justify-center text-slate-400 py-12">
+                  <Clock className="w-10 h-10 mb-2 text-slate-300" />
+                  <p className="text-xs font-semibold text-slate-500">Không có ca dạy nào trong ngày này</p>
+                </div>
              ) : (
                sessionForSelected
                 .filter(s => showAllSchedules || s.classes?.tutors?.auth_uid === currentUser?.id)
                 .map((session, idx) => {
-                 const isAdminSession = session.classes?.tutors?.auth_uid === currentUser?.id;
-                 return (
-                 <div key={idx} className={`flex rounded-xl shadow-sm border overflow-hidden transition-all cursor-pointer group ${isAdminSession ? 'bg-blue-50 border-blue-200 hover:border-blue-400' : 'bg-white border-slate-100 hover:border-indigo-200 hover:shadow-md'}`}>
-                   <div className={`w-24 border-r flex flex-col items-center justify-center py-4 shrink-0 ${isAdminSession ? 'bg-blue-100/50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
-                     <span className={`font-bold text-sm ${isAdminSession ? 'text-blue-800' : 'text-slate-700'}`}>{session.start_time?.substring(0,5)}</span>
-                     <span className={`text-[10px] my-0.5 ${isAdminSession ? 'text-blue-300' : 'text-slate-300'}`}>|</span>
-                     <span className="font-bold text-sm">{session.end_time?.substring(0,5)}</span>
-                   </div>
-                   <div className="flex-1 p-4 flex flex-col justify-center">
-                     <h4 className={`font-bold mb-1 transition-colors ${isAdminSession ? 'text-blue-900 group-hover:text-blue-700' : 'text-slate-900 group-hover:text-indigo-600'}`}>
-                       {session.classes?.name}
-                     </h4>
-                     <p className={`text-xs mb-2 ${isAdminSession ? 'text-blue-600' : 'text-slate-500'}`}>Gia sư: {session.classes?.tutors?.name || 'Chưa phân công'}</p>
-                     <div className={`flex items-center gap-4 text-xs font-medium ${isAdminSession ? 'text-blue-700' : 'text-slate-500'}`}>
-                        <div className="flex items-center gap-1.5"><Video className="w-3.5 h-3.5" /> Trực tuyến</div>
-                        <div className="flex items-center gap-1.5"><span className={`w-1.5 h-1.5 rounded-full ${session.status === 'scheduled' ? 'bg-amber-500' : 'bg-emerald-500'}`}></span> {session.status === 'scheduled' ? 'Sắp diễn ra' : 'Đã hoàn thành'}</div>
-                     </div>
-                   </div>
-                   <div className={`w-12 border-l flex items-center justify-center transition-colors ${isAdminSession ? 'border-blue-200 bg-blue-50 group-hover:bg-blue-100 text-blue-500 group-hover:text-blue-700' : 'border-slate-50 bg-white group-hover:bg-indigo-50 text-slate-400 group-hover:text-indigo-600'}`}>
-                     <ChevronRight className="w-5 h-5" />
-                   </div>
-                 </div>
-                 );
-               })
+                  const isAdminSession = session.classes?.tutors?.auth_uid === currentUser?.id;
+                  return (
+                  <div key={idx} className={`flex rounded-sm border overflow-hidden transition-all cursor-pointer group ${isAdminSession ? 'bg-blue-50/30 border-blue-100 hover:border-blue-300' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
+                    <div className={`w-20 md:w-24 border-r flex flex-col items-center justify-center py-3 shrink-0 ${isAdminSession ? 'bg-blue-50 border-blue-100 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+                      <span className="font-bold text-xs md:text-sm">{session.start_time?.substring(0,5)}</span>
+                      <span className={`text-[10px] my-0.5 ${isAdminSession ? 'text-blue-200' : 'text-slate-300'}`}>|</span>
+                      <span className="font-bold text-xs md:text-sm">{session.end_time?.substring(0,5)}</span>
+                    </div>
+                    <div className="flex-1 p-3 md:p-4 flex flex-col justify-center min-w-0">
+                      <h4 className={`font-bold text-sm md:text-base mb-0.5 transition-colors truncate ${isAdminSession ? 'text-blue-900 group-hover:text-blue-700' : 'text-slate-900 group-hover:text-blue-600'}`}>
+                        {session.classes?.name}
+                      </h4>
+                      <p className={`text-xs mb-1.5 truncate ${isAdminSession ? 'text-blue-600' : 'text-slate-500'}`}>Gia sư: {session.classes?.tutors?.name || 'Chưa phân công'}</p>
+                      <div className={`flex items-center gap-3 text-[10px] md:text-xs font-semibold ${isAdminSession ? 'text-blue-700' : 'text-slate-500'}`}>
+                         <div className="flex items-center gap-1"><Video className="w-3.5 h-3.5" /> Trực tuyến</div>
+                         <div className="flex items-center gap-1"><span className={`w-1.5 h-1.5 rounded-full ${session.status === 'scheduled' ? 'bg-amber-500' : 'bg-emerald-500'}`}></span> {session.status === 'scheduled' ? 'Sắp diễn ra' : 'Đã hoàn thành'}</div>
+                      </div>
+                    </div>
+                    <div className={`w-10 md:w-12 border-l flex items-center justify-center transition-colors ${isAdminSession ? 'border-blue-100 bg-blue-50/20 group-hover:bg-blue-50 text-blue-500' : 'border-slate-200 bg-white group-hover:bg-slate-50 text-slate-400'}`}>
+                      <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+                    </div>
+                  </div>
+                  );
+                })
              )}
           </div>
         </Card>
@@ -225,24 +229,24 @@ export default function DashboardPage() {
 
       {/* Announcements */}
       <div className="col-span-1 space-y-6">
-        <Card className="border-0 shadow-sm border-t-2 border-emerald-500">
+        <Card className="border border-slate-200 shadow-none">
            <CardHeader className="flex flex-row items-center justify-between pb-2">
-             <CardTitle className="text-lg font-bold text-slate-800">Thông báo mới nhất</CardTitle>
-             <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={() => setIsAnnouncementModalOpen(true)}>
-               <Plus className="w-3.5 h-3.5" /> Tạo mới
+             <CardTitle className="text-base font-bold text-slate-800">Thông báo</CardTitle>
+             <Button variant="outline" size="sm" className="h-7 gap-1 text-[11px] font-semibold" onClick={() => setIsAnnouncementModalOpen(true)}>
+               <Plus className="w-3 h-3" /> Tạo mới
              </Button>
            </CardHeader>
-           <CardContent className="pt-2">
+           <CardContent className="pt-1">
              <div className="space-y-4">
                {announcements.length === 0 ? (
-                 <p className="text-sm text-slate-500 italic text-center py-4">Chưa có thông báo nào</p>
+                 <p className="text-xs text-slate-400 italic text-center py-4">Chưa có thông báo nào</p>
                ) : (
                  announcements.map((ann, idx) => (
-                   <div key={idx} className="pb-4 border-b border-slate-100 last:border-0 last:pb-0">
-                     <h4 className="font-bold text-slate-900 text-sm mb-1">{ann.title}</h4>
-                     <p className="text-xs text-slate-500 line-clamp-2 mb-2">{ann.content}</p>
+                   <div key={idx} className="pb-3 border-b border-slate-100 last:border-0 last:pb-0">
+                     <h4 className="font-bold text-slate-800 text-xs md:text-sm mb-0.5">{ann.title}</h4>
+                     <p className="text-xs text-slate-500 line-clamp-2 mb-1.5">{ann.content}</p>
                      {ann.link && (
-                       <a href={ann.link} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold flex items-center gap-1 text-emerald-600 hover:underline">
+                       <a href={ann.link} target="_blank" rel="noopener noreferrer" className="text-[10px] font-semibold flex items-center gap-1 text-blue-600 hover:underline">
                          <LinkIcon className="w-3 h-3" /> Xem chi tiết
                        </a>
                      )}
@@ -252,6 +256,7 @@ export default function DashboardPage() {
              </div>
            </CardContent>
         </Card>
+      </div>
       </div>
 
       <Dialog open={isAnnouncementModalOpen} onOpenChange={setIsAnnouncementModalOpen}>
@@ -272,14 +277,13 @@ export default function DashboardPage() {
                <Label>Đường Link (Google Meet, Tài liệu...)</Label>
                <Input value={newAnnouncement.link} onChange={e => setNewAnnouncement(prev => ({...prev, link: e.target.value}))} placeholder="https://..." />
              </div>
-             <DialogFooter className="pt-4">
-               <Button type="button" variant="outline" onClick={() => setIsAnnouncementModalOpen(false)}>Hủy</Button>
-               <Button type="submit">Gửi thông báo</Button>
-             </DialogFooter>
-          </form>
+              <DialogFooter className="pt-4">
+                <Button type="button" variant="outline" onClick={() => setIsAnnouncementModalOpen(false)}>Hủy</Button>
+                <Button type="submit">Gửi thông báo</Button>
+              </DialogFooter>
+           </form>
         </DialogContent>
       </Dialog>
-    </div>
     </div>
   );
 }

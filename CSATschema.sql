@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   end_time TIME NOT NULL,
   status session_status DEFAULT 'scheduled',
   csat_fee_snapshot DECIMAL(10,2), -- Chốt giá CSAT khi tạo buỏi học
+  billing_period VARCHAR(255), -- Đánh dấu session thuộc kỳ chốt sổ nào
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -97,7 +98,7 @@ CREATE TABLE IF NOT EXISTS payments (
   payment_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   student_id UUID REFERENCES students(student_id) ON DELETE SET NULL,
   class_id UUID REFERENCES classes(class_id) ON DELETE SET NULL,
-  billing_period VARCHAR(7) NOT NULL, -- "YYYY-MM"
+  billing_period VARCHAR(255) NOT NULL,
   amount DECIMAL(10,2) NOT NULL,
   status payment_status DEFAULT 'unpaid',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -314,3 +315,77 @@ CREATE POLICY "Tutor_Manage_Attendance" ON session_attendance FOR ALL TO authent
     WHERE s.session_id = session_attendance.session_id AND t.auth_uid = auth.uid()
   )
 );
+
+-- ==========================================
+-- RPC: CREATE CLASS FULL (Transaction)
+-- ==========================================
+CREATE OR REPLACE FUNCTION create_class_full(
+    p_name VARCHAR,
+    p_tutor_id UUID,
+    p_csat_fee DECIMAL,
+    p_start_date DATE,
+    p_end_date DATE,
+    p_students JSON,
+    p_sessions JSON
+) RETURNS UUID AS $$
+DECLARE
+    v_class_id UUID;
+    v_student JSON;
+    v_session JSON;
+BEGIN
+    -- 1. Create class
+    INSERT INTO classes (name, tutor_id, csat_fee_per_session, start_date, end_date)
+    VALUES (p_name, p_tutor_id, p_csat_fee, p_start_date, p_end_date)
+    RETURNING class_id INTO v_class_id;
+
+    -- 2. Insert students
+    IF p_students IS NOT NULL AND json_array_length(p_students) > 0 THEN
+        FOR v_student IN SELECT * FROM json_array_elements(p_students)
+        LOOP
+            INSERT INTO class_students (class_id, student_id, tuition_fee_per_session)
+            VALUES (
+                v_class_id,
+                (v_student->>'student_id')::UUID,
+                (v_student->>'tuition_fee_per_session')::DECIMAL
+            );
+        END LOOP;
+    END IF;
+
+    -- 3. Insert sessions
+    IF p_sessions IS NOT NULL AND json_array_length(p_sessions) > 0 THEN
+        FOR v_session IN SELECT * FROM json_array_elements(p_sessions)
+        LOOP
+            INSERT INTO sessions (class_id, date, start_time, end_time, csat_fee_snapshot, status)
+            VALUES (
+                v_class_id,
+                (v_session->>'date')::DATE,
+                (v_session->>'start_time')::TIME,
+                (v_session->>'end_time')::TIME,
+                p_csat_fee,
+                'scheduled'
+            );
+        END LOOP;
+    END IF;
+
+    RETURN v_class_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================
+-- SQL MIGRATION SCRIPT (Cập nhật Database cũ)
+-- ==========================================
+-- Hướng dẫn: Nếu database thực tế trên Supabase của bạn được tạo từ phiên bản cũ và thiếu cột,
+-- hãy copy toàn bộ đoạn mã SQL dưới đây và chạy trong SQL Editor của Supabase:
+
+-- 1. Bổ sung cột email vào bảng tutors (Sửa lỗi thiếu cột email)
+ALTER TABLE public.tutors 
+ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+
+-- 2. Bổ sung cột billing_period và csat_fee_snapshot vào bảng sessions
+ALTER TABLE public.sessions 
+ADD COLUMN IF NOT EXISTS billing_period VARCHAR(255),
+ADD COLUMN IF NOT EXISTS csat_fee_snapshot DECIMAL(10,2);
+
+-- 3. Bổ sung cột tuition_fee_snapshot vào bảng session_attendance
+ALTER TABLE public.session_attendance 
+ADD COLUMN IF NOT EXISTS tuition_fee_snapshot DECIMAL(10,2);
