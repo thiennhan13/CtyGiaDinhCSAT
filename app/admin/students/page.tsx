@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,16 +48,32 @@ export default function StudentsPage() {
   // Stats
   const [totalStudents, setTotalStudents] = useState(0);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const ITEMS_PER_PAGE = 20;
+
   const supabase = createClient();
   const router = useRouter();
 
   async function fetchStudents() {
     setLoading(true);
-    const { data, error } = await supabase
+    let query = supabase
       .from('students')
-      .select('*, payments(amount, status, billing_period)')
-      .neq('is_deleted', true)
-      .order('name', { ascending: true }); // Base order
+      .select('*, payments(amount, status, billing_period)', { count: 'exact' })
+      .neq('is_deleted', true);
+
+    if (statusFilter !== 'Tất cả') {
+      query = query.eq('status', statusFilter);
+    }
+    
+    if (searchTerm) {
+      query = query.or(`name.ilike.%${searchTerm}%,contact_phone.ilike.%${searchTerm}%,province.ilike.%${searchTerm}%`);
+    }
+
+    const { data, count, error } = await query
+      .order('name', { ascending: true })
+      .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
     
     if (error) {
       console.error("Error fetching students:", error);
@@ -65,15 +81,25 @@ export default function StudentsPage() {
     
     if (!error && data) {
       setStudents(data);
-      setTotalStudents(data.length);
+      setTotalStudents(count || 0);
+      setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE) || 1);
     }
     setLoading(false);
   }
 
+  // Reset to page 1 when search or filter changes
   useEffect(() => {
-    fetchStudents();
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
+  // Fetch when page, search, or filter changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchStudents();
+    }, 300);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentPage, searchTerm, statusFilter]);
 
   // Handle Form changes
   const handleInputChange = (field: keyof Student, value: any) => {
@@ -144,26 +170,7 @@ export default function StudentsPage() {
     }
   }
 
-  // Filter & Sort Logic
-  const filteredStudents = useMemo(() => {
-    let result = students;
 
-    if (statusFilter !== 'Tất cả') {
-      result = result.filter(s => s.status === statusFilter);
-    }
-    
-    if (searchTerm) {
-      const lowerQuery = searchTerm.toLowerCase();
-      result = result.filter(s => 
-        s.name?.toLowerCase().includes(lowerQuery) || 
-        s.contact_phone?.includes(lowerQuery) ||
-        s.province?.toLowerCase().includes(lowerQuery)
-      );
-    }
-    
-    // Auto sort Vietnamese names
-    return result.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
-  }, [students, searchTerm, statusFilter]);
 
   const openEdit = (student: Student) => {
     setSelectedStudent(student);
@@ -250,10 +257,10 @@ export default function StudentsPage() {
               <TableBody>
                 {loading ? (
                   <TableRow><TableCell colSpan={5} className="text-center py-8">Đang tải dữ liệu...</TableCell></TableRow>
-                ) : filteredStudents.length === 0 ? (
+                ) : students.length === 0 ? (
                   <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-500">Không tìm thấy học sinh nào</TableCell></TableRow>
                 ) : (
-                  filteredStudents.map((s, idx) => {
+                  students.map((s, idx) => {
                     const unpaidAmount = calculateUnpaidTuition(s);
                     return (
                     <TableRow key={s.student_id} className="group">
@@ -293,6 +300,30 @@ export default function StudentsPage() {
                 )}
               </TableBody>
             </Table>
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-4 p-4 border-t gap-4">
+            <span className="text-sm text-slate-500">
+              Hiển thị {students.length} trên tổng {totalStudents} kết quả (Trang {currentPage} / {totalPages})
+            </span>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={currentPage === 1} 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              >
+                Trước
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={currentPage === totalPages || totalPages === 0} 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              >
+                Sau
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

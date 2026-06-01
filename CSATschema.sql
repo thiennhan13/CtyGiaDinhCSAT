@@ -432,53 +432,27 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO postgres, servi
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres, service_role, authenticated, anon;
 
 -- ==========================================
--- 6. TẠO TÀI KHOẢN ADMIN MẶC ĐỊNH (csattutor@gmail.com)
+-- 6. CẬP NHẬT TÀI KHOẢN ADMIN HIỆN CÓ (csattutor@gmail.com)
 -- ==========================================
--- Mật khẩu mặc định sẽ là: csattutor123
 DO $$
 DECLARE
   v_user_id UUID;
 BEGIN
-  -- Kiểm tra xem user csattutor@gmail.com đã tồn tại trong hệ thống Auth chưa
+  -- Lấy ID của user đã tồn tại
   SELECT id INTO v_user_id FROM auth.users WHERE email = 'csattutor@gmail.com' LIMIT 1;
   
-  -- Nếu chưa tồn tại, tạo mới
-  IF v_user_id IS NULL THEN
-    v_user_id := uuid_generate_v4();
-    
-    -- 1. Thêm vào bảng auth.users
-    INSERT INTO auth.users (
-      instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, 
-      raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
-      confirmation_token, email_change, email_change_token_new, recovery_token
-    ) VALUES (
-      '00000000-0000-0000-0000-000000000000', v_user_id, 'authenticated', 'authenticated', 'csattutor@gmail.com', 
-      crypt('csattutor123', gen_salt('bf')), -- Mật khẩu mặc định
-      current_timestamp, 
-      '{"provider":"email","providers":["email"],"role":"admin"}', 
-      '{"name":"Admin CSAT","role":"admin"}', 
-      current_timestamp, current_timestamp,
-      '', '', '', ''
-    );
-    
-    -- 2. Thêm vào bảng auth.identities (Bắt buộc cho Supabase)
-    INSERT INTO auth.identities (
-      id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at
-    ) VALUES (
-      uuid_generate_v4(), v_user_id, v_user_id::text, format('{"sub":"%s","email":"%s"}', v_user_id::text, 'csattutor@gmail.com')::jsonb, 'email', current_timestamp, current_timestamp, current_timestamp
-    );
-  ELSE
-    -- Nếu đã tồn tại, đảm bảo set lại role admin
+  IF v_user_id IS NOT NULL THEN
+    -- 1. Đặt lại mật khẩu thành Vicsatlanha và cấp quyền admin trong metadata
     UPDATE auth.users 
-    SET raw_app_meta_data = '{"provider":"email","providers":["email"],"role":"admin"}',
+    SET encrypted_password = crypt('Vicsatlanha', gen_salt('bf')),
+        raw_app_meta_data = '{"provider":"email","providers":["email"],"role":"admin"}',
         raw_user_meta_data = '{"name":"Admin CSAT","role":"admin"}'
     WHERE id = v_user_id;
-  END IF;
 
-  -- 3. Đưa tài khoản này vào bảng tutors (Gia sư) để có thể hiển thị trên giao diện
-  IF NOT EXISTS (SELECT 1 FROM public.tutors WHERE auth_uid = v_user_id) THEN
-    INSERT INTO public.tutors (auth_uid, name, email, status)
-    VALUES (v_user_id, 'Admin CSAT', 'csattutor@gmail.com', 'active');
+    -- 2. Đưa tài khoản này vào bảng tutors (Gia sư) để có thể hiển thị trên giao diện nếu chưa có
+    IF NOT EXISTS (SELECT 1 FROM public.tutors WHERE auth_uid = v_user_id) THEN
+      INSERT INTO public.tutors (auth_uid, name, email, status)
+      VALUES (v_user_id, 'Admin CSAT', 'csattutor@gmail.com', 'active');
+    END IF;
   END IF;
-  
 END $$;

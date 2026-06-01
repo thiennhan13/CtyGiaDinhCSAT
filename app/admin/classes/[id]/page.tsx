@@ -36,13 +36,15 @@ export default function ClassDetailPage() {
   const [bulkDelStart, setBulkDelStart] = useState('');
   const [bulkDelEnd, setBulkDelEnd] = useState('');
 
-  // bulk add state
-  const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
-  const [bulkAddStart, setBulkAddStart] = useState('');
-  const [bulkAddEnd, setBulkAddEnd] = useState('');
-  const [bulkAddDay, setBulkAddDay] = useState('1'); 
-  const [bulkAddStartTime, setBulkAddStartTime] = useState('18:00');
-  const [bulkAddEndTime, setBulkAddEndTime] = useState('20:00');
+  // schedule manage state
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+  const [scheduleStart, setScheduleStart] = useState('');
+  const [scheduleEnd, setScheduleEnd] = useState('');
+  const [scheduleConfigs, setScheduleConfigs] = useState([{ id: Date.now(), dayOfWeek: 1, start_time: '18:00', end_time: '20:00' }]);
+
+  // edit session state
+  const [isEditSessionOpen, setIsEditSessionOpen] = useState(false);
+  const [editSessionData, setEditSessionData] = useState({ session_id: '', date: '', start_time: '', end_time: '' });
 
   const [studentStatusFilter, setStudentStatusFilter] = useState('active');
 
@@ -184,70 +186,62 @@ export default function ClassDetailPage() {
     fetchData();
   };
 
-  const [isExtendOpen, setIsExtendOpen] = useState(false);
-  const [extendEndDate, setExtendEndDate] = useState<string>(format(addDays(new Date(), 30), 'yyyy-MM-dd'));
-
-  const handleExtend = async (e: React.FormEvent) => {
-     e.preventDefault();
-     if(!extendEndDate) return;
-     if(!confirm(`Gia hạn lớp học đến ngày ${extendEndDate} dựa trên lịch hiện tại?`)) return;
-
-     const res = await fetch('/api/admin/classes', {
-       method: 'POST',
-       headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify({ action: 'extend', class_id: classId, end_date: extendEndDate })
-     });
-     
-     const data = await res.json();
-     if (!res.ok) {
-       alert("Lỗi: " + data.error);
-     } else {
-       alert(data.message);
-       setIsExtendOpen(false);
-       fetchData();
-     }
+  const handleManageSchedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if(!scheduleStart || !scheduleEnd || scheduleConfigs.length === 0) return;
+    
+    try {
+      const res = await fetch('/api/admin/classes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'extend',
+          class_id: classId,
+          start_date: scheduleStart,
+          end_date: scheduleEnd,
+          schedule_configs: scheduleConfigs.map(c => ({
+            dayOfWeek: Number(c.dayOfWeek),
+            start_time: c.start_time,
+            end_time: c.end_time
+          }))
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      alert(data.message);
+      setIsScheduleOpen(false);
+      fetchData();
+    } catch(err: any) {
+      alert("Lỗi: " + err.message);
+    }
   };
 
-  const handleBulkAdd = async (e: React.FormEvent) => {
+  const handleEditSession = async (e: React.FormEvent) => {
     e.preventDefault();
-    if(!bulkAddStart || !bulkAddEnd || !bulkAddStartTime || !bulkAddEndTime) return;
-    
-    const generatedSessions = [];
-    const parseLocalDate = (dateStr: string) => {
-      const [y, m, d] = dateStr.split('-');
-      return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-    };
-
-    let curr = parseLocalDate(bulkAddStart);
-    const end = parseLocalDate(bulkAddEnd);
-
-    while(curr <= end) {
-       if(curr.getDay().toString() === bulkAddDay) {
-          generatedSessions.push({
-             class_id: classId,
-             date: format(curr, 'yyyy-MM-dd'),
-             start_time: bulkAddStartTime,
-             end_time: bulkAddEndTime,
-             csat_fee_snapshot: classInfo?.csat_fee_per_session || 0,
-             status: 'scheduled'
-          });
-       }
-       curr.setDate(curr.getDate() + 1);
+    try {
+      const res = await fetch('/api/admin/classes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'edit_session', ...editSessionData })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      alert(data.message);
+      setIsEditSessionOpen(false);
+      fetchData();
+    } catch(err: any) {
+      alert("Lỗi: " + err.message);
     }
-    
-    if(generatedSessions.length === 0) {
-       alert("Không có buổi học nào được tạo trong khoảng thời gian này.");
-       return;
-    }
+  };
 
-    const { error } = await supabase.from('sessions').insert(generatedSessions);
-    if(error) {
-       alert("Lỗi: " + error.message);
-    } else {
-       alert(`Đã tạo thành công ${generatedSessions.length} buổi học.`);
-       setIsBulkAddOpen(false);
-       fetchData();
-    }
+  const addScheduleConfig = () => {
+    setScheduleConfigs([...scheduleConfigs, { id: Date.now(), dayOfWeek: 1, start_time: '18:00', end_time: '20:00' }]);
+  };
+  const removeScheduleConfig = (id: number) => {
+    setScheduleConfigs(scheduleConfigs.filter(c => c.id !== id));
+  };
+  const updateScheduleConfig = (id: number, field: string, value: any) => {
+    setScheduleConfigs(scheduleConfigs.map(c => c.id === id ? { ...c, [field]: value } : c));
   };
 
   return (
@@ -315,9 +309,8 @@ export default function ClassDetailPage() {
                <div className="flex flex-col gap-2">
                  <div className="flex gap-2">
                    <Button type="submit" variant="secondary" className="w-full">Tạo Buổi Lẻ</Button>
-                   <Button type="button" variant="outline" className="w-full" onClick={() => setIsExtendOpen(true)}>Gia hạn (theo ngày)</Button>
                  </div>
-                 <Button type="button" variant="ghost" className="w-full text-xs" onClick={() => setIsBulkAddOpen(true)}>Thêm Loạt Buổi Nâng Cao</Button>
+                 <Button type="button" variant="outline" className="w-full" onClick={() => setIsScheduleOpen(true)}>Thêm Loạt Lịch Cố Định</Button>
                </div>
              </form>
            </CardContent>
@@ -411,6 +404,7 @@ export default function ClassDetailPage() {
                     <TableCell className="text-right space-x-2">
                        {s.status === 'scheduled' && (
                           <>
+                            <Button variant="outline" size="sm" onClick={() => { setEditSessionData({ session_id: s.session_id, date: s.date, start_time: s.start_time.substring(0,5), end_time: s.end_time.substring(0,5) }); setIsEditSessionOpen(true); }}>Sửa</Button>
                             <Button variant="outline" size="sm" onClick={() => openBulkDelete(s)}>Cập nhật loạt</Button>
                             <Button variant="destructive" size="sm" onClick={() => handleCancelSession(s.session_id)}>Hủy lẻ</Button>
                           </>
@@ -457,81 +451,104 @@ export default function ClassDetailPage() {
         </DialogContent>
       </Dialog>
       
-      {/* Extend Modal */}
-      <Dialog open={isExtendOpen} onOpenChange={setIsExtendOpen}>
+      {/* Edit Session Modal */}
+      <Dialog open={isEditSessionOpen} onOpenChange={setIsEditSessionOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Gia hạn khóa học</DialogTitle>
+            <DialogTitle>Sửa Lịch Học (Đổi buổi)</DialogTitle>
             <DialogDescription>
-              Tự động sao chép lịch học (các thứ trong tuần) từ tuần học gần nhất để làm mẫu tạo buổi học mới, kéo dài đến ngày kết thúc đã chọn.
+              Cập nhật lại ngày hoặc giờ của buổi học này.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleExtend} className="space-y-4 py-4">
+          <form onSubmit={handleEditSession} className="space-y-4 py-4">
              <div>
-               <label className="text-sm font-medium">Ngày kết thúc gia hạn</label>
-               <Input type="date" value={extendEndDate} onChange={(e) => setExtendEndDate(e.target.value)} required />
+               <label className="text-sm font-medium">Ngày Học</label>
+               <Input type="date" value={editSessionData.date} onChange={(e) => setEditSessionData({...editSessionData, date: e.target.value})} required />
+             </div>
+             <div className="flex gap-4">
+               <div className="w-full">
+                 <label className="text-sm font-medium">Bắt Đầu</label>
+                 <Input type="time" value={editSessionData.start_time} onChange={(e) => setEditSessionData({...editSessionData, start_time: e.target.value})} required />
+               </div>
+               <div className="w-full">
+                 <label className="text-sm font-medium">Kết Thúc</label>
+                 <Input type="time" value={editSessionData.end_time} onChange={(e) => setEditSessionData({...editSessionData, end_time: e.target.value})} required />
+               </div>
              </div>
              <DialogFooter className="pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsExtendOpen(false)}>Hủy</Button>
-                <Button type="submit">Xác nhận</Button>
+                <Button type="button" variant="outline" onClick={() => setIsEditSessionOpen(false)}>Hủy</Button>
+                <Button type="submit">Cập nhật</Button>
              </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-      
-      {/* Bulk Add Modal */}
-      <Dialog open={isBulkAddOpen} onOpenChange={setIsBulkAddOpen}>
-        <DialogContent>
+
+      {/* Schedule Manage Modal */}
+      <Dialog open={isScheduleOpen} onOpenChange={setIsScheduleOpen}>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Thêm Loạt Buổi Học Cố Định</DialogTitle>
+            <DialogTitle>Thêm Loạt Lịch Cố Định Theo Tuần</DialogTitle>
             <DialogDescription>
-              Tạo hàng loạt buổi học theo lịch cố định hàng tuần.
+              Bạn có thể cấu hình nhiều ngày trong tuần, hệ thống sẽ tự động sinh lịch từ Ngày Bắt Đầu đến Ngày Kết Thúc.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleBulkAdd} className="space-y-4 py-4">
+          <form onSubmit={handleManageSchedule} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
              <div className="grid grid-cols-2 gap-4">
                <div>
                  <label className="text-sm font-medium">Từ ngày (Bắt đầu)</label>
-                 <Input type="date" value={bulkAddStart} onChange={(e) => setBulkAddStart(e.target.value)} required />
+                 <Input type="date" value={scheduleStart} onChange={(e) => setScheduleStart(e.target.value)} required />
                </div>
                <div>
                  <label className="text-sm font-medium">Đến ngày (Kết thúc)</label>
-                 <Input type="date" value={bulkAddEnd} onChange={(e) => setBulkAddEnd(e.target.value)} required />
+                 <Input type="date" value={scheduleEnd} onChange={(e) => setScheduleEnd(e.target.value)} required />
                </div>
              </div>
              
-             <div>
-               <label className="text-sm font-medium">Ngày Trong Tuần</label>
-               <Select value={bulkAddDay} onValueChange={(val) => setBulkAddDay(val || '1')}>
-                 <SelectTrigger>
-                   <SelectValue />
-                 </SelectTrigger>
-                 <SelectContent>
-                   <SelectItem value="1">Thứ Hai</SelectItem>
-                   <SelectItem value="2">Thứ Ba</SelectItem>
-                   <SelectItem value="3">Thứ Tư</SelectItem>
-                   <SelectItem value="4">Thứ Năm</SelectItem>
-                   <SelectItem value="5">Thứ Sáu</SelectItem>
-                   <SelectItem value="6">Thứ Bảy</SelectItem>
-                   <SelectItem value="0">Chủ Nhật</SelectItem>
-                 </SelectContent>
-               </Select>
-             </div>
-
-             <div className="grid grid-cols-2 gap-4">
-               <div>
-                 <label className="text-sm font-medium">Khung Giờ Bắt Đầu</label>
-                 <Input type="time" value={bulkAddStartTime} onChange={(e) => setBulkAddStartTime(e.target.value)} required />
+             <div className="space-y-3 pt-4 border-t">
+               <div className="flex justify-between items-center">
+                 <h4 className="font-semibold text-sm">Cấu hình lịch tuần</h4>
+                 <Button type="button" variant="secondary" size="sm" onClick={addScheduleConfig}>+ Thêm Lịch Trong Tuần</Button>
                </div>
-               <div>
-                 <label className="text-sm font-medium">Khung Giờ Kết Thúc</label>
-                 <Input type="time" value={bulkAddEndTime} onChange={(e) => setBulkAddEndTime(e.target.value)} required />
-               </div>
+               {scheduleConfigs.map((c, index) => (
+                 <div key={c.id} className="flex gap-2 items-end bg-slate-50 p-2 rounded-md">
+                   <div className="w-1/3">
+                     <label className="text-xs font-medium">Thứ</label>
+                     <Select value={c.dayOfWeek.toString()} onValueChange={(val) => updateScheduleConfig(c.id, 'dayOfWeek', Number(val))}>
+                       <SelectTrigger>
+                         <SelectValue />
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="1">Thứ Hai</SelectItem>
+                         <SelectItem value="2">Thứ Ba</SelectItem>
+                         <SelectItem value="3">Thứ Tư</SelectItem>
+                         <SelectItem value="4">Thứ Năm</SelectItem>
+                         <SelectItem value="5">Thứ Sáu</SelectItem>
+                         <SelectItem value="6">Thứ Bảy</SelectItem>
+                         <SelectItem value="0">Chủ Nhật</SelectItem>
+                       </SelectContent>
+                     </Select>
+                   </div>
+                   <div className="w-1/3">
+                     <label className="text-xs font-medium">Bắt Đầu</label>
+                     <Input type="time" value={c.start_time} onChange={(e) => updateScheduleConfig(c.id, 'start_time', e.target.value)} required />
+                   </div>
+                   <div className="w-1/3">
+                     <label className="text-xs font-medium">Kết Thúc</label>
+                     <Input type="time" value={c.end_time} onChange={(e) => updateScheduleConfig(c.id, 'end_time', e.target.value)} required />
+                   </div>
+                   <Button type="button" variant="ghost" size="icon" className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0" onClick={() => removeScheduleConfig(c.id)}>
+                     <Trash2 className="h-4 w-4" />
+                   </Button>
+                 </div>
+               ))}
+               {scheduleConfigs.length === 0 && (
+                 <p className="text-sm text-red-500 text-center">Vui lòng thêm ít nhất 1 khung giờ.</p>
+               )}
              </div>
              
              <DialogFooter className="pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsBulkAddOpen(false)}>Hủy</Button>
-                <Button type="submit">Tạo Lịch</Button>
+                <Button type="button" variant="outline" onClick={() => setIsScheduleOpen(false)}>Hủy</Button>
+                <Button type="submit" disabled={scheduleConfigs.length === 0}>Tạo Lịch Hàng Loạt</Button>
              </DialogFooter>
           </form>
         </DialogContent>

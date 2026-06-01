@@ -31,17 +31,16 @@ export async function POST(request: Request) {
 
     const { sessionId, attendanceData } = parsed.data;
 
-    const adminClient = createAdminClient();
-
     // Fetch the class_id to lookup class_students
-    const { data: session } = await adminClient.from('sessions').select('class_id').eq('session_id', sessionId).single();
-    if (!session) return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+    // USING supabaseUser to enforce RLS (only tutor of this class or admin can query/update)
+    const { data: session } = await supabaseUser.from('sessions').select('class_id').eq('session_id', sessionId).single();
+    if (!session) return NextResponse.json({ error: 'Session not found or you do not have permission' }, { status: 404 });
 
     const classId = session.class_id;
     const studentIds = attendanceData.map((d: any) => d.student_id);
 
     // Fetch tuition fees for these students in this class
-    const { data: classStudents } = await adminClient
+    const { data: classStudents } = await supabaseUser
       .from('class_students')
       .select('student_id, tuition_fee_per_session')
       .eq('class_id', classId)
@@ -62,12 +61,22 @@ export async function POST(request: Request) {
 
     // Perform an UPSERT for attendance
     // attendanceData array has properties matching session_attendance table
-    const { error } = await adminClient
+    const { error: upsertError } = await supabaseUser
       .from('session_attendance')
       .upsert(enhancedAttendanceData, { onConflict: 'session_id, student_id' });
 
-    if (error) {
-      throw error;
+    if (upsertError) {
+      throw upsertError;
+    }
+
+    // Update session status to 'completed' so Billing can pick it up
+    const { error: updateError } = await supabaseUser
+      .from('sessions')
+      .update({ status: 'completed' })
+      .eq('session_id', sessionId);
+
+    if (updateError) {
+      throw updateError;
     }
 
     return NextResponse.json({ message: 'Lưu điểm danh thành công' });

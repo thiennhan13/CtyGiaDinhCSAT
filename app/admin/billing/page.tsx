@@ -116,6 +116,34 @@ export default function BillingPage() {
     setGenerating(false);
   }
 
+  async function handleRollbackBilling() {
+    if (!selectedHistoricalPeriod) return;
+    if (!confirm(`Bạn có chắc chắn muốn HỦY TOÀN BỘ hóa đơn chưa thu của đợt "${selectedHistoricalPeriod}"?\n\nThao tác này sẽ xóa các hóa đơn chưa thu và cho phép bạn chốt sổ lại từ đầu. Các hóa đơn ĐÃ THU sẽ không bị ảnh hưởng (Và nếu có hóa đơn đã thu, hệ thống sẽ chặn không cho hủy).`)) return;
+    
+    setGenerating(true);
+    try {
+      const res = await fetch('/api/admin/billing/rollback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ billingPeriod: selectedHistoricalPeriod })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Lỗi hệ thống');
+      
+      alert(data.message);
+      
+      // Remove from list and switch to preview mode
+      setHistoricalPeriods(prev => prev.filter(p => p !== selectedHistoricalPeriod));
+      setSelectedHistoricalPeriod(historicalPeriods.filter(p => p !== selectedHistoricalPeriod)[0] || '');
+      if (historicalPeriods.length <= 1) {
+          setViewMode('preview');
+      }
+    } catch (e: any) {
+      alert('Lỗi: ' + e.message);
+    }
+    setGenerating(false);
+  }
+
   const formatVND = (v: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v);
 
   const exportTutorSalaries = () => {
@@ -188,6 +216,9 @@ export default function BillingPage() {
                    {historicalPeriods.length === 0 && <SelectItem value="none" disabled>Không có dữ liệu</SelectItem>}
                  </SelectContent>
                </Select>
+               {historicalPeriods.length > 0 && (
+                 <Button variant="destructive" onClick={handleRollbackBilling} disabled={generating}>Hủy chốt sổ</Button>
+               )}
              </div>
            )}
          </div>

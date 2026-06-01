@@ -34,14 +34,29 @@ const hardDeleteClassSchema = z.object({
 const extendClassSchema = z.object({
   action: z.literal('extend'),
   class_id: z.string().uuid("Class ID không hợp lệ"),
-  end_date: z.string().date("Ngày không hợp lệ")
+  start_date: z.string().date("Ngày bắt đầu không hợp lệ"),
+  end_date: z.string().date("Ngày kết thúc không hợp lệ"),
+  schedule_configs: z.array(z.object({
+    dayOfWeek: z.number().min(0).max(6),
+    start_time: z.string().regex(/^([01]\d|2[0-3]):?([0-5]\d)$/, "Giờ không hợp lệ"),
+    end_time: z.string().regex(/^([01]\d|2[0-3]):?([0-5]\d)$/, "Giờ không hợp lệ")
+  })).min(1, "Vui lòng cấu hình ít nhất 1 buổi trong tuần")
+});
+
+const editSessionSchema = z.object({
+  action: z.literal('edit_session'),
+  session_id: z.string().uuid("Session ID không hợp lệ"),
+  date: z.string().date("Ngày không hợp lệ"),
+  start_time: z.string().regex(/^([01]\d|2[0-3]):?([0-5]\d)$/, "Giờ không hợp lệ"),
+  end_time: z.string().regex(/^([01]\d|2[0-3]):?([0-5]\d)$/, "Giờ không hợp lệ")
 });
 
 const classActionSchema = z.discriminatedUnion('action', [
   createClassSchema,
   archiveClassSchema,
   hardDeleteClassSchema,
-  extendClassSchema
+  extendClassSchema,
+  editSessionSchema
 ]);
 
 export async function POST(request: Request) {
@@ -135,10 +150,8 @@ export async function POST(request: Request) {
     }
 
     if (parsed.data.action === 'extend') {
-      const classId = parsed.data.class_id;
-      const targetEndDateStr = parsed.data.end_date;
+      const { class_id, start_date, end_date, schedule_configs } = parsed.data;
 
-      // Ensure timezone-safe parsing: YYYY-MM-DD to local Midnight
       const parseLocalDate = (dateStr: string) => {
         const [y, m, d] = dateStr.split('-');
         return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
@@ -151,71 +164,31 @@ export async function POST(request: Request) {
         return `${yyyy}-${mm}-${dd}`;
       };
 
-      // 1. Find the latest session to know where to start generating from
-      const { data: latestSession, error: latestErr } = await adminClient
-        .from('sessions')
-        .select('*')
-        .eq('class_id', classId)
-        .order('date', { ascending: false })
-        .limit(1)
-        .single();
-        
-      if (latestErr || !latestSession) {
-        return NextResponse.json({ error: 'Không tìm thấy buổi học nào để gia hạn. Vui lòng thêm lịch thủ công trước.' }, { status: 400 });
-      }
-
-      // 2. Fetch the latest up to 30 sessions to derive a robust pattern
-      // Because there might be holidays or cancelled weeks, we look back further.
-      const { data: recentSessions, error: patternErr } = await adminClient
-        .from('sessions')
-        .select('date, start_time, end_time, csat_fee_snapshot')
-        .eq('class_id', classId)
-        .order('date', { ascending: false })
-        .limit(30);
-
-      if (patternErr || !recentSessions || recentSessions.length === 0) {
-        return NextResponse.json({ error: 'Lỗi khi lấy mẫu lịch học khôi phục.' }, { status: 400 });
-      }
-
-      // 3. Extract the "Default Pattern"
-      // We map dayOfWeek (0-6) -> Latest session schedule for that day
-      const patternMap = new Map<number, {start_time: string, end_time: string, csat_fee_snapshot: number}>();
-      for (const s of recentSessions) {
-        const d = parseLocalDate(s.date);
-        const dayOfWeek = d.getDay();
-        if (!patternMap.has(dayOfWeek)) {
-          patternMap.set(dayOfWeek, {
-            start_time: s.start_time,
-            end_time: s.end_time,
-            csat_fee_snapshot: s.csat_fee_snapshot
-          });
-        }
-      }
-
-      if (patternMap.size === 0) {
-        return NextResponse.json({ error: 'Không thể trích xuất mẫu lịch học từ lịch sử.' }, { status: 400 });
-      }
+      // Need csat_fee_snapshot
+      const { data: cls } = await adminClient.from('classes').select('csat_fee_per_session').eq('class_id', class_id).single();
+      const fee = cls?.csat_fee_per_session || 0;
 
       const generatedSessions = [];
-      let currentDate = parseLocalDate(latestSession.date);
-      currentDate.setDate(currentDate.getDate() + 1); // Start from the day after the latest session
-      
-      const targetEndDate = parseLocalDate(targetEndDateStr);
+      let currentDate = parseLocalDate(start_date);
+      const targetEndDate = parseLocalDate(end_date);
+
       if (currentDate > targetEndDate) {
-        return NextResponse.json({ error: 'Ngày kết thúc phải lớn hơn ngày của buổi học hiện tại.' }, { status: 400 });
+        return NextResponse.json({ error: 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.' }, { status: 400 });
       }
 
       while (currentDate <= targetEndDate) {
         const dayOfWeek = currentDate.getDay();
         
-        if (patternMap.has(dayOfWeek)) {
-          const p = patternMap.get(dayOfWeek)!;
+        // Find if this day matches any config
+        const configsForDay = schedule_configs.filter(c => c.dayOfWeek === dayOfWeek);
+        
+        for (const config of configsForDay) {
           generatedSessions.push({
-            class_id: classId,
+            class_id,
             date: formatLocalDate(currentDate),
-            start_time: p.start_time,
-            end_time: p.end_time,
-            csat_fee_snapshot: p.csat_fee_snapshot,
+            start_time: config.start_time,
+            end_time: config.end_time,
+            csat_fee_snapshot: fee,
             status: 'scheduled'
           });
         }
@@ -223,13 +196,23 @@ export async function POST(request: Request) {
       }
 
       if (generatedSessions.length === 0) {
-        return NextResponse.json({ error: 'Không thể tạo lịch mới từ mẫu hiện tại, có thể thời gian gia hạn quá ngắn.' }, { status: 400 });
+        return NextResponse.json({ error: 'Không có buổi học nào được tạo với lịch cố định này trong khoảng thời gian đã chọn.' }, { status: 400 });
       }
 
       const { error: insertErr } = await adminClient.from('sessions').insert(generatedSessions);
       if (insertErr) throw insertErr;
 
-      return NextResponse.json({ message: `Đã gia hạn đến ngày ${targetEndDateStr} (${generatedSessions.length} buổi học mới).` });
+      return NextResponse.json({ message: `Đã tạo ${generatedSessions.length} buổi học thành công.` });
+    }
+
+    if (parsed.data.action === 'edit_session') {
+      const { session_id, date, start_time, end_time } = parsed.data;
+      const { error } = await adminClient.from('sessions')
+        .update({ date, start_time, end_time })
+        .eq('session_id', session_id);
+      
+      if (error) throw error;
+      return NextResponse.json({ message: 'Cập nhật buổi học thành công' });
     }
 
     return NextResponse.json({ error: 'Hành động không hợp lệ' }, { status: 400 });

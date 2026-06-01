@@ -17,15 +17,22 @@ export default function TutorsPage() {
   const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalTutors, setTotalTutors] = useState(0);
+  const ITEMS_PER_PAGE = 20;
+
   const supabase = createClient();
 
   async function fetchTutors() {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, count, error } = await supabase
       .from('tutors')
-      .select('*')
+      .select('*', { count: 'exact' })
       .neq('is_deleted', true)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
     
     if (error) {
       console.error("Error fetching tutors:", error);
@@ -33,15 +40,16 @@ export default function TutorsPage() {
     
     if (!error && data) {
       setTutors(data);
+      setTotalTutors(count || 0);
+      setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE) || 1);
     }
     setLoading(false);
   }
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTutors();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentPage]);
 
   async function handleAddTutor(e: React.FormEvent) {
     e.preventDefault();
@@ -133,37 +141,62 @@ export default function TutorsPage() {
         </CardHeader>
         <CardContent>
           {loading ? <p>Đang tải...</p> : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tên Gia Sư</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Trạng Thái</TableHead>
-                  <TableHead className="text-right">Hành động</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tutors.map(t => (
-                  <TableRow key={t.tutor_id}>
-                    <TableCell className="font-medium">{t.name}</TableCell>
-                    <TableCell>{t.email}</TableCell>
-                    <TableCell>
-                      {t.status === 'inactive' ? <span className="text-red-500 font-medium">Đã vô hiệu hóa</span> : <span className="text-emerald-500 font-medium">Đang hoạt động</span>}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="destructive" size="sm" onClick={() => handleDelete(t.tutor_id)}>
-                        Xóa
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {tutors.length === 0 && (
+            <div>
+              <Table>
+                <TableHeader>
                   <TableRow>
-                     <TableCell colSpan={4} className="text-center py-4">Chưa có dữ liệu</TableCell>
+                    <TableHead>Tên Gia Sư</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Trạng Thái</TableHead>
+                    <TableHead className="text-right">Hành động</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {tutors.map(t => (
+                    <TableRow key={t.tutor_id}>
+                      <TableCell className="font-medium">{t.name}</TableCell>
+                      <TableCell>{t.email}</TableCell>
+                      <TableCell>
+                        {t.status === 'inactive' ? <span className="text-red-500 font-medium">Đã vô hiệu hóa</span> : <span className="text-emerald-500 font-medium">Đang hoạt động</span>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="destructive" size="sm" onClick={() => handleDelete(t.tutor_id)}>
+                          Xóa
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {tutors.length === 0 && (
+                    <TableRow>
+                       <TableCell colSpan={4} className="text-center py-4">Chưa có dữ liệu</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              <div className="flex flex-col sm:flex-row justify-between items-center mt-4 pt-4 border-t gap-4">
+                <span className="text-sm text-slate-500">
+                  Hiển thị {tutors.length} trên tổng {totalTutors} kết quả (Trang {currentPage} / {totalPages})
+                </span>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    disabled={currentPage === 1} 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  >
+                    Trước
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    disabled={currentPage === totalPages || totalPages === 0} 
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  >
+                    Sau
+                  </Button>
+                </div>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

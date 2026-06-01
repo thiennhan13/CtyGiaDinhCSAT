@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,20 +19,50 @@ export default function ClassesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('Tất cả');
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalClasses, setTotalClasses] = useState(0);
+  const ITEMS_PER_PAGE = 20;
+
   const supabase = createClient();
 
   async function fetchData() {
     setLoading(true);
-    const { data: cls } = await supabase.from('classes').select('*, tutors(name)').order('created_at', { ascending: false });
+    let query = supabase.from('classes').select('*, tutors(name)', { count: 'exact' });
+
+    if (statusFilter !== 'Tất cả') {
+      query = query.eq('status', statusFilter);
+    }
     
-    if (cls) setClasses(cls);
+    if (searchTerm) {
+      query = query.ilike('name', `%${searchTerm}%`);
+    }
+
+    const { data, count, error } = await query
+      .order('created_at', { ascending: false })
+      .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
+    
+    if (!error && data) {
+      setClasses(data);
+      setTotalClasses(count || 0);
+      setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE) || 1);
+    }
     setLoading(false);
   }
 
+  // Reset to page 1 when search or filter changes
   useEffect(() => {
-    fetchData();
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 300);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentPage, searchTerm, statusFilter]);
 
   async function handleArchiveClass(classId: string) {
     if (!confirm('Bạn có chắc chắn muốn ngừng dạy lớp này? Các lịch học sắp tới sẽ bị hủy và học sinh sẽ được đánh dấu đã nghỉ.')) return;
@@ -68,23 +98,6 @@ export default function ClassesPage() {
     }
   }
 
-  const filteredClasses = useMemo(() => {
-    let result = classes;
-
-    if (statusFilter !== 'Tất cả') {
-      result = result.filter(c => c.status === statusFilter);
-    }
-    
-    if (searchTerm) {
-      const lowerQuery = searchTerm.toLowerCase();
-      result = result.filter(c => 
-        c.name?.toLowerCase().includes(lowerQuery) || 
-        c.tutors?.name?.toLowerCase().includes(lowerQuery)
-      );
-    }
-    
-    return result;
-  }, [classes, searchTerm, statusFilter]);
 
   const statusColor = (status: string) => {
     if (status === 'active') return 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100';
@@ -147,7 +160,7 @@ export default function ClassesPage() {
                   <TableRow>
                      <TableCell colSpan={4} className="text-center py-8 text-slate-500">Đang tải dữ liệu...</TableCell>
                   </TableRow>
-                ) : filteredClasses.length === 0 ? (
+                ) : classes.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-8 text-slate-500">
                       <div className="flex flex-col items-center justify-center">
@@ -156,7 +169,7 @@ export default function ClassesPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredClasses.map(c => (
+                  classes.map(c => (
                     <TableRow key={c.class_id} className="hover:bg-slate-50/50 transition-colors">
                       <TableCell className="font-medium text-slate-900">{c.name}</TableCell>
                       <TableCell className="text-slate-600">{c.tutors?.name || '---'}</TableCell>
@@ -183,6 +196,30 @@ export default function ClassesPage() {
                 )}
               </TableBody>
             </Table>
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-4 p-4 border-t gap-4">
+            <span className="text-sm text-slate-500">
+              Hiển thị {classes.length} trên tổng {totalClasses} kết quả (Trang {currentPage} / {totalPages})
+            </span>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={currentPage === 1} 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              >
+                Trước
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={currentPage === totalPages || totalPages === 0} 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              >
+                Sau
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
