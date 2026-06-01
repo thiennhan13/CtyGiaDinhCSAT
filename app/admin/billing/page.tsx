@@ -33,6 +33,16 @@ export default function BillingPage() {
   const [isBillingDialogOpen, setIsBillingDialogOpen] = useState(false);
   const [billingPeriodName, setBillingPeriodName] = useState(`Đợt ${format(new Date(), 'dd/MM/yyyy')}`);
   
+  // Pagination State
+  const [paymentPage, setPaymentPage] = useState(1);
+  const [salaryPage, setSalaryPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
+
+  useEffect(() => {
+    setPaymentPage(1);
+    setSalaryPage(1);
+  }, [selectedHistoricalPeriod, viewMode]);
+  
   const supabase = createClient();
 
   // Fetch unique historical periods
@@ -293,6 +303,7 @@ export default function BillingPage() {
           </CardHeader>
           <CardContent>
             {loading ? <p>Đang tải...</p> : (
+              <>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -311,7 +322,7 @@ export default function BillingPage() {
                        </TableCell>
                     </TableRow>
                   )}
-                  {viewMode === 'historical' && payments.map(p => (
+                  {viewMode === 'historical' && payments.slice((paymentPage - 1) * ITEMS_PER_PAGE, paymentPage * ITEMS_PER_PAGE).map(p => (
                     <TableRow key={p.payment_id}>
                       <TableCell>{p.students?.name || '---'}</TableCell>
                       <TableCell>{p.classes?.name || '---'}</TableCell>
@@ -340,6 +351,18 @@ export default function BillingPage() {
                   )}
                 </TableBody>
               </Table>
+              {viewMode === 'historical' && payments.length > ITEMS_PER_PAGE && (
+                <div className="flex items-center justify-between mt-4">
+                  <span className="text-sm text-slate-500">
+                    Trang {paymentPage} / {Math.ceil(payments.length / ITEMS_PER_PAGE)}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" disabled={paymentPage === 1} onClick={() => setPaymentPage(p => Math.max(1, p - 1))}>Trước</Button>
+                    <Button variant="outline" size="sm" disabled={paymentPage >= Math.ceil(payments.length / ITEMS_PER_PAGE)} onClick={() => setPaymentPage(p => p + 1)}>Sau</Button>
+                  </div>
+                </div>
+              )}
+            </>
             )}
           </CardContent>
         </Card>
@@ -356,6 +379,7 @@ export default function BillingPage() {
           </CardHeader>
           <CardContent>
              {loading ? <p>Đang tải...</p> : (
+              <>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -366,7 +390,7 @@ export default function BillingPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                   {stats?.tutorSalaries?.map((t: any) => (
+                   {stats?.tutorSalaries?.slice((salaryPage - 1) * ITEMS_PER_PAGE, salaryPage * ITEMS_PER_PAGE).map((t: any) => (
                       <TableRow key={t.tutor_id}>
                         <TableCell className="font-semibold text-slate-800">{t.name}</TableCell>
                         <TableCell className="text-slate-500">{formatVND(t.tuition_collected)}</TableCell>
@@ -381,6 +405,18 @@ export default function BillingPage() {
                    )}
                 </TableBody>
               </Table>
+              {stats?.tutorSalaries && stats.tutorSalaries.length > ITEMS_PER_PAGE && (
+                <div className="flex items-center justify-between mt-4">
+                  <span className="text-sm text-slate-500">
+                    Trang {salaryPage} / {Math.ceil(stats.tutorSalaries.length / ITEMS_PER_PAGE)}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" disabled={salaryPage === 1} onClick={() => setSalaryPage(p => Math.max(1, p - 1))}>Trước</Button>
+                    <Button variant="outline" size="sm" disabled={salaryPage >= Math.ceil(stats.tutorSalaries.length / ITEMS_PER_PAGE)} onClick={() => setSalaryPage(p => p + 1)}>Sau</Button>
+                  </div>
+                </div>
+              )}
+             </>
              )}
           </CardContent>
         </Card>

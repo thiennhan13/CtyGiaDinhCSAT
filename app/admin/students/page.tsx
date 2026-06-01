@@ -25,7 +25,7 @@ type Student = {
   notes?: string;
   created_at: string;
   default_tuition_fee: number;
-  payments?: { amount: number; status: string; billing_period: string }[];
+
 };
 
 export default function StudentsPage() {
@@ -35,6 +35,7 @@ export default function StudentsPage() {
   // Search & Filter
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('Đang học');
+  const [feeFilter, setFeeFilter] = useState('Tất cả');
 
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -58,10 +59,20 @@ export default function StudentsPage() {
 
   async function fetchStudents() {
     setLoading(true);
-    let query = supabase
-      .from('students')
-      .select('*, payments(amount, status, billing_period)', { count: 'exact' })
-      .neq('is_deleted', true);
+    let query;
+    
+    if (feeFilter === 'Chưa nộp học phí') {
+      query = supabase
+        .from('students')
+        .select('*, payments!inner(status)', { count: 'exact' })
+        .neq('is_deleted', true)
+        .eq('payments.status', 'unpaid');
+    } else {
+      query = supabase
+        .from('students')
+        .select('*', { count: 'exact' })
+        .neq('is_deleted', true);
+    }
 
     if (statusFilter !== 'Tất cả') {
       query = query.eq('status', statusFilter);
@@ -91,7 +102,7 @@ export default function StudentsPage() {
   // Reset to page 1 when search or filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter]);
+  }, [searchTerm, statusFilter, feeFilter]);
 
   // Fetch when page, search, or filter changes
   useEffect(() => {
@@ -100,7 +111,7 @@ export default function StudentsPage() {
     }, 300);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, searchTerm, statusFilter]);
+  }, [currentPage, searchTerm, statusFilter, feeFilter]);
 
   // Handle Form changes
   const handleInputChange = (field: keyof Student, value: any) => {
@@ -200,11 +211,6 @@ export default function StudentsPage() {
     return 'bg-slate-100 text-slate-700 hover:bg-slate-100';
   }
 
-  const calculateUnpaidTuition = (student: Student) => {
-    if (!student.payments) return 0;
-    return student.payments.filter(p => p.status === 'unpaid').reduce((sum, p) => sum + Number(p.amount), 0);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -229,9 +235,9 @@ export default function StudentsPage() {
                 className="pl-9"
               />
             </div>
-            <div className="w-full sm:w-48 shrink-0">
+            <div className="w-full sm:w-auto shrink-0 flex gap-2 flex-col sm:flex-row">
               <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val || 'Tất cả')}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full sm:w-40">
                   <SelectValue placeholder="Tất cả trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
@@ -239,6 +245,15 @@ export default function StudentsPage() {
                   <SelectItem value="Đang học">Đang học</SelectItem>
                   <SelectItem value="Tạm dừng">Tạm dừng</SelectItem>
                   <SelectItem value="Đã nghỉ">Đã nghỉ</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={feeFilter} onValueChange={(val) => setFeeFilter(val || 'Tất cả')}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Tình trạng học phí" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Tất cả">Tất cả tình trạng HP</SelectItem>
+                  <SelectItem value="Chưa nộp học phí">Chưa nộp học phí</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -251,18 +266,16 @@ export default function StudentsPage() {
                   <TableHead className="w-[200px]">Họ tên</TableHead>
                   <TableHead>Liên hệ</TableHead>
                   <TableHead>Trạng thái</TableHead>
-                  <TableHead>Học phí</TableHead>
                   <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-8">Đang tải dữ liệu...</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center py-8">Đang tải dữ liệu...</TableCell></TableRow>
                 ) : students.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-500">Không tìm thấy học sinh nào</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center py-8 text-slate-500">Không tìm thấy học sinh nào</TableCell></TableRow>
                 ) : (
                   students.map((s, idx) => {
-                    const unpaidAmount = calculateUnpaidTuition(s);
                     return (
                     <TableRow 
                       key={s.student_id} 
@@ -283,17 +296,6 @@ export default function StudentsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary" className={statusColor(s.status)}>{s.status}</Badge>
-                      </TableCell>
-                      <TableCell>
-                         {unpaidAmount > 0 ? (
-                            <div className="text-red-600 font-semibold text-sm">
-                              Thiếu: {new Intl.NumberFormat('vi-VN').format(unpaidAmount)}đ
-                            </div>
-                         ) : (
-                            <div className="text-emerald-600 font-medium text-sm">
-                              Đã nộp đủ
-                            </div>
-                         )}
                       </TableCell>
                       <TableCell className="text-right space-x-2" onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); router.push(`/admin/students/${s.student_id}`); }} title="Chi tiết"><FileText className="h-4 w-4" /></Button>

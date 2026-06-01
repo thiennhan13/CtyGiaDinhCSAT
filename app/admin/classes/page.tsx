@@ -134,7 +134,7 @@ export default function ClassesPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input 
-                placeholder="Tìm kiếm theo Tên lớp hoặc Tên Gia sư..." 
+                placeholder="Tìm kiếm theo Tên lớp học..." 
                 className="pl-9 bg-slate-50 border-slate-200"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
