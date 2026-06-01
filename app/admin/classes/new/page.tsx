@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ export default function NewClassPage() {
 
   // Step 1: Class Info & Students
   const [className, setClassName] = useState('');
+  const [classType, setClassType] = useState('Lớp Cơ bản');
   const [tutorId, setTutorId] = useState('');
   const [csatFee, setCsatFee] = useState<number>(0);
   const [selectedStudents, setSelectedStudents] = useState<{ id: string, name: string, fee: number }[]>([]);
@@ -93,6 +94,31 @@ export default function NewClassPage() {
     setSchedules(schedules.filter((_, i) => i !== index));
   };
 
+  const { generatedSessionsCount, isValidDuration } = useMemo(() => {
+    const parseLocalDate = (dateStr: string) => {
+      const [y, m, d] = dateStr.split('-');
+      return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    };
+    
+    let currentDate = parseLocalDate(startDate);
+    const endGenerationDate = parseLocalDate(endDate);
+    
+    const diffTime = Math.abs(endGenerationDate.getTime() - currentDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const valid = diffDays <= 93; // Approx 3 months
+
+    let count = 0;
+    if (valid) {
+      while (currentDate <= endGenerationDate) {
+        const dayIndex = currentDate.getDay().toString();
+        const foundSchedules = schedules.filter(s => s.dayOfWeek === dayIndex);
+        count += foundSchedules.length;
+        currentDate = addDays(currentDate, 1);
+      }
+    }
+    return { generatedSessionsCount: count, isValidDuration: valid };
+  }, [startDate, endDate, schedules]);
+
   const checkConflictAndSubmit = async () => {
     if (!className || !tutorId) {
       alert('Vui lòng điền tên lớp và chọn gia sư.');
@@ -100,6 +126,10 @@ export default function NewClassPage() {
     }
     if (schedules.length === 0) {
       alert('Vui lòng thêm ít nhất 1 buổi học cố định.');
+      return;
+    }
+    if (!isValidDuration) {
+      alert('Thời gian tạo lịch không được vượt quá 3 tháng (90 ngày) để đảm bảo an toàn hệ thống.');
       return;
     }
 
@@ -134,6 +164,7 @@ export default function NewClassPage() {
       const payload = {
         action: 'create',
         name: className,
+        class_type: classType,
         tutor_id: tutorId,
         csat_fee_per_session: csatFee,
         start_date: startDate,
@@ -192,6 +223,19 @@ export default function NewClassPage() {
                   onChange={(e) => setClassName(e.target.value)} 
                   required 
                 />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Loại lớp <span className="text-red-500">*</span></label>
+                <Select value={classType} onValueChange={(val) => val && setClassType(val)} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn Loại Lớp" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Lớp Cơ bản">Lớp Cơ bản</SelectItem>
+                    <SelectItem value="Lớp Nâng cao">Lớp Nâng cao</SelectItem>
+                    <SelectItem value="Lớp Luyện thi">Lớp Luyện thi</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Gia sư <span className="text-red-500">*</span></label>
@@ -298,6 +342,17 @@ export default function NewClassPage() {
                 <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
               </div>
             </div>
+
+            {!isValidDuration ? (
+              <div className="bg-red-50 text-red-600 p-4 rounded-md border border-red-200 text-sm">
+                ⚠️ Thời gian tạo lịch vượt quá 3 tháng. Vui lòng rút ngắn khoảng thời gian để đảm bảo an toàn tải dữ liệu.
+              </div>
+            ) : (
+              <div className="bg-indigo-50 text-indigo-700 p-4 rounded-md border border-indigo-200 flex justify-between items-center">
+                <span className="font-medium">Tổng số buổi học dự kiến:</span>
+                <span className="text-xl font-bold">{generatedSessionsCount} buổi</span>
+              </div>
+            )}
 
             <div className="space-y-4">
               {schedules.map((schedule, index) => (

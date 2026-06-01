@@ -6,6 +6,7 @@ import { z } from 'zod';
 const createClassSchema = z.object({
   action: z.literal('create'),
   name: z.string().min(2, "Tên lớp phải có ít nhất 2 ký tự"),
+  class_type: z.string(),
   tutor_id: z.string().uuid("Tutor ID không hợp lệ"),
   csat_fee_per_session: z.number().min(0, "CSAT fee không được âm"),
   start_date: z.string().date("Ngày bắt đầu không hợp lệ"),
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
     const adminClient = createAdminClient();
 
     if (parsed.data.action === 'create') {
-      const { name, tutor_id, csat_fee_per_session, start_date, end_date, students, sessions } = parsed.data;
+      const { name, class_type, tutor_id, csat_fee_per_session, start_date, end_date, students, sessions } = parsed.data;
 
       // 1. Check for conflicts
       if (sessions.length > 0) {
@@ -115,6 +116,7 @@ export async function POST(request: Request) {
       // 2. Call RPC create_class_full
       const { data, error } = await adminClient.rpc('create_class_full', {
         p_name: name,
+        p_class_type: class_type,
         p_tutor_id: tutor_id,
         p_csat_fee: csat_fee_per_session,
         p_start_date: start_date,

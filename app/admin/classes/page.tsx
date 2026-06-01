@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,12 +13,14 @@ import { Search, Trash2, Archive } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function ClassesPage() {
+  const router = useRouter();
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Search & Filter
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('Tất cả');
+  const [classTypeFilter, setClassTypeFilter] = useState('Tất cả');
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,6 +36,10 @@ export default function ClassesPage() {
 
     if (statusFilter !== 'Tất cả') {
       query = query.eq('status', statusFilter);
+    }
+    
+    if (classTypeFilter !== 'Tất cả') {
+      query = query.eq('class_type', classTypeFilter);
     }
     
     if (searchTerm) {
@@ -55,7 +62,7 @@ export default function ClassesPage() {
   // Reset to page 1 when search or filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter]);
+  }, [searchTerm, statusFilter, classTypeFilter]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -63,7 +70,7 @@ export default function ClassesPage() {
     }, 300);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, searchTerm, statusFilter]);
+  }, [currentPage, searchTerm, statusFilter, classTypeFilter]);
 
   async function handleArchiveClass(classId: string) {
     if (!confirm('Bạn có chắc chắn muốn ngừng dạy lớp này? Các lịch học sắp tới sẽ bị hủy và học sinh sẽ được đánh dấu đã nghỉ.')) return;
@@ -144,6 +151,18 @@ export default function ClassesPage() {
                 <SelectItem value="inactive">Ngừng hoạt động</SelectItem>
               </SelectContent>
             </Select>
+
+            <Select value={classTypeFilter} onValueChange={(val) => setClassTypeFilter(val || 'Tất cả')}>
+              <SelectTrigger className="w-[180px] bg-slate-50 border-slate-200">
+                <SelectValue placeholder="Loại lớp" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Tất cả">Tất cả loại lớp</SelectItem>
+                <SelectItem value="Lớp Cơ bản">Lớp Cơ bản</SelectItem>
+                <SelectItem value="Lớp Nâng cao">Lớp Nâng cao</SelectItem>
+                <SelectItem value="Lớp Luyện thi">Lớp Luyện thi</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="rounded-md border border-slate-200 bg-white overflow-x-auto">
@@ -151,6 +170,7 @@ export default function ClassesPage() {
               <TableHeader className="bg-slate-50/50">
                 <TableRow>
                   <TableHead className="w-[300px]">Tên Lớp</TableHead>
+                  <TableHead>Loại Lớp</TableHead>
                   <TableHead>Gia Sư</TableHead>
                   <TableHead>Trạng Thái</TableHead>
                   <TableHead className="text-right">Hành động</TableHead>
@@ -163,7 +183,7 @@ export default function ClassesPage() {
                   </TableRow>
                 ) : classes.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={5} className="text-center py-8 text-slate-500">
                       <div className="flex flex-col items-center justify-center">
                         <p>Không tìm thấy lớp học nào phù hợp.</p>
                       </div>
@@ -171,15 +191,22 @@ export default function ClassesPage() {
                   </TableRow>
                 ) : (
                   classes.map(c => (
-                    <TableRow key={c.class_id} className="hover:bg-slate-50/50 transition-colors">
+                    <TableRow 
+                      key={c.class_id} 
+                      className="hover:bg-slate-50/50 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/admin/classes/${c.class_id}`)}
+                    >
                       <TableCell className="font-medium text-slate-900">{c.name}</TableCell>
+                      <TableCell className="text-slate-600">
+                        <Badge variant="outline">{c.class_type || 'Lớp Cơ bản'}</Badge>
+                      </TableCell>
                       <TableCell className="text-slate-600">{c.tutors?.name || '---'}</TableCell>
                       <TableCell>
                         <Badge variant="secondary" className={statusColor(c.status)}>
                           {translateStatus(c.status)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right flex items-center justify-end gap-2">
+                      <TableCell className="text-right flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                          <Link href={`/admin/classes/${c.class_id}`}>
                            <Button variant="outline" size="sm">Chi tiết</Button>
                          </Link>

@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS payments CASCADE;
 DROP TABLE IF EXISTS session_attendance CASCADE;
 DROP TABLE IF EXISTS sessions CASCADE;
 DROP TABLE IF EXISTS class_students CASCADE;
+DROP TABLE IF EXISTS student_reviews CASCADE;
 DROP TABLE IF EXISTS classes CASCADE;
 DROP TABLE IF EXISTS tutors CASCADE;
 DROP TABLE IF EXISTS students CASCADE;
@@ -67,6 +68,7 @@ CREATE TABLE IF NOT EXISTS classes (
   start_date DATE,
   end_date DATE,
   status VARCHAR(255) DEFAULT 'active',
+  class_type VARCHAR(255) NOT NULL DEFAULT 'Lớp Cơ bản',
   csat_fee_per_session DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -81,7 +83,20 @@ CREATE TABLE IF NOT EXISTS class_students (
   PRIMARY KEY (class_id, student_id)
 );
 
--- 7. Bảng: sessions (Buổi học)
+-- 7. Bảng: student_reviews (Nhận xét học sinh)
+CREATE TABLE IF NOT EXISTS student_reviews (
+  review_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  student_id UUID REFERENCES students(student_id) ON DELETE CASCADE,
+  tutor_id UUID REFERENCES tutors(tutor_id) ON DELETE SET NULL,
+  class_id UUID REFERENCES classes(class_id) ON DELETE SET NULL,
+  month_year VARCHAR(7),
+  general_assessment TEXT,
+  learning_attitude TEXT,
+  logical_thinking TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 8. Bảng: sessions (Buổi học)
 CREATE TABLE IF NOT EXISTS sessions (
   session_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   class_id UUID REFERENCES classes(class_id) ON DELETE CASCADE,
@@ -94,7 +109,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 8. Bảng: session_attendance (Điểm danh)
+-- 9. Bảng: session_attendance (Điểm danh)
 CREATE TABLE IF NOT EXISTS session_attendance (
   attendance_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   session_id UUID REFERENCES sessions(session_id) ON DELETE CASCADE,
@@ -105,7 +120,7 @@ CREATE TABLE IF NOT EXISTS session_attendance (
   UNIQUE(session_id, student_id)
 );
 
--- 9. Bảng: payments (Thanh toán/Hóa đơn)
+-- 10. Bảng: payments (Thanh toán/Hóa đơn)
 CREATE TABLE IF NOT EXISTS payments (
   payment_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   student_id UUID REFERENCES students(student_id) ON DELETE SET NULL,
@@ -116,7 +131,7 @@ CREATE TABLE IF NOT EXISTS payments (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 10. Bảng: announcements (Bảng tin)
+-- 11. Bảng: announcements (Bảng tin)
 CREATE TABLE IF NOT EXISTS announcements (
   announcement_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title VARCHAR(255) NOT NULL,
@@ -126,7 +141,7 @@ CREATE TABLE IF NOT EXISTS announcements (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 11. Chỉ mục (Indexes) để tối ưu hoá hiệu năng truy vấn
+-- 12. Chỉ mục (Indexes) để tối ưu hoá hiệu năng truy vấn
 CREATE INDEX IF NOT EXISTS idx_classes_tutor_id ON public.classes(tutor_id);
 CREATE INDEX IF NOT EXISTS idx_class_students_student_id ON public.class_students(student_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_class_id ON public.sessions(class_id);
@@ -139,7 +154,7 @@ CREATE INDEX IF NOT EXISTS idx_payments_billing_period ON public.payments(billin
 -- THIẾT LẬP BẢO MẬT (ROW LEVEL SECURITY)
 -- ==========================================
 
-ALTER TABLE students ENABLE ROW LEVEL SECURITY;
+ALTER TABLE students DISABLE ROW LEVEL SECURITY;
 ALTER TABLE tutors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE class_students ENABLE ROW LEVEL SECURITY;
@@ -147,6 +162,7 @@ ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE session_attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE student_reviews ENABLE ROW LEVEL SECURITY;
 
 -- Helper Function: Kiểm tra Admin thông qua JWT (hỗ trợ app_metadata, user_metadata và email csattutor@gmail.com)
 CREATE OR REPLACE FUNCTION is_admin() 
@@ -264,6 +280,7 @@ CREATE POLICY "Admin_Full_Sessions" ON sessions FOR ALL TO authenticated USING (
 CREATE POLICY "Admin_Full_Attendance" ON session_attendance FOR ALL TO authenticated USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin_Full_Payments" ON payments FOR ALL TO authenticated USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "Admin_Full_Announcements" ON announcements FOR ALL TO authenticated USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "Admin_Full_Student_Reviews" ON student_reviews FOR ALL TO authenticated USING (is_admin()) WITH CHECK (is_admin());
 
 -- ==========================================
 -- POLICIES: TUTOR (CHỈ XEM/SỬA LỚP ĐƯỢC GÁN)
@@ -306,6 +323,12 @@ CREATE POLICY "Tutor_View_Assigned_Sessions" ON sessions FOR SELECT TO authentic
 
 CREATE POLICY "Public_View_Announcements" ON announcements FOR SELECT TO authenticated USING (true);
 
+CREATE POLICY "Tutor_Manage_Own_Reviews" ON student_reviews FOR ALL TO authenticated USING (
+  tutor_id = (SELECT tutor_id FROM tutors WHERE auth_uid = auth.uid())
+) WITH CHECK (
+  tutor_id = (SELECT tutor_id FROM tutors WHERE auth_uid = auth.uid())
+);
+
 -- Quyền UPDATE/ALL (Ghi/Sửa) thì bắt buộc lặp lại logic ở cả USING và WITH CHECK
 CREATE POLICY "Tutor_Manage_Assigned_Sessions" ON sessions FOR ALL TO authenticated USING (
   EXISTS (
@@ -342,6 +365,7 @@ CREATE POLICY "Tutor_Manage_Attendance" ON session_attendance FOR ALL TO authent
 -- ==========================================
 CREATE OR REPLACE FUNCTION create_class_full(
     p_name VARCHAR,
+    p_class_type VARCHAR,
     p_tutor_id UUID,
     p_csat_fee DECIMAL,
     p_start_date DATE,
@@ -355,8 +379,8 @@ DECLARE
     v_session JSON;
 BEGIN
     -- 1. Create class
-    INSERT INTO classes (name, tutor_id, csat_fee_per_session, start_date, end_date)
-    VALUES (p_name, p_tutor_id, p_csat_fee, p_start_date, p_end_date)
+    INSERT INTO classes (name, class_type, tutor_id, csat_fee_per_session, start_date, end_date)
+    VALUES (p_name, p_class_type, p_tutor_id, p_csat_fee, p_start_date, p_end_date)
     RETURNING class_id INTO v_class_id;
 
     -- 2. Insert students
@@ -424,7 +448,33 @@ ADD COLUMN IF NOT EXISTS csat_fee_snapshot DECIMAL(10,2);
 ALTER TABLE public.session_attendance 
 ADD COLUMN IF NOT EXISTS tuition_fee_snapshot DECIMAL(10,2);
 
--- 5. Khắc phục lỗi Permission Denied (42501) - Cấp quyền đầy đủ cho các bảng hiện có
+-- 5. Bổ sung class_type vào classes
+ALTER TABLE public.classes 
+ADD COLUMN IF NOT EXISTS class_type VARCHAR(255) NOT NULL DEFAULT 'Lớp Cơ bản';
+
+-- 6. Tạo bảng student_reviews nếu chưa có (Migration)
+CREATE TABLE IF NOT EXISTS public.student_reviews (
+  review_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  student_id UUID REFERENCES students(student_id) ON DELETE CASCADE,
+  tutor_id UUID REFERENCES tutors(tutor_id) ON DELETE SET NULL,
+  class_id UUID REFERENCES classes(class_id) ON DELETE SET NULL,
+  month_year VARCHAR(7),
+  general_assessment TEXT,
+  learning_attitude TEXT,
+  logical_thinking TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+ALTER TABLE public.student_reviews ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admin_Full_Student_Reviews" ON public.student_reviews;
+CREATE POLICY "Admin_Full_Student_Reviews" ON public.student_reviews FOR ALL TO authenticated USING (is_admin()) WITH CHECK (is_admin());
+DROP POLICY IF EXISTS "Tutor_Manage_Own_Reviews" ON public.student_reviews;
+CREATE POLICY "Tutor_Manage_Own_Reviews" ON public.student_reviews FOR ALL TO authenticated USING (
+  tutor_id = (SELECT tutor_id FROM tutors WHERE auth_uid = auth.uid())
+) WITH CHECK (
+  tutor_id = (SELECT tutor_id FROM tutors WHERE auth_uid = auth.uid())
+);
+
+-- 7. Khắc phục lỗi Permission Denied (42501) - Cấp quyền đầy đủ cho các bảng hiện có
 GRANT USAGE ON SCHEMA public TO postgres, service_role, authenticated, anon;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres, service_role, authenticated, anon;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO postgres, service_role, authenticated, anon;

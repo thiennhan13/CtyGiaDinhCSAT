@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from '@/lib/supabase/client';
-import { ArrowLeft, User, Phone, MapPin, ExternalLink, Calendar, BookOpen, CreditCard, Clock, Activity } from 'lucide-react';
+import { ArrowLeft, User, Phone, MapPin, ExternalLink, Calendar, BookOpen, CreditCard, Clock, Activity, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function StudentDetailPage() {
@@ -21,6 +21,7 @@ export default function StudentDetailPage() {
   const [enrolledClasses, setEnrolledClasses] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -75,11 +76,32 @@ export default function StudentDetailPage() {
           setAttendance(sortedAtt);
       }
 
+      // Fetch reviews
+      const { data: revData } = await supabase
+        .from('student_reviews')
+        .select('*, tutors(name), classes(name)')
+        .eq('student_id', studentId)
+        .order('month_year', { ascending: false });
+        
+      if (revData) setReviews(revData);
+
       setLoading(false);
     }
     fetchStudentDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId]);
+
+  async function handleMarkAsPaid(paymentId: string) {
+    if (!confirm('Xác nhận đánh dấu Đã thu học phí cho hóa đơn này?')) return;
+    try {
+      const { error } = await supabase.from('payments').update({ status: 'paid' }).eq('payment_id', paymentId);
+      if (error) throw error;
+      alert('Đã cập nhật trạng thái thành công!');
+      setPayments(prev => prev.map(p => p.payment_id === paymentId ? { ...p, status: 'paid' } : p));
+    } catch (err: any) {
+      alert("Lỗi: " + err.message);
+    }
+  }
 
   const statusColor = (status: string) => {
     if (status === 'Đang học') return 'bg-green-100 text-green-700 hover:bg-green-100';
@@ -155,10 +177,11 @@ export default function StudentDetailPage() {
              <Card className="h-full">
                  <CardContent className="p-0">
                     <Tabs defaultValue="attendance" className="w-full">
-                        <TabsList className="w-full grid justify-start grid-cols-3 rounded-none border-b bg-transparent h-14 p-0">
+                        <TabsList className="w-full grid justify-start grid-cols-4 rounded-none border-b bg-transparent h-14 p-0">
                             <TabsTrigger value="attendance" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-14 data-[state=active]:shadow-none"><Activity className="w-4 h-4 mr-2"/>Điểm danh</TabsTrigger>
                             <TabsTrigger value="classes" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-14 data-[state=active]:shadow-none"><BookOpen className="w-4 h-4 mr-2"/>Lớp học</TabsTrigger>
                             <TabsTrigger value="payments" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-14 data-[state=active]:shadow-none"><CreditCard className="w-4 h-4 mr-2"/>Học phí</TabsTrigger>
+                            <TabsTrigger value="reviews" className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none h-14 data-[state=active]:shadow-none"><MessageSquare className="w-4 h-4 mr-2"/>Nhận xét</TabsTrigger>
                         </TabsList>
                         
                         <TabsContent value="attendance" className="p-6 m-0 border-none outline-none">
@@ -251,6 +274,7 @@ export default function StudentDetailPage() {
                                                     <TableHead>Lớp</TableHead>
                                                     <TableHead>Trạng thái</TableHead>
                                                     <TableHead className="text-right">Số tiền</TableHead>
+                                                    <TableHead className="text-right">Thao tác</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
@@ -268,11 +292,59 @@ export default function StudentDetailPage() {
                                                         <TableCell className="text-right font-bold text-slate-900">
                                                             {new Intl.NumberFormat('vi-VN').format(p.amount)}đ
                                                         </TableCell>
+                                                        <TableCell className="text-right">
+                                                            {p.status === 'unpaid' && (
+                                                                <Button size="sm" variant="outline" className="border-emerald-200 text-emerald-700 hover:bg-emerald-50" onClick={() => handleMarkAsPaid(p.payment_id)}>Đánh dấu Đã thu</Button>
+                                                            )}
+                                                        </TableCell>
                                                     </TableRow>
                                                     )
                                                 })}
                                             </TableBody>
                                         </Table>
+                                    </div>
+                                )}
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="reviews" className="p-6 m-0 border-none outline-none">
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-bold">Lịch sử Đánh giá Định kỳ</h3>
+                                {reviews.length === 0 ? (
+                                    <p className="text-sm text-slate-500">Chưa có nhận xét nào từ Gia sư.</p>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {reviews.map((r, idx) => {
+                                            const tutorName = Array.isArray(r.tutors) ? r.tutors[0]?.name : r.tutors?.name;
+                                            const className = Array.isArray(r.classes) ? r.classes[0]?.name : r.classes?.name;
+                                            return (
+                                            <div key={idx} className="p-4 border rounded-lg bg-white space-y-3 shadow-sm">
+                                                <div className="flex justify-between items-center pb-2 border-b">
+                                                    <div>
+                                                        <h4 className="font-bold text-indigo-700 text-lg">Kỳ đánh giá: {r.month_year}</h4>
+                                                        <p className="text-sm text-slate-500">Gia sư: <span className="font-medium">{tutorName || '---'}</span> | Lớp: {className || '---'}</p>
+                                                    </div>
+                                                    <div className="text-sm text-slate-400">
+                                                        {format(new Date(r.created_at), 'dd/MM/yyyy')}
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <h5 className="text-xs uppercase font-bold text-slate-500 mb-1">Đánh giá chung</h5>
+                                                        <p className="text-sm text-slate-800 whitespace-pre-wrap">{r.general_assessment || '---'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <h5 className="text-xs uppercase font-bold text-slate-500 mb-1">Thái độ học tập</h5>
+                                                        <p className="text-sm text-slate-800 whitespace-pre-wrap">{r.learning_attitude || '---'}</p>
+                                                    </div>
+                                                    <div className="md:col-span-2">
+                                                        <h5 className="text-xs uppercase font-bold text-slate-500 mb-1">Tư duy logic / Giải quyết vấn đề</h5>
+                                                        <p className="text-sm text-slate-800 whitespace-pre-wrap">{r.logical_thinking || '---'}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            )
+                                        })}
                                     </div>
                                 )}
                             </div>

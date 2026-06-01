@@ -264,7 +264,11 @@ export default function StudentsPage() {
                   students.map((s, idx) => {
                     const unpaidAmount = calculateUnpaidTuition(s);
                     return (
-                    <TableRow key={s.student_id} className="group">
+                    <TableRow 
+                      key={s.student_id} 
+                      className="group hover:bg-slate-50/50 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/admin/students/${s.student_id}`)}
+                    >
                       <TableCell>
                         <div className="font-semibold text-slate-900">{s.name}</div>
                         <div className="text-xs text-slate-500">{s.age ? `${s.age} tuổi • ` : ''}{s.province}</div>
@@ -291,10 +295,10 @@ export default function StudentsPage() {
                             </div>
                          )}
                       </TableCell>
-                      <TableCell className="text-right space-x-2">
-                        <Button variant="ghost" size="icon" onClick={() => router.push(`/admin/students/${s.student_id}`)} title="Chi tiết"><FileText className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(s)} title="Chỉnh sửa"><PencilLine className="h-4 w-4 text-blue-600" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => openDelete(s)} title="Xóa"><UserX className="h-4 w-4 text-red-600" /></Button>
+                      <TableCell className="text-right space-x-2" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); router.push(`/admin/students/${s.student_id}`); }} title="Chi tiết"><FileText className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(s); }} title="Chỉnh sửa"><PencilLine className="h-4 w-4 text-blue-600" /></Button>
+                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openDelete(s); }} title="Xóa"><UserX className="h-4 w-4 text-red-600" /></Button>
                       </TableCell>
                     </TableRow>
                   )})
