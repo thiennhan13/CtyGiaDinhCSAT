@@ -1,4 +1,4 @@
-import { Code2, Terminal, Database, Cpu, Braces, MonitorCode } from 'lucide-react';
+import { Code2, Terminal, Database, Cpu, Braces, Monitor } from 'lucide-react';
 
 export default function BackgroundIcons() {
   return (
@@ -13,7 +13,7 @@ export default function BackgroundIcons() {
       
       {/* Top Right */}
       <Cpu className="absolute top-[20%] right-[10%] w-24 h-24 text-green-500/10 animate-float-2" />
-      <MonitorCode className="absolute top-[40%] right-[5%] w-12 h-12 text-blue-500/10 animate-float-3" />
+      <Monitor className="absolute top-[40%] right-[5%] w-12 h-12 text-blue-500/10 animate-float-3" />
       
       {/* Bottom Right */}
       <Code2 className="absolute bottom-[25%] right-[15%] w-16 h-16 text-red-500/10 animate-float-1" />
