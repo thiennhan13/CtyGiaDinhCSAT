@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +12,7 @@ import { createClient } from '@/lib/supabase/client';
 export default function TutorsPage() {
   const [tutors, setTutors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
   
   // form
   const [name, setName] = useState('');
@@ -154,16 +157,25 @@ export default function TutorsPage() {
                 </TableHeader>
                 <TableBody>
                   {tutors.map(t => (
-                    <TableRow key={t.tutor_id}>
+                    <TableRow
+                      key={t.tutor_id}
+                      className="hover:bg-slate-50 cursor-pointer transition-colors"
+                      onClick={() => router.push(`/admin/tutors/${t.tutor_id}`)}
+                    >
                       <TableCell className="font-medium">{t.name}</TableCell>
                       <TableCell>{t.email}</TableCell>
                       <TableCell>
                         {t.status === 'inactive' ? <span className="text-red-500 font-medium">Đã vô hiệu hóa</span> : <span className="text-emerald-500 font-medium">Đang hoạt động</span>}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="destructive" size="sm" onClick={() => handleDelete(t.tutor_id)}>
-                          Xóa
-                        </Button>
+                      <TableCell className="text-right" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-2">
+                          <Link href={`/admin/tutors/${t.tutor_id}`}>
+                            <Button variant="outline" size="sm">Chi tiết</Button>
+                          </Link>
+                          <Button variant="destructive" size="sm" onClick={() => handleDelete(t.tutor_id)}>
+                            Xóa
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

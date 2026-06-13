@@ -121,9 +121,40 @@
     @apply border-border outline-ring/50;
     }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground relative min-h-screen;
     }
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(circle at 0% 0%, rgba(66, 133, 244, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 100% 0%, rgba(234, 67, 53, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 100% 100%, rgba(251, 188, 5, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 0% 100%, rgba(52, 168, 83, 0.05) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: -1;
+  }
   html {
     @apply font-sans;
     }
+}
+
+@layer utilities {
+  .bg-google-gradient {
+    background: linear-gradient(135deg, #4285f4, #34a853, #fbbc05, #ea4335);
+    background-size: 300% 300%;
+    animation: googleGradient 8s ease infinite;
+    color: white !important;
+    border: none;
+  }
+  
+  @keyframes googleGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
 }

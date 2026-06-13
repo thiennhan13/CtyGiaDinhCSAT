@@ -144,7 +144,8 @@ export default function TutorClassDetailPage() {
         start_time: newSessionStart,
         end_time: newSessionEnd,
         status: 'scheduled',
-        csat_fee_snapshot: classData.csat_fee_per_session
+        csat_fee_snapshot: classData.csat_fee_per_session,
+        tutor_id_snapshot: classData.tutor_id || tutorId
     }]);
 
     if (error) {
@@ -230,6 +231,7 @@ export default function TutorClassDetailPage() {
              start_time: bulkAddStartTime,
              end_time: bulkAddEndTime,
              csat_fee_snapshot: classData?.csat_fee_per_session || 0,
+             tutor_id_snapshot: classData?.tutor_id || tutorId,
              status: 'scheduled'
           });
        }
@@ -387,6 +389,10 @@ export default function TutorClassDetailPage() {
             <DialogTitle>Thêm Buổi Học (Tăng cường / Bù / Tự tạo)</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddSession} className="space-y-4 py-4">
+            {/* B5: Cảnh báo xung đột lịch */}
+            <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
+              ⚠️ Lưu ý: Hãy kiểm tra không trùng lịch với các lớp khác bạn đang dạy.
+            </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Ngày dạy <span className="text-red-500">*</span></label>
               <Input type="date" value={newSessionDate} onChange={(e) => setNewSessionDate(e.target.value)} required />
@@ -447,6 +453,10 @@ export default function TutorClassDetailPage() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleBulkAdd} className="space-y-4 py-4">
+            {/* B5: Cảnh báo xung đột lịch */}
+            <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
+              ⚠️ Lưu ý: Hãy kiểm tra không trùng lịch với các lớp khác bạn đang dạy trong khoảng thời gian này.
+            </div>
              <div className="grid grid-cols-2 gap-4">
                <div>
                  <label className="text-sm font-medium">Từ ngày (Bắt đầu)</label>

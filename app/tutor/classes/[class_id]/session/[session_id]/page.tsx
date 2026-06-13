@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
@@ -18,6 +18,7 @@ export default function SessionAttendancePage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [sessionData, setSessionData] = useState<any>(null);
+  const isSubmittingRef = useRef(false); // B6: guard double-submit
   
   const router = useRouter();
   const supabase = createClient();
@@ -78,6 +79,9 @@ export default function SessionAttendancePage() {
   }
 
   async function handleSave() {
+    // B6: Chặn double-submit khi mạng chậm
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setSubmitting(true);
     
     // Build array for upsert
@@ -97,8 +101,7 @@ export default function SessionAttendancePage() {
        });
 
        if (res.ok) {
-         // Update session status to completed
-         await supabase.from('sessions').update({ status: 'completed' }).eq('session_id', sessionId);
+         // B1: KHÔNG gọi update sessions ở đây nữa — API /attendance đã tự update status='completed'
          alert('Thành công! Điểm danh đã lưu.');
          router.push('/tutor/dashboard');
        } else {
@@ -107,8 +110,10 @@ export default function SessionAttendancePage() {
        }
     } catch(err: any) {
       alert('Lỗi: ' + err.message);
+    } finally {
+      isSubmittingRef.current = false;
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   async function handleCancelSession() {

@@ -54,7 +54,8 @@ export async function POST(request: Request) {
         start_time,
         end_time,
         status: 'scheduled',
-        csat_fee_snapshot: classInfo.csat_fee_per_session
+        csat_fee_snapshot: classInfo.csat_fee_per_session,
+        tutor_id_snapshot: tutor.tutor_id
       }])
       .select()
       .single();

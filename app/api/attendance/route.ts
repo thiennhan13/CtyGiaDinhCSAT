@@ -59,24 +59,15 @@ export async function POST(request: Request) {
       tuition_fee_snapshot: feeMap.get(d.student_id) || 0
     }));
 
-    // Perform an UPSERT for attendance
-    // attendanceData array has properties matching session_attendance table
-    const { error: upsertError } = await supabaseUser
-      .from('session_attendance')
-      .upsert(enhancedAttendanceData, { onConflict: 'session_id, student_id' });
+    // Perform an UPSERT for attendance and UPDATE session status atomically via RPC
+    const { data: rpcResult, error: rpcError } = await supabaseUser
+      .rpc('take_attendance_safe', {
+        p_session_id: sessionId,
+        p_attendance_data: enhancedAttendanceData
+      });
 
-    if (upsertError) {
-      throw upsertError;
-    }
-
-    // Update session status to 'completed' so Billing can pick it up
-    const { error: updateError } = await supabaseUser
-      .from('sessions')
-      .update({ status: 'completed' })
-      .eq('session_id', sessionId);
-
-    if (updateError) {
-      throw updateError;
+    if (rpcError) {
+      throw rpcError;
     }
 
     return NextResponse.json({ message: 'Lưu điểm danh thành công' });

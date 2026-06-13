@@ -57,8 +57,10 @@ export async function GET(request: Request) {
 
     // Build map session_id -> class_id
     const sessionClassMap: Record<string, string> = {};
+    const classIdsSet = new Set<string>();
     sessions.forEach(s => {
       sessionClassMap[s.session_id] = s.class_id;
+      classIdsSet.add(s.class_id);
     });
 
     // Sum up the total fee per student per class based on snapshots
@@ -66,9 +68,11 @@ export async function GET(request: Request) {
     const studentClassFees: Record<string, number> = {};
     
     // We also need to fetch fallback tuition fees in case snapshot is null (for backward compatibility)
+    const classIds = Array.from(classIdsSet);
     const { data: classStudents, error: csErr } = await supabase
       .from('class_students')
-      .select('class_id, student_id, tuition_fee_per_session');
+      .select('class_id, student_id, tuition_fee_per_session')
+      .in('class_id', classIds);
 
     if (csErr) throw csErr;
 
@@ -86,6 +90,7 @@ export async function GET(request: Request) {
     });
 
     const paymentsToInsert = [];
+    let zeroAmountCount = 0; // B4: đếm buổi học có phí = 0
 
     // 4 & 5. Tạo payments
     for (const [key, totalAmount] of Object.entries(studentClassFees)) {
@@ -99,6 +104,9 @@ export async function GET(request: Request) {
           amount: totalAmount,
           status: 'unpaid'
         });
+      } else {
+        // B4: Ghi nhận học sinh có học phí = 0 để cảnh báo admin
+        zeroAmountCount++;
       }
     }
 
@@ -129,7 +137,11 @@ export async function GET(request: Request) {
       if (updateErr) throw updateErr;
     }
 
-    return NextResponse.json({ message: `Đã chốt sổ thành công cho ${paymentsToInsert.length} hóa đơn.`, billingPeriod });
+    return NextResponse.json({
+      message: `Đã chốt sổ thành công cho ${paymentsToInsert.length} hóa đơn.`,
+      billingPeriod,
+      zero_amount_count: zeroAmountCount // B4: trả về số buổi bị bỏ qua do học phí = 0
+    });
 
   } catch (error: any) {
     console.error('Error generating billing:', error);

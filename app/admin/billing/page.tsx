@@ -36,6 +36,7 @@ export default function BillingPage() {
   // Pagination State
   const [paymentPage, setPaymentPage] = useState(1);
   const [salaryPage, setSalaryPage] = useState(1);
+  const [unpaidOnly, setUnpaidOnly] = useState(false); // F5: filter công nợ
   const ITEMS_PER_PAGE = 20;
 
   useEffect(() => {
@@ -113,7 +114,13 @@ export default function BillingPage() {
       const res = await fetch(`/api/admin/billing/generate?startDate=${startDate}&endDate=${endDate}&billingPeriod=${encodeURIComponent(billingPeriodName)}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || data.message || 'Lỗi hệ thống');
-      alert(data.message || 'Xong');
+      
+      // B4: Cảnh báo nếu có học sinh bị bỏ qua do học phí = 0
+      if (data.zero_amount_count > 0) {
+        alert(`${data.message}\n\n⚠️ Cảnh báo: Có ${data.zero_amount_count} học sinh có học phí = 0đ và không được tạo hóa đơn. Hãy kiểm tra lại phí học của các lớp này.`);
+      } else {
+        alert(data.message || 'Xong');
+      }
       
       // Reload historical periods and switch to historical view
       setHistoricalPeriods(prev => Array.from(new Set([billingPeriodName, ...prev])));
@@ -209,6 +216,15 @@ export default function BillingPage() {
                <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-[140px]" />
                <span>đến</span>
                <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-[140px]" />
+               {/* B2: Cảnh báo khoảng ngày quá rộng */}
+               {(() => {
+                 const days = Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24));
+                 return days > 90 ? (
+                   <span className="text-xs text-amber-600 font-semibold bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                     ⚠️ {days} ngày — API có thể chậm
+                   </span>
+                 ) : null;
+               })()}
                <Button onClick={() => setIsBillingDialogOpen(true)} disabled={generating} variant="secondary">
                  {generating ? 'Đang chạy...' : 'Thực Hiện Chốt Sổ'}
                </Button>
@@ -297,9 +313,22 @@ export default function BillingPage() {
                <CardTitle>Phần 1: Học Phí Khách Hàng (Học Sinh)</CardTitle>
                <CardDescription>Các hóa đơn tính toán từ buổi học đã điểm danh</CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={exportCustomerPayments} className="ml-4 gap-2 border-slate-300 text-slate-700" disabled={viewMode === 'preview'}>
-               <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Xuất Excel
-            </Button>
+            <div className="flex items-center gap-2 ml-4">
+              {/* F5: Filter công nợ */}
+              {viewMode === 'historical' && (
+                <Button
+                  variant={unpaidOnly ? 'default' : 'outline'}
+                  size="sm"
+                  className={unpaidOnly ? 'bg-amber-500 hover:bg-amber-600' : 'border-amber-300 text-amber-700'}
+                  onClick={() => { setUnpaidOnly(v => !v); setPaymentPage(1); }}
+                >
+                  {unpaidOnly ? '✔ Chỉ chưa thu' : '💰 Lọc chưa thu'}
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={exportCustomerPayments} className="gap-2 border-slate-300 text-slate-700" disabled={viewMode === 'preview'}>
+                 <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Xuất Excel
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? <p>Đang tải...</p> : (
@@ -322,7 +351,7 @@ export default function BillingPage() {
                        </TableCell>
                     </TableRow>
                   )}
-                  {viewMode === 'historical' && payments.slice((paymentPage - 1) * ITEMS_PER_PAGE, paymentPage * ITEMS_PER_PAGE).map(p => (
+                  {viewMode === 'historical' && (payments.filter(p => !unpaidOnly || p.status === 'unpaid')).slice((paymentPage - 1) * ITEMS_PER_PAGE, paymentPage * ITEMS_PER_PAGE).map(p => (
                     <TableRow key={p.payment_id}>
                       <TableCell>{p.students?.name || '---'}</TableCell>
                       <TableCell>{p.classes?.name || '---'}</TableCell>

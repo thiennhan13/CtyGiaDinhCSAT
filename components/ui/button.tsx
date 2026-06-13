@@ -9,6 +9,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-indigo-600 text-white shadow-sm hover:bg-indigo-700",
+        google: "bg-google-gradient shadow-md hover:opacity-90 hover:shadow-lg transition-all",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:

@@ -370,13 +370,13 @@ CREATE OR REPLACE FUNCTION create_class_full(
     p_csat_fee DECIMAL,
     p_start_date DATE,
     p_end_date DATE,
-    p_students JSON,
-    p_sessions JSON
+    p_students JSONB,
+    p_sessions JSONB
 ) RETURNS UUID AS $$
 DECLARE
     v_class_id UUID;
-    v_student JSON;
-    v_session JSON;
+    v_student JSONB;
+    v_session JSONB;
 BEGIN
     -- 1. Create class
     INSERT INTO classes (name, class_type, tutor_id, csat_fee_per_session, start_date, end_date)
@@ -384,8 +384,8 @@ BEGIN
     RETURNING class_id INTO v_class_id;
 
     -- 2. Insert students
-    IF p_students IS NOT NULL AND json_array_length(p_students) > 0 THEN
-        FOR v_student IN SELECT * FROM json_array_elements(p_students)
+    IF p_students IS NOT NULL AND jsonb_array_length(p_students) > 0 THEN
+        FOR v_student IN SELECT * FROM jsonb_array_elements(p_students)
         LOOP
             INSERT INTO class_students (class_id, student_id, tuition_fee_per_session)
             VALUES (
@@ -397,8 +397,8 @@ BEGIN
     END IF;
 
     -- 3. Insert sessions
-    IF p_sessions IS NOT NULL AND json_array_length(p_sessions) > 0 THEN
-        FOR v_session IN SELECT * FROM json_array_elements(p_sessions)
+    IF p_sessions IS NOT NULL AND jsonb_array_length(p_sessions) > 0 THEN
+        FOR v_session IN SELECT * FROM jsonb_array_elements(p_sessions)
         LOOP
             INSERT INTO sessions (class_id, date, start_time, end_time, csat_fee_snapshot, status)
             VALUES (
@@ -415,6 +415,9 @@ BEGIN
     RETURN v_class_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Bắt buộc Supabase làm mới schema cache để nhận diện function mới
+NOTIFY pgrst, 'reload schema';
 
 -- ==========================================
 -- SQL MIGRATION SCRIPT (Cập nhật Database cũ)
