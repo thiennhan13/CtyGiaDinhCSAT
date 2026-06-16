@@ -521,6 +521,16 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
 -- ============================================================
+-- RPC: get_unique_billing_periods — Lấy các kỳ chốt sổ duy nhất (Fix L8)
+-- ============================================================
+CREATE OR REPLACE FUNCTION get_unique_billing_periods()
+RETURNS TABLE(billing_period TEXT) AS $$
+  SELECT DISTINCT billing_period FROM public.payments ORDER BY billing_period DESC;
+$$ LANGUAGE sql SECURITY DEFINER;
+
+
+
+-- ============================================================
 -- PHẦN 8: BACKFILL DỮ LIỆU CŨ
 -- [MIGRATION ONLY]: Chỉ cần thiết nếu đã có dữ liệu trước khi thêm các cột snapshot
 -- ============================================================
@@ -552,6 +562,7 @@ GRANT EXECUTE ON FUNCTION update_csat_fee_safe(UUID, DECIMAL, DATE, TEXT, TEXT) 
 GRANT EXECUTE ON FUNCTION take_attendance_safe(UUID, JSONB) TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION rollback_billing_partial(TEXT) TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION is_admin() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION get_unique_billing_periods() TO authenticated, service_role;
 
 
 -- ============================================================

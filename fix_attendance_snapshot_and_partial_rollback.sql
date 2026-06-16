@@ -160,5 +160,15 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 GRANT EXECUTE ON FUNCTION take_attendance_safe(UUID, JSONB) TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION rollback_billing_partial(TEXT) TO authenticated, service_role;
 
+-- ============================================================
+-- BƯỚC 4: Tạo RPC get_unique_billing_periods (Fix L8)
+-- ============================================================
+CREATE OR REPLACE FUNCTION get_unique_billing_periods()
+RETURNS TABLE(billing_period TEXT) AS $$
+  SELECT DISTINCT billing_period FROM public.payments ORDER BY billing_period DESC;
+$$ LANGUAGE sql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION get_unique_billing_periods() TO authenticated, service_role;
+
 -- Reload schema cache
 NOTIFY pgrst, 'reload schema';

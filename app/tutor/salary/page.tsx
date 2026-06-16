@@ -46,15 +46,24 @@ export default function TutorSalaryPage() {
         .eq('status', 'completed')
         .not('billing_period', 'is', null);
 
-      // L3 FIX: Bổ sung từ payments (paid) để giữ lại các kỳ đã thu sau partial rollback
-      // (sessions có thể bị gỡ billing_period sau rollback, nhưng payments paid vẫn còn)
-      // Dùng class sessions để lọc payments theo gia sư này
-      const { data: paidPeriodData } = await supabase
-        .from('sessions')
-        .select('billing_period, payments!inner(status)')
-        .eq('tutor_id_snapshot', tutorData.tutor_id)
-        .eq('payments.status', 'paid')
-        .not('billing_period', 'is', null);
+      // L7 FIX: Tránh join không có khóa ngoại trực tiếp giữa sessions và payments gây crash.
+      // Đầu tiên, lấy danh sách class_id của các lớp mà gia sư này dạy.
+      const { data: tutorClasses } = await supabase
+        .from('classes')
+        .select('class_id')
+        .eq('tutor_id', tutorData.tutor_id);
+      
+      const classIds = (tutorClasses || []).map(c => c.class_id);
+
+      let paidPeriodData: any[] = [];
+      if (classIds.length > 0) {
+        const { data: paymentsData } = await supabase
+          .from('payments')
+          .select('billing_period')
+          .in('class_id', classIds)
+          .eq('status', 'paid');
+        if (paymentsData) paidPeriodData = paymentsData;
+      }
 
       const periodsFromSessions = (periodData || []).map(p => p.billing_period as string);
       const periodsFromPayments = (paidPeriodData || []).map(p => p.billing_period as string);

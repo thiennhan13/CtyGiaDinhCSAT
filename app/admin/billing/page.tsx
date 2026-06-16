@@ -49,12 +49,17 @@ export default function BillingPage() {
   // Fetch unique historical periods
   useEffect(() => {
     async function loadHistoricalPeriods() {
-      const { data } = await supabase.from('payments').select('billing_period');
+      // L8 FIX: Gọi RPC get_unique_billing_periods để SELECT DISTINCT ở DB thay vì tải toàn bộ payments về client
+      const { data, error } = await supabase.rpc('get_unique_billing_periods');
+      if (error) {
+        console.error('Error fetching unique billing periods:', error);
+        return;
+      }
       if (data) {
-        const unique = Array.from(new Set(data.map(d => d.billing_period)));
-        setHistoricalPeriods(unique as string[]);
-        if (unique.length > 0 && !selectedHistoricalPeriod) {
-          setSelectedHistoricalPeriod(unique[0] as string);
+        const periods = data.map((d: any) => d.billing_period);
+        setHistoricalPeriods(periods);
+        if (periods.length > 0 && !selectedHistoricalPeriod) {
+          setSelectedHistoricalPeriod(periods[0]);
         }
       }
     }
