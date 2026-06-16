@@ -248,6 +248,23 @@ export async function POST(request: Request) {
     // ==============================
     if (parsed.data.action === 'edit_session') {
       const { session_id, date, start_time, end_time } = parsed.data;
+
+      // L10 FIX: Kiểm tra xem buổi học đã được chốt sổ chưa
+      const { data: currentSession, error: fetchErr } = await adminClient
+        .from('sessions')
+        .select('billing_period')
+        .eq('session_id', session_id)
+        .single();
+
+      if (fetchErr) throw fetchErr;
+
+      if (currentSession?.billing_period) {
+        return NextResponse.json(
+          { error: 'Không thể chỉnh sửa hoặc dời lịch buổi học đã chốt sổ học phí.' },
+          { status: 400 }
+        );
+      }
+
       const { error } = await adminClient.from('sessions')
         .update({ date, start_time, end_time })
         .eq('session_id', session_id);
