@@ -38,7 +38,7 @@ export default function TutorSalaryPage() {
 
       if (!tutorData) { setLoading(false); return; }
 
-      // Lấy danh sách kỳ có dữ liệu
+      // Lấy danh sách kỳ từ sessions (buổi học còn billing_period)
       const { data: periodData } = await supabase
         .from('sessions')
         .select('billing_period')
@@ -46,7 +46,21 @@ export default function TutorSalaryPage() {
         .eq('status', 'completed')
         .not('billing_period', 'is', null);
 
-      const unique = [...new Set((periodData || []).map(p => p.billing_period as string))].sort((a, b) => b.localeCompare(a));
+      // L3 FIX: Bổ sung từ payments (paid) để giữ lại các kỳ đã thu sau partial rollback
+      // (sessions có thể bị gỡ billing_period sau rollback, nhưng payments paid vẫn còn)
+      // Dùng class sessions để lọc payments theo gia sư này
+      const { data: paidPeriodData } = await supabase
+        .from('sessions')
+        .select('billing_period, payments!inner(status)')
+        .eq('tutor_id_snapshot', tutorData.tutor_id)
+        .eq('payments.status', 'paid')
+        .not('billing_period', 'is', null);
+
+      const periodsFromSessions = (periodData || []).map(p => p.billing_period as string);
+      const periodsFromPayments = (paidPeriodData || []).map(p => p.billing_period as string);
+      const unique = [...new Set([...periodsFromSessions, ...periodsFromPayments])]
+        .filter(Boolean)
+        .sort((a, b) => b.localeCompare(a));
       setPeriods(unique);
       if (unique.length > 0) setSelectedPeriod(unique[0]);
       setLoading(false);

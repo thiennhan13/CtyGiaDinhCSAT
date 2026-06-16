@@ -115,9 +115,10 @@ export default function BillingPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || data.message || 'Lỗi hệ thống');
       
-      // B4: Cảnh báo nếu có học sinh bị bỏ qua do học phí = 0
+      // L5 FIX: Cảnh báo tên học sinh bị bỏ qua do học phí = 0
       if (data.zero_amount_count > 0) {
-        alert(`${data.message}\n\n⚠️ Cảnh báo: Có ${data.zero_amount_count} học sinh có học phí = 0đ và không được tạo hóa đơn. Hãy kiểm tra lại phí học của các lớp này.`);
+        const names = data.zero_amount_students?.join(', ') || `${data.zero_amount_count} học sinh`;
+        alert(`${data.message}\n\n⚠️ Cảnh báo: Các học sinh sau có học phí = 0đ và KHÔNG được tạo hóa đơn:\n${names}\n\nHãy kiểm tra lại điểm danh và mức học phí của những học sinh này.`);
       } else {
         alert(data.message || 'Xong');
       }

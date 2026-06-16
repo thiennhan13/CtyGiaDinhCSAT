@@ -67,30 +67,49 @@ export async function GET(request: Request) {
     // Key: "student_id|class_id" -> totalAmount
     const studentClassFees: Record<string, number> = {};
     
-    // We also need to fetch fallback tuition fees in case snapshot is null (for backward compatibility)
+    // L5 FIX: Không lọc theo status — bao gồm cả học sinh đã nghỉ (dropped)
+    // Nếu lọc status='active', học sinh nghỉ trước khi chốt sổ sẽ không tìm được fee fallback → fee = 0
     const classIds = Array.from(classIdsSet);
     const { data: classStudents, error: csErr } = await supabase
       .from('class_students')
       .select('class_id, student_id, tuition_fee_per_session')
-      .in('class_id', classIds);
+      .in('class_id', classIds); // không có filter status
 
     if (csErr) throw csErr;
 
+    // Fallback cấp 1: phí trong class_students (bao gồm cả dropped)
     const fallbackFeeMap: Record<string, number> = {};
     classStudents?.forEach(cs => {
       const key = `${cs.student_id}|${cs.class_id}`;
       fallbackFeeMap[key] = parseFloat(String(cs.tuition_fee_per_session)) || 0;
     });
 
+    // Fallback cấp 2: default_tuition_fee của học sinh (khi cả class_students không có)
+    const allStudentIds = [...new Set(attendances?.map(a => a.student_id) ?? [])];
+    const { data: studentsDefault } = await supabase
+      .from('students')
+      .select('student_id, name, default_tuition_fee')
+      .in('student_id', allStudentIds);
+    const studentDefaultMap: Record<string, { fee: number; name: string }> = {};
+    studentsDefault?.forEach(s => {
+      studentDefaultMap[s.student_id] = {
+        fee: parseFloat(String(s.default_tuition_fee)) || 0,
+        name: s.name
+      };
+    });
+
     attendances?.forEach(att => {
       const classId = sessionClassMap[att.session_id];
       const key = `${att.student_id}|${classId}`;
-      let fee = att.tuition_fee_snapshot != null ? parseFloat(String(att.tuition_fee_snapshot)) : fallbackFeeMap[key] || 0;
+      // Ưu tiên: snapshot đã lưu → fallback cấp 1 (class_students kể cả dropped) → fallback cấp 2 (default_tuition_fee)
+      let fee = att.tuition_fee_snapshot != null
+        ? parseFloat(String(att.tuition_fee_snapshot))
+        : (fallbackFeeMap[key] ?? studentDefaultMap[att.student_id]?.fee ?? 0);
       studentClassFees[key] = (studentClassFees[key] || 0) + fee;
     });
 
     const paymentsToInsert = [];
-    let zeroAmountCount = 0; // B4: đếm buổi học có phí = 0
+    let zeroAmountNames: string[] = []; // L5 FIX: lưu tên HS thay vì chỉ đếm số
 
     // 4 & 5. Tạo payments
     for (const [key, totalAmount] of Object.entries(studentClassFees)) {
@@ -105,8 +124,9 @@ export async function GET(request: Request) {
           status: 'unpaid'
         });
       } else {
-        // B4: Ghi nhận học sinh có học phí = 0 để cảnh báo admin
-        zeroAmountCount++;
+        // L5 FIX: Ghi lại tên học sinh bị bỏ qua để Admin biết ai bị thiếu
+        const studentName = studentDefaultMap[studentId]?.name || studentId.split('-')[0];
+        zeroAmountNames.push(studentName);
       }
     }
 
@@ -154,7 +174,10 @@ export async function GET(request: Request) {
     return NextResponse.json({
       message: `Đã chốt sổ thành công cho ${paymentsToInsert.length} hóa đơn.`,
       billingPeriod,
-      zero_amount_count: zeroAmountCount // B4: trả về số buổi bị bỏ qua do học phí = 0
+      // L5 FIX: Trả về tên học sinh bị bỏ qua (phí = 0) thay vì chỉ đếm số
+      // Giúp Admin biết chính xác ai bị thiếu hóa đơn để kiểm tra lại
+      zero_amount_count: zeroAmountNames.length,
+      zero_amount_students: zeroAmountNames.length > 0 ? zeroAmountNames : undefined
     });
 
   } catch (error: any) {

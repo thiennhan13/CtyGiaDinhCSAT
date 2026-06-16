@@ -14,6 +14,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format } from 'date-fns';
 import { MessageSquare } from 'lucide-react';
 
+// L1 FIX: Tránh lỗi timezone khi parse chuỗi 'YYYY-MM-DD'
+// new Date('2026-06-17') trả về UTC midnight → bị lệch múi giờ → sai thứ trong tuần
+// parseLocalDate tạo Date theo giờ địa phương, không bị ảnh hưởng bởi GMT offset
+const parseLocalDate = (dateStr: string): Date => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+const formatLocalDate = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
 export default function TutorClassDetailPage() {
   const params = useParams();
   const classId = params.class_id as string;
@@ -220,14 +230,15 @@ export default function TutorClassDetailPage() {
     if(!bulkAddStart || !bulkAddEnd || !bulkAddStartTime || !bulkAddEndTime) return;
     
     const generatedSessions = [];
-    let curr = new Date(bulkAddStart);
-    const end = new Date(bulkAddEnd);
+    // L1 FIX: Dùng parseLocalDate thay vì new Date(string) để tránh lệch timezone
+    let curr = parseLocalDate(bulkAddStart);
+    const end = parseLocalDate(bulkAddEnd);
 
     while(curr <= end) {
        if(curr.getDay().toString() === bulkAddDay) {
           generatedSessions.push({
              class_id: classId,
-             date: format(curr, 'yyyy-MM-dd'),
+             date: formatLocalDate(curr), // dùng formatLocalDate thay vì format() của date-fns
              start_time: bulkAddStartTime,
              end_time: bulkAddEndTime,
              csat_fee_snapshot: classData?.csat_fee_per_session || 0,
@@ -247,10 +258,9 @@ export default function TutorClassDetailPage() {
     if(error) {
        alert("Lỗi: " + error.message);
     } else {
-       // if bulk end is greater than class end date, update class end date via API
-       if(new Date(bulkAddEnd) > new Date(classData.end_date)) {
+       // Nếu ngày kết thúc bulk vượt quá ngày kết thúc lớp, tự động gia hạn
+       if(parseLocalDate(bulkAddEnd) > parseLocalDate(classData.end_date)) {
            try {
-             // Lấy thêm tutor_id cho endpoint renew
              const { data: { user } } = await supabase.auth.getUser();
              if (user) {
                 const { data: tutorData } = await supabase.from('tutors').select('tutor_id').eq('auth_uid', user.id).single();

@@ -15,7 +15,6 @@ export default async function TutorsTreePage() {
       tutor_id,
       name,
       email,
-      phone,
       status,
       classes (
         class_id,
@@ -32,6 +31,7 @@ export default async function TutorsTreePage() {
     .eq('status', 'active')
     .neq('is_deleted', true)
     .order('name');
+
 
   if (error) {
     console.error('Error fetching tutors tree:', error);
@@ -74,7 +74,7 @@ export default async function TutorsTreePage() {
                       <Link href={`/admin/tutors/${tutor.tutor_id}`} className="font-bold text-slate-900 hover:text-blue-600 transition-colors text-base">
                         {tutor.name}
                       </Link>
-                      <p className="text-xs text-slate-500">{tutor.email} • {tutor.phone}</p>
+                      <p className="text-xs text-slate-500">{tutor.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
