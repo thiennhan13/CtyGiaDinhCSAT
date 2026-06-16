@@ -135,7 +135,7 @@ export default function BillingPage() {
 
   async function handleRollbackBilling() {
     if (!selectedHistoricalPeriod) return;
-    if (!confirm(`Bạn có chắc chắn muốn HỦY TOÀN BỘ hóa đơn chưa thu của đợt "${selectedHistoricalPeriod}"?\n\nThao tác này sẽ xóa các hóa đơn chưa thu và cho phép bạn chốt sổ lại từ đầu. Các hóa đơn ĐÃ THU sẽ không bị ảnh hưởng (Và nếu có hóa đơn đã thu, hệ thống sẽ chặn không cho hủy).`)) return;
+    if (!confirm(`Bạn có chắc chắn muốn HỦY các hóa đơn CHƯА THU của đợt "${selectedHistoricalPeriod}"?\n\nCác hóa đơn ĐÃ THU sẽ được GIỮ NGUYÊN. Chỉ các hóa đơn chưa thu mới bị xóa và các buổi học tương ứng sẽ được mở khóa để chốt sổ lại.`)) return;
     
     setGenerating(true);
     try {
@@ -148,12 +148,20 @@ export default function BillingPage() {
       if (!res.ok) throw new Error(data.error || 'Lỗi hệ thống');
       
       alert(data.message);
-      
-      // Remove from list and switch to preview mode
-      setHistoricalPeriods(prev => prev.filter(p => p !== selectedHistoricalPeriod));
-      setSelectedHistoricalPeriod(historicalPeriods.filter(p => p !== selectedHistoricalPeriod)[0] || '');
-      if (historicalPeriods.length <= 1) {
+
+      // Lỗi 3 FIX: Nếu vẫn còn hóa đơn đã thu (paid_kept > 0), giữ kỳ trong danh sách
+      // rồi reload lại bằng cách reset payments/stats → useEffect sẽ tải lại tự động
+      if (data.details?.paid_kept > 0) {
+        setPayments([]);
+        setStats(null);
+      } else {
+        // Kỳ hoàn toàn trống → xóa khỏi danh sách, chuyển về preview
+        const remaining = historicalPeriods.filter(p => p !== selectedHistoricalPeriod);
+        setHistoricalPeriods(remaining);
+        setSelectedHistoricalPeriod(remaining[0] || '');
+        if (remaining.length === 0) {
           setViewMode('preview');
+        }
       }
     } catch (e: any) {
       alert('Lỗi: ' + e.message);

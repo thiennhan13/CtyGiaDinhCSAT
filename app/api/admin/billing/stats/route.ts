@@ -153,6 +153,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       totalStudentTuition,
+      totalTutorSalary,
       tutorSalaries: Object.values(tutorStatsMap).sort((a, b) => b.salary - a.salary),
       totalCenterRevenue: centerRevenue,
       totalCsatRevenue

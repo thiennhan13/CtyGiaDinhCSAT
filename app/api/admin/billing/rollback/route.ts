@@ -27,39 +27,26 @@ export async function POST(request: Request) {
     const { billingPeriod } = parsed.data;
     const adminClient = createAdminClient();
 
-    // 1. Kiểm tra xem có hóa đơn nào trong kỳ này ĐÃ THU (paid) hay chưa.
-    // Nếu có, KHÔNG ĐƯỢC PHÉP HỦY.
-    const { data: paidPayments, error: checkError } = await adminClient
-      .from('payments')
-      .select('payment_id')
-      .eq('billing_period', billingPeriod)
-      .eq('status', 'paid')
-      .limit(1);
+    // Lỗi 3 FIX: Gọi RPC rollback_billing_partial thay vì logic cũ
+    // RPC sẽ tự động:
+    //   - Xóa chỉ các hóa đơn UNPAID
+    //   - Gỡ billing_period khỏi các sessions chưa được thanh toán
+    //   - GIỮ NGUYÊN hóa đơn PAID và sessions tương ứng
+    //   - Ném exception nếu không còn gì để xóa
+    const { data: rpcResult, error: rpcError } = await adminClient
+      .rpc('rollback_billing_partial', {
+        p_billing_period: billingPeriod
+      });
 
-    if (checkError) throw checkError;
-
-    if (paidPayments && paidPayments.length > 0) {
-      return NextResponse.json({ error: 'Không thể hủy chốt sổ vì đã có hóa đơn ĐƯỢC THU TIỀN trong kỳ này.' }, { status: 400 });
+    if (rpcError) {
+      // RPC RAISE EXCEPTION → trả về lỗi có nghĩa cho người dùng
+      return NextResponse.json({ error: rpcError.message }, { status: 400 });
     }
 
-    // 2. Xóa toàn bộ hóa đơn (unpaid) của kỳ này
-    const { error: deleteError } = await adminClient
-      .from('payments')
-      .delete()
-      .eq('billing_period', billingPeriod)
-      .eq('status', 'unpaid');
-
-    if (deleteError) throw deleteError;
-
-    // 3. Reset billing_period của sessions về null
-    const { error: updateError } = await adminClient
-      .from('sessions')
-      .update({ billing_period: null })
-      .eq('billing_period', billingPeriod);
-
-    if (updateError) throw updateError;
-
-    return NextResponse.json({ message: `Đã hủy chốt sổ đợt "${billingPeriod}" thành công.` });
+    return NextResponse.json({
+      message: (rpcResult as any)?.message || `Đã hủy chốt sổ đợt "${billingPeriod}" thành công.`,
+      details: rpcResult
+    });
 
   } catch (error: any) {
     console.error('Admin Billing Rollback API Error:', error);

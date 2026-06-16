@@ -10,7 +10,8 @@ const attendanceSchema = z.object({
     student_id: z.string().uuid(),
     status: z.enum(['attended', 'absent']),
     notes: z.string().optional().nullable(),
-  })).min(1, "Không có dữ liệu điểm danh"),
+  // .strip() loại bỏ mọi field thừa client gửi lên (ngăn giả mạo tuition_fee_snapshot)
+  }).strip()).min(1, "Không có dữ liệu điểm danh"),
 });
 
 export async function POST(request: Request) {

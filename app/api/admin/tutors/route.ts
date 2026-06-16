@@ -65,6 +65,7 @@ export async function POST(request: Request) {
           auth_uid: authData.user.id, 
           name, 
           email: email,
+          // phone không lưu vào DB — chỉ dùng làm mật khẩu khởi tạo trong Supabase Auth
           status: 'active' 
         }])
         .select()

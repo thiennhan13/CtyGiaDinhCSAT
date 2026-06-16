@@ -111,30 +111,44 @@ export async function GET(request: Request) {
     }
 
     if (paymentsToInsert.length > 0) {
-      // Check if already generated for this billing period to prevent duplicate
-      const { data: existingPayments } = await supabase
+      // Kiểm tra: Chỉ chặn nếu còn hóa đơn UNPAID cho kỳ này
+      // (tức là admin chưa rollback hết các hóa đơn chưa thu)
+      // Không chặn nếu chỉ còn hóa đơn PAID — vì đây là trường hợp hợp lệ:
+      // Admin đã rollback một phần (giữ paid), giờ chốt sổ lại cho phần còn lại
+      const { data: existingUnpaid } = await supabase
         .from('payments')
         .select('payment_id')
         .eq('billing_period', billingPeriod)
+        .eq('status', 'unpaid')
         .limit(1);
 
-      if (existingPayments && existingPayments.length > 0) {
-        return NextResponse.json({ message: 'Billing already generated for this period.' });
+      if (existingUnpaid && existingUnpaid.length > 0) {
+        return NextResponse.json({ message: 'Kỳ hóa đơn này đã có hóa đơn chưa thu. Hủy chốt sổ trước nếu muốn tạo lại.' });
       }
 
       const { error: insertErr } = await supabase
         .from('payments')
         .insert(paymentsToInsert);
         
-      if (insertErr) throw insertErr;
+      // Lỗi 23505 = unique_violation: hóa đơn kỳ này đã tồn tại (double-click / double request)
+      // Xử lý gracefully thay vì crash 500
+      if (insertErr) {
+        if (insertErr.code === '23505') {
+          return NextResponse.json({ message: 'Kỳ hóa đơn này đã được chốt sổ trước đó.' });
+        }
+        throw insertErr;
+      }
 
-      // Mark sessions as billed
-      const { error: updateErr } = await supabase
-        .from('sessions')
-        .update({ billing_period: billingPeriod })
-        .in('session_id', sessionIds);
-
-      if (updateErr) throw updateErr;
+      // Chỉ đánh dấu billing_period cho sessions THỰC SỰ có attendance
+      // (tránh khóa sessions hoàn thành nhưng không có học sinh nào attended)
+      const sessionIdsWithAttendance = [...new Set(attendances?.map(a => a.session_id) ?? [])];
+      if (sessionIdsWithAttendance.length > 0) {
+        const { error: updateErr } = await supabase
+          .from('sessions')
+          .update({ billing_period: billingPeriod })
+          .in('session_id', sessionIdsWithAttendance);
+        if (updateErr) throw updateErr;
+      }
     }
 
     return NextResponse.json({

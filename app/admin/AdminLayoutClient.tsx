@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LogOut, Menu, X, Home, Users, GraduationCap, Calendar, FileText, CheckCircle2 } from 'lucide-react';
+import { LogOut, Menu, X, Home, Users, GraduationCap, Calendar, FileText, CheckCircle2, GitBranch } from 'lucide-react';
 
 interface AdminLayoutClientProps {
   children: React.ReactNode;
@@ -34,6 +34,11 @@ export function AdminLayoutClient({ children, user }: AdminLayoutClientProps) {
       href: '/admin/tutors',
       label: 'Quản lý Gia sư',
       icon: GraduationCap,
+    },
+    {
+      href: '/admin/tutors-tree',
+      label: 'Sơ đồ Gia sư',
+      icon: GitBranch,
     },
     {
       href: '/admin/classes',
