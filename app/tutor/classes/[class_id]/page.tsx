@@ -99,7 +99,8 @@ export default function TutorClassDetailPage() {
        supabase
          .from('class_students')
          .select('tuition_fee_per_session, students(student_id, name, contact_phone, contact_link)')
-         .eq('class_id', classId),
+         .eq('class_id', classId)
+         .eq('status', 'active'), // Lỗi A FIX: Chỉ hiển thị học sinh đang học, ẩn học sinh đã nghỉ (dropped)
        supabase
          .from('sessions')
          .select('*')

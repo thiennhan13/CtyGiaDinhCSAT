@@ -40,24 +40,42 @@ export async function POST(request: Request) {
     const classId = session.class_id;
     const studentIds = attendanceData.map((d: any) => d.student_id);
 
-    // Fetch tuition fees for these students in this class
+    // Fetch current tuition fees for these students in this class (as fallback)
     const { data: classStudents } = await supabaseUser
       .from('class_students')
       .select('student_id, tuition_fee_per_session')
       .eq('class_id', classId)
       .in('student_id', studentIds);
 
-    const feeMap = new Map<string, number>();
+    const currentFeeMap = new Map<string, number>();
     if (classStudents) {
       classStudents.forEach((cs) => {
-        feeMap.set(cs.student_id, cs.tuition_fee_per_session);
+        currentFeeMap.set(cs.student_id, cs.tuition_fee_per_session);
+      });
+    }
+
+    // Lỗi FIX: Fetch existing attendance to preserve old snapshots if they exist
+    // Điều này ngăn chặn việc ghi đè mức học phí mới của class_students lên buổi học cũ
+    const { data: existingAtts } = await supabaseUser
+      .from('session_attendance')
+      .select('student_id, tuition_fee_snapshot')
+      .eq('session_id', sessionId);
+      
+    const existingFeeMap = new Map<string, number>();
+    if (existingAtts) {
+      existingAtts.forEach(att => {
+        if (att.tuition_fee_snapshot !== null) {
+          existingFeeMap.set(att.student_id, parseFloat(String(att.tuition_fee_snapshot)));
+        }
       });
     }
 
     // Enhance attendanceData with tuition_fee_snapshot
     const enhancedAttendanceData = attendanceData.map((d: any) => ({
       ...d,
-      tuition_fee_snapshot: feeMap.get(d.student_id) || 0
+      tuition_fee_snapshot: existingFeeMap.has(d.student_id)
+        ? existingFeeMap.get(d.student_id)
+        : (currentFeeMap.get(d.student_id) || 0)
     }));
 
     // Perform an UPSERT for attendance and UPDATE session status atomically via RPC

@@ -159,14 +159,13 @@ export async function GET(request: Request) {
         throw insertErr;
       }
 
-      // Chỉ đánh dấu billing_period cho sessions THỰC SỰ có attendance
-      // (tránh khóa sessions hoàn thành nhưng không có học sinh nào attended)
-      const sessionIdsWithAttendance = [...new Set(attendances?.map(a => a.session_id) ?? [])];
-      if (sessionIdsWithAttendance.length > 0) {
+      // Lỗi FIX: Đánh dấu billing_period cho TẤT CẢ sessions đã lấy (kể cả buổi học 0 người đi học)
+      // Điều này ngăn chặn việc buổi học "trắng" không bao giờ được đóng sổ và kẹt lại trong preview
+      if (sessionIds.length > 0) {
         const { error: updateErr } = await supabase
           .from('sessions')
           .update({ billing_period: billingPeriod })
-          .in('session_id', sessionIdsWithAttendance);
+          .in('session_id', sessionIds);
         if (updateErr) throw updateErr;
       }
     }
