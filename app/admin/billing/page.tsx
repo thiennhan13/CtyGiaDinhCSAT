@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 
 export default function BillingPage() {
   const [viewMode, setViewMode] = useState<'preview' | 'historical'>('preview');
+  const [activeSection, setActiveSection] = useState<'students' | 'tutors'>('students');
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -50,7 +51,7 @@ export default function BillingPage() {
   useEffect(() => {
     setPaymentPage(1);
     setSalaryPage(1);
-  }, [selectedHistoricalPeriod, viewMode]);
+  }, [selectedHistoricalPeriod, viewMode, activeSection]);
 
   const supabase = createClient();
 
@@ -247,6 +248,24 @@ export default function BillingPage() {
   // EXPORT: Học Phí Học Sinh — thêm Số Buổi, Học Phí TB/Buổi
   // ──────────────────────────────────────────────────────────────────
   const exportCustomerPayments = () => {
+    if (viewMode === 'preview') {
+      const list = stats?.studentInvoicePreview || [];
+      if (!list.length) { alert('Không có dữ liệu dự kiến hóa đơn để xuất!'); return; }
+      const ws = XLSX.utils.json_to_sheet(list.map((inv: any) => ({
+        'Tên Học Sinh': inv.student_name || '---',
+        'Lớp Học': inv.class_name || '---',
+        'Số Buổi Dự Kiến': inv.session_count || 0,
+        'Học Phí Dự Kiến (₫)': inv.total_amount || 0,
+        'Học Phí TB/Buổi (₫)': inv.session_count > 0 ? Math.round(inv.total_amount / inv.session_count) : 0,
+        'Trạng Thái': 'Dự kiến (Chưa chốt)',
+        'Kỳ': `Dự kiến từ ${startDate} đến ${endDate}`,
+      })));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Dự Kiến Hóa Đơn');
+      XLSX.writeFile(wb, `du_kien_hoc_phi_${startDate}_${endDate}.xlsx`);
+      return;
+    }
+
     if (!payments.length) { alert('Không có dữ liệu học phí học viên để xuất!'); return; }
     const ws = XLSX.utils.json_to_sheet(payments.map(p => {
       const key = `${p.student_id}|${p.class_id}`;
@@ -278,57 +297,94 @@ export default function BillingPage() {
 
   return (
     <div className="space-y-6">
-      {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <h2 className="text-3xl font-bold tracking-tight text-gray-900">Kế Toán &amp; Chốt Sổ</h2>
-        <div className="flex items-center gap-3">
-          <Select value={viewMode} onValueChange={(val: any) => setViewMode(val)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Chế độ xem" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="preview">Dự kiến (Chưa chốt)</SelectItem>
-              <SelectItem value="historical">Lịch sử (Đã chốt)</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {viewMode === 'preview' ? (
-            <div className="flex items-center gap-2">
-              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-[140px]" />
-              <span>đến</span>
-              <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-[140px]" />
-              {(() => {
-                const days = Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24));
-                return days > 90 ? (
-                  <span className="text-xs text-amber-600 font-semibold bg-amber-50 border border-amber-200 rounded px-2 py-1">
-                    ⚠️ {days} ngày — API có thể chậm
-                  </span>
-                ) : null;
-              })()}
-              <Button onClick={() => setIsBillingDialogOpen(true)} disabled={generating} variant="secondary">
-                {generating ? 'Đang chạy...' : 'Thực Hiện Chốt Sổ'}
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Select value={selectedHistoricalPeriod} onValueChange={(val) => val && setSelectedHistoricalPeriod(val)}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Chọn kỳ hóa đơn" />
-                </SelectTrigger>
-                <SelectContent>
-                  {historicalPeriods.map(m => {
-                    const pList  = payments.filter(p => true); // already filtered by period
-                    return <SelectItem key={m} value={m}>{m}</SelectItem>;
-                  })}
-                  {historicalPeriods.length === 0 && <SelectItem value="none" disabled>Không có dữ liệu</SelectItem>}
-                </SelectContent>
-              </Select>
-              {historicalPeriods.length > 0 && (
-                <Button variant="destructive" onClick={handleRollbackBilling} disabled={generating}>Hủy chốt sổ</Button>
-              )}
-            </div>
-          )}
+      {/* ── Header & Mode Switcher Card ── */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900">Kế Toán &amp; Chốt Sổ</h2>
+            <p className="text-sm text-slate-500 mt-1">Tổng hợp chuyên cần, tính toán học phí học sinh và thanh toán lương gia sư</p>
+          </div>
+          {/* Mode Switcher Tabs */}
+          <div className="bg-slate-100 p-1.5 rounded-xl flex items-center gap-1 border border-slate-200 shadow-inner">
+            <button
+              type="button"
+              onClick={() => setViewMode('preview')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                viewMode === 'preview'
+                  ? 'bg-white text-blue-600 shadow-sm font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <span>⚡</span>
+              <span>Dự Kiến Chốt Sổ</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('historical')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                viewMode === 'historical'
+                  ? 'bg-white text-blue-600 shadow-sm font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <span>📁</span>
+              <span>Lịch Sử Chốt Sổ</span>
+            </button>
+          </div>
         </div>
+
+        {/* Mode Action Bar Card */}
+        <Card className="bg-slate-50/80 border-slate-200/80 shadow-sm">
+          <CardContent className="p-4">
+            {viewMode === 'preview' ? (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-700">
+                  <span className="font-semibold text-slate-900">Khoảng thời gian dự kiến:</span>
+                  <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-[140px] h-9 bg-white" />
+                  <span>đến</span>
+                  <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-[140px] h-9 bg-white" />
+                  {(() => {
+                    const days = Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24));
+                    return days > 90 ? (
+                      <span className="text-xs text-amber-600 font-semibold bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                        ⚠️ {days} ngày — API có thể chậm
+                      </span>
+                    ) : null;
+                  })()}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button onClick={() => setIsBillingDialogOpen(true)} disabled={generating} className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm font-medium h-9">
+                    {generating ? 'Đang chạy...' : '🚀 Thực Hiện Chốt Sổ Đợt Này'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-700">
+                  <span className="font-semibold text-slate-900">Kỳ hóa đơn đã chốt:</span>
+                  <Select value={selectedHistoricalPeriod} onValueChange={(val) => val && setSelectedHistoricalPeriod(val)}>
+                    <SelectTrigger className="w-[220px] h-9 bg-white font-medium">
+                      <SelectValue placeholder="Chọn kỳ hóa đơn" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {historicalPeriods.map(m => (
+                        <SelectItem key={m} value={m}>{m}</SelectItem>
+                      ))}
+                      {historicalPeriods.length === 0 && <SelectItem value="none" disabled>Không có dữ liệu</SelectItem>}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  {historicalPeriods.length > 0 && (
+                    <Button variant="destructive" size="sm" onClick={handleRollbackBilling} disabled={generating} className="gap-1.5 shadow-sm h-9">
+                      <AlertTriangle className="w-4 h-4" /> Hủy chốt sổ đợt này
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* ── Confirm Dialog ── */}
@@ -403,7 +459,57 @@ export default function BillingPage() {
         </Card>
       </div>
 
+      {/* ── Section Switcher Bar (2 Nút Riêng Biệt cho Phần 1 và Phần 2) ── */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 bg-slate-100 p-2 rounded-xl border border-slate-200 shadow-inner">
+        <button
+          type="button"
+          onClick={() => setActiveSection('students')}
+          className={`flex-1 flex items-center justify-between px-5 py-3.5 rounded-lg transition-all cursor-pointer ${
+            activeSection === 'students'
+              ? 'bg-white text-blue-700 shadow-md ring-1 ring-blue-500/20 font-bold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 font-medium'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${activeSection === 'students' ? 'bg-blue-100 text-blue-600' : 'bg-slate-200 text-slate-500'}`}>
+              <Users className="w-5 h-5" />
+            </div>
+            <div className="text-left">
+              <div className="text-base">Phần 1: {viewMode === 'preview' ? 'Dự Kiến Hóa Đơn Học Sinh' : 'Học Phí Khách Hàng (Học Sinh)'}</div>
+              <div className="text-xs font-normal opacity-75">{viewMode === 'preview' ? 'Tổng hợp từ buổi học chưa chốt sổ' : 'Các hóa đơn đã phát hành'}</div>
+            </div>
+          </div>
+          <Badge className={`ml-2 px-2.5 py-0.5 text-xs font-bold ${activeSection === 'students' ? 'bg-blue-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
+            {viewMode === 'preview' ? (stats?.studentInvoicePreview?.length || 0) : payments.length}
+          </Badge>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSection('tutors')}
+          className={`flex-1 flex items-center justify-between px-5 py-3.5 rounded-lg transition-all cursor-pointer ${
+            activeSection === 'tutors'
+              ? 'bg-white text-amber-700 shadow-md ring-1 ring-amber-500/20 font-bold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 font-medium'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${activeSection === 'tutors' ? 'bg-amber-100 text-amber-600' : 'bg-slate-200 text-slate-500'}`}>
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <div className="text-left">
+              <div className="text-base">Phần 2: Lương Gia Sư</div>
+              <div className="text-xs font-normal opacity-75">{viewMode === 'preview' ? 'Dự kiến theo từng lớp & buổi dạy' : 'Chi phí trả gia sư thực tế'}</div>
+            </div>
+          </div>
+          <Badge className={`ml-2 px-2.5 py-0.5 text-xs font-bold ${activeSection === 'tutors' ? 'bg-amber-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
+            {(stats?.tutorSalaryDetail ?? stats?.tutorSalaries ?? []).length}
+          </Badge>
+        </button>
+      </div>
+
       {/* ── PHẦN 1: DỰ KIẾN / HÓA ĐƠN HỌC SINH ── */}
+      {activeSection === 'students' && (
       <Card>
         <CardHeader className="flex flex-row items-start justify-between">
           <div>
@@ -440,7 +546,6 @@ export default function BillingPage() {
               variant="outline" size="sm"
               onClick={exportCustomerPayments}
               className="gap-2 border-slate-300 text-slate-700"
-              disabled={viewMode === 'preview'}
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Xuất Excel
             </Button>
@@ -577,8 +682,10 @@ export default function BillingPage() {
           )}
         </CardContent>
       </Card>
+      )}
 
       {/* ── PHẦN 2: LƯƠNG GIA SƯ (chi tiết expand/collapse) ── */}
+      {activeSection === 'tutors' && (
       <Card>
         <CardHeader className="flex flex-row items-start justify-between">
           <div>
@@ -619,52 +726,76 @@ export default function BillingPage() {
                                 ? <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
                                 : <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
                             ) : <span className="w-4" />}
-                            <span className="font-bold text-slate-800 flex-1">{tutor.name}</span>
-                            <span className="text-sm text-slate-500 w-36 text-right hidden sm:block">{formatVND(tutor.tuition_collected)}</span>
-                            <span className="text-sm text-red-500 w-36 text-right hidden sm:block">-{formatVND(tutor.csat_deducted)}</span>
-                            <span className="font-black text-amber-700 text-lg w-40 text-right">{formatVND(tutor.salary)}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-slate-900 truncate">{tutor.name || 'Chưa rõ'}</span>
+                                <span className="text-xs text-slate-400">ID: {tutor.tutor_id ? tutor.tutor_id.slice(0, 8) : '---'}</span>
+                              </div>
+                              <div className="text-xs text-slate-500 mt-0.5">
+                                {tutor.classes ? tutor.classes.reduce((acc: number, c: any) => acc + (c.session_count || 0), 0) : 0} buổi · {tutor.classes?.length || 0} lớp
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-bold text-amber-600">{formatVND(tutor.salary)}</div>
+                              <div className="text-xs text-slate-400">Net nhận</div>
+                            </div>
                           </div>
 
-                          {/* Expand: chi tiết từng lớp */}
-                          {isExpanded && tutor.classes?.map((cls: any) => {
-                            const clsKey     = `${tutor.tutor_id}|${cls.class_id}`;
-                            const clsExpanded = !!expandedClasses[clsKey];
-                            return (
-                              <div key={cls.class_id} className="border-t border-slate-100 bg-slate-50">
-                                {/* Lớp — row */}
-                                <div
-                                  className="flex items-center gap-3 px-6 py-2 cursor-pointer hover:bg-slate-100"
-                                  onClick={() => toggleClass(clsKey)}
-                                >
-                                  {clsExpanded
-                                    ? <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                    : <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />}
-                                  <BookOpen className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                                  <span className="text-sm font-semibold text-slate-700 flex-1">{cls.class_name}</span>
-                                  <span className="text-xs text-slate-400 w-24 text-right hidden sm:block">{cls.session_count} buổi</span>
-                                  <span className="text-sm text-slate-500 w-36 text-right hidden sm:block">{formatVND(cls.tuition)}</span>
-                                  <span className="text-sm text-red-400 w-36 text-right hidden sm:block">-{formatVND(cls.csat)}</span>
-                                  <span className="text-sm font-bold text-amber-700 w-40 text-right">{formatVND(cls.tuition - cls.csat)}</span>
-                                </div>
+                          {/* Chi tiết từng lớp (khi expand) */}
+                          {isExpanded && hasDetail && (
+                            <div className="bg-slate-50 border-t border-slate-200 divide-y divide-slate-100 px-4 py-2">
+                              {tutor.classes.map((cls: any) => {
+                                const clsKey = `${tutor.tutor_id}_${cls.class_id}`;
+                                const isClsExpanded = !!expandedClasses[clsKey];
+                                const hasSessions   = !!cls.sessions?.length;
+                                return (
+                                  <div key={cls.class_id} className="py-2">
+                                    {/* Row lớp */}
+                                    <div
+                                      className={`flex items-center justify-between text-sm ${hasSessions ? 'cursor-pointer hover:text-blue-600' : ''}`}
+                                      onClick={() => hasSessions && toggleClass(clsKey)}
+                                    >
+                                      <div className="flex items-center gap-1.5 min-w-0">
+                                        {hasSessions ? (
+                                          isClsExpanded
+                                            ? <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                            : <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                        ) : <span className="w-3.5" />}
+                                        <BookOpen className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                        <span className="font-medium text-slate-800 truncate">
+                                          {cls.class_name || `Lớp #${cls.class_id}`}
+                                        </span>
+                                        <span className="text-xs text-slate-400 shrink-0">({cls.session_count} buổi)</span>
+                                      </div>
+                                      <div className="text-right shrink-0 ml-2">
+                                        <span className="font-semibold text-slate-800">{formatVND((cls.tuition || 0) - (cls.csat || 0))}</span>
+                                      </div>
+                                    </div>
 
-                                {/* Expand: từng buổi */}
-                                {clsExpanded && cls.sessions?.map((sess: any, idx: number) => (
-                                  <div key={idx} className="flex items-center gap-3 px-10 py-1.5 border-t border-slate-100 bg-white text-sm">
-                                    <span className="text-slate-500 w-24 shrink-0">{sess.date}</span>
-                                    <span className="text-slate-500 flex-1">
-                                      <Badge variant="secondary" className="text-xs mr-1">{sess.attended_count} HS</Badge>
-                                    </span>
-                                    <span className="text-slate-400 w-36 text-right hidden sm:block">{formatVND(sess.tuition)}</span>
-                                    <span className="text-red-300 w-36 text-right hidden sm:block">-{formatVND(sess.csat)}</span>
-                                    <span className={`font-semibold w-40 text-right ${sess.net < 0 ? 'text-red-600' : 'text-amber-600'}`}>
-                                      {formatVND(sess.net)}
-                                      {sess.net < 0 && <span className="text-xs ml-1 text-red-500">⚠ Âm</span>}
-                                    </span>
+                                    {/* Chi tiết từng buổi học */}
+                                    {isClsExpanded && hasSessions && (
+                                      <div className="mt-1.5 ml-6 space-y-1 text-xs bg-white rounded border border-slate-200 p-2">
+                                        <div className="grid grid-cols-12 text-slate-400 font-medium pb-1 border-b border-slate-100">
+                                          <div className="col-span-3">Ngày học</div>
+                                          <div className="col-span-3 text-right">HP thu</div>
+                                          <div className="col-span-3 text-right">Phí CSAT</div>
+                                          <div className="col-span-3 text-right font-semibold">GS nhận</div>
+                                        </div>
+                                        {cls.sessions.map((sess: any, idx: number) => (
+                                          <div key={idx} className="grid grid-cols-12 py-0.5 text-slate-600">
+                                            <div className="col-span-3">{sess.date}</div>
+                                            <div className="col-span-3 text-right">{formatVND(sess.tuition)}</div>
+                                            <div className="col-span-3 text-right text-rose-500">-{formatVND(sess.csat)}</div>
+                                            <div className="col-span-3 text-right font-semibold text-amber-600">{formatVND(sess.net)}</div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
-                                ))}
-                              </div>
-                            );
-                          })}
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -693,6 +824,7 @@ export default function BillingPage() {
           )}
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }
