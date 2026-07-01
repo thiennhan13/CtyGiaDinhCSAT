@@ -505,7 +505,7 @@ export default function ClassDetailPage() {
                   <SelectValue placeholder="Chọn Học Sinh..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {allStudents.filter(s => !studentsInClass.find(cs => cs.student_id === s.student_id)).map(s => (
+                  {allStudents.filter(s => !studentsInClass.find(cs => cs.student_id === s.student_id && cs.status === 'active')).map(s => (
                     <SelectItem key={s.student_id} value={s.student_id}>{s.name}</SelectItem>
                   ))}
                 </SelectContent>

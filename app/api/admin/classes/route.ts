@@ -336,9 +336,34 @@ export async function POST(request: Request) {
         .eq('student_id', student_id)
         .single();
       
-      const oldFee = oldData?.tuition_fee_per_session || 0;
+      const oldFee = parseFloat(String(oldData?.tuition_fee_per_session || 0));
 
-      // 2. Update fee
+      // 2. R1 FIX: Backfill tuition_fee_snapshot = oldFee cho các buổi đã dạy
+      //    nhưng chưa chốt sổ VÀ chưa có snapshot.
+      //    Mục đích: khi chốt sổ kỳ này, hệ thống sẽ dùng đúng phí cũ
+      //    cho các buổi đã điểm danh trước khi đổi phí.
+      //    Không đụng đến snapshot đã có (COALESCE không đổi snapshot cũ).
+      if (oldFee > 0) {
+        const { data: unlockedSessions } = await adminClient
+          .from('sessions')
+          .select('session_id')
+          .eq('class_id', class_id)
+          .is('billing_period', null)   // Chưa chốt sổ
+          .eq('status', 'completed');   // Đã dạy xong
+
+        if (unlockedSessions && unlockedSessions.length > 0) {
+          const sessionIds = unlockedSessions.map((s: any) => s.session_id);
+          // Chỉ fill NULL, không đè snapshot đã có — an toàn tuyệt đối
+          await adminClient
+            .from('session_attendance')
+            .update({ tuition_fee_snapshot: oldFee })
+            .in('session_id', sessionIds)
+            .eq('student_id', student_id)
+            .is('tuition_fee_snapshot', null);
+        }
+      }
+
+      // 3. Update fee in class_students
       const { error: updateErr } = await adminClient
         .from('class_students')
         .update({ tuition_fee_per_session: new_fee })
@@ -347,7 +372,8 @@ export async function POST(request: Request) {
 
       if (updateErr) throw updateErr;
 
-      // 3. Log change
+      // 4. Log change — thêm effective_date để hoàn chỉnh audit trail
+      const today = new Date().toISOString().split('T')[0];
       await adminClient.from('class_change_log').insert({
         class_id,
         change_type: 'student_fee_change',
@@ -355,6 +381,7 @@ export async function POST(request: Request) {
         new_value: String(new_fee),
         old_label: `Học phí cũ (${student_name || 'Học sinh'})`,
         new_label: `Học phí mới (${student_name || 'Học sinh'})`,
+        effective_date: today,
         changed_by: user.email,
         notes: `student_id: ${student_id}`
       });

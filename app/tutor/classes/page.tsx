@@ -31,18 +31,25 @@ export default function TutorClassesPage() {
 
       const { data, error } = await supabase
         .from('classes')
-        .select(`
-          class_id, 
-          name, 
-          status,
-          start_date,
-          end_date,
-          class_students(count)
-        `)
+        .select('class_id, name, status, start_date, end_date')
         .eq('tutor_id', tutorData.tutor_id);
 
       if (!error && data) {
-        setClasses(data);
+        // Lỗi 1 FIX: class_students(count) không hỗ trợ filter status
+        // → Fetch riêng số học sinh ACTIVE per class rồi merge vào
+        const classIds = data.map(c => c.class_id);
+        const { data: activeCounts } = await supabase
+          .from('class_students')
+          .select('class_id')
+          .in('class_id', classIds)
+          .eq('status', 'active');
+
+        const countMap: Record<string, number> = {};
+        (activeCounts || []).forEach(cs => {
+          countMap[cs.class_id] = (countMap[cs.class_id] || 0) + 1;
+        });
+
+        setClasses(data.map(c => ({ ...c, activeStudentCount: countMap[c.class_id] || 0 })));
       }
       setLoading(false);
     }
@@ -89,7 +96,7 @@ export default function TutorClassesPage() {
                            {c.status === 'active' ? 'Đang hoạt động' : 'Tạm dừng / Đã kết thúc'}
                          </span>
                        </TableCell>
-                       <TableCell>{c.class_students[0].count} học viên</TableCell>
+                       <TableCell>{c.activeStudentCount} học viên đang học</TableCell>
                        <TableCell>
                          <Link href={`/tutor/classes/${c.class_id}`} className="text-indigo-600 font-medium hover:underline">
                            Quản lý Học viên & Lịch dạy &rarr;
