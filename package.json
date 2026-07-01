@@ -1,6 +1,7 @@
 {
-  "name": "ai-studio-applet",
-  "version": "0.1.0",
+  "name": "csat-tutor-portal",
+  "description": "Hệ thống Quản lý Gia sư CSAT TUTOR",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -11,7 +12,6 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
-    "@google/genai": "^1.17.0",
     "@hookform/resolvers": "^5.2.1",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.105.1",
