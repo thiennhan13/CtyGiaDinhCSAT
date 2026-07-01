@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { createClient } from '@/lib/supabase/client';
 import { format, subMonths, startOfMonth } from 'date-fns';
+import { formatVND } from '@/lib/format';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileSpreadsheet, ChevronDown, ChevronRight, AlertTriangle, Users, BookOpen, TrendingUp } from 'lucide-react';
 import * as XLSX from 'xlsx';
@@ -153,29 +154,117 @@ export default function BillingPage() {
     setGenerating(false);
   }
 
-  const formatVND = (v: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0);
 
+
+  // Tạo map student|class -> session_count từ stats.studentInvoicePreview
+  // Dùng để hiển thị cột "Số Buổi" trong bảng lịch sử thu
+  const sessionCountMap: Record<string, number> = {};
+  (stats?.studentInvoicePreview || []).forEach((inv: any) => {
+    sessionCountMap[`${inv.student_id}|${inv.class_id}`] = inv.session_count || 0;
+  });
+
+  // ──────────────────────────────────────────────────────────────────
+  // EXPORT: Lương Gia Sư — Multi-sheet workbook, mỗi gia sư 1 sheet
+  // ──────────────────────────────────────────────────────────────────
   const exportTutorSalaries = () => {
-    if (!stats?.tutorSalaries?.length) { alert('Không có dữ liệu lương gia sư để xuất!'); return; }
-    const ws = XLSX.utils.json_to_sheet(stats.tutorSalaries.map((t: any) => ({
-      'Tên Gia Sư': t.name,
-      'Tổng Học Phí Thu Vào': t.tuition_collected,
-      'Phí CSAT Bị Trừ': t.csat_deducted,
-      'Thực Nhận': t.salary
-    })));
+    const detail = stats?.tutorSalaryDetail ?? stats?.tutorSalaries;
+    if (!detail?.length) { alert('Không có dữ liệu lương gia sư để xuất!'); return; }
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Lương Gia Sư');
-    XLSX.writeFile(wb, `luong_gia_su_${selectedHistoricalPeriod || 'preview'}.xlsx`);
+    const period = selectedHistoricalPeriod || 'preview';
+
+    // — Sheet 0: Tổng hợp chung —
+    const summaryRows = detail.map((t: any) => ({
+      'Tên Gia Sư': t.name,
+      'Số Buổi': t.classes
+        ? t.classes.reduce((s: number, c: any) => s + (c.session_count || 0), 0)
+        : '---',
+      'Học Phí Thu Vào (₫)': t.tuition_collected,
+      'Phí CSAT Bị Trừ (₫)': t.csat_deducted,
+      'Thực Nhận (₫)': t.salary,
+    }));
+    const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'TỔNG HỢP CHUNG');
+
+    // — Sheet 1…N: Mỗi gia sư 1 sheet —
+    detail.forEach((tutor: any) => {
+      // Bug 1 prevention: cắt tên sheet ≤ 30 ký tự, xóa ký tự cấm của Excel
+      const rawName = (tutor.name || 'Gia Su').replace(/[\[\]*?/\\:]/g, '').trim();
+      const sheetName = rawName.slice(0, 30) || 'Gia Su';
+
+      const aoa: any[][] = [];
+
+      // Header thẻ gia sư
+      aoa.push([`GIA SƯ: ${tutor.name}`]);
+      aoa.push([`Kỳ lương: ${period}`]);
+      aoa.push([`Tổng thực nhận: ${formatVND(tutor.salary)}`]);
+      aoa.push([]);
+
+      const classes = tutor.classes ?? [];
+      if (classes.length === 0) {
+        // Fallback nếu chỉ có dữ liệu tổng (không có tutorSalaryDetail)
+        aoa.push(['Không có dữ liệu chi tiết buổi dạy.']);
+      } else {
+        classes.forEach((cls: any) => {
+          // Tiêu đề khối lớp
+          aoa.push([
+            `--- LỚP: ${cls.class_name}`,
+            `${cls.session_count} buổi`,
+            '',
+            '',
+            `Thực nhận lớp: ${formatVND(cls.tuition - cls.csat)}`,
+          ]);
+          // Header cột buổi học
+          aoa.push(['Ngày Dạy', 'Số HS Có Mặt', 'Học Phí Thu (₫)', 'Phí CSAT Trừ (₫)', 'Thực Nhận Buổi (₫)']);
+          // Chi tiết từng buổi
+          (cls.sessions || []).forEach((sess: any) => {
+            aoa.push([
+              sess.date,
+              sess.attended_count,
+              sess.tuition,
+              sess.csat,
+              sess.net,
+            ]);
+          });
+          // Dòng tổng cộng lớp
+          aoa.push(['TỔNG LỚP', cls.session_count, cls.tuition, cls.csat, cls.tuition - cls.csat]);
+          aoa.push([]); // dòng trống ngăn cách
+        });
+      }
+
+      // Dòng tổng cộng toàn kỳ
+      aoa.push([]);
+      aoa.push([`TỔNG KỲ ${period}`, '', tutor.tuition_collected, tutor.csat_deducted, tutor.salary]);
+
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    });
+
+    XLSX.writeFile(wb, `luong_gia_su_${period}.xlsx`);
   };
 
+  // ──────────────────────────────────────────────────────────────────
+  // EXPORT: Học Phí Học Sinh — thêm Số Buổi, Học Phí TB/Buổi
+  // ──────────────────────────────────────────────────────────────────
   const exportCustomerPayments = () => {
     if (!payments.length) { alert('Không có dữ liệu học phí học viên để xuất!'); return; }
-    const ws = XLSX.utils.json_to_sheet(payments.map(p => ({
-      'Tên Học Sinh': p.students?.name || '---',
-      'Lớp Học': p.classes?.name || '---',
-      'Học Phí Phải Đóng': p.amount,
-      'Trạng Thái': p.status === 'paid' ? 'Đã thu' : 'Chưa thu'
-    })));
+    const ws = XLSX.utils.json_to_sheet(payments.map(p => {
+      const key = `${p.student_id}|${p.class_id}`;
+      const sessCount = sessionCountMap[key] ?? '---';
+      const avg = typeof sessCount === 'number' && sessCount > 0
+        ? Math.round(p.amount / sessCount)
+        : '---';
+      return {
+        'Tên Học Sinh': p.students?.name || '---',
+        'Lớp Học': p.classes?.name || '---',
+        // Bug 2 note: số buổi = số buổi có mặt điểm danh (attended)
+        'Số Buổi Đã Học': sessCount,
+        'Học Phí Phải Đóng (₫)': p.amount,
+        'Học Phí TB/Buổi (₫)': avg,
+        'Trạng Thái': p.status === 'paid' ? 'Đã thu' : 'Chưa thu',
+        'Kỳ Hóa Đơn': selectedHistoricalPeriod || '---',
+      };
+    }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Học Phí Học Viên');
     XLSX.writeFile(wb, `hoc_phi_hoc_vien_${selectedHistoricalPeriod}.xlsx`);
@@ -422,7 +511,11 @@ export default function BillingPage() {
                       <TableRow>
                         <TableHead>Học Sinh</TableHead>
                         <TableHead>Lớp</TableHead>
+                        <TableHead className="text-center">Số Buổi
+                          <span className="block text-[10px] text-slate-400 font-normal">(có mặt)</span>
+                        </TableHead>
                         <TableHead className="text-right">Tổng Tiền</TableHead>
+                        <TableHead className="text-right">TB/Buổi</TableHead>
                         <TableHead>Trạng Thái</TableHead>
                         <TableHead className="text-right">Action</TableHead>
                       </TableRow>
@@ -430,11 +523,23 @@ export default function BillingPage() {
                     <TableBody>
                       {payments.filter(p => !unpaidOnly || p.status === 'unpaid')
                         .slice((paymentPage - 1) * ITEMS_PER_PAGE, paymentPage * ITEMS_PER_PAGE)
-                        .map(p => (
+                        .map(p => {
+                          const mapKey = `${p.student_id}|${p.class_id}`;
+                          // Bug 3 prevention: fallback '---' nếu stats chưa tải
+                          const sessCount = sessionCountMap[mapKey];
+                          const sessDisplay = loading ? '...' : (sessCount != null ? sessCount : '---');
+                          const avgDisplay = typeof sessCount === 'number' && sessCount > 0
+                            ? formatVND(Math.round(p.amount / sessCount))
+                            : '---';
+                          return (
                         <TableRow key={p.payment_id}>
-                          <TableCell>{p.students?.name || '---'}</TableCell>
-                          <TableCell>{p.classes?.name || '---'}</TableCell>
+                          <TableCell className="font-medium">{p.students?.name || '---'}</TableCell>
+                          <TableCell className="text-slate-600">{p.classes?.name || '---'}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant="secondary">{sessDisplay} buổi</Badge>
+                          </TableCell>
                           <TableCell className="text-right font-bold text-blue-700">{formatVND(p.amount)}</TableCell>
+                          <TableCell className="text-right text-slate-500 text-sm">{avgDisplay}</TableCell>
                           <TableCell>
                             {p.status === 'paid'
                               ? <Badge className="bg-green-600">Đã thu</Badge>
@@ -448,10 +553,11 @@ export default function BillingPage() {
                             )}
                           </TableCell>
                         </TableRow>
-                      ))}
+                          );
+                        })}
                       {payments.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-4 text-slate-400">Chưa có dữ liệu học phí</TableCell>
+                          <TableCell colSpan={7} className="text-center py-4 text-slate-400">Chưa có dữ liệu học phí</TableCell>
                         </TableRow>
                       )}
                     </TableBody>

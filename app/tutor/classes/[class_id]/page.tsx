@@ -9,10 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { createClient } from '@/lib/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Plus, Trash2, ArrowLeft, Calendar as CalendarIcon, User as UserIcon } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Calendar as CalendarIcon, User as UserIcon, MessageSquare } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
-import { MessageSquare } from 'lucide-react';
+import { formatNumber } from '@/lib/format';
 
 // L1 FIX: Tránh lỗi timezone khi parse chuỗi 'YYYY-MM-DD'
 // new Date('2026-06-17') trả về UTC midnight → bị lệch múi giờ → sai thứ trong tuần
@@ -309,7 +309,7 @@ export default function TutorClassDetailPage() {
           <Button variant="outline" size="icon" onClick={() => router.push('/tutor/classes')}><ArrowLeft className="h-4 w-4" /></Button>
           <div>
              <h2 className="text-2xl font-bold tracking-tight text-slate-900">{classData?.name}</h2>
-             <p className="text-slate-500 text-sm mt-1">Phí cố định của trung tâm: {new Intl.NumberFormat('vi-VN').format(classData?.csat_fee_per_session || 0)} VND/Buổi</p>
+             <p className="text-slate-500 text-sm mt-1">Phí cố định của trung tâm: {formatNumber(classData?.csat_fee_per_session || 0)} VND/Buổi</p>
           </div>
         </div>
       </div>
@@ -331,7 +331,7 @@ export default function TutorClassDetailPage() {
                                 <p className="text-xs text-slate-500">SĐT: {st.contact_phone || '---'}</p>
                             </div>
                             <div className="text-right">
-                                <p className="text-sm font-medium text-emerald-600">Học phí: {new Intl.NumberFormat('vi-VN').format(assoc.tuition_fee_per_session)}đ/b</p>
+                                <p className="text-sm font-medium text-emerald-600">Học phí: {formatNumber(assoc.tuition_fee_per_session)}đ/b</p>
                                 <Button 
                                   variant="outline" 
                                   size="sm" 

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { formatVND } from '@/lib/format';
 
 export default function TutorDashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -29,6 +30,9 @@ export default function TutorDashboard() {
   const [makeupStart, setMakeupStart] = useState('');
   const [makeupEnd, setMakeupEnd] = useState('');
   const [submittingMakeup, setSubmittingMakeup] = useState(false);
+
+  // Announcement popup
+  const [viewingAnnouncement, setViewingAnnouncement] = useState<any>(null);
 
   const supabase = createClient();
   const router = useRouter();
@@ -308,7 +312,7 @@ export default function TutorDashboard() {
             <div className="space-y-4">
               <div>
                  <p className="text-sm text-slate-500 mb-1">Thu Nhập Ước Tính</p>
-                 <h2 className="text-3xl font-black text-slate-900">{new Intl.NumberFormat('vi-VN').format(currentMonthStats.earning)}đ</h2>
+                 <h2 className="text-3xl font-black text-slate-900">{formatVND(currentMonthStats.earning)}</h2>
               </div>
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                  <p className="text-sm text-slate-500">Số buổi hoàn thành</p>
@@ -321,20 +325,30 @@ export default function TutorDashboard() {
         <Card className="border-0 shadow-sm border-t-2 border-slate-200">
            <CardHeader className="flex flex-row items-center justify-between pb-2">
              <CardTitle className="text-lg font-bold text-slate-800">Thông báo từ TT</CardTitle>
+             {announcements.length > 0 && (
+               <span className="text-xs text-slate-400">{announcements.length} thông báo</span>
+             )}
            </CardHeader>
            <CardContent className="pt-2">
-             <div className="space-y-4">
+             <div className="space-y-2">
                {announcements.length === 0 ? (
                  <p className="text-sm text-slate-500 italic text-center py-4">Chưa có thông báo nào</p>
                ) : (
                  announcements.map((ann, idx) => (
-                   <div key={idx} className="pb-4 border-b border-slate-100 last:border-0 last:pb-0">
-                     <h4 className="font-bold text-slate-900 text-sm mb-1">{ann.title}</h4>
-                     <p className="text-xs text-slate-500 line-clamp-2 mb-2">{ann.content}</p>
-                     {ann.link && (
-                       <a href={ann.link} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold flex items-center gap-1 text-emerald-600 hover:underline">
-                         <LinkIcon className="w-3 h-3" /> Xem chi tiết
-                       </a>
+                   <div
+                     key={idx}
+                     className="p-3 rounded-lg border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50 cursor-pointer transition-all group"
+                     onClick={() => setViewingAnnouncement(ann)}
+                   >
+                     <div className="flex items-start justify-between gap-2">
+                       <h4 className="font-bold text-slate-900 text-sm group-hover:text-emerald-800 leading-snug">{ann.title}</h4>
+                       <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-emerald-500 shrink-0 mt-0.5" />
+                     </div>
+                     <p className="text-xs text-slate-500 line-clamp-2 mt-1">{ann.content}</p>
+                     {ann.created_at && (
+                       <p className="text-[10px] text-slate-400 mt-1.5">
+                         {new Date(ann.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                       </p>
                      )}
                    </div>
                  ))
@@ -343,6 +357,41 @@ export default function TutorDashboard() {
            </CardContent>
         </Card>
       </div>
+
+      {/* ── Pop-up chi tiết thông báo (Bug 4: overflow-safe) ── */}
+      <Dialog open={!!viewingAnnouncement} onOpenChange={() => setViewingAnnouncement(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold leading-snug pr-4">
+              {viewingAnnouncement?.title}
+            </DialogTitle>
+            {viewingAnnouncement?.created_at && (
+              <p className="text-xs text-slate-400 pt-1">
+                Đăng lúc: {new Date(viewingAnnouncement.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
+          </DialogHeader>
+          {/* Bug 4 prevention: max-h + overflow-y-auto + whitespace-pre-wrap */}
+          <div className="max-h-[55vh] overflow-y-auto text-sm text-slate-700 whitespace-pre-wrap break-words leading-relaxed py-2">
+            {viewingAnnouncement?.content || ''}
+          </div>
+          {viewingAnnouncement?.link && (
+            <div className="pt-2 border-t border-slate-100">
+              <a
+                href={viewingAnnouncement.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600 hover:underline"
+              >
+                <LinkIcon className="w-4 h-4" /> Xem tài liệu đính kèm
+              </a>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewingAnnouncement(null)}>Dóng</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isMakeupModalOpen} onOpenChange={setIsMakeupModalOpen}>
         <DialogContent>

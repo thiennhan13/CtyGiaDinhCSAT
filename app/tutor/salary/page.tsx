@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client';
 import { DollarSign, TrendingUp, BookOpen, FileSpreadsheet, ChevronDown, ChevronRight } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import * as XLSX from 'xlsx';
+import { formatVND } from '@/lib/format';
 
 export default function TutorSalaryPage() {
   const supabase = createClient();
@@ -20,8 +21,7 @@ export default function TutorSalaryPage() {
   const [sessionDetails, setSessionDetails] = useState<any[]>([]);
   const [expandedSessions, setExpandedSessions] = useState<Record<string, boolean>>({});
 
-  const formatVND = (v: number) =>
-    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0);
+
 
   const toggleSession = (sessionId: string) =>
     setExpandedSessions(prev => ({ ...prev, [sessionId]: !prev[sessionId] }));
@@ -172,18 +172,67 @@ export default function TutorSalaryPage() {
 
   function exportExcel() {
     if (!sessionDetails.length || !salaryData) return;
-    const ws = XLSX.utils.json_to_sheet(sessionDetails.map(r => ({
-      'Ngày dạy':      r.date,
-      'Tên lớp':       r.className,
-      'HS có mặt':     r.attendedCount,
-      'Tổng HS':       r.totalStudents,
-      'Học phí thu':   r.tuition,
-      'Phí CSAT trừ': r.csat,
-      'Thực nhận buổi': r.net,
-    })));
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Chi tiết lương');
-    XLSX.writeFile(wb, `luong_${tutorInfo?.name || 'gia_su'}_${selectedPeriod}.xlsx`);
+    const period = selectedPeriod || 'ky_luong';
+    // Bug 1 prevention: cắt tên sheet ≤ 30 ký tự, xóa ký tự cấm
+    const rawSheetName = (tutorInfo?.name || 'Gia Su').replace(/[\[\]*?/\\:]/g, '').trim();
+    const sheetName = rawSheetName.slice(0, 30) || 'Gia Su';
+
+    const aoa: any[][] = [];
+
+    // Header
+    aoa.push([`BẢNG LƯƠNG: ${tutorInfo?.name || ''}`]);
+    aoa.push([`Kỳ lương: ${period}`]);
+    aoa.push([`Tổng thực nhận: ${formatVND(salaryData.net)}`]);
+    aoa.push([]);
+
+    // Gom buổi học theo lớp
+    const classOrder: string[] = [];
+    const byClass: Record<string, typeof sessionDetails> = {};
+    sessionDetails.forEach(row => {
+      if (!byClass[row.classId]) {
+        byClass[row.classId] = [];
+        classOrder.push(row.classId);
+      }
+      byClass[row.classId].push(row);
+    });
+
+    classOrder.forEach(classId => {
+      const rows = byClass[classId];
+      const cls = salaryData.classSummary?.find((c: any) => c.class_name === rows[0].className);
+      const clsTuition = cls?.tuition ?? rows.reduce((s: number, r: any) => s + r.tuition, 0);
+      const clsCsat    = cls?.csat    ?? rows.reduce((s: number, r: any) => s + r.csat, 0);
+      const clsNet     = clsTuition - clsCsat;
+
+      // Dòng tiêu đề khối lớp
+      aoa.push([
+        `--- LỚP: ${rows[0].className}`,
+        `${rows.length} buổi`,
+        '',
+        '',
+        `Thực nhận lớp: ${formatVND(clsNet)}`,
+      ]);
+      // Header cột
+      aoa.push(['Ngày Dạy', 'Giờ', 'Số HS Có Mặt', 'Học Phí Thu (₫)', 'Phí CSAT Trừ (₫)', 'Thực Nhận Buổi (₫)']);
+      // Từng buổi học
+      rows.forEach(r => {
+        const giờ = r.start_time ? `${r.start_time?.substring(0, 5)} - ${r.end_time?.substring(0, 5)}` : '';
+        aoa.push([r.date, giờ, r.attendedCount, r.tuition, r.csat, r.net]);
+      });
+      // Dòng tổng lớp
+      aoa.push(['TỔNG LỚP', '', rows.length, clsTuition, clsCsat, clsNet]);
+      aoa.push([]); // dòng trống
+    });
+
+    // Tổng kỳ
+    aoa.push([]);
+    aoa.push([`TỔNG KỲ ${period}`, '', salaryData.sessions, salaryData.tuition, salaryData.csat, salaryData.net]);
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    wb.SheetNames.push(sheetName);
+    wb.Sheets[sheetName] = ws;
+    XLSX.writeFile(wb, `luong_${rawSheetName}_${period}.xlsx`);
   }
 
   if (!tutorInfo && !loading) {

@@ -173,6 +173,19 @@ export function AdminLayoutClient({ children, user }: AdminLayoutClientProps) {
           </div>
         </div>
       </main>
+
+      {/* Google Orb — decorative, góc phải dưới, không cản UI */}
+      <div
+        aria-hidden="true"
+        className="fixed bottom-0 right-0 pointer-events-none z-0 w-56 h-56 overflow-hidden"
+      >
+        {/* Blue */}
+        <div className="absolute bottom-4 right-4 w-24 h-24 rounded-full bg-[#4285f4] opacity-[0.18] blur-2xl" />
+        {/* Yellow */}
+        <div className="absolute bottom-12 right-20 w-16 h-16 rounded-full bg-[#fbbc05] opacity-[0.22] blur-2xl" />
+        {/* Green */}
+        <div className="absolute bottom-20 right-6 w-14 h-14 rounded-full bg-[#34a853] opacity-[0.18] blur-2xl" />
+      </div>
     </div>
   );
 }

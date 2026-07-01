@@ -12,9 +12,9 @@ import { useParams } from 'next/navigation';
 import { Trash2, AlertTriangle, History, FileSpreadsheet, Edit } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
+import { formatVND } from '@/lib/format';
 
-const formatVND = (amount: number) =>
-  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+
 
 const todayStr = () => {
   const d = new Date();

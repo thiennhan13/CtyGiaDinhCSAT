@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, User, Phone, MapPin, ExternalLink, Calendar, BookOpen, CreditCard, Clock, Activity, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatNumber, formatVND } from '@/lib/format';
 
 export default function StudentDetailPage() {
   const params = useParams();
@@ -162,7 +163,7 @@ export default function StudentDetailPage() {
                      </div>
                      <div className="flex flex-col gap-1 pb-3 border-b border-slate-100">
                          <span className="text-slate-500">Học phí mặc định</span>
-                         <span className="font-bold text-emerald-600 text-lg">{new Intl.NumberFormat('vi-VN').format(student?.default_tuition_fee || 0)}đ/Buổi</span>
+                         <span className="font-bold text-emerald-600 text-lg">{formatNumber(student?.default_tuition_fee || 0)}đ/Buổi</span>
                      </div>
                      <div className="flex flex-col gap-1">
                          <span className="text-slate-500">Ghi chú</span>
@@ -250,7 +251,7 @@ export default function StudentDetailPage() {
                                                 </div>
                                                 <div className="text-right">
                                                     <div className="text-xs uppercase font-semibold text-slate-500 tracking-wider">Học phí tại lớp</div>
-                                                    <div className="font-bold text-emerald-600 mt-1">{new Intl.NumberFormat('vi-VN').format(c.tuition_fee_per_session)}đ/b</div>
+                                                    <div className="font-bold text-emerald-600 mt-1">{formatNumber(c.tuition_fee_per_session)}đ/b</div>
                                                 </div>
                                             </div>
                                             )
@@ -290,7 +291,7 @@ export default function StudentDetailPage() {
                                                             </Badge>
                                                         </TableCell>
                                                         <TableCell className="text-right font-bold text-slate-900">
-                                                            {new Intl.NumberFormat('vi-VN').format(p.amount)}đ
+                                                            {formatVND(p.amount)}
                                                         </TableCell>
                                                         <TableCell className="text-right">
                                                             {p.status === 'unpaid' && (

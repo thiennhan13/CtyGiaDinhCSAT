@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, BookOpen, DollarSign, Calendar, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatVND } from '@/lib/format';
 
 export default function AdminTutorDetailPage() {
   const params = useParams();
@@ -24,8 +25,7 @@ export default function AdminTutorDetailPage() {
   const [stats, setStats] = useState({ totalSessions: 0, activeClasses: 0 });
   const [loading, setLoading] = useState(true);
 
-  const formatVND = (v: number) =>
-    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0);
+
 
   useEffect(() => {
     async function fetchAll() {
