@@ -424,7 +424,7 @@ export default function ClassDetailPage() {
           <p className="text-gray-500 mt-1">
             Gia sư phụ trách: <span className="font-semibold text-gray-700">{classInfo?.tutors?.name}</span>
             <span className="mx-2 text-gray-300">|</span>
-            Phí CSAT/buổi: <span className="font-semibold text-gray-700">{formatVND(classInfo?.csat_fee_per_session || 0)}</span>
+            Battle Pass CSAT/buổi: <span className="font-semibold text-gray-700">{formatVND(classInfo?.csat_fee_per_session || 0)}</span>
           </p>
         </div>
         <Button variant="outline" onClick={handleExportReport} className="gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50">
@@ -440,7 +440,7 @@ export default function ClassDetailPage() {
             Điều Chỉnh Lớp Học
           </CardTitle>
           <CardDescription>
-            Đổi gia sư hoặc thay đổi phí CSAT. Mọi thay đổi đều được ghi lại vào lịch sử để đảm bảo an toàn dữ liệu.
+            Đổi gia sư hoặc thay đổi định mức Battle Pass CSAT. Mọi thay đổi đều được ghi lại vào lịch sử để đảm bảo an toàn dữ liệu.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -458,16 +458,16 @@ export default function ClassDetailPage() {
               </Button>
             </div>
 
-            {/* Điều chỉnh phí CSAT */}
-            <div className="space-y-2 p-4 bg-red-50 rounded-lg border border-red-200">
-              <h4 className="font-semibold text-red-800">Điều Chỉnh Phí CSAT / Buổi</h4>
-              <p className="text-xs text-red-700">Phí hiện tại: <strong>{formatVND(classInfo?.csat_fee_per_session || 0)}</strong></p>
+            {/* Điều chỉnh định mức Battle Pass CSAT */}
+            <div className="space-y-2 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+              <h4 className="font-semibold text-emerald-800">Điều Chỉnh Định Mức Battle Pass CSAT</h4>
+              <p className="text-xs text-emerald-700">Định mức hiện tại: <strong>{formatVND(classInfo?.csat_fee_per_session || 0)} / buổi</strong></p>
               <Button
                 variant="outline"
-                className="w-full border-red-400 text-red-700 hover:bg-red-100"
+                className="w-full border-emerald-400 text-emerald-700 hover:bg-emerald-100"
                 onClick={() => { setIsUpdateCsatOpen(true); setNewCsatFee(String(classInfo?.csat_fee_per_session || 0)); }}
               >
-                Thay Đổi Phí CSAT...
+                Thay Đổi Battle Pass CSAT...
               </Button>
             </div>
           </div>
@@ -638,7 +638,7 @@ export default function ClassDetailPage() {
                <TableRow>
                  <TableHead>Ngày</TableHead>
                  <TableHead>Thời Gian</TableHead>
-                 <TableHead>Phí CSAT/buổi</TableHead>
+                 <TableHead>Battle Pass CSAT/buổi</TableHead>
                  <TableHead>Trạng Thái</TableHead>
                  <TableHead className="text-right">Action</TableHead>
                </TableRow>
@@ -685,7 +685,7 @@ export default function ClassDetailPage() {
               <History className="w-5 h-5" />
               Lịch Sử Thay Đổi Lớp
             </CardTitle>
-            <CardDescription>Audit log ghi lại mọi thay đổi gia sư và phí CSAT để đảm bảo tính minh bạch.</CardDescription>
+            <CardDescription>Audit log ghi lại mọi thay đổi gia sư và Battle Pass CSAT để đảm bảo tính minh bạch.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -709,7 +709,7 @@ export default function ClassDetailPage() {
                       {log.change_type === 'tutor_change' ? (
                         <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-sm font-semibold">Đổi Gia Sư</span>
                       ) : (
-                        <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-sm font-semibold">Đổi Phí CSAT</span>
+                        <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-sm font-semibold">Đổi Battle Pass</span>
                       )}
                     </TableCell>
                     <TableCell className="text-sm text-gray-600">{log.old_label}</TableCell>
@@ -915,17 +915,17 @@ export default function ClassDetailPage() {
       <Dialog open={isUpdateCsatOpen} onOpenChange={setIsUpdateCsatOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-700">
+            <DialogTitle className="flex items-center gap-2 text-emerald-700">
               <AlertTriangle className="w-5 h-5" />
-              Điều Chỉnh Phí CSAT / Buổi
+              Điều Chỉnh Định Mức Battle Pass CSAT
             </DialogTitle>
             <DialogDescription>
-              Phí CSAT hiện tại: <strong>{formatVND(classInfo?.csat_fee_per_session || 0)}</strong>
+              Định mức hiện tại: <strong>{formatVND(classInfo?.csat_fee_per_session || 0)} / buổi</strong>
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleUpdateCsatFee} className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium">Phí CSAT Mới (VND / buổi) <span className="text-red-500">*</span></label>
+              <label className="text-sm font-medium">Định Mức Battle Pass Mới (VND / buổi) <span className="text-red-500">*</span></label>
               <Input
                 type="number"
                 min="0"
@@ -947,7 +947,7 @@ export default function ClassDetailPage() {
                 onChange={e => setCsatNotes(e.target.value)}
               />
             </div>
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-xs text-red-700">
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-md text-xs text-emerald-700">
               ⚠️ <strong>Lưu ý:</strong> Chỉ các buổi học <strong>chưa dạy (Sắp tới)</strong> từ ngày hiệu lực trở đi mới bị ảnh hưởng. Các buổi đã dạy sẽ <strong>không thay đổi</strong> và được bảo toàn nguyên vẹn.
             </div>
             <DialogFooter className="pt-2">
@@ -955,9 +955,9 @@ export default function ClassDetailPage() {
               <Button
                 type="submit"
                 disabled={csatLoading}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                {csatLoading ? 'Đang xử lý...' : 'Xác Nhận Thay Đổi Phí'}
+                {csatLoading ? 'Đang xử lý...' : 'Xác Nhận Thay Đổi Battle Pass'}
               </Button>
             </DialogFooter>
           </form>

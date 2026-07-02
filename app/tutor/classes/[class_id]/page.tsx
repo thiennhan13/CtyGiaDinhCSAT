@@ -309,7 +309,7 @@ export default function TutorClassDetailPage() {
           <Button variant="outline" size="icon" onClick={() => router.push('/tutor/classes')}><ArrowLeft className="h-4 w-4" /></Button>
           <div>
              <h2 className="text-2xl font-bold tracking-tight text-slate-900">{classData?.name}</h2>
-             <p className="text-slate-500 text-sm mt-1">Phí cố định của trung tâm: {formatNumber(classData?.csat_fee_per_session || 0)} VND/Buổi</p>
+             <p className="text-emerald-700 font-medium text-sm mt-1">🛡️ Định mức Battle Pass CSAT: {formatNumber(classData?.csat_fee_per_session || 0)} VND/Buổi</p>
           </div>
         </div>
       </div>

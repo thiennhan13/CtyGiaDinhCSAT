@@ -19,7 +19,8 @@ export async function GET(request: Request) {
     let query = supabase
       .from('sessions')
       .select('session_id, class_id, date, csat_fee_snapshot, tutor_id_snapshot, classes(name, csat_fee_per_session, tutors(tutor_id, name))')
-      .eq('status', 'completed');
+      .eq('status', 'completed')
+      .order('date', { ascending: true });
 
     if (billingPeriod) {
       query = query.eq('billing_period', billingPeriod);
@@ -226,7 +227,10 @@ export async function GET(request: Request) {
         salary:            t.salary,
         csat_deducted:     t.csat_deducted,
         tuition_collected: t.tuition_collected,
-        classes: Object.values(t.classes).sort((a, b) => b.tuition - a.tuition),
+        classes: Object.values(t.classes).map(c => ({
+          ...c,
+          sessions: (c.sessions || []).slice().sort((s1: any, s2: any) => (s1.date || '').localeCompare(s2.date || '')),
+        })).sort((a, b) => b.tuition - a.tuition),
       }))
       .sort((a, b) => b.salary - a.salary);
 

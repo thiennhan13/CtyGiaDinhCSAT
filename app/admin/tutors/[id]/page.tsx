@@ -255,7 +255,7 @@ export default function AdminTutorDetailPage() {
                 <TableHead>Kỳ</TableHead>
                 <TableHead>Số buổi</TableHead>
                 <TableHead>Học phí thu</TableHead>
-                <TableHead>Phí CSAT trừ</TableHead>
+                <TableHead>Battle Pass CSAT</TableHead>
                 <TableHead className="text-right font-bold">Thực nhận</TableHead>
               </TableRow>
             </TableHeader>
@@ -265,7 +265,7 @@ export default function AdminTutorDetailPage() {
                   <TableCell className="font-medium">{row.period}</TableCell>
                   <TableCell>{row.sessions}</TableCell>
                   <TableCell className="text-slate-600">{formatVND(row.tuition)}</TableCell>
-                  <TableCell className="text-red-500">-{formatVND(row.csat)}</TableCell>
+                  <TableCell className="text-emerald-600">-{formatVND(row.csat)}</TableCell>
                   <TableCell className="text-right font-bold text-amber-700">{formatVND(row.net)}</TableCell>
                 </TableRow>
               ))}

@@ -168,125 +168,145 @@ export default function BillingPage() {
   // EXPORT: Lương Gia Sư — Multi-sheet workbook, mỗi gia sư 1 sheet
   // ──────────────────────────────────────────────────────────────────
   const exportTutorSalaries = () => {
-    const detail = stats?.tutorSalaryDetail ?? stats?.tutorSalaries;
-    if (!detail?.length) { alert('Không có dữ liệu lương gia sư để xuất!'); return; }
+    try {
+      const detail = stats?.tutorSalaryDetail ?? stats?.tutorSalaries;
+      if (!detail?.length) { alert('Không có dữ liệu lương gia sư để xuất!'); return; }
 
-    const wb = XLSX.utils.book_new();
-    const period = selectedHistoricalPeriod || 'preview';
+      const wb = XLSX.utils.book_new();
+      const period = selectedHistoricalPeriod || 'preview';
+      const safePeriod = String(period).replace(/[\[\]*?/\\:|<>"]/g, '_');
 
-    // — Sheet 0: Tổng hợp chung —
-    const summaryRows = detail.map((t: any) => ({
-      'Tên Gia Sư': t.name,
-      'Số Buổi': t.classes
-        ? t.classes.reduce((s: number, c: any) => s + (c.session_count || 0), 0)
-        : '---',
-      'Học Phí Thu Vào (₫)': t.tuition_collected,
-      'Phí CSAT Bị Trừ (₫)': t.csat_deducted,
-      'Thực Nhận (₫)': t.salary,
-    }));
-    const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
-    XLSX.utils.book_append_sheet(wb, wsSummary, 'TỔNG HỢP CHUNG');
+      // — Sheet 0: Tổng hợp chung —
+      const summaryRows = detail.map((t: any) => ({
+        'Tên Gia Sư': t.name || '---',
+        'Số Buổi': t.classes
+          ? t.classes.reduce((s: number, c: any) => s + (c.session_count || 0), 0)
+          : '---',
+        'Học Phí Thu Vào (₫)': t.tuition_collected || 0,
+        'Battle Pass CSAT (₫)': t.csat_deducted || 0,
+        'Thực Nhận (₫)': t.salary || 0,
+      }));
+      const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
+      XLSX.utils.book_append_sheet(wb, wsSummary, 'TỔNG HỢP CHUNG');
 
-    // — Sheet 1…N: Mỗi gia sư 1 sheet —
-    detail.forEach((tutor: any) => {
-      // Bug 1 prevention: cắt tên sheet ≤ 30 ký tự, xóa ký tự cấm của Excel
-      const rawName = (tutor.name || 'Gia Su').replace(/[\[\]*?/\\:]/g, '').trim();
-      const sheetName = rawName.slice(0, 30) || 'Gia Su';
+      // — Sheet 1…N: Mỗi gia sư 1 sheet —
+      detail.forEach((tutor: any) => {
+        // Cắt tên sheet ≤ 30 ký tự, xóa ký tự cấm của Excel và tránh trùng lặp sheet name
+        const rawName = (tutor.name || 'Gia Su').replace(/[\[\]*?/\\:]/g, '').trim();
+        let sheetName = rawName.slice(0, 30) || 'Gia Su';
+        let count = 1;
+        while (wb.SheetNames.includes(sheetName)) {
+          const suffix = ` (${count++})`;
+          sheetName = rawName.slice(0, 30 - suffix.length) + suffix;
+        }
 
-      const aoa: any[][] = [];
+        const aoa: any[][] = [];
 
-      // Header thẻ gia sư
-      aoa.push([`GIA SƯ: ${tutor.name}`]);
-      aoa.push([`Kỳ lương: ${period}`]);
-      aoa.push([`Tổng thực nhận: ${formatVND(tutor.salary)}`]);
-      aoa.push([]);
+        // Header thẻ gia sư
+        aoa.push([`GIA SƯ: ${tutor.name || ''}`]);
+        aoa.push([`Kỳ lương: ${period}`]);
+        aoa.push([`Tổng thực nhận: ${formatVND(tutor.salary || 0)}`]);
+        aoa.push([]);
 
-      const classes = tutor.classes ?? [];
-      if (classes.length === 0) {
-        // Fallback nếu chỉ có dữ liệu tổng (không có tutorSalaryDetail)
-        aoa.push(['Không có dữ liệu chi tiết buổi dạy.']);
-      } else {
-        classes.forEach((cls: any) => {
-          // Tiêu đề khối lớp
-          aoa.push([
-            `--- LỚP: ${cls.class_name}`,
-            `${cls.session_count} buổi`,
-            '',
-            '',
-            `Thực nhận lớp: ${formatVND(cls.tuition - cls.csat)}`,
-          ]);
-          // Header cột buổi học
-          aoa.push(['Ngày Dạy', 'Số HS Có Mặt', 'Học Phí Thu (₫)', 'Phí CSAT Trừ (₫)', 'Thực Nhận Buổi (₫)']);
-          // Chi tiết từng buổi
-          (cls.sessions || []).forEach((sess: any) => {
+        const classes = tutor.classes ?? [];
+        if (classes.length === 0) {
+          // Fallback nếu chỉ có dữ liệu tổng (không có tutorSalaryDetail)
+          aoa.push(['Không có dữ liệu chi tiết buổi dạy.']);
+        } else {
+          classes.forEach((cls: any) => {
+            // Tiêu đề khối lớp
+            const clsTuition = cls.tuition || 0;
+            const clsCsat = cls.csat || 0;
             aoa.push([
-              sess.date,
-              sess.attended_count,
-              sess.tuition,
-              sess.csat,
-              sess.net,
+              `--- LỚP: ${cls.class_name || ''}`,
+              `${cls.session_count || 0} buổi`,
+              '',
+              '',
+              `Thực nhận lớp: ${formatVND(clsTuition - clsCsat)}`,
             ]);
+            // Header cột buổi học
+            aoa.push(['Ngày Dạy', 'Số HS Có Mặt', 'Học Phí Thu (₫)', 'Battle Pass CSAT (₫)', 'Thực Nhận Buổi (₫)']);
+            // Chi tiết từng buổi (Sắp xếp theo thứ tự ngày học tăng dần)
+            const sortedSessions = (cls.sessions || []).slice().sort((a: any, b: any) => (a.date || '').localeCompare(b.date || ''));
+            sortedSessions.forEach((sess: any) => {
+              aoa.push([
+                sess.date || '',
+                sess.attended_count || 0,
+                sess.tuition || 0,
+                sess.csat || 0,
+                sess.net || 0,
+              ]);
+            });
+            // Dòng tổng cộng lớp
+            aoa.push(['TỔNG LỚP', cls.session_count || 0, clsTuition, clsCsat, clsTuition - clsCsat]);
+            aoa.push([]); // dòng trống ngăn cách
           });
-          // Dòng tổng cộng lớp
-          aoa.push(['TỔNG LỚP', cls.session_count, cls.tuition, cls.csat, cls.tuition - cls.csat]);
-          aoa.push([]); // dòng trống ngăn cách
-        });
-      }
+        }
 
-      // Dòng tổng cộng toàn kỳ
-      aoa.push([]);
-      aoa.push([`TỔNG KỲ ${period}`, '', tutor.tuition_collected, tutor.csat_deducted, tutor.salary]);
+        // Dòng tổng cộng toàn kỳ
+        aoa.push([]);
+        aoa.push([`TỔNG KỲ ${period}`, '', tutor.tuition_collected || 0, tutor.csat_deducted || 0, tutor.salary || 0]);
 
-      const ws = XLSX.utils.aoa_to_sheet(aoa);
-      XLSX.utils.book_append_sheet(wb, ws, sheetName);
-    });
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      });
 
-    XLSX.writeFile(wb, `luong_gia_su_${period}.xlsx`);
+      XLSX.writeFile(wb, `luong_gia_su_${safePeriod}.xlsx`);
+    } catch (err: any) {
+      alert('Lỗi khi xuất file Excel Lương Gia Sư: ' + (err.message || String(err)));
+    }
   };
 
   // ──────────────────────────────────────────────────────────────────
   // EXPORT: Học Phí Học Sinh — thêm Số Buổi, Học Phí TB/Buổi
   // ──────────────────────────────────────────────────────────────────
   const exportCustomerPayments = () => {
-    if (viewMode === 'preview') {
-      const list = stats?.studentInvoicePreview || [];
-      if (!list.length) { alert('Không có dữ liệu dự kiến hóa đơn để xuất!'); return; }
-      const ws = XLSX.utils.json_to_sheet(list.map((inv: any) => ({
-        'Tên Học Sinh': inv.student_name || '---',
-        'Lớp Học': inv.class_name || '---',
-        'Số Buổi Dự Kiến': inv.session_count || 0,
-        'Học Phí Dự Kiến (₫)': inv.total_amount || 0,
-        'Học Phí TB/Buổi (₫)': inv.session_count > 0 ? Math.round(inv.total_amount / inv.session_count) : 0,
-        'Trạng Thái': 'Dự kiến (Chưa chốt)',
-        'Kỳ': `Dự kiến từ ${startDate} đến ${endDate}`,
-      })));
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Dự Kiến Hóa Đơn');
-      XLSX.writeFile(wb, `du_kien_hoc_phi_${startDate}_${endDate}.xlsx`);
-      return;
-    }
+    try {
+      if (viewMode === 'preview') {
+        const list = stats?.studentInvoicePreview || [];
+        if (!list.length) { alert('Không có dữ liệu dự kiến hóa đơn để xuất!'); return; }
+        const ws = XLSX.utils.json_to_sheet(list.map((inv: any) => ({
+          'Tên Học Sinh': inv.student_name || '---',
+          'Lớp Học': inv.class_name || '---',
+          'Số Buổi Dự Kiến': inv.session_count || 0,
+          'Học Phí Dự Kiến (₫)': inv.total_amount || 0,
+          'Học Phí TB/Buổi (₫)': inv.session_count > 0 ? Math.round(inv.total_amount / inv.session_count) : 0,
+          'Trạng Thái': 'Dự kiến (Chưa chốt)',
+          'Kỳ': `Dự kiến từ ${startDate} đến ${endDate}`,
+        })));
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Dự Kiến Hóa Đơn');
+        const safeStart = String(startDate || '').replace(/[\[\]*?/\\:|<>"]/g, '_');
+        const safeEnd = String(endDate || '').replace(/[\[\]*?/\\:|<>"]/g, '_');
+        XLSX.writeFile(wb, `du_kien_hoc_phi_${safeStart}_${safeEnd}.xlsx`);
+        return;
+      }
 
-    if (!payments.length) { alert('Không có dữ liệu học phí học viên để xuất!'); return; }
-    const ws = XLSX.utils.json_to_sheet(payments.map(p => {
-      const key = `${p.student_id}|${p.class_id}`;
-      const sessCount = sessionCountMap[key] ?? '---';
-      const avg = typeof sessCount === 'number' && sessCount > 0
-        ? Math.round(p.amount / sessCount)
-        : '---';
-      return {
-        'Tên Học Sinh': p.students?.name || '---',
-        'Lớp Học': p.classes?.name || '---',
-        // Bug 2 note: số buổi = số buổi có mặt điểm danh (attended)
-        'Số Buổi Đã Học': sessCount,
-        'Học Phí Phải Đóng (₫)': p.amount,
-        'Học Phí TB/Buổi (₫)': avg,
-        'Trạng Thái': p.status === 'paid' ? 'Đã thu' : 'Chưa thu',
-        'Kỳ Hóa Đơn': selectedHistoricalPeriod || '---',
-      };
-    }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Học Phí Học Viên');
-    XLSX.writeFile(wb, `hoc_phi_hoc_vien_${selectedHistoricalPeriod}.xlsx`);
+      if (!payments.length) { alert('Không có dữ liệu học phí học viên để xuất!'); return; }
+      const ws = XLSX.utils.json_to_sheet(payments.map(p => {
+        const key = `${p.student_id}|${p.class_id}`;
+        const sessCount = sessionCountMap[key] ?? '---';
+        const avg = typeof sessCount === 'number' && sessCount > 0
+          ? Math.round(p.amount / sessCount)
+          : '---';
+        return {
+          'Tên Học Sinh': p.students?.name || '---',
+          'Lớp Học': p.classes?.name || '---',
+          // Bug 2 note: số buổi = số buổi có mặt điểm danh (attended)
+          'Số Buổi Đã Học': sessCount,
+          'Học Phí Phải Đóng (₫)': p.amount || 0,
+          'Học Phí TB/Buổi (₫)': avg,
+          'Trạng Thái': p.status === 'paid' ? 'Đã thu' : 'Chưa thu',
+          'Kỳ Hóa Đơn': selectedHistoricalPeriod || '---',
+        };
+      }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Học Phí Học Viên');
+      const safePeriod = String(selectedHistoricalPeriod || 'historical').replace(/[\[\]*?/\\:|<>"]/g, '_');
+      XLSX.writeFile(wb, `hoc_phi_hoc_vien_${safePeriod}.xlsx`);
+    } catch (err: any) {
+      alert('Lỗi khi xuất file Excel Hóa Đơn: ' + (err.message || String(err)));
+    }
   };
 
   // =====================
@@ -454,7 +474,7 @@ export default function BillingPage() {
           </CardHeader>
           <CardContent>
             <h3 className="text-2xl font-bold text-emerald-900">{formatVND(stats?.totalCenterRevenue || 0)}</h3>
-            <p className="text-xs text-emerald-700 mt-1">Từ các khoản phí CSAT</p>
+            <p className="text-xs text-emerald-700 mt-1">Từ định mức Battle Pass CSAT</p>
           </CardContent>
         </Card>
       </div>
@@ -475,7 +495,7 @@ export default function BillingPage() {
               <Users className="w-5 h-5" />
             </div>
             <div className="text-left">
-              <div className="text-base">Phần 1: {viewMode === 'preview' ? 'Dự Kiến Hóa Đơn Học Sinh' : 'Học Phí Khách Hàng (Học Sinh)'}</div>
+              <div className="text-base">Phần 1: {viewMode === 'preview' ? 'Dự Kiến Hóa Đơn Học Sinh' : 'Hóa Đơn Học Sinh (Đã chốt)'}</div>
               <div className="text-xs font-normal opacity-75">{viewMode === 'preview' ? 'Tổng hợp từ buổi học chưa chốt sổ' : 'Các hóa đơn đã phát hành'}</div>
             </div>
           </div>
@@ -579,6 +599,7 @@ export default function BillingPage() {
                             <TableHead>Lớp</TableHead>
                             <TableHead className="text-center">Số Buổi</TableHead>
                             <TableHead className="text-right">Tổng Tiền</TableHead>
+                            <TableHead className="text-right">TB/Buổi</TableHead>
                             <TableHead className="text-center">Trạng Thái</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -592,6 +613,9 @@ export default function BillingPage() {
                               </TableCell>
                               <TableCell className="text-right font-bold text-blue-700">
                                 {formatVND(inv.total_amount)}
+                              </TableCell>
+                              <TableCell className="text-right text-slate-500 text-sm">
+                                {inv.session_count > 0 ? formatVND(Math.round(inv.total_amount / inv.session_count)) : '---'}
                               </TableCell>
                               <TableCell className="text-center">
                                 {inv.total_amount === 0
@@ -694,7 +718,7 @@ export default function BillingPage() {
               Phần 2: Lương Gia Sư
             </CardTitle>
             <CardDescription>
-              {viewMode === 'preview' ? 'Dự kiến — bấm ▶ để xem chi tiết từng lớp và từng buổi' : 'Chi phí trả gia sư sau khi trừ phí CSAT'}
+              {viewMode === 'preview' ? 'Dự kiến — bấm ▶ để xem chi tiết từng lớp và từng buổi' : 'Chi phí trả gia sư sau khi trừ Battle Pass CSAT'}
             </CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={exportTutorSalaries} className="ml-4 gap-2 border-slate-300 text-slate-700">
@@ -778,14 +802,14 @@ export default function BillingPage() {
                                         <div className="grid grid-cols-12 text-slate-400 font-medium pb-1 border-b border-slate-100">
                                           <div className="col-span-3">Ngày học</div>
                                           <div className="col-span-3 text-right">HP thu</div>
-                                          <div className="col-span-3 text-right">Phí CSAT</div>
+                                          <div className="col-span-3 text-right">Battle Pass CSAT</div>
                                           <div className="col-span-3 text-right font-semibold">GS nhận</div>
                                         </div>
-                                        {cls.sessions.map((sess: any, idx: number) => (
+                                        {cls.sessions.slice().sort((a: any, b: any) => (a.date || '').localeCompare(b.date || '')).map((sess: any, idx: number) => (
                                           <div key={idx} className="grid grid-cols-12 py-0.5 text-slate-600">
                                             <div className="col-span-3">{sess.date}</div>
                                             <div className="col-span-3 text-right">{formatVND(sess.tuition)}</div>
-                                            <div className="col-span-3 text-right text-rose-500">-{formatVND(sess.csat)}</div>
+                                            <div className="col-span-3 text-right text-emerald-600">{sess.csat > 0 ? `-${formatVND(sess.csat)}` : '0 ₫'}</div>
                                             <div className="col-span-3 text-right font-semibold text-amber-600">{formatVND(sess.net)}</div>
                                           </div>
                                         ))}
@@ -815,7 +839,7 @@ export default function BillingPage() {
                   <div className="hidden sm:flex text-xs text-slate-400 px-4 pt-2 gap-3">
                     <span className="flex-1"></span>
                     <span className="w-36 text-right">Học phí thu</span>
-                    <span className="w-36 text-right">Trừ CSAT</span>
+                    <span className="w-36 text-right">Battle Pass CSAT</span>
                     <span className="w-40 text-right font-semibold">Thực nhận</span>
                   </div>
                 </div>

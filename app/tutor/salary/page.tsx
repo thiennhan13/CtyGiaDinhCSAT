@@ -214,7 +214,7 @@ export default function TutorSalaryPage() {
         `Thực nhận lớp: ${formatVND(clsNet)}`,
       ]);
       // Header cột
-      aoa.push(['Ngày Dạy', 'Giờ', 'Số HS Có Mặt', 'Học Phí Thu (₫)', 'Phí CSAT Trừ (₫)', 'Thực Nhận Buổi (₫)']);
+      aoa.push(['Ngày Dạy', 'Giờ', 'Số HS Có Mặt', 'Học Phí Thu (₫)', 'Battle Pass CSAT (₫)', 'Thực Nhận Buổi (₫)']);
       // Từng buổi học
       rows.forEach(r => {
         const giờ = r.start_time ? `${r.start_time?.substring(0, 5)} - ${r.end_time?.substring(0, 5)}` : '';
@@ -287,8 +287,8 @@ export default function TutorSalaryPage() {
             </Card>
             <Card>
               <CardContent className="p-4">
-                <p className="text-xs text-slate-500 font-semibold uppercase mb-1">Phí CSAT bị trừ</p>
-                <p className="text-xl font-bold text-red-500">-{formatVND(salaryData.csat)}</p>
+                <p className="text-xs text-slate-500 font-semibold uppercase mb-1">Battle Pass CSAT</p>
+                <p className="text-xl font-bold text-emerald-600">{salaryData.csat > 0 ? `-${formatVND(salaryData.csat)}` : '0 ₫'}</p>
               </CardContent>
             </Card>
             <Card className="bg-amber-50 border-amber-200">
@@ -315,7 +315,7 @@ export default function TutorSalaryPage() {
                       <TableHead>Lớp</TableHead>
                       <TableHead className="text-center">Số buổi</TableHead>
                       <TableHead className="text-right">Học phí thu</TableHead>
-                      <TableHead className="text-right">Trừ CSAT</TableHead>
+                      <TableHead className="text-right">Battle Pass CSAT</TableHead>
                       <TableHead className="text-right font-bold">Thực nhận</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -327,7 +327,7 @@ export default function TutorSalaryPage() {
                           <Badge variant="secondary">{cls.session_count} buổi</Badge>
                         </TableCell>
                         <TableCell className="text-right text-blue-700">{formatVND(cls.tuition)}</TableCell>
-                        <TableCell className="text-right text-red-500">-{formatVND(cls.csat)}</TableCell>
+                        <TableCell className="text-right text-emerald-600">{cls.csat > 0 ? `-${formatVND(cls.csat)}` : '0 ₫'}</TableCell>
                         <TableCell className="text-right font-bold text-amber-700">{formatVND(cls.tuition - cls.csat)}</TableCell>
                       </TableRow>
                     ))}
@@ -338,7 +338,7 @@ export default function TutorSalaryPage() {
                         <Badge variant="secondary">{salaryData.sessions} buổi</Badge>
                       </TableCell>
                       <TableCell className="text-right text-blue-700">{formatVND(salaryData.tuition)}</TableCell>
-                      <TableCell className="text-right text-red-500">-{formatVND(salaryData.csat)}</TableCell>
+                      <TableCell className="text-right text-emerald-600">{salaryData.csat > 0 ? `-${formatVND(salaryData.csat)}` : '0 ₫'}</TableCell>
                       <TableCell className="text-right text-amber-800 text-lg">{formatVND(salaryData.net)}</TableCell>
                     </TableRow>
                   </TableBody>
@@ -374,7 +374,7 @@ export default function TutorSalaryPage() {
                     <span className="flex-1">Lớp / Giờ</span>
                     <span className="w-20 text-center">Có mặt</span>
                     <span className="w-32 text-right">Học phí</span>
-                    <span className="w-32 text-right">Phí CSAT</span>
+                    <span className="w-32 text-right">Battle Pass CSAT</span>
                     <span className="w-36 text-right font-semibold">Thực nhận</span>
                   </div>
 
@@ -406,7 +406,7 @@ export default function TutorSalaryPage() {
                             </Badge>
                           </span>
                           <span className="text-blue-700 text-sm w-32 text-right hidden sm:block">{formatVND(row.tuition)}</span>
-                          <span className="text-red-500 text-sm w-32 text-right hidden sm:block">-{formatVND(row.csat)}</span>
+                          <span className="text-emerald-600 text-sm w-32 text-right hidden sm:block">{row.csat > 0 ? `-${formatVND(row.csat)}` : '0 ₫'}</span>
                           <span className={`font-bold text-sm w-36 text-right ${row.net < 0 ? 'text-red-600' : 'text-amber-700'}`}>
                             {formatVND(row.net)}
                             {row.net < 0 && <span className="block text-xs text-red-500">⚠ Âm</span>}
@@ -445,7 +445,7 @@ export default function TutorSalaryPage() {
                     <span className="text-slate-700 flex-1">Tổng kỳ {salaryData.period}</span>
                     <span className="w-20 text-center text-slate-500 text-sm hidden sm:block">{salaryData.sessions} buổi</span>
                     <span className="text-blue-700 w-32 text-right hidden sm:block">{formatVND(salaryData.tuition)}</span>
-                    <span className="text-red-500 w-32 text-right hidden sm:block">-{formatVND(salaryData.csat)}</span>
+                    <span className="text-emerald-600 w-32 text-right hidden sm:block">{salaryData.csat > 0 ? `-${formatVND(salaryData.csat)}` : '0 ₫'}</span>
                     <span className="text-amber-800 text-lg w-36 text-right">{formatVND(salaryData.net)}</span>
                   </div>
                 </div>
