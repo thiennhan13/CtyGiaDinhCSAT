@@ -1,229 +1,33 @@
-﻿'use client';
+import { Suspense } from 'react';
+import { getTutors } from '@/features/tutors/queries';
+import { TutorsClient } from './TutorsClient';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { createClient } from '@/lib/supabase/client';
-import { useAlert, useConfirm } from '@/components/ui/use-dialog';
+export const dynamic = 'force-dynamic';
 
-export default function TutorsPage() {
-  const [tutors, setTutors] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-  const { alert: showAlert, AlertDialog } = useAlert();
-  const { confirm, ConfirmDialog } = useConfirm();
-  
-  // form
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalTutors, setTotalTutors] = useState(0);
-  const ITEMS_PER_PAGE = 20;
+interface PageProps {
+  searchParams: Promise<{ page?: string }>;
+}
 
-  const supabase = createClient();
+export default async function TutorsPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const currentPage = Math.max(1, parseInt(params.page || '1', 10));
 
-  async function fetchTutors() {
-    setLoading(true);
-    const { data, count, error } = await supabase
-      .from('tutors')
-      .select('*', { count: 'exact' })
-      .neq('is_deleted', true)
-      .order('created_at', { ascending: false })
-      .order('tutor_id', { ascending: true })
-      .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
-    
-    if (error) {
-      console.error("Error fetching tutors:", error);
-    }
-    
-    if (!error && data) {
-      setTutors(data);
-      setTotalTutors(count || 0);
-      setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE) || 1);
-    }
-    setLoading(false);
-  }
+  // Fetch data on the server
+  const { data, count } = await getTutors({
+    page: currentPage,
+    limit: 20,
+  });
 
-  useEffect(() => {
-    fetchTutors();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage]);
-
-  async function handleAddTutor(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name || !email || !phone) return;
-    setIsSubmitting(true);
-    try {
-      const res = await fetch('/api/admin/tutors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create', name, email, phone })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Có lỗi xảy ra');
-      
-      setName('');
-      setEmail('');
-      setPhone('');
-      fetchTutors();
-      await showAlert({ title: 'Tạo tài khoản thành công', description: 'Đã cấp tài khoản gia sư. Mật khẩu đăng nhập là số điện thoại.', variant: 'success' });
-    } catch (err: any) {
-      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
-    }
-    setIsSubmitting(false);
-  }
-
-  async function handleDelete(id: string) {
-    const ok = await confirm({
-      title: 'Vô hiệu hóa gia sư?',
-      description: 'Hành động này sẽ xóa hoặc vô hiệu hóa gia sư này. Bạn có chắc chắn không?',
-      confirmText: 'Xóa',
-      variant: 'destructive',
-    });
-    if (!ok) return;
-    try {
-      const res = await fetch('/api/admin/tutors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', tutor_id: id })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Có lỗi xảy ra');
-      fetchTutors();
-    } catch (err: any) {
-      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
-    }
-  }
-
- 
+  const totalPages = Math.ceil(count / 20) || 1;
 
   return (
-    <div className="space-y-6">
-      <AlertDialog />
-      <ConfirmDialog />
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">Quản lý Gia Sư</h2>
-      </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Thêm Gia Sư Mới (Cấp tài khoản)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleAddTutor} className="flex flex-col sm:flex-row gap-4">
-            <Input 
-              placeholder="Họ & Tên..." 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              className="max-w-xs"
-              required 
-            />
-            <Input 
-              placeholder="Email..." 
-              type="email"
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              className="max-w-xs"
-              required 
-            />
-            <Input 
-              placeholder="Số điện thoại (dùng làm mật khẩu)..." 
-              type="tel"
-              value={phone} 
-              onChange={(e) => setPhone(e.target.value)} 
-              className="max-w-xs"
-              required 
-            />
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Đang tạo...' : 'Tạo Tài Khoản'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh Sách Gia Sư</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? <p>Đang tải...</p> : (
-            <div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tên Gia Sư</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Trạng Thái</TableHead>
-                    <TableHead className="text-right">Hành động</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tutors.map(t => (
-                    <TableRow
-                      key={t.tutor_id}
-                      className="hover:bg-secondary/50 cursor-pointer transition-colors"
-                      onClick={() => router.push(`/admin/tutors/${t.tutor_id}`)}
-                    >
-                      <TableCell className="font-medium">{t.name}</TableCell>
-                      <TableCell>{t.email}</TableCell>
-                      <TableCell>
-                        {t.status === 'inactive' ? <span className="text-red-500 font-medium">Đã vô hiệu hóa</span> : <span className="text-emerald-500 font-medium">Đang hoạt động</span>}
-                      </TableCell>
-                      <TableCell className="text-right" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-2">
-                          <Link href={`/admin/tutors/${t.tutor_id}`}>
-                            <Button variant="outline" size="sm">Chi tiết</Button>
-                          </Link>
-                          <Button variant="destructive" size="sm" onClick={() => handleDelete(t.tutor_id)}>
-                            Xóa
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {tutors.length === 0 && (
-                    <TableRow>
-                       <TableCell colSpan={4} className="text-center py-4">Chưa có dữ liệu</TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-              <div className="flex flex-col sm:flex-row justify-between items-center mt-4 pt-4 border-t gap-4">
-                <span className="text-sm text-muted-foreground">
-                  Hiển thị {tutors.length} trên tổng {totalTutors} kết quả (Trang {currentPage} / {totalPages})
-                </span>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    disabled={currentPage === 1} 
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  >
-                    Trước
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    disabled={currentPage === totalPages || totalPages === 0} 
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  >
-                    Sau
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    <Suspense fallback={<div className="flex h-96 items-center justify-center">Đang tải dữ liệu...</div>}>
+      <TutorsClient
+        initialTutors={data ?? []}
+        totalTutors={count}
+        totalPages={totalPages}
+        currentPage={currentPage}
+      />
+    </Suspense>
   );
 }

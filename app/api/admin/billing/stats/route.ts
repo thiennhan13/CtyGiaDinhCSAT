@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
 export async function GET(request: Request) {
@@ -129,9 +129,10 @@ export async function GET(request: Request) {
 
     sessions.forEach(session => {
       const classId   = session.class_id;
-      const cls       = session.classes as any;
+      type JoinedClass = { name: string; csat_fee_per_session?: number; tutors?: { tutor_id: string; name: string } | null };
+      const cls       = session.classes as unknown as JoinedClass | null;
       const className = cls?.name ?? '---';
-      const currentTutor = cls?.tutors as any;
+      const currentTutor = cls?.tutors;
 
       // FIX BUG #1: Ưu tiên snapshot tutor → fallback về current tutor
       const snapshotTutor = session.tutor_id_snapshot
@@ -172,7 +173,8 @@ export async function GET(request: Request) {
         sessionTuition += fee;
 
         // Cập nhật preview hóa đơn học sinh
-        const studentName = (att.students as any)?.name ?? att.student_id;
+        const joinedStudent = att.students as unknown as { name: string } | null;
+        const studentName = joinedStudent?.name ?? att.student_id;
         const invKey = `${att.student_id}|${classId}`;
         if (!studentInvoiceMap[invKey]) {
           studentInvoiceMap[invKey] = {

@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/service';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
@@ -133,9 +133,10 @@ export async function POST(request: Request) {
           const existingOnSameDate = existingSessions?.filter(s => s.date === newSession.date);
           if (existingOnSameDate && existingOnSameDate.length > 0) {
             for (const existing of existingOnSameDate) {
+              const joinedClass = existing.classes as unknown as { name: string } | null;
               if (newSession.start_time < existing.end_time && newSession.end_time > existing.start_time) {
                 conflictFound = true;
-                conflictMsg = `Trùng lịch gia sư: Ngày ${newSession.date}, Giờ mới: ${newSession.start_time}-${newSession.end_time}, Giờ cũ (${(existing.classes as any).name}): ${existing.start_time}-${existing.end_time}`;
+                conflictMsg = `Trùng lịch gia sư: Ngày ${newSession.date}, Giờ mới: ${newSession.start_time}-${newSession.end_time}, Giờ cũ (${joinedClass?.name}): ${existing.start_time}-${existing.end_time}`;
                 break;
               }
             }
@@ -298,9 +299,11 @@ export async function POST(request: Request) {
 
       if (rpcErr) throw rpcErr;
 
+      type RpcResult = { message: string; updated_sessions: number };
+      const result = rpcResult as unknown as RpcResult | null;
       return NextResponse.json({
-        message:          (rpcResult as any)?.message ?? 'Đổi gia sư thành công.',
-        updated_sessions: (rpcResult as any)?.updated_sessions ?? 0,
+        message:          result?.message ?? 'Đổi gia sư thành công.',
+        updated_sessions: result?.updated_sessions ?? 0,
       });
     }
 
@@ -322,10 +325,12 @@ export async function POST(request: Request) {
 
       if (rpcErr) throw rpcErr;
 
+      type CsatRpcResult = { message: string; updated_sessions: number; null_snapshots_fixed: number };
+      const result = rpcResult as unknown as CsatRpcResult | null;
       return NextResponse.json({
-        message:              (rpcResult as any)?.message ?? 'Cập nhật phí CSAT thành công.',
-        updated_sessions:     (rpcResult as any)?.updated_sessions ?? 0,
-        null_snapshots_fixed: (rpcResult as any)?.null_snapshots_fixed ?? 0,
+        message:              result?.message ?? 'Cập nhật phí CSAT thành công.',
+        updated_sessions:     result?.updated_sessions ?? 0,
+        null_snapshots_fixed: result?.null_snapshots_fixed ?? 0,
       });
     }
 
