@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/service';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     
     // Kiểm tra quyền Admin
-    if (!user || (user.app_metadata?.role !== 'admin' && user.user_metadata?.role !== 'admin' && user.email !== 'csattutor@gmail.com')) {
+    if (!user || (user.app_metadata?.role !== 'admin')) {
       return NextResponse.json({ error: 'Quyền truy cập bị từ chối.' }, { status: 403 });
     }
 

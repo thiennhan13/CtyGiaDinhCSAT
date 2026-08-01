@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { StudentsClient } from './StudentsClient';
 import StudentsLoading from './loading';
+import type { Student } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,7 +60,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
     // Bắt buộc wrap Suspense vì StudentsClient dùng useSearchParams()
     <Suspense fallback={<StudentsLoading />}>
       <StudentsClient
-        initialStudents={(data as any) ?? []}
+        initialStudents={(data ?? []) as Student[]}
         totalStudents={totalStudents}
         totalPages={totalPages}
         currentPage={currentPage}

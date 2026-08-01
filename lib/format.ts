@@ -61,34 +61,35 @@ export function getStatusConfig(status: string | null | undefined): {
     // Trạng thái lớp học & học sinh
     case 'active':
     case 'đang học':
-      return { label: 'Đang học', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
+      return { label: 'Đang học', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800' };
     case 'dropped':
     case 'nghỉ học':
-      return { label: 'Đã nghỉ', badgeClass: 'bg-slate-100 text-slate-600 border-slate-200' };
+    case 'đã nghỉ':
+      return { label: 'Đã nghỉ', badgeClass: 'bg-secondary text-muted-foreground border-border' };
     case 'archived':
-      return { label: 'Đã lưu trữ', badgeClass: 'bg-amber-100 text-amber-800 border-amber-200' };
+      return { label: 'Đã lưu trữ', badgeClass: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800' };
 
     // Trạng thái buổi học (sessions)
     case 'scheduled':
-      return { label: 'Sắp diễn ra', badgeClass: 'bg-blue-100 text-blue-800 border-blue-200' };
+      return { label: 'Sắp diễn ra', badgeClass: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800' };
     case 'completed':
-      return { label: 'Đã hoàn thành', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
+      return { label: 'Đã hoàn thành', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800' };
     case 'cancelled':
-      return { label: 'Đã hủy', badgeClass: 'bg-red-100 text-red-800 border-red-200' };
+      return { label: 'Đã hủy', badgeClass: 'bg-destructive/10 text-destructive border-destructive/20' };
 
     // Trạng thái hóa đơn (payments)
     case 'paid':
-      return { label: 'Đã thu', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
+      return { label: 'Đã thu', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800' };
     case 'unpaid':
-      return { label: 'Chưa thu', badgeClass: 'bg-amber-100 text-amber-800 border-amber-200' };
+      return { label: 'Chưa thu', badgeClass: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800' };
 
     // Trạng thái điểm danh (attendance)
     case 'attended':
-      return { label: 'Có mặt', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
+      return { label: 'Có mặt', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800' };
     case 'absent':
-      return { label: 'Vắng mặt', badgeClass: 'bg-red-100 text-red-800 border-red-200' };
+      return { label: 'Vắng mặt', badgeClass: 'bg-destructive/10 text-destructive border-destructive/20' };
 
     default:
-      return { label: status || '---', badgeClass: 'bg-slate-100 text-slate-700 border-slate-200' };
+      return { label: status ?? '---', badgeClass: 'bg-secondary text-foreground border-border' };
   }
 }

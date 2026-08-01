@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { TutorLayoutClient } from './TutorLayoutClient';
+import { TutorLayoutClient } from '@/components/layout/TutorLayoutClient';
 
 export default async function TutorLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();

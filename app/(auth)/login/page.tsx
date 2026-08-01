@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/supabase/client';
 import { AlertCircle, LogIn, Eye, EyeOff } from 'lucide-react';
+import { GradientOrbs } from '@/components/GradientOrbs';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -38,15 +39,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-mesh-google px-4 relative overflow-hidden">
-
-      {/* Decorative floating orbs */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/5 w-48 h-48 rounded-full bg-[#4285F4] opacity-[0.08] blur-3xl animate-float-1" />
-        <div className="absolute bottom-1/4 right-1/4 w-56 h-56 rounded-full bg-[#34A853] opacity-[0.07] blur-3xl animate-float-2" />
-        <div className="absolute top-1/2 right-1/5 w-40 h-40 rounded-full bg-[#FBBC05] opacity-[0.09] blur-3xl animate-float-3" />
-        <div className="absolute top-10 right-1/3 w-32 h-32 rounded-full bg-[#EA4335] opacity-[0.06] blur-3xl animate-float-1" />
-      </div>
+    <div className="flex min-h-screen w-full items-center justify-center bg-background px-4 relative overflow-hidden">
+      <GradientOrbs />
 
       {/* Login card */}
       <div className="relative w-full max-w-md animate-slide-up">

@@ -3,7 +3,6 @@ import './globals.css';
 import { Lexend } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import BackgroundIcons from '@/components/BackgroundIcons';
 import { ThemeProvider } from '@/components/theme-provider';
 
 const lexend = Lexend({
@@ -33,11 +32,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange={false}
         >
-          <BackgroundIcons />
           {children}
           <SpeedInsights />
         </ThemeProvider>

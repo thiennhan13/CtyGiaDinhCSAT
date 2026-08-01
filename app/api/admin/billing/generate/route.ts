@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/service';
 import { createClient } from '@/lib/supabase/server';
 import { startOfMonth, subMonths, format } from 'date-fns';
@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   const supabaseAuth = await createClient();
   const { data: { user } } = await supabaseAuth.auth.getUser();
 
-  if (!user || (user.user_metadata?.role !== 'admin' && user.app_metadata?.role !== 'admin' && user.email !== 'csattutor@gmail.com')) {
+  if (!user || (user.app_metadata?.role !== 'admin')) {
     return NextResponse.json({ error: 'Quyền truy cập bị từ chối' }, { status: 403 });
   }
 

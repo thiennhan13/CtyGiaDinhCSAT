@@ -9,6 +9,7 @@ import {
   Home, BookOpen, DollarSign, ChevronRight,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { GradientOrbs } from '@/components/GradientOrbs';
 
 interface TutorLayoutClientProps {
   children: React.ReactNode;
@@ -42,9 +43,12 @@ export function TutorLayoutClient({ children, user }: TutorLayoutClientProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
   const currentLabel = getCurrentLabel(pathname);
+  const showOrbs = pathname === '/tutor/dashboard';
 
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground flex-col md:flex-row relative">
+      {/* Background Ambient Orbs */}
+      {showOrbs && <GradientOrbs />}
 
       {/* Backdrop — mobile */}
       {isSidebarOpen && (
