@@ -6,13 +6,11 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LogOut, Menu, X,
-  Home, Users, GraduationCap, Calendar, FileText, GitBranch,
-  ChevronRight,
+  Home, BookOpen, DollarSign, ChevronRight,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { GradientOrbs } from '@/components/GradientOrbs';
 
-interface AdminLayoutClientProps {
+interface TutorLayoutClientProps {
   children: React.ReactNode;
   user: {
     name: string;
@@ -22,43 +20,33 @@ interface AdminLayoutClientProps {
 }
 
 const navItems = [
-  { href: '/admin/dashboard',   label: 'Trang chủ',          icon: Home },
-  { href: '/admin/students',    label: 'Học sinh · Học phí',  icon: Users },
-  { href: '/admin/tutors',      label: 'Quản lý Gia sư',      icon: GraduationCap },
-  { href: '/admin/tutors-tree', label: 'Sơ đồ Gia sư',        icon: GitBranch },
-  { href: '/admin/classes',     label: 'Quản lý Lớp học',     icon: Calendar },
-  { href: '/admin/billing',     label: 'Kế toán chốt sổ',     icon: FileText },
+  { href: '/tutor/dashboard', label: 'Trang chủ',      icon: Home },
+  { href: '/tutor/classes',   label: 'Lớp giảng dạy',  icon: BookOpen },
+  { href: '/tutor/salary',    label: 'Bảng Lương',      icon: DollarSign },
 ];
 
-/** Breadcrumb label mapping */
 const PAGE_LABELS: Record<string, string> = {
-  '/admin/dashboard':   'Trang chủ',
-  '/admin/students':    'Học sinh · Học phí',
-  '/admin/tutors':      'Quản lý Gia sư',
-  '/admin/tutors-tree': 'Sơ đồ Gia sư',
-  '/admin/classes':     'Quản lý Lớp học',
-  '/admin/billing':     'Kế toán chốt sổ',
+  '/tutor/dashboard': 'Trang chủ',
+  '/tutor/classes':   'Lớp giảng dạy',
+  '/tutor/salary':    'Bảng Lương',
 };
 
 function getCurrentLabel(pathname: string): string {
   for (const [key, label] of Object.entries(PAGE_LABELS)) {
     if (pathname.startsWith(key)) return label;
   }
-  return 'Admin';
+  return 'Gia sư';
 }
 
-export function AdminLayoutClient({ children, user }: AdminLayoutClientProps) {
+export function TutorLayoutClient({ children, user }: TutorLayoutClientProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
   const currentLabel = getCurrentLabel(pathname);
-  const showOrbs = pathname === '/admin/dashboard' || pathname === '/admin/tutors-tree';
 
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground flex-col md:flex-row relative">
-      {/* Background Ambient Orbs */}
-      {showOrbs && <GradientOrbs />}
 
-      {/* Backdrop overlay — mobile */}
+      {/* Backdrop — mobile */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity animate-fade-in"
@@ -76,7 +64,7 @@ export function AdminLayoutClient({ children, user }: AdminLayoutClientProps) {
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        {/* Sidebar Header — Glassmorphism + ThemeToggle */}
+        {/* Sidebar Header */}
         <div className="glass-subtle p-4 border-b border-sidebar-border flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -88,7 +76,6 @@ export function AdminLayoutClient({ children, user }: AdminLayoutClientProps) {
                 className="w-[34px] h-[34px] rounded-lg bg-white shadow-sm"
                 unoptimized
               />
-              {/* 2-color dot */}
               <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full gradient-google border-2 border-sidebar" />
             </div>
             <div>
@@ -96,15 +83,13 @@ export function AdminLayoutClient({ children, user }: AdminLayoutClientProps) {
                 CSAT Tutor
               </h1>
               <p className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase">
-                Hệ thống Quản lý
+                Gia Sư Portal
               </p>
             </div>
           </div>
-
           <div className="flex items-center gap-1">
             {/* ThemeToggle — góc trên sidebar */}
             <ThemeToggle className="h-8 w-8 text-muted-foreground hover:text-foreground" />
-            {/* Close — mobile only */}
             <button
               onClick={() => setIsSidebarOpen(false)}
               className="md:hidden p-1.5 hover:bg-secondary rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
@@ -136,7 +121,6 @@ export function AdminLayoutClient({ children, user }: AdminLayoutClientProps) {
                   }
                 `}
               >
-                {/* Active left indicator */}
                 {isActive && (
                   <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-sidebar-primary rounded-r-full" />
                 )}
@@ -152,9 +136,8 @@ export function AdminLayoutClient({ children, user }: AdminLayoutClientProps) {
           })}
         </nav>
 
-        {/* Sidebar Footer — gọn */}
+        {/* Footer — gọn */}
         <div className="p-2 border-t border-sidebar-border shrink-0">
-          {/* User + Logout */}
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 rounded-full bg-primary/15 border border-primary/25 flex items-center justify-center text-primary font-semibold text-xs shrink-0 select-none">
               {user.initials}
@@ -179,10 +162,9 @@ export function AdminLayoutClient({ children, user }: AdminLayoutClientProps) {
       {/* ─── Main content ─── */}
       <main className="flex-1 flex flex-col min-w-0">
 
-        {/* Topbar — sticky glass header */}
+        {/* Topbar */}
         <header className="h-14 glass-subtle border-b border-border px-4 md:px-6 flex items-center justify-between shrink-0 sticky top-0 z-30">
           <div className="flex items-center gap-3">
-            {/* Hamburger — mobile */}
             <button
               onClick={() => setIsSidebarOpen(true)}
               className="md:hidden p-1.5 hover:bg-secondary rounded-lg text-muted-foreground transition-colors cursor-pointer"
@@ -190,24 +172,20 @@ export function AdminLayoutClient({ children, user }: AdminLayoutClientProps) {
             >
               <Menu className="w-5 h-5" />
             </button>
-
-            {/* Breadcrumb */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-muted-foreground hidden sm:inline">Admin</span>
+              <span className="text-xs text-muted-foreground hidden sm:inline">Gia Sư</span>
               <ChevronRight className="w-3 h-3 text-muted-foreground hidden sm:inline" />
               <span className="text-sm font-semibold text-foreground">{currentLabel}</span>
             </div>
           </div>
-
-          {/* Right: Online indicator */}
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-green-500" />
             <span className="text-xs font-medium text-muted-foreground hidden sm:inline">Trực tuyến</span>
           </div>
         </header>
 
         {/* Content */}
-        <div className="p-4 md:p-6 flex-1 overflow-y-auto">
+        <div className="p-4 md:p-8 flex-1 overflow-y-auto">
           <div className="mx-auto max-w-5xl space-y-6 animate-slide-up">
             {children}
           </div>

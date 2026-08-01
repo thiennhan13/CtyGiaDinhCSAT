@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -264,10 +264,10 @@ export default function NewClassPage() {
             </div>
 
             <div className="space-y-3 pt-4 border-t">
-              <label className="text-sm font-bold text-slate-800">Chọn Học Sinh Trong Lớp (Tùy chọn)</label>
+              <label className="text-sm font-bold text-foreground">Chọn Học Sinh Trong Lớp (Tùy chọn)</label>
               <div className="border rounded-md overflow-hidden max-h-64 overflow-y-auto">
                 <Table>
-                  <TableHeader className="bg-slate-50 sticky top-0">
+                  <TableHeader className="bg-secondary/50 sticky top-0">
                     <TableRow>
                       <TableHead className="w-12 text-center">Chọn</TableHead>
                       <TableHead>Tên Học Sinh</TableHead>
@@ -297,10 +297,10 @@ export default function NewClassPage() {
 
             {selectedStudents.length > 0 && (
               <div className="space-y-3 pt-2">
-                <label className="text-sm font-bold text-slate-800">Cấu hình Học Phí (VND/Buổi)</label>
+                <label className="text-sm font-bold text-foreground">Cấu hình Học Phí (VND/Buổi)</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {selectedStudents.map(student => (
-                    <div key={student.id} className="flex items-center gap-3 bg-slate-50 p-2.5 rounded-lg border">
+                    <div key={student.id} className="flex items-center gap-3 bg-secondary/50 p-2.5 rounded-lg border">
                       <span className="flex-1 text-sm font-medium truncate">{student.name}</span>
                       <Input 
                         type="number" 
@@ -349,7 +349,7 @@ export default function NewClassPage() {
                 ⚠️ Thời gian tạo lịch vượt quá 3 tháng. Vui lòng rút ngắn khoảng thời gian để đảm bảo an toàn tải dữ liệu.
               </div>
             ) : (
-              <div className="bg-indigo-50 text-indigo-700 p-4 rounded-md border border-indigo-200 flex justify-between items-center">
+              <div className="bg-indigo-50 text-primary p-4 rounded-md border border-indigo-200 flex justify-between items-center">
                 <span className="font-medium">Tổng số buổi học dự kiến:</span>
                 <span className="text-xl font-bold">{generatedSessionsCount} buổi</span>
               </div>
@@ -357,9 +357,9 @@ export default function NewClassPage() {
 
             <div className="space-y-4">
               {schedules.map((schedule, index) => (
-                <div key={index} className="flex items-center gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <div key={index} className="flex items-center gap-4 bg-secondary/50 p-4 rounded-lg border border-border">
                   <div className="space-y-1.5 flex-1">
-                    <label className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Ngày Trong Tuần</label>
+                    <label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Ngày Trong Tuần</label>
                     <Combobox
                       options={daysOfWeek.map(d => ({ value: d.value, label: d.label }))}
                       value={schedule.dayOfWeek}
@@ -369,12 +369,12 @@ export default function NewClassPage() {
                     />
                   </div>
                   <div className="space-y-1.5 w-32">
-                    <label className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Bắt Đầu</label>
-                    <Input type="time" value={schedule.startTime} onChange={(e) => updateSchedule(index, 'startTime', e.target.value)} className="bg-white" />
+                    <label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Bắt Đầu</label>
+                    <Input type="time" value={schedule.startTime} onChange={(e) => updateSchedule(index, 'startTime', e.target.value)} className="bg-card" />
                   </div>
                   <div className="space-y-1.5 w-32">
-                    <label className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Kết Thúc</label>
-                    <Input type="time" value={schedule.endTime} onChange={(e) => updateSchedule(index, 'endTime', e.target.value)} className="bg-white" />
+                    <label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Kết Thúc</label>
+                    <Input type="time" value={schedule.endTime} onChange={(e) => updateSchedule(index, 'endTime', e.target.value)} className="bg-card" />
                   </div>
                   <div className="pt-6">
                     <Button variant="ghost" size="icon" onClick={() => removeSchedule(index)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
@@ -384,7 +384,7 @@ export default function NewClassPage() {
                 </div>
               ))}
 
-              <Button variant="outline" type="button" onClick={addScheduleRow} className="w-full border-dashed border-2 py-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-colors">
+              <Button variant="outline" type="button" onClick={addScheduleRow} className="w-full border-dashed border-2 py-8 text-muted-foreground hover:text-primary hover:bg-indigo-50 hover:border-indigo-200 transition-colors">
                 + Thêm Lịch Cố Định
               </Button>
             </div>

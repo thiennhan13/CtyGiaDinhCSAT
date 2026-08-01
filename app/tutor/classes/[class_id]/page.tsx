@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -316,14 +316,14 @@ export default function TutorClassDetailPage() {
              <br/>
              <span className="text-sm opacity-80 mt-1 block">Bấm "Gia hạn" để tạo thêm lịch học các tuần tiếp theo. Hệ thống sẽ tự động cập nhật ngày kết thúc của lớp.</span>
            </div>
-           <Button variant="outline" className="mt-3 sm:mt-0 border-amber-500 text-amber-700 bg-white hover:bg-amber-50 shrink-0" onClick={() => setIsBulkAddOpen(true)}>Gia hạn lớp học</Button>
+           <Button variant="outline" className="mt-3 sm:mt-0 border-amber-500 text-amber-700 bg-card hover:bg-amber-50 shrink-0" onClick={() => setIsBulkAddOpen(true)}>Gia hạn lớp học</Button>
         </div>
       )}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" onClick={() => router.push('/tutor/classes')}><ArrowLeft className="h-4 w-4" /></Button>
           <div>
-             <h2 className="text-2xl font-bold tracking-tight text-slate-900">{classData?.name}</h2>
+             <h2 className="text-2xl font-bold tracking-tight text-foreground">{classData?.name}</h2>
              <p className="text-emerald-700 font-medium text-sm mt-1">🛡️ Định mức Battle Pass CSAT: {formatNumber(classData?.csat_fee_per_session || 0)} VND/Buổi</p>
           </div>
         </div>
@@ -340,10 +340,10 @@ export default function TutorClassDetailPage() {
                 {students.map((assoc, idx) => {
                     const st = assoc.students;
                     return (
-                        <div key={st.student_id} className="flex justify-between items-center p-3 border rounded-lg bg-slate-50">
+                        <div key={st.student_id} className="flex justify-between items-center p-3 border rounded-lg bg-secondary/50">
                             <div>
                                 <p className="font-semibold">{st.name}</p>
-                                <p className="text-xs text-slate-500">
+                                <p className="text-xs text-muted-foreground">
                                   Liên lạc: {st.student_contact || st.parent_contact || '---'}
                                 </p>
                             </div>
@@ -352,7 +352,7 @@ export default function TutorClassDetailPage() {
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
-                                  className="mt-2 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                                  className="mt-2 text-primary border-indigo-200 hover:bg-indigo-50"
                                   onClick={() => {
                                       setReviewStudent(st);
                                       setReviewGeneral('');
@@ -368,7 +368,7 @@ export default function TutorClassDetailPage() {
                         </div>
                     )
                 })}
-                {students.length === 0 && <p className="text-slate-500 text-sm">Chưa có học sinh nào.</p>}
+                {students.length === 0 && <p className="text-muted-foreground text-sm">Chưa có học sinh nào.</p>}
              </div>
            </CardContent>
          </Card>
@@ -379,7 +379,7 @@ export default function TutorClassDetailPage() {
              <CardTitle className="flex items-center gap-2"><CalendarIcon className="w-5 h-5 text-indigo-500"/>Lịch Dạy & Buổi Học</CardTitle>
              <div className="flex gap-2">
                <Button size="sm" onClick={() => setIsAddSessionModalOpen(true)}><Plus className="w-4 h-4 mr-1"/> Buổi lẻ</Button>
-               <Button size="sm" variant="outline" className="border-indigo-200 text-indigo-600" onClick={() => setIsBulkAddOpen(true)}><CalendarIcon className="w-4 h-4 mr-1" /> Thêm loạt</Button>
+               <Button size="sm" variant="outline" className="border-indigo-200 text-primary" onClick={() => setIsBulkAddOpen(true)}><CalendarIcon className="w-4 h-4 mr-1" /> Thêm loạt</Button>
              </div>
            </CardHeader>
            <CardContent>
@@ -387,8 +387,8 @@ export default function TutorClassDetailPage() {
                    {sessions.map((sess) => (
                        <div key={sess.session_id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg gap-2">
                            <div>
-                               <p className="font-semibold text-slate-800">{format(new Date(sess.date), 'dd/MM/yyyy')} <span className="text-xs font-normal text-slate-500">(Thứ {new Date(sess.date).getDay() === 0 ? 'CN' : new Date(sess.date).getDay() + 1})</span></p>
-                               <p className="text-sm text-slate-500">{sess.start_time.substring(0,5)} - {sess.end_time.substring(0,5)}</p>
+                               <p className="font-semibold text-foreground">{format(new Date(sess.date), 'dd/MM/yyyy')} <span className="text-xs font-normal text-muted-foreground">(Thứ {new Date(sess.date).getDay() === 0 ? 'CN' : new Date(sess.date).getDay() + 1})</span></p>
+                               <p className="text-sm text-muted-foreground">{sess.start_time.substring(0,5)} - {sess.end_time.substring(0,5)}</p>
                            </div>
                            <div className="flex flex-wrap items-center gap-2">
                                <span className={`px-2 py-0.5 text-xs font-semibold rounded-sm ${sess.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
@@ -405,7 +405,7 @@ export default function TutorClassDetailPage() {
                            </div>
                        </div>
                    ))}
-                   {sessions.length === 0 && <p className="text-slate-500 text-sm mt-4">Chưa có lịch dạy nào.</p>}
+                   {sessions.length === 0 && <p className="text-muted-foreground text-sm mt-4">Chưa có lịch dạy nào.</p>}
                </div>
            </CardContent>
          </Card>
@@ -422,16 +422,16 @@ export default function TutorClassDetailPage() {
               ⚠️ Lưu ý: Hãy kiểm tra không trùng lịch với các lớp khác bạn đang dạy.
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Ngày dạy <span className="text-red-500">*</span></label>
+              <label className="text-sm font-medium">Ngày dạy <span className="text-destructive">*</span></label>
               <Input type="date" value={newSessionDate} onChange={(e) => setNewSessionDate(e.target.value)} required />
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Từ giờ <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-medium">Từ giờ <span className="text-destructive">*</span></label>
                   <Input type="time" value={newSessionStart} onChange={(e) => setNewSessionStart(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Đến giờ <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-medium">Đến giờ <span className="text-destructive">*</span></label>
                   <Input type="time" value={newSessionEnd} onChange={(e) => setNewSessionEnd(e.target.value)} required />
                 </div>
             </div>
@@ -545,13 +545,13 @@ export default function TutorClassDetailPage() {
           </DialogHeader>
           <form onSubmit={handleSubmitReview} className="space-y-4 py-4">
              <div>
-               <label className="text-sm font-medium">Kỳ đánh giá (Tháng/Năm) <span className="text-red-500">*</span></label>
+               <label className="text-sm font-medium">Kỳ đánh giá (Tháng/Năm) <span className="text-destructive">*</span></label>
                <Input type="month" value={reviewMonthYear} onChange={(e) => setReviewMonthYear(e.target.value)} required />
              </div>
              <div>
                <label className="text-sm font-medium">Đánh giá chung</label>
                <textarea 
-                 className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm min-h-[80px]"
+                 className="flex w-full rounded-md border border-border bg-card px-3 py-2 text-sm min-h-[80px]"
                  value={reviewGeneral}
                  onChange={(e) => setReviewGeneral(e.target.value)}
                  placeholder="Tiến bộ tổng quan, mức độ hoàn thành bài tập..."
@@ -560,7 +560,7 @@ export default function TutorClassDetailPage() {
              <div>
                <label className="text-sm font-medium">Thái độ học tập</label>
                <textarea 
-                 className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm min-h-[80px]"
+                 className="flex w-full rounded-md border border-border bg-card px-3 py-2 text-sm min-h-[80px]"
                  value={reviewAttitude}
                  onChange={(e) => setReviewAttitude(e.target.value)}
                  placeholder="Chăm chỉ, tập trung, hay hỏi..."
@@ -569,7 +569,7 @@ export default function TutorClassDetailPage() {
              <div>
                <label className="text-sm font-medium">Tư duy logic / Giải quyết vấn đề</label>
                <textarea 
-                 className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm min-h-[80px]"
+                 className="flex w-full rounded-md border border-border bg-card px-3 py-2 text-sm min-h-[80px]"
                  value={reviewLogical}
                  onChange={(e) => setReviewLogical(e.target.value)}
                  placeholder="Khả năng phân tích bài toán, tư duy thuật toán..."

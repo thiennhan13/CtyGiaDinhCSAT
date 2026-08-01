@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -244,8 +244,8 @@ export default function TutorSalaryPage() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900">Bảng Lương Của Tôi</h2>
-          <p className="text-slate-500 text-sm mt-1">{tutorInfo?.name}</p>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">Bảng Lương Của Tôi</h2>
+          <p className="text-muted-foreground text-sm mt-1">{tutorInfo?.name}</p>
         </div>
         <Combobox
           options={periods.map(p => ({ value: p, label: p }))}
@@ -259,8 +259,8 @@ export default function TutorSalaryPage() {
       {/* ── Empty state ── */}
       {periods.length === 0 && !loading && (
         <Card>
-          <CardContent className="py-12 text-center text-slate-400">
-            <DollarSign className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+          <CardContent className="py-12 text-center text-muted-foreground/70">
+            <DollarSign className="w-12 h-12 mx-auto mb-3 text-border" />
             <p className="font-semibold">Chưa có kỳ lương nào được chốt sổ.</p>
             <p className="text-sm mt-1">Liên hệ Admin để biết thêm thông tin.</p>
           </CardContent>
@@ -273,19 +273,19 @@ export default function TutorSalaryPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4">
-                <p className="text-xs text-slate-500 font-semibold uppercase mb-1">Số buổi</p>
-                <p className="text-2xl font-bold text-slate-900">{salaryData.sessions}</p>
+                <p className="text-xs text-muted-foreground font-semibold uppercase mb-1">Số buổi</p>
+                <p className="text-2xl font-bold text-foreground">{salaryData.sessions}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4">
-                <p className="text-xs text-slate-500 font-semibold uppercase mb-1">Học phí thu vào</p>
-                <p className="text-xl font-bold text-blue-700">{formatVND(salaryData.tuition)}</p>
+                <p className="text-xs text-muted-foreground font-semibold uppercase mb-1">Học phí thu vào</p>
+                <p className="text-xl font-bold text-primary">{formatVND(salaryData.tuition)}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4">
-                <p className="text-xs text-slate-500 font-semibold uppercase mb-1">Battle Pass CSAT</p>
+                <p className="text-xs text-muted-foreground font-semibold uppercase mb-1">Battle Pass CSAT</p>
                 <p className="text-xl font-bold text-emerald-600">{salaryData.csat > 0 ? `-${formatVND(salaryData.csat)}` : '0 ₫'}</p>
               </CardContent>
             </Card>
@@ -324,18 +324,18 @@ export default function TutorSalaryPage() {
                         <TableCell className="text-center">
                           <Badge variant="secondary">{cls.session_count} buổi</Badge>
                         </TableCell>
-                        <TableCell className="text-right text-blue-700">{formatVND(cls.tuition)}</TableCell>
+                        <TableCell className="text-right text-primary">{formatVND(cls.tuition)}</TableCell>
                         <TableCell className="text-right text-emerald-600">{cls.csat > 0 ? `-${formatVND(cls.csat)}` : '0 ₫'}</TableCell>
                         <TableCell className="text-right font-bold text-amber-700">{formatVND(cls.tuition - cls.csat)}</TableCell>
                       </TableRow>
                     ))}
                     {/* Dòng tổng */}
-                    <TableRow className="bg-slate-50 font-bold border-t-2">
-                      <TableCell className="text-slate-700">Tổng kỳ {salaryData.period}</TableCell>
+                    <TableRow className="bg-secondary/50 font-bold border-t-2">
+                      <TableCell className="text-foreground">Tổng kỳ {salaryData.period}</TableCell>
                       <TableCell className="text-center">
                         <Badge variant="secondary">{salaryData.sessions} buổi</Badge>
                       </TableCell>
-                      <TableCell className="text-right text-blue-700">{formatVND(salaryData.tuition)}</TableCell>
+                      <TableCell className="text-right text-primary">{formatVND(salaryData.tuition)}</TableCell>
                       <TableCell className="text-right text-emerald-600">{salaryData.csat > 0 ? `-${formatVND(salaryData.csat)}` : '0 ₫'}</TableCell>
                       <TableCell className="text-right text-amber-800 text-lg">{formatVND(salaryData.net)}</TableCell>
                     </TableRow>
@@ -363,10 +363,10 @@ export default function TutorSalaryPage() {
               </Button>
             </CardHeader>
             <CardContent>
-              {loading ? <p className="text-slate-400 text-sm">Đang tải...</p> : (
+              {loading ? <p className="text-muted-foreground/70 text-sm">Đang tải...</p> : (
                 <div className="space-y-1">
                   {/* Header row */}
-                  <div className="hidden sm:flex text-xs text-slate-400 px-4 py-2 border-b">
+                  <div className="hidden sm:flex text-xs text-muted-foreground/70 px-4 py-2 border-b">
                     <span className="w-7"></span>
                     <span className="w-24">Ngày</span>
                     <span className="flex-1">Lớp / Giờ</span>
@@ -379,19 +379,19 @@ export default function TutorSalaryPage() {
                   {sessionDetails.map((row) => {
                     const isExpanded = !!expandedSessions[row.session_id];
                     return (
-                      <div key={row.session_id} className="border border-slate-200 rounded-lg overflow-hidden">
+                      <div key={row.session_id} className="border border-border rounded-lg overflow-hidden">
                         {/* Buổi học — dòng chính */}
                         <div
-                          className="flex items-center gap-2 px-3 py-3 cursor-pointer hover:bg-slate-50 bg-white"
+                          className="flex items-center gap-2 px-3 py-3 cursor-pointer hover:bg-secondary/50 bg-card"
                           onClick={() => toggleSession(row.session_id)}
                         >
                           {isExpanded
-                            ? <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
-                            : <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />}
-                          <span className="text-slate-600 text-sm w-24 shrink-0">{row.date}</span>
+                            ? <ChevronDown className="w-4 h-4 text-muted-foreground/70 shrink-0" />
+                            : <ChevronRight className="w-4 h-4 text-muted-foreground/70 shrink-0" />}
+                          <span className="text-muted-foreground text-sm w-24 shrink-0">{row.date}</span>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-slate-800 text-sm truncate">{row.className}</p>
-                            <p className="text-xs text-slate-400">
+                            <p className="font-medium text-foreground text-sm truncate">{row.className}</p>
+                            <p className="text-xs text-muted-foreground/70">
                               {row.start_time?.substring(0, 5)} – {row.end_time?.substring(0, 5)}
                             </p>
                           </div>
@@ -403,7 +403,7 @@ export default function TutorSalaryPage() {
                               {row.attendedCount}/{row.totalStudents}
                             </Badge>
                           </span>
-                          <span className="text-blue-700 text-sm w-32 text-right hidden sm:block">{formatVND(row.tuition)}</span>
+                          <span className="text-primary text-sm w-32 text-right hidden sm:block">{formatVND(row.tuition)}</span>
                           <span className="text-emerald-600 text-sm w-32 text-right hidden sm:block">{row.csat > 0 ? `-${formatVND(row.csat)}` : '0 ₫'}</span>
                           <span className={`font-bold text-sm w-36 text-right ${row.net < 0 ? 'text-red-600' : 'text-amber-700'}`}>
                             {formatVND(row.net)}
@@ -413,21 +413,21 @@ export default function TutorSalaryPage() {
 
                         {/* Expand: danh sách học sinh có mặt */}
                         {isExpanded && (
-                          <div className="border-t border-slate-100 bg-slate-50 px-10 py-2 space-y-1">
+                          <div className="border-t border-border/60 bg-secondary/50 px-10 py-2 space-y-1">
                             {row.students.length === 0 ? (
-                              <p className="text-xs text-slate-400 italic py-1">Không có học sinh nào có mặt trong buổi này.</p>
+                              <p className="text-xs text-muted-foreground/70 italic py-1">Không có học sinh nào có mặt trong buổi này.</p>
                             ) : (
                               <>
-                                <p className="text-xs text-slate-500 font-semibold uppercase mb-2">Học sinh có mặt:</p>
+                                <p className="text-xs text-muted-foreground font-semibold uppercase mb-2">Học sinh có mặt:</p>
                                 {row.students.map((stu: any, i: number) => (
                                   <div key={i} className="flex justify-between items-center text-sm">
-                                    <span className="text-slate-700">{stu.name}</span>
-                                    <span className="text-blue-600 font-medium">{formatVND(stu.fee)}</span>
+                                    <span className="text-foreground">{stu.name}</span>
+                                    <span className="text-primary font-medium">{formatVND(stu.fee)}</span>
                                   </div>
                                 ))}
-                                <div className="flex justify-between items-center text-sm font-bold border-t border-slate-200 pt-1 mt-1">
-                                  <span className="text-slate-600">Tổng thu buổi</span>
-                                  <span className="text-blue-700">{formatVND(row.tuition)}</span>
+                                <div className="flex justify-between items-center text-sm font-bold border-t border-border pt-1 mt-1">
+                                  <span className="text-muted-foreground">Tổng thu buổi</span>
+                                  <span className="text-primary">{formatVND(row.tuition)}</span>
                                 </div>
                               </>
                             )}
@@ -438,11 +438,11 @@ export default function TutorSalaryPage() {
                   })}
 
                   {/* Totals row */}
-                  <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg font-bold mt-2">
+                  <div className="flex items-center gap-2 px-4 py-3 bg-secondary/50 border border-border rounded-lg font-bold mt-2">
                     <span className="w-7"></span>
-                    <span className="text-slate-700 flex-1">Tổng kỳ {salaryData.period}</span>
-                    <span className="w-20 text-center text-slate-500 text-sm hidden sm:block">{salaryData.sessions} buổi</span>
-                    <span className="text-blue-700 w-32 text-right hidden sm:block">{formatVND(salaryData.tuition)}</span>
+                    <span className="text-foreground flex-1">Tổng kỳ {salaryData.period}</span>
+                    <span className="w-20 text-center text-muted-foreground text-sm hidden sm:block">{salaryData.sessions} buổi</span>
+                    <span className="text-primary w-32 text-right hidden sm:block">{formatVND(salaryData.tuition)}</span>
                     <span className="text-emerald-600 w-32 text-right hidden sm:block">{salaryData.csat > 0 ? `-${formatVND(salaryData.csat)}` : '0 ₫'}</span>
                     <span className="text-amber-800 text-lg w-36 text-right">{formatVND(salaryData.net)}</span>
                   </div>
@@ -455,8 +455,8 @@ export default function TutorSalaryPage() {
 
       {!salaryData && !loading && selectedPeriod && (
         <Card>
-          <CardContent className="py-12 text-center text-slate-400">
-            <TrendingUp className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+          <CardContent className="py-12 text-center text-muted-foreground/70">
+            <TrendingUp className="w-12 h-12 mx-auto mb-3 text-border" />
             <p>Không có dữ liệu cho kỳ này.</p>
           </CardContent>
         </Card>

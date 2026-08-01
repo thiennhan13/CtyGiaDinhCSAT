@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -338,17 +338,17 @@ export default function BillingPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-gray-900">Kế Toán &amp; Chốt Sổ</h2>
-            <p className="text-sm text-slate-500 mt-1">Tổng hợp chuyên cần, tính toán học phí học sinh và thanh toán lương gia sư</p>
+            <p className="text-sm text-muted-foreground mt-1">Tổng hợp chuyên cần, tính toán học phí học sinh và thanh toán lương gia sư</p>
           </div>
           {/* Mode Switcher Tabs */}
-          <div className="bg-slate-100 p-1.5 rounded-xl flex items-center gap-1 border border-slate-200 shadow-inner">
+          <div className="bg-secondary p-1.5 rounded-xl flex items-center gap-1 border border-border shadow-inner">
             <button
               type="button"
               onClick={() => setViewMode('preview')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                 viewMode === 'preview'
-                  ? 'bg-white text-blue-600 shadow-sm font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  ? 'bg-card text-primary shadow-sm font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-border/60'
               }`}
             >
               <span>⚡</span>
@@ -359,8 +359,8 @@ export default function BillingPage() {
               onClick={() => setViewMode('historical')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                 viewMode === 'historical'
-                  ? 'bg-white text-blue-600 shadow-sm font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  ? 'bg-card text-primary shadow-sm font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-border/60'
               }`}
             >
               <span>📁</span>
@@ -370,15 +370,15 @@ export default function BillingPage() {
         </div>
 
         {/* Mode Action Bar Card */}
-        <Card className="bg-slate-50/80 border-slate-200/80 shadow-sm">
+        <Card className="bg-secondary/50/80 border-border/80 shadow-sm">
           <CardContent className="p-4">
             {viewMode === 'preview' ? (
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-700">
-                  <span className="font-semibold text-slate-900">Khoảng thời gian dự kiến:</span>
-                  <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-[140px] h-9 bg-white" />
+                <div className="flex flex-wrap items-center gap-2 text-sm text-foreground">
+                  <span className="font-semibold text-foreground">Khoảng thời gian dự kiến:</span>
+                  <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-[140px] h-9 bg-card" />
                   <span>đến</span>
-                  <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-[140px] h-9 bg-white" />
+                  <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-[140px] h-9 bg-card" />
                   {(() => {
                     const days = Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24));
                     return days > 90 ? (
@@ -396,8 +396,8 @@ export default function BillingPage() {
               </div>
             ) : (
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-700">
-                  <span className="font-semibold text-slate-900">Kỳ hóa đơn đã chốt:</span>
+                <div className="flex flex-wrap items-center gap-2 text-sm text-foreground">
+                  <span className="font-semibold text-foreground">Kỳ hóa đơn đã chốt:</span>
                   <div className="w-[220px]">
                     <Combobox
                       options={historicalPeriods.map(p => ({ value: p, label: p }))}
@@ -443,10 +443,10 @@ export default function BillingPage() {
             </div>
             {/* Summary trước khi chốt */}
             {stats && (
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm space-y-1">
-                <p className="font-semibold text-slate-700 mb-2">Tóm tắt dự kiến:</p>
-                <div className="flex justify-between"><span className="text-slate-500">Hóa đơn sẽ tạo:</span><span className="font-bold text-blue-700">{stats.studentInvoicePreview?.length || 0} hóa đơn</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Tổng học phí:</span><span className="font-bold">{formatVND(stats.totalStudentTuition)}</span></div>
+              <div className="bg-secondary/50 border border-border rounded-lg p-3 text-sm space-y-1">
+                <p className="font-semibold text-foreground mb-2">Tóm tắt dự kiến:</p>
+                <div className="flex justify-between"><span className="text-muted-foreground">Hóa đơn sẽ tạo:</span><span className="font-bold text-primary">{stats.studentInvoicePreview?.length || 0} hóa đơn</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Tổng học phí:</span><span className="font-bold">{formatVND(stats.totalStudentTuition)}</span></div>
                 {stats.studentInvoicePreview?.some((s: any) => s.has_zero_fee || s.total_amount === 0) && (
                   <div className="mt-2 flex items-center gap-2 text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
                     <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -469,18 +469,18 @@ export default function BillingPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-t-4 border-t-blue-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500 uppercase">Học phí thu vào</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase">Học phí thu vào</CardTitle>
           </CardHeader>
           <CardContent>
-            <h3 className="text-2xl font-bold text-slate-900">{formatVND(stats?.totalStudentTuition || 0)}</h3>
+            <h3 className="text-2xl font-bold text-foreground">{formatVND(stats?.totalStudentTuition || 0)}</h3>
           </CardContent>
         </Card>
         <Card className="border-t-4 border-t-amber-500">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500 uppercase">Lương Gia sư</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase">Lương Gia sư</CardTitle>
           </CardHeader>
           <CardContent>
-            <h3 className="text-2xl font-bold text-slate-900">{formatVND(stats?.totalTutorSalary || 0)}</h3>
+            <h3 className="text-2xl font-bold text-foreground">{formatVND(stats?.totalTutorSalary || 0)}</h3>
           </CardContent>
         </Card>
         <Card className="border-t-4 border-t-emerald-500 bg-emerald-50 border-x-0 border-b-0">
@@ -495,18 +495,18 @@ export default function BillingPage() {
       </div>
 
       {/* ── Section Switcher Bar (2 Nút Riêng Biệt cho Phần 1 và Phần 2) ── */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 bg-slate-100 p-2 rounded-xl border border-slate-200 shadow-inner">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 bg-secondary p-2 rounded-xl border border-border shadow-inner">
         <button
           type="button"
           onClick={() => setActiveSection('students')}
           className={`flex-1 flex items-center justify-between px-5 py-3.5 rounded-lg transition-all cursor-pointer ${
             activeSection === 'students'
-              ? 'bg-white text-blue-700 shadow-md ring-1 ring-blue-500/20 font-bold'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 font-medium'
+              ? 'bg-card text-primary shadow-md ring-1 ring-blue-500/20 font-bold'
+              : 'text-muted-foreground hover:text-foreground hover:bg-border/70 font-medium'
           }`}
         >
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${activeSection === 'students' ? 'bg-blue-100 text-blue-600' : 'bg-slate-200 text-slate-500'}`}>
+            <div className={`p-2 rounded-lg ${activeSection === 'students' ? 'bg-blue-100 text-primary' : 'bg-border text-muted-foreground'}`}>
               <Users className="w-5 h-5" />
             </div>
             <div className="text-left">
@@ -514,7 +514,7 @@ export default function BillingPage() {
               <div className="text-xs font-normal opacity-75">{viewMode === 'preview' ? 'Tổng hợp từ buổi học chưa chốt sổ' : 'Các hóa đơn đã phát hành'}</div>
             </div>
           </div>
-          <Badge className={`ml-2 px-2.5 py-0.5 text-xs font-bold ${activeSection === 'students' ? 'bg-blue-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
+          <Badge className={`ml-2 px-2.5 py-0.5 text-xs font-bold ${activeSection === 'students' ? 'bg-blue-600 text-white' : 'bg-slate-300 text-foreground'}`}>
             {viewMode === 'preview' ? (stats?.studentInvoicePreview?.length || 0) : payments.length}
           </Badge>
         </button>
@@ -524,12 +524,12 @@ export default function BillingPage() {
           onClick={() => setActiveSection('tutors')}
           className={`flex-1 flex items-center justify-between px-5 py-3.5 rounded-lg transition-all cursor-pointer ${
             activeSection === 'tutors'
-              ? 'bg-white text-amber-700 shadow-md ring-1 ring-amber-500/20 font-bold'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 font-medium'
+              ? 'bg-card text-amber-700 shadow-md ring-1 ring-amber-500/20 font-bold'
+              : 'text-muted-foreground hover:text-foreground hover:bg-border/70 font-medium'
           }`}
         >
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${activeSection === 'tutors' ? 'bg-amber-100 text-amber-600' : 'bg-slate-200 text-slate-500'}`}>
+            <div className={`p-2 rounded-lg ${activeSection === 'tutors' ? 'bg-amber-100 text-amber-600' : 'bg-border text-muted-foreground'}`}>
               <TrendingUp className="w-5 h-5" />
             </div>
             <div className="text-left">
@@ -537,7 +537,7 @@ export default function BillingPage() {
               <div className="text-xs font-normal opacity-75">{viewMode === 'preview' ? 'Dự kiến theo từng lớp & buổi dạy' : 'Chi phí trả gia sư thực tế'}</div>
             </div>
           </div>
-          <Badge className={`ml-2 px-2.5 py-0.5 text-xs font-bold ${activeSection === 'tutors' ? 'bg-amber-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
+          <Badge className={`ml-2 px-2.5 py-0.5 text-xs font-bold ${activeSection === 'tutors' ? 'bg-amber-600 text-white' : 'bg-slate-300 text-foreground'}`}>
             {(stats?.tutorSalaryDetail ?? stats?.tutorSalaries ?? []).length}
           </Badge>
         </button>
@@ -580,20 +580,20 @@ export default function BillingPage() {
             <Button
               variant="outline" size="sm"
               onClick={exportCustomerPayments}
-              className="gap-2 border-slate-300 text-slate-700"
+              className="gap-2 border-border text-foreground"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Xuất Excel
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? <p className="text-slate-400 text-sm">Đang tải...</p> : (
+          {loading ? <p className="text-muted-foreground/70 text-sm">Đang tải...</p> : (
             <>
               {/* Preview mode: bảng dự kiến từ stats API */}
               {viewMode === 'preview' && (
                 <>
                   {(!stats?.studentInvoicePreview || stats.studentInvoicePreview.length === 0) ? (
-                    <p className="text-center py-6 text-slate-400 italic text-sm">Không có buổi học nào chưa chốt sổ trong khoảng thời gian này.</p>
+                    <p className="text-center py-6 text-muted-foreground/70 italic text-sm">Không có buổi học nào chưa chốt sổ trong khoảng thời gian này.</p>
                   ) : (
                     <>
                       {/* Cảnh báo HS phí = 0 */}
@@ -622,20 +622,20 @@ export default function BillingPage() {
                           {stats.studentInvoicePreview.map((inv: any) => (
                             <TableRow key={`${inv.student_id}|${inv.class_id}`} className={inv.total_amount === 0 ? 'bg-amber-50' : ''}>
                               <TableCell className="font-medium">{inv.student_name}</TableCell>
-                              <TableCell className="text-slate-600">{inv.class_name}</TableCell>
+                              <TableCell className="text-muted-foreground">{inv.class_name}</TableCell>
                               <TableCell className="text-center">
                                 <Badge variant="secondary">{inv.session_count} buổi</Badge>
                               </TableCell>
-                              <TableCell className="text-right font-bold text-blue-700">
+                              <TableCell className="text-right font-bold text-primary">
                                 {formatVND(inv.total_amount)}
                               </TableCell>
-                              <TableCell className="text-right text-slate-500 text-sm">
+                              <TableCell className="text-right text-muted-foreground text-sm">
                                 {inv.session_count > 0 ? formatVND(Math.round(inv.total_amount / inv.session_count)) : '---'}
                               </TableCell>
                               <TableCell className="text-center">
                                 {inv.total_amount === 0
                                   ? <Badge className="bg-amber-500 text-xs">⚠ Phí = 0</Badge>
-                                  : <Badge variant="outline" className="text-slate-600 text-xs">Sẽ tạo HĐ</Badge>
+                                  : <Badge variant="outline" className="text-muted-foreground text-xs">Sẽ tạo HĐ</Badge>
                                 }
                               </TableCell>
                             </TableRow>
@@ -656,7 +656,7 @@ export default function BillingPage() {
                         <TableHead>Học Sinh</TableHead>
                         <TableHead>Lớp</TableHead>
                         <TableHead className="text-center">Số Buổi
-                          <span className="block text-[10px] text-slate-400 font-normal">(có mặt)</span>
+                          <span className="block text-[10px] text-muted-foreground/70 font-normal">(có mặt)</span>
                         </TableHead>
                         <TableHead className="text-right">Tổng Tiền</TableHead>
                         <TableHead className="text-right">TB/Buổi</TableHead>
@@ -678,12 +678,12 @@ export default function BillingPage() {
                           return (
                         <TableRow key={p.payment_id}>
                           <TableCell className="font-medium">{p.students?.name || '---'}</TableCell>
-                          <TableCell className="text-slate-600">{p.classes?.name || '---'}</TableCell>
+                          <TableCell className="text-muted-foreground">{p.classes?.name || '---'}</TableCell>
                           <TableCell className="text-center">
                             <Badge variant="secondary">{sessDisplay} buổi</Badge>
                           </TableCell>
-                          <TableCell className="text-right font-bold text-blue-700">{formatVND(p.amount)}</TableCell>
-                          <TableCell className="text-right text-slate-500 text-sm">{avgDisplay}</TableCell>
+                          <TableCell className="text-right font-bold text-primary">{formatVND(p.amount)}</TableCell>
+                          <TableCell className="text-right text-muted-foreground text-sm">{avgDisplay}</TableCell>
                           <TableCell>
                             {p.status === 'paid'
                               ? <Badge className="bg-green-600">Đã thu</Badge>
@@ -701,14 +701,14 @@ export default function BillingPage() {
                         })}
                       {payments.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-4 text-slate-400">Chưa có dữ liệu học phí</TableCell>
+                          <TableCell colSpan={7} className="text-center py-4 text-muted-foreground/70">Chưa có dữ liệu học phí</TableCell>
                         </TableRow>
                       )}
                     </TableBody>
                   </Table>
                   {payments.length > ITEMS_PER_PAGE && (
                     <div className="flex items-center justify-between mt-4">
-                      <span className="text-sm text-slate-500">Trang {paymentPage} / {Math.ceil(payments.length / ITEMS_PER_PAGE)}</span>
+                      <span className="text-sm text-muted-foreground">Trang {paymentPage} / {Math.ceil(payments.length / ITEMS_PER_PAGE)}</span>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" disabled={paymentPage === 1} onClick={() => setPaymentPage(p => Math.max(1, p - 1))}>Trước</Button>
                         <Button variant="outline" size="sm" disabled={paymentPage >= Math.ceil(payments.length / ITEMS_PER_PAGE)} onClick={() => setPaymentPage(p => p + 1)}>Sau</Button>
@@ -736,16 +736,16 @@ export default function BillingPage() {
               {viewMode === 'preview' ? 'Dự kiến — bấm ▶ để xem chi tiết từng lớp và từng buổi' : 'Chi phí trả gia sư sau khi trừ Battle Pass CSAT'}
             </CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={exportTutorSalaries} className="ml-4 gap-2 border-slate-300 text-slate-700">
+          <Button variant="outline" size="sm" onClick={exportTutorSalaries} className="ml-4 gap-2 border-border text-foreground">
             <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Xuất Excel
           </Button>
         </CardHeader>
         <CardContent>
-          {loading ? <p className="text-slate-400 text-sm">Đang tải...</p> : (
+          {loading ? <p className="text-muted-foreground/70 text-sm">Đang tải...</p> : (
             <>
               {/* Preview & Historical: dùng tutorSalaryDetail nếu có, fallback tutorSalaries */}
               {(stats?.tutorSalaryDetail ?? stats?.tutorSalaries ?? []).length === 0 ? (
-                <p className="text-center py-6 text-slate-400 text-sm">Không có dữ liệu buổi dạy</p>
+                <p className="text-center py-6 text-muted-foreground/70 text-sm">Không có dữ liệu buổi dạy</p>
               ) : (
                 <div className="space-y-2">
                   {(stats?.tutorSalaryDetail ?? stats?.tutorSalaries ?? [])
@@ -754,35 +754,35 @@ export default function BillingPage() {
                       const isExpanded = !!expandedTutors[tutor.tutor_id];
                       const hasDetail  = !!tutor.classes?.length;
                       return (
-                        <div key={tutor.tutor_id} className="border border-slate-200 rounded-lg overflow-hidden">
+                        <div key={tutor.tutor_id} className="border border-border rounded-lg overflow-hidden">
                           {/* Gia sư — row tổng */}
                           <div
-                            className={`flex items-center gap-3 px-4 py-3 ${hasDetail ? 'cursor-pointer hover:bg-slate-50' : ''} bg-white`}
+                            className={`flex items-center gap-3 px-4 py-3 ${hasDetail ? 'cursor-pointer hover:bg-secondary/50' : ''} bg-card`}
                             onClick={() => hasDetail && toggleTutor(tutor.tutor_id)}
                           >
                             {hasDetail ? (
                               isExpanded
-                                ? <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
-                                : <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                                ? <ChevronDown className="w-4 h-4 text-muted-foreground/70 shrink-0" />
+                                : <ChevronRight className="w-4 h-4 text-muted-foreground/70 shrink-0" />
                             ) : <span className="w-4" />}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <span className="font-semibold text-slate-900 truncate">{tutor.name || 'Chưa rõ'}</span>
-                                <span className="text-xs text-slate-400">ID: {tutor.tutor_id ? tutor.tutor_id.slice(0, 8) : '---'}</span>
+                                <span className="font-semibold text-foreground truncate">{tutor.name || 'Chưa rõ'}</span>
+                                <span className="text-xs text-muted-foreground/70">ID: {tutor.tutor_id ? tutor.tutor_id.slice(0, 8) : '---'}</span>
                               </div>
-                              <div className="text-xs text-slate-500 mt-0.5">
+                              <div className="text-xs text-muted-foreground mt-0.5">
                                 {tutor.classes ? tutor.classes.reduce((acc: number, c: any) => acc + (c.session_count || 0), 0) : 0} buổi · {tutor.classes?.length || 0} lớp
                               </div>
                             </div>
                             <div className="text-right">
                               <div className="font-bold text-amber-600">{formatVND(tutor.salary)}</div>
-                              <div className="text-xs text-slate-400">Net nhận</div>
+                              <div className="text-xs text-muted-foreground/70">Net nhận</div>
                             </div>
                           </div>
 
                           {/* Chi tiết từng lớp (khi expand) */}
                           {isExpanded && hasDetail && (
-                            <div className="bg-slate-50 border-t border-slate-200 divide-y divide-slate-100 px-4 py-2">
+                            <div className="bg-secondary/50 border-t border-border divide-y divide-slate-100 px-4 py-2">
                               {tutor.classes.map((cls: any) => {
                                 const clsKey = `${tutor.tutor_id}_${cls.class_id}`;
                                 const isClsExpanded = !!expandedClasses[clsKey];
@@ -791,37 +791,37 @@ export default function BillingPage() {
                                   <div key={cls.class_id} className="py-2">
                                     {/* Row lớp */}
                                     <div
-                                      className={`flex items-center justify-between text-sm ${hasSessions ? 'cursor-pointer hover:text-blue-600' : ''}`}
+                                      className={`flex items-center justify-between text-sm ${hasSessions ? 'cursor-pointer hover:text-primary' : ''}`}
                                       onClick={() => hasSessions && toggleClass(clsKey)}
                                     >
                                       <div className="flex items-center gap-1.5 min-w-0">
                                         {hasSessions ? (
                                           isClsExpanded
-                                            ? <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                            : <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                            ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
+                                            : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
                                         ) : <span className="w-3.5" />}
-                                        <BookOpen className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                        <span className="font-medium text-slate-800 truncate">
+                                        <BookOpen className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
+                                        <span className="font-medium text-foreground truncate">
                                           {cls.class_name || `Lớp #${cls.class_id}`}
                                         </span>
-                                        <span className="text-xs text-slate-400 shrink-0">({cls.session_count} buổi)</span>
+                                        <span className="text-xs text-muted-foreground/70 shrink-0">({cls.session_count} buổi)</span>
                                       </div>
                                       <div className="text-right shrink-0 ml-2">
-                                        <span className="font-semibold text-slate-800">{formatVND((cls.tuition || 0) - (cls.csat || 0))}</span>
+                                        <span className="font-semibold text-foreground">{formatVND((cls.tuition || 0) - (cls.csat || 0))}</span>
                                       </div>
                                     </div>
 
                                     {/* Chi tiết từng buổi học */}
                                     {isClsExpanded && hasSessions && (
-                                      <div className="mt-1.5 ml-6 space-y-1 text-xs bg-white rounded border border-slate-200 p-2">
-                                        <div className="grid grid-cols-12 text-slate-400 font-medium pb-1 border-b border-slate-100">
+                                      <div className="mt-1.5 ml-6 space-y-1 text-xs bg-card rounded border border-border p-2">
+                                        <div className="grid grid-cols-12 text-muted-foreground/70 font-medium pb-1 border-b border-border/60">
                                           <div className="col-span-3">Ngày học</div>
                                           <div className="col-span-3 text-right">HP thu</div>
                                           <div className="col-span-3 text-right">Battle Pass CSAT</div>
                                           <div className="col-span-3 text-right font-semibold">GS nhận</div>
                                         </div>
                                         {cls.sessions.slice().sort((a: any, b: any) => (a.date || '').localeCompare(b.date || '')).map((sess: any, idx: number) => (
-                                          <div key={idx} className="grid grid-cols-12 py-0.5 text-slate-600">
+                                          <div key={idx} className="grid grid-cols-12 py-0.5 text-muted-foreground">
                                             <div className="col-span-3">{sess.date}</div>
                                             <div className="col-span-3 text-right">{formatVND(sess.tuition)}</div>
                                             <div className="col-span-3 text-right text-emerald-600">{sess.csat > 0 ? `-${formatVND(sess.csat)}` : '0 ₫'}</div>
@@ -842,7 +842,7 @@ export default function BillingPage() {
                   {/* Pagination lương */}
                   {(stats?.tutorSalaryDetail ?? stats?.tutorSalaries ?? []).length > ITEMS_PER_PAGE && (
                     <div className="flex items-center justify-between mt-4">
-                      <span className="text-sm text-slate-500">Trang {salaryPage} / {Math.ceil((stats?.tutorSalaryDetail ?? stats?.tutorSalaries ?? []).length / ITEMS_PER_PAGE)}</span>
+                      <span className="text-sm text-muted-foreground">Trang {salaryPage} / {Math.ceil((stats?.tutorSalaryDetail ?? stats?.tutorSalaries ?? []).length / ITEMS_PER_PAGE)}</span>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" disabled={salaryPage === 1} onClick={() => setSalaryPage(p => Math.max(1, p - 1))}>Trước</Button>
                         <Button variant="outline" size="sm" disabled={salaryPage >= Math.ceil((stats?.tutorSalaryDetail ?? stats?.tutorSalaries ?? []).length / ITEMS_PER_PAGE)} onClick={() => setSalaryPage(p => p + 1)}>Sau</Button>
@@ -851,7 +851,7 @@ export default function BillingPage() {
                   )}
 
                   {/* Chú thích cột (header ẩn trên mobile) */}
-                  <div className="hidden sm:flex text-xs text-slate-400 px-4 pt-2 gap-3">
+                  <div className="hidden sm:flex text-xs text-muted-foreground/70 px-4 pt-2 gap-3">
                     <span className="flex-1"></span>
                     <span className="w-36 text-right">Học phí thu</span>
                     <span className="w-36 text-right">Battle Pass CSAT</span>

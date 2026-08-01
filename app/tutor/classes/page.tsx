@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -60,8 +60,8 @@ export default function TutorClassesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Danh Sách Lớp Giảng Dạy</h2>
-        <p className="text-slate-500 text-sm mt-1">Các lớp hiện tại bạn đang phụ trách.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">Danh Sách Lớp Giảng Dạy</h2>
+        <p className="text-muted-foreground text-sm mt-1">Các lớp hiện tại bạn đang phụ trách.</p>
       </div>
 
       <Card>
@@ -75,9 +75,9 @@ export default function TutorClassesPage() {
                <Skeleton className="h-10 w-full" />
              </div>
           ) : classes.length === 0 ? (
-             <div className="text-center py-6 text-slate-500">Bạn chưa được phân công lớp nào.</div>
+             <div className="text-center py-6 text-muted-foreground">Bạn chưa được phân công lớp nào.</div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto pb-2">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -90,15 +90,15 @@ export default function TutorClassesPage() {
                 <TableBody>
                   {classes.map(c => (
                     <TableRow key={c.class_id}>
-                       <TableCell className="font-semibold text-slate-900">{c.name}</TableCell>
+                       <TableCell className="font-semibold text-foreground">{c.name}</TableCell>
                        <TableCell>
-                         <span className={`px-2 py-1 rounded-sm text-xs font-semibold ${c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                         <span className={`px-2 py-1 rounded-sm text-xs font-semibold ${c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-secondary text-muted-foreground'}`}>
                            {c.status === 'active' ? 'Đang hoạt động' : 'Tạm dừng / Đã kết thúc'}
                          </span>
                        </TableCell>
                        <TableCell>{c.activeStudentCount} học viên đang học</TableCell>
                        <TableCell>
-                         <Link href={`/tutor/classes/${c.class_id}`} className="text-indigo-600 font-medium hover:underline">
+                         <Link href={`/tutor/classes/${c.class_id}`} className="text-primary font-medium hover:underline">
                            Quản lý Học viên & Lịch dạy &rarr;
                          </Link>
                        </TableCell>

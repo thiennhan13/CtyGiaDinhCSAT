@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useTransition, useCallback } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
@@ -40,20 +40,20 @@ interface StudentsClientProps {
 
 /** Hiển thị thông tin liên lạc: nếu là link thì render <a>, nếu là SĐT thì render text */
 function ContactDisplay({ value, label }: { value: string | null; label: string }) {
-  if (!value) return <span className="text-slate-400 text-sm">---</span>;
+  if (!value) return <span className="text-muted-foreground/50 text-sm">---</span>;
   const isLink = value.startsWith('http://') || value.startsWith('https://');
   if (isLink) {
     return (
       <a href={value} target="_blank" rel="noopener noreferrer"
-        className="text-blue-600 hover:underline flex items-center gap-1 text-sm">
+        className="text-primary hover:underline flex items-center gap-1 text-sm">
         <ExternalLink className="h-3 w-3 shrink-0" />
         <span className="truncate max-w-[160px]">{label}</span>
       </a>
     );
   }
   return (
-    <span className="text-slate-700 text-sm flex items-center gap-1">
-      <Phone className="h-3 w-3 text-slate-400 shrink-0" />
+    <span className="text-foreground text-sm flex items-center gap-1">
+      <Phone className="h-3 w-3 text-muted-foreground shrink-0" />
       {value}
     </span>
   );
@@ -219,10 +219,10 @@ export function StudentsClient({
   };
 
   const statusColor = (status: string) => {
-    if (status === 'Đang học') return 'bg-green-100 text-green-700 hover:bg-green-100';
-    if (status === 'Đã nghỉ') return 'bg-red-100 text-red-700 hover:bg-red-100';
-    if (status === 'Tạm dừng') return 'bg-amber-100 text-amber-700 hover:bg-amber-100';
-    return 'bg-slate-100 text-slate-700 hover:bg-slate-100';
+    if (status === 'Đang học') return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30';
+    if (status === 'Đã nghỉ') return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30';
+    if (status === 'Tạm dừng') return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/30';
+    return 'bg-secondary text-foreground hover:bg-secondary';
   };
 
   const calcAge = (dob: string | null) => {
@@ -239,8 +239,8 @@ export function StudentsClient({
       <AlertDialog />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Quản lý Học Sinh</h2>
-          <p className="text-sm text-slate-500">Tổng số: {totalStudents} học sinh</p>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Quản lý Học Sinh</h2>
+          <p className="text-sm text-muted-foreground">Tổng số: {totalStudents} học sinh</p>
         </div>
         <Button onClick={() => { resetForm(); setIsAddModalOpen(true); }} className="gap-2 shrink-0">
           <Plus className="h-4 w-4" /> Thêm học sinh
@@ -251,7 +251,7 @@ export function StudentsClient({
         <CardContent className="p-4 md:p-6 p-0 border-0">
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Tìm theo tên, liên lạc, Tỉnh/Thành..."
                 value={localSearch}
@@ -289,45 +289,45 @@ export function StudentsClient({
             </div>
           </div>
 
-          <div className={`border rounded-lg overflow-x-auto transition-opacity ${isPending ? 'opacity-60' : ''}`}>
+          <div className={`border border-border rounded-lg overflow-x-auto pb-2 transition-opacity ${isPending ? 'opacity-60' : ''}`}>
             <Table>
-              <TableHeader className="bg-slate-50">
+              <TableHeader>
                 <TableRow>
                   <TableHead className="w-[220px]">Họ tên</TableHead>
-                  <TableHead>Liên hệ</TableHead>
-                  <TableHead>Phụ huynh</TableHead>
+                  <TableHead>Liên lạc học sinh</TableHead>
+                  <TableHead>Liên lạc phụ huynh</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {initialStudents.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-500">Không tìm thấy học sinh nào</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Không tìm thấy học sinh nào</TableCell></TableRow>
                 ) : (
                   initialStudents.map((s) => {
                     const age = calcAge(s.date_of_birth);
                     return (
                       <TableRow
                         key={s.student_id}
-                        className="group hover:bg-slate-50/50 transition-colors cursor-pointer"
+                        className="group hover:bg-secondary/30 transition-colors cursor-pointer"
                         onClick={() => router.push(`/admin/students/${s.student_id}`)}
                       >
                         <TableCell>
-                          <div className="font-semibold text-slate-900">{s.name}</div>
-                          <div className="text-xs text-slate-500">
+                          <div className="font-semibold text-foreground">{s.name}</div>
+                          <div className="text-xs text-muted-foreground">
                             {age != null ? `${age} tuổi` : ''}
                             {age != null && s.province ? ' • ' : ''}
                             {s.province || ''}
                           </div>
                           {s.zalo_class_name && (
-                            <div className="text-xs text-indigo-600 mt-0.5">📌 {s.zalo_class_name}</div>
+                            <div className="text-xs text-primary mt-0.5">📌 {s.zalo_class_name}</div>
                           )}
                         </TableCell>
                         <TableCell>
                           <ContactDisplay value={s.student_contact} label="Liên lạc HS" />
                         </TableCell>
                         <TableCell>
-                          <div className="text-xs text-slate-500 mb-0.5">{s.parent_name || ''}</div>
+                          <div className="text-xs text-muted-foreground mb-0.5">{s.parent_name || ''}</div>
                           <ContactDisplay value={s.parent_contact} label="Liên lạc PH" />
                         </TableCell>
                         <TableCell>
@@ -335,8 +335,8 @@ export function StudentsClient({
                         </TableCell>
                         <TableCell className="text-right space-x-2" onClick={(e) => e.stopPropagation()}>
                           <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); router.push(`/admin/students/${s.student_id}`); }} title="Chi tiết"><FileText className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(s); }} title="Chỉnh sửa"><PencilLine className="h-4 w-4 text-blue-600" /></Button>
-                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setSelectedStudent(s); setIsDeleteModalOpen(true); }} title="Xóa"><UserX className="h-4 w-4 text-red-600" /></Button>
+                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(s); }} title="Chỉnh sửa"><PencilLine className="h-4 w-4 text-primary" /></Button>
+                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setSelectedStudent(s); setIsDeleteModalOpen(true); }} title="Xóa"><UserX className="h-4 w-4 text-destructive" /></Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -347,7 +347,7 @@ export function StudentsClient({
           </div>
 
           <div className="flex flex-col sm:flex-row justify-between items-center mt-4 p-4 border-t gap-4">
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-muted-foreground">
               Hiển thị {initialStudents.length} trên tổng {totalStudents} kết quả (Trang {currentPage} / {totalPages})
             </span>
             <div className="flex gap-2">
@@ -367,7 +367,7 @@ export function StudentsClient({
           </DialogHeader>
           <form onSubmit={handleAddSubmit} className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="add-name">Họ và tên học sinh <span className="text-red-500">*</span></Label>
+              <Label htmlFor="add-name">Họ và tên học sinh <span className="text-destructive">*</span></Label>
               <Input id="add-name" value={formData.name || ''} onChange={e => handleInputChange('name', e.target.value)} required placeholder="Nguyễn Văn A" />
             </div>
 
@@ -385,7 +385,7 @@ export function StudentsClient({
             <div className="space-y-2">
               <Label htmlFor="add-student-contact">Liên lạc học sinh</Label>
               <Input id="add-student-contact" value={formData.student_contact || ''} onChange={e => handleInputChange('student_contact', e.target.value)} placeholder="Link Facebook hoặc số Zalo" />
-              <p className="text-xs text-slate-400">Link FB hoặc số Zalo đều được — ưu tiên cách đang dùng để liên lạc với trung tâm</p>
+              <p className="text-xs text-muted-foreground/70">Link FB hoặc số Zalo đều được — ưu tiên cách đang dùng để liên lạc với trung tâm</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -408,7 +408,7 @@ export function StudentsClient({
               <Label htmlFor="add-notes">Ghi chú</Label>
               <textarea
                 id="add-notes"
-                className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 min-h-[70px]"
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[70px]"
                 value={formData.notes || ''}
                 onChange={e => handleInputChange('notes', e.target.value)}
                 placeholder="Ghi chú về học sinh..."
@@ -432,7 +432,7 @@ export function StudentsClient({
           </DialogHeader>
           <form onSubmit={handleEditSubmit} className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Họ và tên học sinh <span className="text-red-500">*</span></Label>
+              <Label htmlFor="edit-name">Họ và tên học sinh <span className="text-destructive">*</span></Label>
               <Input id="edit-name" value={formData.name || ''} onChange={e => handleInputChange('name', e.target.value)} required />
             </div>
 
@@ -465,7 +465,7 @@ export function StudentsClient({
             <div className="space-y-2">
               <Label htmlFor="edit-student-contact">Liên lạc học sinh</Label>
               <Input id="edit-student-contact" value={formData.student_contact || ''} onChange={e => handleInputChange('student_contact', e.target.value)} placeholder="Link Facebook hoặc số Zalo" />
-              <p className="text-xs text-slate-400">Link FB hoặc số Zalo đều được</p>
+              <p className="text-xs text-muted-foreground/70">Link FB hoặc số Zalo đều được</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -488,7 +488,7 @@ export function StudentsClient({
               <Label htmlFor="edit-notes">Ghi chú</Label>
               <textarea
                 id="edit-notes"
-                className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 min-h-[70px]"
+                className="flex w-full rounded-md border border-border bg-card px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 min-h-[70px]"
                 value={formData.notes || ''}
                 onChange={e => handleInputChange('notes', e.target.value)}
                 placeholder="Ghi chú về học sinh..."
@@ -507,11 +507,11 @@ export function StudentsClient({
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-red-600">CẢNH BÁO: XÓA HOÀN TOÀN (HARD DELETE)</DialogTitle>
-            <DialogDescription className="space-y-2 mt-2 text-slate-800">
+            <DialogTitle className="text-destructive">CẢNH BÁO: XÓA HOÀN TOÀN (HARD DELETE)</DialogTitle>
+            <DialogDescription className="space-y-2 mt-2 text-foreground">
               <p>Đây là hành động <strong>XÓA CỨNG</strong> và <strong>KHÔNG PHẢI TẠM DỪNG (SOFT DELETE)</strong>.</p>
-              <p>Hành động này sẽ xóa <strong>VĨNH VIỄN</strong> học sinh <strong className="text-slate-900">{selectedStudent?.name}</strong> cùng toàn bộ dữ liệu lịch sử điểm danh và học phí. Không thể khôi phục.</p>
-              <p className="text-red-600 font-medium">Lưu ý: Chỉ sử dụng khi tạo sai dữ liệu. Nếu học sinh nghỉ học, hãy đổi trạng thái thay vì Xóa cứng.</p>
+              <p>Hành động này sẽ xóa <strong>VĨNH VIỄN</strong> học sinh <strong className="text-foreground">{selectedStudent?.name}</strong> cùng toàn bộ dữ liệu lịch sử điểm danh và học phí. Không thể khôi phục.</p>
+              <p className="text-destructive font-medium">Lưu ý: Chỉ sử dụng khi tạo sai dữ liệu. Nếu học sinh nghỉ học, hãy đổi trạng thái thay vì Xóa cứng.</p>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -223,19 +223,19 @@ export default function TutorDashboard() {
       {/* Calendar & Lessons */}
       <div className="col-span-1 lg:col-span-2 space-y-6">
         <div className="flex items-center justify-between">
-           <h2 className="text-2xl font-bold text-slate-800">Lịch Dạy</h2>
+           <h2 className="text-2xl font-bold text-foreground">Lịch Dạy</h2>
            <Button onClick={() => setIsMakeupModalOpen(true)} className="gap-2">
              <Plus className="w-4 h-4" /> Xin Dạy Bù / Tạo Lịch Tạm
            </Button>
         </div>
 
         <Card className="overflow-hidden border-0 shadow-sm border-t-2 border-indigo-500">
-          <div className="bg-white px-6 py-4 flex items-center justify-between border-b">
+          <div className="bg-card px-6 py-4 flex items-center justify-between border-b">
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" className="h-8 w-8" onClick={handlePrevWeek}>
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 px-2">
+              <h3 className="font-bold text-foreground text-lg flex items-center gap-2 px-2">
                 <CalendarIcon className="w-5 h-5 text-indigo-500" />
                 {format(start, 'MM/yyyy')}
               </h3>
@@ -244,23 +244,23 @@ export default function TutorDashboard() {
               </Button>
             </div>
             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setSelectedDate(new Date())} title="Về hôm nay">
-              <Clock className="w-4 h-4 text-slate-400" />
+              <Clock className="w-4 h-4 text-muted-foreground/70" />
             </Button>
           </div>
           
-          <div className="grid grid-cols-7 border-b bg-slate-50">
+          <div className="grid grid-cols-7 border-b bg-secondary/50">
             {weekDays.map((day, idx) => {
               const isActive = isSameDay(day, selectedDate);
               return (
                 <div 
                   key={idx} 
                   onClick={() => setSelectedDate(day)}
-                  className={`py-3 flex flex-col items-center justify-center cursor-pointer transition-colors relative ${isActive ? 'bg-indigo-50' : 'hover:bg-slate-100'}`}
+                  className={`py-3 flex flex-col items-center justify-center cursor-pointer transition-colors relative ${isActive ? 'bg-indigo-50' : 'hover:bg-secondary'}`}
                 >
-                  <span className={`text-[10px] font-bold uppercase mb-1 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`}>
+                  <span className={`text-[10px] font-bold uppercase mb-1 ${isActive ? 'text-primary' : 'text-muted-foreground/70'}`}>
                     {format(day, 'EEE')}
                   </span>
-                  <span className={`text-lg font-bold ${isActive ? 'text-indigo-700' : 'text-slate-700'}`}>
+                  <span className={`text-lg font-bold ${isActive ? 'text-primary' : 'text-foreground'}`}>
                     {format(day, 'dd')}
                   </span>
                   {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500" />}
@@ -269,34 +269,34 @@ export default function TutorDashboard() {
             })}
           </div>
 
-          <div className="bg-slate-50 p-4 lg:p-6 min-h-[300px] max-h-[500px] overflow-y-auto space-y-3">
+          <div className="bg-secondary/50 p-4 lg:p-6 min-h-[300px] max-h-[500px] overflow-y-auto space-y-3">
              {loadingSessions ? (
-               <div className="h-full flex flex-col items-center justify-center text-slate-400 py-12">
+               <div className="h-full flex flex-col items-center justify-center text-muted-foreground/70 py-12">
                  Đang tải lịch...
                </div>
              ) : sessionForSelected.length === 0 ? (
-               <div className="h-full flex flex-col items-center justify-center text-slate-400 py-12">
-                 <Clock className="w-12 h-12 mb-3 text-slate-300" />
+               <div className="h-full flex flex-col items-center justify-center text-muted-foreground/70 py-12">
+                 <Clock className="w-12 h-12 mb-3 text-border" />
                  <p className="text-sm font-medium">Không có ca dạy nào trong ngày này</p>
                </div>
              ) : (
                sessionForSelected.map((session, idx) => (
-                 <div key={idx} onClick={() => router.push(`/tutor/classes/${session.class_id}/session/${session.session_id}`)} className="flex bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer group">
-                   <div className="w-24 bg-slate-50 border-r border-slate-100 flex flex-col items-center justify-center py-4 shrink-0 text-slate-500">
-                     <span className="font-bold text-sm text-slate-700">{session.start_time?.substring(0,5)}</span>
-                     <span className="text-[10px] my-0.5 text-slate-300">|</span>
+                 <div key={idx} onClick={() => router.push(`/tutor/classes/${session.class_id}/session/${session.session_id}`)} className="flex bg-card rounded-xl shadow-sm border border-border/60 overflow-hidden hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer group">
+                   <div className="w-24 bg-secondary/50 border-r border-border/60 flex flex-col items-center justify-center py-4 shrink-0 text-muted-foreground">
+                     <span className="font-bold text-sm text-foreground">{session.start_time?.substring(0,5)}</span>
+                     <span className="text-[10px] my-0.5 text-border">|</span>
                      <span className="font-bold text-sm">{session.end_time?.substring(0,5)}</span>
                    </div>
                    <div className="flex-1 p-4 flex flex-col justify-center">
-                     <h4 className="font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
+                     <h4 className="font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
                        {session.classes?.name}
                      </h4>
-                     <div className="flex items-center gap-4 text-xs font-medium text-slate-500">
+                     <div className="flex items-center gap-4 text-xs font-medium text-muted-foreground">
                         <div className="flex items-center gap-1.5"><Video className="w-3.5 h-3.5" /> Trực tuyến</div>
                         <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> {session.status === 'scheduled' ? 'Sắp diễn ra' : 'Đã hoàn thành'}</div>
                      </div>
                    </div>
-                   <div className="w-12 border-l border-slate-50 flex items-center justify-center bg-white group-hover:bg-indigo-50 transition-colors text-slate-400 group-hover:text-indigo-600">
+                   <div className="w-12 border-l border-slate-50 flex items-center justify-center bg-card group-hover:bg-indigo-50 transition-colors text-muted-foreground/70 group-hover:text-primary">
                      <ChevronRight className="w-5 h-5" />
                    </div>
                  </div>
@@ -309,47 +309,47 @@ export default function TutorDashboard() {
       {/* Announcements */}
       <div className="col-span-1 space-y-6">
         {/* Thu nhập tháng này */}
-        <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500 bg-white">
+        <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500 bg-card">
           <CardContent className="p-6">
-            <h3 className="text-sm font-semibold uppercase text-slate-500 tracking-wider mb-2">Thống Kê Tháng Hiện Tại ({format(new Date(), 'MM/yyyy')})</h3>
+            <h3 className="text-sm font-semibold uppercase text-muted-foreground tracking-wider mb-2">Thống Kê Tháng Hiện Tại ({format(new Date(), 'MM/yyyy')})</h3>
             <div className="space-y-4">
               <div>
-                 <p className="text-sm text-slate-500 mb-1">Thu Nhập Ước Tính</p>
-                 <h2 className="text-3xl font-black text-slate-900">{formatVND(currentMonthStats.earning)}</h2>
+                 <p className="text-sm text-muted-foreground mb-1">Thu Nhập Ước Tính</p>
+                 <h2 className="text-3xl font-black text-foreground">{formatVND(currentMonthStats.earning)}</h2>
               </div>
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                 <p className="text-sm text-slate-500">Số buổi hoàn thành</p>
-                 <span className="font-bold text-slate-800">{currentMonthStats.sessionsCount} buổi</span>
+              <div className="pt-4 border-t border-border/60 flex items-center justify-between">
+                 <p className="text-sm text-muted-foreground">Số buổi hoàn thành</p>
+                 <span className="font-bold text-foreground">{currentMonthStats.sessionsCount} buổi</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-sm border-t-2 border-slate-200">
+        <Card className="border-0 shadow-sm border-t-2 border-border">
            <CardHeader className="flex flex-row items-center justify-between pb-2">
-             <CardTitle className="text-lg font-bold text-slate-800">Thông báo từ TT</CardTitle>
+             <CardTitle className="text-lg font-bold text-foreground">Thông báo từ TT</CardTitle>
              {announcements.length > 0 && (
-               <span className="text-xs text-slate-400">{announcements.length} thông báo</span>
+               <span className="text-xs text-muted-foreground/70">{announcements.length} thông báo</span>
              )}
            </CardHeader>
            <CardContent className="pt-2">
              <div className="space-y-2">
                {announcements.length === 0 ? (
-                 <p className="text-sm text-slate-500 italic text-center py-4">Chưa có thông báo nào</p>
+                 <p className="text-sm text-muted-foreground italic text-center py-4">Chưa có thông báo nào</p>
                ) : (
                  announcements.map((ann, idx) => (
                    <div
                      key={idx}
-                     className="p-3 rounded-lg border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50 cursor-pointer transition-all group"
+                     className="p-3 rounded-lg border border-border/60 hover:border-emerald-200 hover:bg-emerald-50 cursor-pointer transition-all group"
                      onClick={() => setViewingAnnouncement(ann)}
                    >
                      <div className="flex items-start justify-between gap-2">
-                       <h4 className="font-bold text-slate-900 text-sm group-hover:text-emerald-800 leading-snug">{ann.title}</h4>
-                       <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-emerald-500 shrink-0 mt-0.5" />
+                       <h4 className="font-bold text-foreground text-sm group-hover:text-emerald-800 leading-snug">{ann.title}</h4>
+                       <ChevronRight className="w-3.5 h-3.5 text-border group-hover:text-emerald-500 shrink-0 mt-0.5" />
                      </div>
-                     <p className="text-xs text-slate-500 line-clamp-2 mt-1">{ann.content}</p>
+                     <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{ann.content}</p>
                      {ann.created_at && (
-                       <p className="text-[10px] text-slate-400 mt-1.5">
+                       <p className="text-[10px] text-muted-foreground/70 mt-1.5">
                          {new Date(ann.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                        </p>
                      )}
@@ -369,17 +369,17 @@ export default function TutorDashboard() {
               {viewingAnnouncement?.title}
             </DialogTitle>
             {viewingAnnouncement?.created_at && (
-              <p className="text-xs text-slate-400 pt-1">
+              <p className="text-xs text-muted-foreground/70 pt-1">
                 Đăng lúc: {new Date(viewingAnnouncement.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </p>
             )}
           </DialogHeader>
           {/* Bug 4 prevention: max-h + overflow-y-auto + whitespace-pre-wrap */}
-          <div className="max-h-[55vh] overflow-y-auto text-sm text-slate-700 whitespace-pre-wrap break-words leading-relaxed py-2">
+          <div className="max-h-[55vh] overflow-y-auto text-sm text-foreground whitespace-pre-wrap break-words leading-relaxed py-2">
             {viewingAnnouncement?.content || ''}
           </div>
           {viewingAnnouncement?.link && (
-            <div className="pt-2 border-t border-slate-100">
+            <div className="pt-2 border-t border-border/60">
               <a
                 href={viewingAnnouncement.link}
                 target="_blank"

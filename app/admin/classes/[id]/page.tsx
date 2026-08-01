@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -485,7 +485,7 @@ export default function ClassDetailPage() {
             <button
               type="button"
               onClick={() => { setNewClassName(classInfo?.name || ''); setIsRenameOpen(true); }}
-              className="flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded-md px-2 py-1 transition-colors"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary border border-border hover:border-blue-300 rounded-md px-2 py-1 transition-colors"
               title="Đổi tên lớp"
             >
               <Edit className="w-3 h-3" /> Đổi tên
@@ -513,7 +513,7 @@ export default function ClassDetailPage() {
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Tên lớp mới</label>
+              <label className="text-sm font-medium text-foreground">Tên lớp mới</label>
               <Input
                 value={newClassName}
                 onChange={e => setNewClassName(e.target.value)}
@@ -569,8 +569,8 @@ export default function ClassDetailPage() {
             </div>
           </div>
 
-          <div className="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-700">
-            <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+          <div className="mt-4 bg-secondary/50 border border-border rounded-lg p-4 text-sm text-foreground">
+            <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-500" />
               Lưu ý quan trọng khi sửa đổi (Edge Cases)
             </h4>
@@ -692,7 +692,7 @@ export default function ClassDetailPage() {
                        {cs.status === 'active' ? (
                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-sm font-semibold">Đang học</span>
                        ) : (
-                         <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-sm font-semibold">Đã nghỉ</span>
+                         <span className="px-2 py-1 bg-secondary text-muted-foreground text-xs rounded-sm font-semibold">Đã nghỉ</span>
                        )}
                      </TableCell>
                      <TableCell className="text-right">
@@ -702,7 +702,7 @@ export default function ClassDetailPage() {
                              variant="ghost" 
                              size="sm" 
                              onClick={() => { setEditingStudent(cs); setNewStudentFee(String(cs.tuition_fee_per_session)); setIsUpdateFeeOpen(true); }}
-                             className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                             className="text-primary hover:text-primary hover:bg-blue-50"
                            >
                              <Edit className="w-4 h-4 mr-1" /> Sửa phí
                            </Button>
@@ -751,7 +751,7 @@ export default function ClassDetailPage() {
                     <TableCell>
                       {s.status === 'scheduled' && <span className="text-blue-500 font-medium">Sắp tới</span>}
                       {s.status === 'completed' && <span className="text-green-500 font-medium">Đã dạy</span>}
-                      {s.status === 'cancelled' && <span className="text-red-500 font-medium">Đã hủy</span>}
+                      {s.status === 'cancelled' && <span className="text-destructive font-medium">Đã hủy</span>}
                     </TableCell>
                     <TableCell className="text-right space-x-2">
                        {s.status === 'scheduled' && (
@@ -895,7 +895,7 @@ export default function ClassDetailPage() {
                  <Button type="button" variant="secondary" size="sm" onClick={addScheduleConfig}>+ Thêm Lịch</Button>
                </div>
                {scheduleConfigs.map((c) => (
-                 <div key={c.id} className="flex gap-2 items-end bg-slate-50 p-2 rounded-md">
+                 <div key={c.id} className="flex gap-2 items-end bg-secondary/50 p-2 rounded-md">
                    <div className="w-1/3">
                      <label className="text-xs font-medium">Thứ</label>
                      <Combobox
@@ -942,7 +942,7 @@ export default function ClassDetailPage() {
           </DialogHeader>
           <form onSubmit={handleChangeTutor} className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium">Gia Sư Mới <span className="text-red-500">*</span></label>
+              <label className="text-sm font-medium">Gia Sư Mới <span className="text-destructive">*</span></label>
               <Combobox
                 options={allTutors.filter(t => t.tutor_id !== classInfo?.tutor_id).map(t => ({ value: t.tutor_id, label: t.name }))}
                 value={newTutorId}
@@ -952,7 +952,7 @@ export default function ClassDetailPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Ngày Hiệu Lực <span className="text-red-500">*</span></label>
+              <label className="text-sm font-medium">Ngày Hiệu Lực <span className="text-destructive">*</span></label>
               <Input type="date" value={changeTutorDate} onChange={e => setChangeTutorDate(e.target.value)} required />
               <p className="text-xs text-gray-400 mt-1">Ngày gia sư mới bắt đầu chính thức dạy lớp này.</p>
             </div>
@@ -992,7 +992,7 @@ export default function ClassDetailPage() {
           </DialogHeader>
           <form onSubmit={handleUpdateCsatFee} className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium">Định Mức Battle Pass Mới (VND / buổi) <span className="text-red-500">*</span></label>
+              <label className="text-sm font-medium">Định Mức Battle Pass Mới (VND / buổi) <span className="text-destructive">*</span></label>
               <Input
                 type="number"
                 min="0"
@@ -1002,7 +1002,7 @@ export default function ClassDetailPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Ngày Hiệu Lực <span className="text-red-500">*</span></label>
+              <label className="text-sm font-medium">Ngày Hiệu Lực <span className="text-destructive">*</span></label>
               <Input type="date" value={csatEffectiveDate} onChange={e => setCsatEffectiveDate(e.target.value)} required />
               <p className="text-xs text-gray-400 mt-1">Hệ thống sẽ cập nhật tự động snapshot phí cho các buổi chưa dạy từ ngày này trở đi.</p>
             </div>

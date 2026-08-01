@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -134,7 +134,7 @@ export default function AdminTutorDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tutorId]);
 
-  if (loading) return <div className="p-8 text-slate-500">Đang tải dữ liệu gia sư...</div>;
+  if (loading) return <div className="p-8 text-muted-foreground">Đang tải dữ liệu gia sư...</div>;
   if (!tutor) return <div className="p-8 text-red-500">Không tìm thấy gia sư.</div>;
 
   return (
@@ -145,8 +145,8 @@ export default function AdminTutorDetailPage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">{tutor.name}</h2>
-          <p className="text-slate-500 text-sm">{tutor.email} · {tutor.phone}</p>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">{tutor.name}</h2>
+          <p className="text-muted-foreground text-sm">{tutor.email} · {tutor.phone}</p>
         </div>
         <Badge
           variant="secondary"
@@ -162,8 +162,8 @@ export default function AdminTutorDetailPage() {
           <CardContent className="p-4 flex items-center gap-3">
             <BookOpen className="w-8 h-8 text-indigo-500 shrink-0" />
             <div>
-              <p className="text-xs text-slate-500 font-semibold uppercase">Lớp đang dạy</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.activeClasses}</p>
+              <p className="text-xs text-muted-foreground font-semibold uppercase">Lớp đang dạy</p>
+              <p className="text-2xl font-bold text-foreground">{stats.activeClasses}</p>
             </div>
           </CardContent>
         </Card>
@@ -171,8 +171,8 @@ export default function AdminTutorDetailPage() {
           <CardContent className="p-4 flex items-center gap-3">
             <Calendar className="w-8 h-8 text-blue-500 shrink-0" />
             <div>
-              <p className="text-xs text-slate-500 font-semibold uppercase">Buổi đã dạy</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.totalSessions}</p>
+              <p className="text-xs text-muted-foreground font-semibold uppercase">Buổi đã dạy</p>
+              <p className="text-2xl font-bold text-foreground">{stats.totalSessions}</p>
             </div>
           </CardContent>
         </Card>
@@ -180,7 +180,7 @@ export default function AdminTutorDetailPage() {
           <CardContent className="p-4 flex items-center gap-3">
             <TrendingUp className="w-8 h-8 text-emerald-500 shrink-0" />
             <div>
-              <p className="text-xs text-slate-500 font-semibold uppercase">Tổng thu nhập</p>
+              <p className="text-xs text-muted-foreground font-semibold uppercase">Tổng thu nhập</p>
               <p className="text-xl font-bold text-emerald-700">
                 {formatVND(salaryHistory.reduce((s, r) => s + r.net, 0))}
               </p>
@@ -218,7 +218,7 @@ export default function AdminTutorDetailPage() {
                       {c.status === 'active' ? 'Hoạt động' : 'Ngừng'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-slate-500 text-xs">
+                  <TableCell className="text-muted-foreground text-xs">
                     {c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '---'}
                     {c.end_date ? ` → ${format(new Date(c.end_date), 'dd/MM/yyyy')}` : ''}
                   </TableCell>
@@ -231,7 +231,7 @@ export default function AdminTutorDetailPage() {
               ))}
               {classes.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4 text-slate-400">Chưa có lớp nào.</TableCell>
+                  <TableCell colSpan={5} className="text-center py-4 text-muted-foreground/70">Chưa có lớp nào.</TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -264,14 +264,14 @@ export default function AdminTutorDetailPage() {
                 <TableRow key={row.period}>
                   <TableCell className="font-medium">{row.period}</TableCell>
                   <TableCell>{row.sessions}</TableCell>
-                  <TableCell className="text-slate-600">{formatVND(row.tuition)}</TableCell>
+                  <TableCell className="text-muted-foreground">{formatVND(row.tuition)}</TableCell>
                   <TableCell className="text-emerald-600">-{formatVND(row.csat)}</TableCell>
                   <TableCell className="text-right font-bold text-amber-700">{formatVND(row.net)}</TableCell>
                 </TableRow>
               ))}
               {salaryHistory.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4 text-slate-400">Chưa có kỳ chốt sổ nào.</TableCell>
+                  <TableCell colSpan={5} className="text-center py-4 text-muted-foreground/70">Chưa có kỳ chốt sổ nào.</TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -292,11 +292,11 @@ export default function AdminTutorDetailPage() {
                 <div key={log.log_id} className="flex items-center justify-between p-3 border rounded-lg text-sm">
                   <div>
                     <span className="font-semibold">{(log.classes as any)?.name}</span>
-                    <span className="text-slate-500 ml-2">
+                    <span className="text-muted-foreground ml-2">
                       {log.old_value === tutorId ? '→ Chuyển sang gia sư khác' : '← Được phân công vào lớp này'}
                     </span>
                   </div>
-                  <div className="text-slate-400 text-xs">
+                  <div className="text-muted-foreground/70 text-xs">
                     {format(new Date(log.created_at), 'dd/MM/yyyy HH:mm')}
                   </div>
                 </div>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -148,7 +148,7 @@ export default function ClassesPage() {
   const statusColor = (status: string) => {
     if (status === 'active') return 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100';
     if (status === 'inactive') return 'bg-rose-100 text-rose-700 hover:bg-rose-100';
-    return 'bg-slate-100 text-slate-700 hover:bg-slate-100';
+    return 'bg-secondary text-foreground hover:bg-secondary';
   };
 
   const translateStatus = (status: string) => {
@@ -163,7 +163,7 @@ export default function ClassesPage() {
       <ConfirmDialog />
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900">Quản lý Lớp Học</h2>
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">Quản lý Lớp Học</h2>
         <Link href="/admin/classes/new">
           <Button>+ Thêm Lớp Mới</Button>
         </Link>
@@ -173,10 +173,10 @@ export default function ClassesPage() {
         <CardContent className="p-4 md:p-6 p-0 border-0">
           <div className="flex flex-col sm:flex-row gap-3 mb-6">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
               <Input 
                 placeholder="Tìm kiếm theo Tên lớp học..." 
-                className="pl-9 bg-slate-50 border-slate-200"
+                className="pl-9 bg-secondary/50 border-border"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -203,9 +203,9 @@ export default function ClassesPage() {
             </div>
           </div>
 
-          <div className="rounded-md border border-slate-200 bg-white overflow-x-auto">
+          <div className="rounded-md border border-border bg-card overflow-x-auto pb-2">
             <Table>
-              <TableHeader className="bg-slate-50/50">
+              <TableHeader className="bg-secondary/50/50">
                 <TableRow>
                   <TableHead className="w-[300px]">Tên Lớp</TableHead>
                   <TableHead>Loại Lớp</TableHead>
@@ -217,11 +217,11 @@ export default function ClassesPage() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                     <TableCell colSpan={4} className="text-center py-8 text-slate-500">Đang tải dữ liệu...</TableCell>
+                     <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Đang tải dữ liệu...</TableCell>
                   </TableRow>
                 ) : classes.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       <div className="flex flex-col items-center justify-center">
                         <p>Không tìm thấy lớp học nào phù hợp.</p>
                       </div>
@@ -231,14 +231,14 @@ export default function ClassesPage() {
                   classes.map(c => (
                     <TableRow 
                       key={c.class_id} 
-                      className="hover:bg-slate-50/50 transition-colors cursor-pointer"
+                      className="hover:bg-secondary/50/50 transition-colors cursor-pointer"
                       onClick={() => router.push(`/admin/classes/${c.class_id}`)}
                     >
-                      <TableCell className="font-medium text-slate-900">{c.name}</TableCell>
-                      <TableCell className="text-slate-600">
+                      <TableCell className="font-medium text-foreground">{c.name}</TableCell>
+                      <TableCell className="text-muted-foreground">
                         <Badge variant="outline">{c.class_type || 'Lớp Cơ bản'}</Badge>
                       </TableCell>
-                      <TableCell className="text-slate-600">{c.tutors?.name || '---'}</TableCell>
+                      <TableCell className="text-muted-foreground">{c.tutors?.name || '---'}</TableCell>
                       <TableCell>
                         <Badge variant="secondary" className={statusColor(c.status)}>
                           {translateStatus(c.status)}
@@ -265,7 +265,7 @@ export default function ClassesPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row justify-between items-center mt-4 p-4 border-t gap-4">
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-muted-foreground">
               Hiển thị {classes.length} trên tổng {totalClasses} kết quả (Trang {currentPage} / {totalPages})
             </span>
             <div className="flex gap-2">

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -111,7 +111,7 @@ export default function TutorsPage() {
       <AlertDialog />
       <ConfirmDialog />
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900">Quản lý Gia Sư</h2>
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">Quản lý Gia Sư</h2>
       </div>
       
       <Card>
@@ -170,7 +170,7 @@ export default function TutorsPage() {
                   {tutors.map(t => (
                     <TableRow
                       key={t.tutor_id}
-                      className="hover:bg-slate-50 cursor-pointer transition-colors"
+                      className="hover:bg-secondary/50 cursor-pointer transition-colors"
                       onClick={() => router.push(`/admin/tutors/${t.tutor_id}`)}
                     >
                       <TableCell className="font-medium">{t.name}</TableCell>
@@ -198,7 +198,7 @@ export default function TutorsPage() {
                 </TableBody>
               </Table>
               <div className="flex flex-col sm:flex-row justify-between items-center mt-4 pt-4 border-t gap-4">
-                <span className="text-sm text-slate-500">
+                <span className="text-sm text-muted-foreground">
                   Hiển thị {tutors.length} trên tổng {totalTutors} kết quả (Trang {currentPage} / {totalPages})
                 </span>
                 <div className="flex gap-2">
