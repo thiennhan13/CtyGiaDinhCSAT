@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { createClient } from '@/lib/supabase/client';
 import { useParams } from 'next/navigation';
@@ -13,6 +12,8 @@ import { Trash2, AlertTriangle, History, FileSpreadsheet, Edit } from 'lucide-re
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { formatVND } from '@/lib/format';
+import { Combobox } from '@/components/ui/combobox';
+import { useAlert, useConfirm } from '@/components/ui/use-dialog';
 
 
 
@@ -79,9 +80,14 @@ export default function ClassDetailPage() {
   const [newStudentFee, setNewStudentFee] = useState('');
   const [updateFeeLoading, setUpdateFeeLoading] = useState(false);
 
-
+  // Rename class state
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
+  const [newClassName, setNewClassName] = useState('');
+  const [renameLoading, setRenameLoading] = useState(false);
 
   const supabase = createClient();
+  const { alert: showAlert, AlertDialog } = useAlert();
+  const { confirm, ConfirmDialog } = useConfirm();
 
   async function fetchData() {
     setLoading(true);
@@ -131,18 +137,24 @@ export default function ClassDetailPage() {
        setTuitionFee('100000');
        fetchData();
     } else {
-       alert("Lỗi: " + error.message);
+       await showAlert({ title: 'Lỗi', description: error.message, variant: 'error' });
     }
   }
 
   async function handleRemoveStudent(studentId: string) {
-    if (!confirm('Bạn có chắc chắn muốn cho học sinh này Dừng học (Đã nghỉ) tại lớp này không?\nHọc sinh sẽ không bị xóa khỏi hệ thống, nhưng sẽ không được điểm danh và không bị tính học phí cho các buổi học sau.')) return;
+    const ok = await confirm({
+      title: 'Dừng học sinh này?',
+      description: 'Học sinh sẽ được chuyển sang trạng thái Đã nghỉ. Học sinh sẽ không bị xóa khỏi hệ thống, nhưng sẽ không được điểm danh và không bị tính học phí.',
+      confirmText: 'Dừng học',
+      variant: 'destructive',
+    });
+    if (!ok) return;
     const { error } = await supabase.from('class_students').update({ status: 'dropped' }).eq('class_id', classId).eq('student_id', studentId);
     if (!error) {
-      alert('Đã cập nhật trạng thái học sinh thành Đã nghỉ');
+      await showAlert({ title: 'Thành công', description: 'Đã cập nhật trạng thái học sinh thành Đã nghỉ.', variant: 'success' });
       fetchData();
     } else {
-      alert("Lỗi: " + error.message);
+      await showAlert({ title: 'Lỗi', description: error.message, variant: 'error' });
     }
   }
 
@@ -162,19 +174,20 @@ export default function ClassDetailPage() {
     ]);
     
     if (!error) {
-       alert('Tạo buổi học thành công');
+       await showAlert({ title: 'Tạo buổi học thành công', description: 'Buổi học đã được thêm vào lịch.', variant: 'success' });
        setSessionDate('');
        fetchData();
     } else {
-       alert("Lỗi: " + error.message);
+       await showAlert({ title: 'Lỗi', description: error.message, variant: 'error' });
     }
   }
 
   async function handleCancelSession(sessionId: string) {
-    if (!confirm('Hủy buổi học này?')) return;
+    const ok = await confirm({ title: 'Hủy buổi học này?', description: 'Buổi học sẽ được đánh dấu Đã Hủy.', confirmText: 'Hủy buổi', variant: 'destructive' });
+    if (!ok) return;
     const { error } = await supabase.from('sessions').update({ status: 'cancelled' }).eq('session_id', sessionId);
     if (!error) {
-       alert('Đã hủy buổi học');
+       await showAlert({ title: 'Đã hủy buổi học', description: '', variant: 'success' });
        fetchData();
     }
   }
@@ -206,28 +219,34 @@ export default function ClassDetailPage() {
       .eq('status', 'scheduled');
 
     if(!toUpdate || toUpdate.length === 0) {
-      alert("Không tìm thấy buổi học nào phù hợp.");
+      await showAlert({ title: 'Không tìm thấy buổi học', description: 'Không tìm thấy buổi học nào phù hợp.', variant: 'warning' });
       return;
     }
     
     const filteredToUpdate = toUpdate.filter(s => parseLocalDate(s.date).getDay() === dayOfWeek);
 
     if(filteredToUpdate.length === 0) {
-       alert("Không tìm thấy buổi học nào phù hợp.");
+       await showAlert({ title: 'Không tìm thấy buổi học', description: 'Không tìm thấy buổi học nào phù hợp.', variant: 'warning' });
        return;
     }
 
     const actionText = action === 'cancel' ? 'BÁO NGHỈ LỄ (Hủy)' : 'XÓA VĨNH VIỄN';
-    if(!confirm(`Tìm thấy ${filteredToUpdate.length} buổi học. Bạn có chắc muốn ${actionText} tất cả?`)) return;
+    const ok = await confirm({
+      title: `${actionText} ${filteredToUpdate.length} buổi học?`,
+      description: `Tìm thấy ${filteredToUpdate.length} buổi học. Bạn có chắc muốn ${actionText} tất cả?`,
+      confirmText: actionText,
+      variant: 'destructive',
+    });
+    if (!ok) return;
 
     const sessionIds = filteredToUpdate.map(s => s.session_id);
     
     if (action === 'cancel') {
        await supabase.from('sessions').update({ status: 'cancelled' }).in('session_id', sessionIds);
-       alert("Đã cập nhật trạng thái các buổi học thành Đã Hủy (Nghỉ Lễ).");
+       await showAlert({ title: 'Thành công', description: 'Đã cập nhật trạng thái các buổi học thành Đã Hủy (Nghỉ Lễ).', variant: 'success' });
     } else {
        await supabase.from('sessions').delete().in('session_id', sessionIds);
-       alert("Đã xóa vĩnh viễn các buổi học.");
+       await showAlert({ title: 'Thành công', description: 'Đã xóa vĩnh viễn các buổi học.', variant: 'success' });
     }
     
     setBulkDeleteSession(null);
@@ -256,11 +275,11 @@ export default function ClassDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      alert(data.message);
+      await showAlert({ title: 'Thành công', description: data.message, variant: 'success' });
       setIsScheduleOpen(false);
       fetchData();
     } catch(err: any) {
-      alert("Lỗi: " + err.message);
+      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
     }
   };
 
@@ -274,11 +293,11 @@ export default function ClassDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      alert(data.message);
+      await showAlert({ title: 'Thành công', description: data.message, variant: 'success' });
       setIsEditSessionOpen(false);
       fetchData();
     } catch(err: any) {
-      alert("Lỗi: " + err.message);
+      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
     }
   };
 
@@ -286,7 +305,12 @@ export default function ClassDetailPage() {
     e.preventDefault();
     if (!newTutorId) return;
     const newTutorName = allTutors.find(t => t.tutor_id === newTutorId)?.name || '';
-    if (!confirm(`Xác nhận đổi gia sư sang "${newTutorName}" kể từ ${changeTutorDate}?\n\nLưu ý: Thay đổi này sẽ được ghi lại vào lịch sử.`)) return;
+    const ok = await confirm({
+      title: `Đổi sang gia sư "${newTutorName}"?`,
+      description: `Thông tin thay đổi sẽ có hiệu lực từ ${changeTutorDate} và được ghi lại vào lịch sử.`,
+      confirmText: 'Xác nhận',
+    });
+    if (!ok) return;
     setChangeTutorLoading(true);
     try {
       const res = await fetch('/api/admin/classes', {
@@ -302,14 +326,14 @@ export default function ClassDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      alert(data.message);
+      await showAlert({ title: 'Thành công', description: data.message, variant: 'success' });
       setIsChangeTutorOpen(false);
       setNewTutorId('');
       setChangeTutorNotes('');
       setChangeTutorDate(todayStr());
       fetchData();
     } catch(err: any) {
-      alert("Lỗi: " + err.message);
+      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
     } finally {
       setChangeTutorLoading(false);
     }
@@ -318,8 +342,13 @@ export default function ClassDetailPage() {
   const handleUpdateCsatFee = async (e: React.FormEvent) => {
     e.preventDefault();
     const fee = parseFloat(newCsatFee);
-    if (isNaN(fee) || fee < 0) { alert('Phí CSAT không hợp lệ'); return; }
-    if (!confirm(`Xác nhận cập nhật phí CSAT sang ${formatVND(fee)} kể từ ${csatEffectiveDate}?\n\nHệ thống sẽ tự động cập nhật snapshot phí cho tất cả các buổi chưa dạy từ ngày này.\nCác buổi đã dạy sẽ KHÔNG bị thay đổi.`)) return;
+    if (isNaN(fee) || fee < 0) { await showAlert({ title: 'Giá trị không hợp lệ', description: 'Phí CSAT không hợp lệ.', variant: 'warning' }); return; }
+    const ok = await confirm({
+      title: `Cập nhật phí CSAT sang ${formatVND(fee)}?`,
+      description: `Hiệu lực từ ${csatEffectiveDate}. Hệ thống sẽ tự động cập nhật snapshot phí cho tất cả các buổi chưa dạy từ ngày này. Các buổi đã dạy sẽ KHÔNG bị thay đổi.`,
+      confirmText: 'Xác nhận',
+    });
+    if (!ok) return;
     setCsatLoading(true);
     try {
       const res = await fetch('/api/admin/classes', {
@@ -335,13 +364,13 @@ export default function ClassDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      alert(data.message);
+      await showAlert({ title: 'Cập nhật thành công', description: data.message, variant: 'success' });
       setIsUpdateCsatOpen(false);
       setCsatNotes('');
       setCsatEffectiveDate(todayStr());
       fetchData();
     } catch(err: any) {
-      alert("Lỗi: " + err.message);
+      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
     } finally {
       setCsatLoading(false);
     }
@@ -360,8 +389,13 @@ export default function ClassDetailPage() {
   const handleUpdateStudentFee = async (e: React.FormEvent) => {
     e.preventDefault();
     const fee = parseFloat(newStudentFee);
-    if (isNaN(fee) || fee < 0) { alert('Học phí không hợp lệ'); return; }
-    if (!confirm(`Xác nhận cập nhật học phí cho học sinh ${editingStudent.students?.name} sang ${formatVND(fee)}?\n\nLưu ý: Chỉ các buổi học điểm danh kể từ bây giờ mới áp dụng mức phí này. Các buổi đã điểm danh trước đó giữ nguyên học phí cũ.`)) return;
+    if (isNaN(fee) || fee < 0) { await showAlert({ title: 'Giá trị không hợp lệ', description: 'Học phí không hợp lệ.', variant: 'warning' }); return; }
+    const ok = await confirm({
+      title: `Cập nhật học phí cho ${editingStudent?.students?.name}?`,
+      description: `Sang ${formatVND(fee)}. Chỉ các buổi điểm danh kể từ bây giờ mới áp dụng mức phí mới.`,
+      confirmText: 'Xác nhận',
+    });
+    if (!ok) return;
     
     setUpdateFeeLoading(true);
     try {
@@ -378,11 +412,11 @@ export default function ClassDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      alert(data.message);
+      await showAlert({ title: 'Cập nhật thành công', description: data.message, variant: 'success' });
       setIsUpdateFeeOpen(false);
       fetchData();
     } catch(err: any) {
-      alert("Lỗi: " + err.message);
+      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
     } finally {
       setUpdateFeeLoading(false);
     }
@@ -412,15 +446,51 @@ export default function ClassDetailPage() {
     XLSX.writeFile(wb, `Bao_cao_lop_${classInfo.name}_${format(new Date(), 'dd-MM-yyyy')}.xlsx`);
   };
 
+  async function handleRenameClass() {
+    if (!newClassName.trim() || newClassName.trim().length < 2) {
+      await showAlert({ title: 'Tên lớp không hợp lệ', description: 'Tên lớp phải có ít nhất 2 ký tự.', variant: 'warning' });
+      return;
+    }
+    setRenameLoading(true);
+    try {
+      const res = await fetch('/api/admin/classes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'rename_class', class_id: classId, new_name: newClassName.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      await showAlert({ title: 'Đổi tên thành công', description: data.message, variant: 'success' });
+      setIsRenameOpen(false);
+      fetchData();
+    } catch (err: any) {
+      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
+    } finally {
+      setRenameLoading(false);
+    }
+  }
+
   if (loading) return <div className="p-4 text-center text-gray-400">Đang tải dữ liệu...</div>;
 
   return (
     <div className="space-y-6">
+      <AlertDialog />
+      <ConfirmDialog />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-            Chi tiết lớp: {classInfo?.name}
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+              {classInfo?.name}
+            </h2>
+            <button
+              type="button"
+              onClick={() => { setNewClassName(classInfo?.name || ''); setIsRenameOpen(true); }}
+              className="flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded-md px-2 py-1 transition-colors"
+              title="Đổi tên lớp"
+            >
+              <Edit className="w-3 h-3" /> Đổi tên
+            </button>
+          </div>
           <p className="text-gray-500 mt-1">
             Gia sư phụ trách: <span className="font-semibold text-gray-700">{classInfo?.tutors?.name}</span>
             <span className="mx-2 text-gray-300">|</span>
@@ -432,7 +502,36 @@ export default function ClassDetailPage() {
         </Button>
       </div>
 
-      {/* ========== CARD: ĐIỀU CHỈNH LỚP HỌC (MỚI) ========== */}
+      <Dialog open={isRenameOpen} onOpenChange={setIsRenameOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Đổi Tên Lớp</DialogTitle>
+            <DialogDescription>
+              Tên lớp hiện tại: <strong>{classInfo?.name}</strong>.
+              Thay đổi sẽ có hiệu lực ngay và được ghi lại vào lịch sử điều chỉnh.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Tên lớp mới</label>
+              <Input
+                value={newClassName}
+                onChange={e => setNewClassName(e.target.value)}
+                placeholder="Nhập tên lớp mới..."
+                autoFocus
+                onKeyDown={e => e.key === 'Enter' && !renameLoading && handleRenameClass()}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRenameOpen(false)} disabled={renameLoading}>Hủy</Button>
+            <Button onClick={handleRenameClass} disabled={renameLoading || !newClassName.trim()}>
+              {renameLoading ? 'Đang lưu...' : 'Xác nhận đổi tên'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Card className="border-t-4 border-t-red-500">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-red-700">
@@ -445,7 +544,6 @@ export default function ClassDetailPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
-            {/* Đổi Gia Sư */}
             <div className="space-y-2 p-4 bg-amber-50 rounded-lg border border-amber-200">
               <h4 className="font-semibold text-amber-800">Đổi Gia Sư Dạy Lớp</h4>
               <p className="text-xs text-amber-700">Gia sư hiện tại: <strong>{classInfo?.tutors?.name}</strong></p>
@@ -458,7 +556,6 @@ export default function ClassDetailPage() {
               </Button>
             </div>
 
-            {/* Điều chỉnh định mức Battle Pass CSAT */}
             <div className="space-y-2 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
               <h4 className="font-semibold text-emerald-800">Điều Chỉnh Định Mức Battle Pass CSAT</h4>
               <p className="text-xs text-emerald-700">Định mức hiện tại: <strong>{formatVND(classInfo?.csat_fee_per_session || 0)} / buổi</strong></p>
@@ -472,7 +569,6 @@ export default function ClassDetailPage() {
             </div>
           </div>
 
-          {/* Lưu ý Edge Cases cho Admin */}
           <div className="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-700">
             <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-500" />
@@ -480,11 +576,10 @@ export default function ClassDetailPage() {
             </h4>
             <ul className="list-disc pl-5 space-y-2">
               <li>
-                <strong>Sửa ngày của buổi học qua mặt "Ngày hiệu lực":</strong> Nếu bạn đổi Gia sư/Phí có hiệu lực từ ngày 01/06, thì các buổi từ 01/06 trở đi sẽ tự động áp dụng giá trị mới. <strong>Tuy nhiên</strong>, nếu sau đó bạn dùng tính năng sửa ngày của một buổi mới (ví dụ lùi từ 02/06 về 30/05), buổi học đó vẫn mang giá trị mới.
-                <br /><span className="text-amber-700">Cách xử lý: Xóa buổi đó và chọn "Thêm buổi lẻ" để hệ thống lấy lại mốc gia sư/phí chính xác của ngày đó.</span>
+                <strong>Sửa ngày của buổi học qua mặt "Ngày hiệu lực":</strong> Nếu bạn đổi Gia sư/Phí có hiệu lực từ ngày 01/06, thì các buổi từ 01/06 trở đi sẽ tự động áp dụng giá trị mới.
               </li>
               <li>
-                <strong>Chọn sai "Ngày hiệu lực":</strong> Hãy đảm bảo ngày hiệu lực được chọn chuẩn xác. Các thay đổi sẽ không ảnh hưởng đến những buổi học (bao gồm cả đã dạy và chưa dạy) nằm trước ngày hiệu lực này, giúp bảo toàn lịch sử lương và doanh thu.
+                <strong>Chọn sai "Ngày hiệu lực":</strong> Hãy đảm bảo ngày hiệu lực được chọn chuẩn xác. Các thay đổi sẽ không ảnh hưởng đến những buổi học nằm trước ngày hiệu lực này.
               </li>
             </ul>
           </div>
@@ -500,16 +595,15 @@ export default function ClassDetailPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleAssignStudent} className="space-y-4">
-              <Select value={selectedStudentId} onValueChange={(val) => setSelectedStudentId(val || '')} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn Học Sinh..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {allStudents.filter(s => !studentsInClass.find(cs => cs.student_id === s.student_id && cs.status === 'active')).map(s => (
-                    <SelectItem key={s.student_id} value={s.student_id}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Combobox
+                options={allStudents
+                  .filter(s => !studentsInClass.find(cs => cs.student_id === s.student_id && cs.status === 'active'))
+                  .map(s => ({ value: s.student_id, label: s.name }))}
+                value={selectedStudentId}
+                onValueChange={(val) => setSelectedStudentId(val || '')}
+                placeholder="Chọn học sinh..."
+                searchPlaceholder="Tìm học sinh..."
+              />
               
               <div>
                 <label className="text-sm font-medium">Học phí / Buổi (VND)</label>
@@ -563,16 +657,19 @@ export default function ClassDetailPage() {
           <div className="space-y-1">
             <CardTitle>Danh Sách Học Sinh Trong Lớp ({studentsInClass.filter(cs => studentStatusFilter === 'all' || cs.status === studentStatusFilter).length})</CardTitle>
           </div>
-          <Select value={studentStatusFilter} onValueChange={(val) => setStudentStatusFilter(val || 'all')}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Lọc trạng thái" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="active">Đang học</SelectItem>
-              <SelectItem value="dropped">Đã nghỉ</SelectItem>
-              <SelectItem value="all">Tất cả</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="w-[180px]">
+            <Combobox
+              options={[
+                { value: 'active', label: 'Đang học' },
+                { value: 'dropped', label: 'Đã nghỉ' },
+                { value: 'all', label: 'Tất cả' },
+              ]}
+              value={studentStatusFilter}
+              onValueChange={(val) => setStudentStatusFilter(val || 'active')}
+              placeholder="Lọc trạng thái"
+              searchPlaceholder="Tìm..."
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -677,7 +774,6 @@ export default function ClassDetailPage() {
         </CardContent>
       </Card>
 
-      {/* ========== CARD: LỊCH SỬ THAY ĐỔI LỚP (MỚI) ========== */}
       {changeLogs.length > 0 && (
         <Card>
           <CardHeader>
@@ -685,7 +781,7 @@ export default function ClassDetailPage() {
               <History className="w-5 h-5" />
               Lịch Sử Thay Đổi Lớp
             </CardTitle>
-            <CardDescription>Audit log ghi lại mọi thay đổi gia sư và Battle Pass CSAT để đảm bảo tính minh bạch.</CardDescription>
+            <CardDescription>Audit log ghi lại mọi thay đổi gia sư và Battle Pass CSAT.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -724,14 +820,10 @@ export default function ClassDetailPage() {
         </Card>
       )}
 
-      {/* Mass Update Modal */}
       <Dialog open={!!bulkDeleteSession} onOpenChange={(open) => !open && setBulkDeleteSession(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Cập Nhật Lịch Hàng Loạt</DialogTitle>
-            <DialogDescription>
-              Tác động đến tất cả các buổi học <strong>{bulkDeleteSession?.start_time.substring(0,5)} - {bulkDeleteSession?.end_time.substring(0,5)}</strong> cùng <strong>Thứ {bulkDeleteSession && new Date(parseInt(bulkDeleteSession.date.split('-')[0]), parseInt(bulkDeleteSession.date.split('-')[1]) - 1, parseInt(bulkDeleteSession.date.split('-')[2])).getDay() === 0 ? 'Chủ Nhật' : bulkDeleteSession && (new Date(parseInt(bulkDeleteSession.date.split('-')[0]), parseInt(bulkDeleteSession.date.split('-')[1]) - 1, parseInt(bulkDeleteSession.date.split('-')[2])).getDay() + 1)}</strong> trong khoảng thời gian diễn ra từ:
-            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4 mt-2">
              <div className="grid grid-cols-2 gap-4">
@@ -753,14 +845,10 @@ export default function ClassDetailPage() {
         </DialogContent>
       </Dialog>
       
-      {/* Edit Session Modal */}
       <Dialog open={isEditSessionOpen} onOpenChange={setIsEditSessionOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Sửa Lịch Học (Đổi buổi)</DialogTitle>
-            <DialogDescription>
-              Cập nhật lại ngày hoặc giờ của buổi học này.
-            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEditSession} className="space-y-4 py-4">
              <div>
@@ -785,50 +873,41 @@ export default function ClassDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Schedule Manage Modal */}
       <Dialog open={isScheduleOpen} onOpenChange={setIsScheduleOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Thêm Loạt Lịch Cố Định Theo Tuần</DialogTitle>
-            <DialogDescription>
-              Bạn có thể cấu hình nhiều ngày trong tuần, hệ thống sẽ tự động sinh lịch từ Ngày Bắt Đầu đến Ngày Kết Thúc.
-            </DialogDescription>
+            <DialogTitle>Thêm Loạt Lịch Cố Định</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleManageSchedule} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
              <div className="grid grid-cols-2 gap-4">
                <div>
-                 <label className="text-sm font-medium">Từ ngày (Bắt đầu)</label>
+                 <label className="text-sm font-medium">Từ ngày</label>
                  <Input type="date" value={scheduleStart} onChange={(e) => setScheduleStart(e.target.value)} required />
                </div>
                <div>
-                 <label className="text-sm font-medium">Đến ngày (Kết thúc)</label>
+                 <label className="text-sm font-medium">Đến ngày</label>
                  <Input type="date" value={scheduleEnd} onChange={(e) => setScheduleEnd(e.target.value)} required />
                </div>
              </div>
-             
              <div className="space-y-3 pt-4 border-t">
                <div className="flex justify-between items-center">
                  <h4 className="font-semibold text-sm">Cấu hình lịch tuần</h4>
-                 <Button type="button" variant="secondary" size="sm" onClick={addScheduleConfig}>+ Thêm Lịch Trong Tuần</Button>
+                 <Button type="button" variant="secondary" size="sm" onClick={addScheduleConfig}>+ Thêm Lịch</Button>
                </div>
                {scheduleConfigs.map((c) => (
                  <div key={c.id} className="flex gap-2 items-end bg-slate-50 p-2 rounded-md">
                    <div className="w-1/3">
                      <label className="text-xs font-medium">Thứ</label>
-                     <Select value={c.dayOfWeek.toString()} onValueChange={(val) => updateScheduleConfig(c.id, 'dayOfWeek', Number(val))}>
-                       <SelectTrigger>
-                         <SelectValue />
-                       </SelectTrigger>
-                       <SelectContent>
-                         <SelectItem value="1">Thứ Hai</SelectItem>
-                         <SelectItem value="2">Thứ Ba</SelectItem>
-                         <SelectItem value="3">Thứ Tư</SelectItem>
-                         <SelectItem value="4">Thứ Năm</SelectItem>
-                         <SelectItem value="5">Thứ Sáu</SelectItem>
-                         <SelectItem value="6">Thứ Bảy</SelectItem>
-                         <SelectItem value="0">Chủ Nhật</SelectItem>
-                       </SelectContent>
-                     </Select>
+                     <Combobox
+                       options={[
+                         { value: '1', label: 'Thứ Hai' }, { value: '2', label: 'Thứ Ba' }, { value: '3', label: 'Thứ Tư' },
+                         { value: '4', label: 'Thứ Năm' }, { value: '5', label: 'Thứ Sáu' }, { value: '6', label: 'Thứ Bảy' }, { value: '0', label: 'Chủ Nhật' }
+                       ]}
+                       value={c.dayOfWeek.toString()}
+                       onValueChange={(val) => val && updateScheduleConfig(c.id, 'dayOfWeek', Number(val))}
+                       placeholder="Chọn"
+                       searchPlaceholder="Tìm..."
+                     />
                    </div>
                    <div className="w-1/3">
                      <label className="text-xs font-medium">Bắt Đầu</label>
@@ -838,16 +917,10 @@ export default function ClassDetailPage() {
                      <label className="text-xs font-medium">Kết Thúc</label>
                      <Input type="time" value={c.end_time} onChange={(e) => updateScheduleConfig(c.id, 'end_time', e.target.value)} required />
                    </div>
-                   <Button type="button" variant="ghost" size="icon" className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0" onClick={() => removeScheduleConfig(c.id)}>
-                     <Trash2 className="h-4 w-4" />
-                   </Button>
+                   <Button type="button" variant="ghost" size="icon" onClick={() => removeScheduleConfig(c.id)}><Trash2 className="h-4 w-4" /></Button>
                  </div>
                ))}
-               {scheduleConfigs.length === 0 && (
-                 <p className="text-sm text-red-500 text-center">Vui lòng thêm ít nhất 1 khung giờ.</p>
-               )}
              </div>
-             
              <DialogFooter className="pt-4">
                 <Button type="button" variant="outline" onClick={() => setIsScheduleOpen(false)}>Hủy</Button>
                 <Button type="submit" disabled={scheduleConfigs.length === 0}>Tạo Lịch Hàng Loạt</Button>
@@ -856,7 +929,6 @@ export default function ClassDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ========== MODAL: ĐỔI GIA SƯ (MỚI) ========== */}
       <Dialog open={isChangeTutorOpen} onOpenChange={setIsChangeTutorOpen}>
         <DialogContent>
           <DialogHeader>
@@ -871,18 +943,13 @@ export default function ClassDetailPage() {
           <form onSubmit={handleChangeTutor} className="space-y-4 py-4">
             <div>
               <label className="text-sm font-medium">Gia Sư Mới <span className="text-red-500">*</span></label>
-              <Select value={newTutorId} onValueChange={(val) => setNewTutorId(val || '')} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn gia sư..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {allTutors
-                    .filter(t => t.tutor_id !== classInfo?.tutor_id)
-                    .map(t => (
-                      <SelectItem key={t.tutor_id} value={t.tutor_id}>{t.name}</SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+              <Combobox
+                options={allTutors.filter(t => t.tutor_id !== classInfo?.tutor_id).map(t => ({ value: t.tutor_id, label: t.name }))}
+                value={newTutorId}
+                onValueChange={(val) => setNewTutorId(val || '')}
+                placeholder="Chọn gia sư..."
+                searchPlaceholder="Tìm gia sư..."
+              />
             </div>
             <div>
               <label className="text-sm font-medium">Ngày Hiệu Lực <span className="text-red-500">*</span></label>

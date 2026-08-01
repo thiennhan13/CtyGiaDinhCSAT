@@ -40,7 +40,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
   }
 
   if (searchTerm) {
-    query = query.or(`name.ilike.%${searchTerm}%,contact_phone.ilike.%${searchTerm}%,province.ilike.%${searchTerm}%`);
+    query = query.or(`name.ilike.%${searchTerm}%,parent_contact.ilike.%${searchTerm}%,student_contact.ilike.%${searchTerm}%,province.ilike.%${searchTerm}%`);
   }
 
   const { data, count, error } = await query

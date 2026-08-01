@@ -8,11 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { createClient } from '@/lib/supabase/client';
+import { useAlert, useConfirm } from '@/components/ui/use-dialog';
 
 export default function TutorsPage() {
   const [tutors, setTutors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { alert: showAlert, AlertDialog } = useAlert();
+  const { confirm, ConfirmDialog } = useConfirm();
   
   // form
   const [name, setName] = useState('');
@@ -72,15 +75,21 @@ export default function TutorsPage() {
       setEmail('');
       setPhone('');
       fetchTutors();
-      alert('Đã tạo tài khoản Gia sư. Mật khẩu đăng nhập là số điện thoại.');
+      await showAlert({ title: 'Tạo tài khoản thành công', description: 'Đã cấp tài khoản gia sư. Mật khẩu đăng nhập là số điện thoại.', variant: 'success' });
     } catch (err: any) {
-      alert("Lỗi: " + err.message);
+      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
     }
     setIsSubmitting(false);
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hành động này sẽ xóa hoặc vô hiệu hóa gia sư này. Bạn có chắc chắn không?')) return;
+    const ok = await confirm({
+      title: 'Vô hiệu hóa gia sư?',
+      description: 'Hành động này sẽ xóa hoặc vô hiệu hóa gia sư này. Bạn có chắc chắn không?',
+      confirmText: 'Xóa',
+      variant: 'destructive',
+    });
+    if (!ok) return;
     try {
       const res = await fetch('/api/admin/tutors', {
         method: 'POST',
@@ -91,7 +100,7 @@ export default function TutorsPage() {
       if (!res.ok) throw new Error(data.error || 'Có lỗi xảy ra');
       fetchTutors();
     } catch (err: any) {
-      alert("Lỗi: " + err.message);
+      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
     }
   }
 
@@ -99,6 +108,8 @@ export default function TutorsPage() {
 
   return (
     <div className="space-y-6">
+      <AlertDialog />
+      <ConfirmDialog />
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <h2 className="text-3xl font-bold tracking-tight text-slate-900">Quản lý Gia Sư</h2>
       </div>

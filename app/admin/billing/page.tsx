@@ -8,12 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { createClient } from '@/lib/supabase/client';
 import { format, subMonths, startOfMonth } from 'date-fns';
 import { formatVND } from '@/lib/format';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileSpreadsheet, ChevronDown, ChevronRight, AlertTriangle, Users, BookOpen, TrendingUp } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Combobox } from '@/components/ui/combobox';
+import { useAlert, useConfirm } from '@/components/ui/use-dialog';
 
 export default function BillingPage() {
   const [viewMode, setViewMode] = useState<'preview' | 'historical'>('preview');
@@ -22,6 +23,8 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [stats, setStats] = useState<any>(null);
+  const { alert: showAlert, AlertDialog } = useAlert();
+  const { confirm, ConfirmDialog } = useConfirm();
 
   // Preview Mode State
   const [startDate, setStartDate] = useState(format(startOfMonth(subMonths(new Date(), 1)), 'yyyy-MM-dd'));
@@ -114,23 +117,34 @@ export default function BillingPage() {
       if (!res.ok) throw new Error(data.error || data.message || 'Lỗi hệ thống');
       if (data.zero_amount_count > 0) {
         const names = data.zero_amount_students?.join(', ') || `${data.zero_amount_count} học sinh`;
-        alert(`${data.message}\n\n⚠️ Cảnh báo: Các học sinh sau có học phí = 0đ và KHÔNG được tạo hóa đơn:\n${names}\n\nHãy kiểm tra lại điểm danh và mức học phí của những học sinh này.`);
+        await showAlert({
+          title: '⚠️ Cảnh báo học phí = 0đ',
+          description: `${data.message}\n\nCác học sinh sau có học phí = 0đ và KHÔNG được tạo hóa đơn:\n${names}\n\nHãy kiểm tra lại điểm danh và mức học phí.`,
+          variant: 'warning',
+        });
       } else {
-        alert(data.message || 'Xong');
+        await showAlert({ title: 'Chốt sổ thành công', description: data.message || 'Xong', variant: 'success' });
       }
       setHistoricalPeriods(prev => Array.from(new Set([billingPeriodName, ...prev])));
       setSelectedHistoricalPeriod(billingPeriodName);
       setViewMode('historical');
       setIsBillingDialogOpen(false);
     } catch (e: any) {
-      alert('Lỗi: ' + e.message);
+      await showAlert({ title: 'Lỗi chốt sổ', description: e.message, variant: 'error' });
     }
     setGenerating(false);
   }
 
   async function handleRollbackBilling() {
     if (!selectedHistoricalPeriod) return;
-    if (!confirm(`Bạn có chắc chắn muốn HỦY các hóa đơn CHƯА THU của đợt "${selectedHistoricalPeriod}"?\n\nCác hóa đơn ĐÃ THU sẽ được GIỮ NGUYÊN. Chỉ các hóa đơn chưa thu mới bị xóa và các buổi học tương ứng sẽ được mở khóa để chốt sổ lại.`)) return;
+    const ok = await confirm({
+      title: 'Hủy chốt sổ đợt này?',
+      description: `Hủy các hóa đơn CHƯA THU của đợt "${selectedHistoricalPeriod}".\n\nCác hóa đơn ĐÃ THU sẽ được GIỮ NGUYÊN. Chỉ hóa đơn chưa thu mới bị xóa.`,
+      confirmText: 'Hủy chốt sổ',
+      cancelText: 'Không',
+      variant: 'destructive',
+    });
+    if (!ok) return;
     setGenerating(true);
     try {
       const res = await fetch('/api/admin/billing/rollback', {
@@ -140,7 +154,7 @@ export default function BillingPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Lỗi hệ thống');
-      alert(data.message);
+      await showAlert({ title: 'Hủy chốt sổ thành công', description: data.message, variant: 'success' });
       if (data.details?.paid_kept > 0) {
         setPayments([]); setStats(null);
       } else {
@@ -150,7 +164,7 @@ export default function BillingPage() {
         if (remaining.length === 0) setViewMode('preview');
       }
     } catch (e: any) {
-      alert('Lỗi: ' + e.message);
+      await showAlert({ title: 'Lỗi', description: e.message, variant: 'error' });
     }
     setGenerating(false);
   }
@@ -167,10 +181,10 @@ export default function BillingPage() {
   // ──────────────────────────────────────────────────────────────────
   // EXPORT: Lương Gia Sư — Multi-sheet workbook, mỗi gia sư 1 sheet
   // ──────────────────────────────────────────────────────────────────
-  const exportTutorSalaries = () => {
+  const exportTutorSalaries = async () => {
     try {
       const detail = stats?.tutorSalaryDetail ?? stats?.tutorSalaries;
-      if (!detail?.length) { alert('Không có dữ liệu lương gia sư để xuất!'); return; }
+      if (!detail?.length) { await showAlert({ title: 'Lỗi', description: 'Không có dữ liệu lương gia sư để xuất!', variant: 'warning' }); return; }
 
       const wb = XLSX.utils.book_new();
       const period = selectedHistoricalPeriod || 'preview';
@@ -253,18 +267,18 @@ export default function BillingPage() {
 
       XLSX.writeFile(wb, `luong_gia_su_${safePeriod}.xlsx`);
     } catch (err: any) {
-      alert('Lỗi khi xuất file Excel Lương Gia Sư: ' + (err.message || String(err)));
+      await showAlert({ title: 'Lỗi', description: 'Lỗi khi xuất file Excel Lương Gia Sư: ' + (err.message || String(err)), variant: 'error' });
     }
   };
 
   // ──────────────────────────────────────────────────────────────────
   // EXPORT: Học Phí Học Sinh — thêm Số Buổi, Học Phí TB/Buổi
   // ──────────────────────────────────────────────────────────────────
-  const exportCustomerPayments = () => {
+  const exportCustomerPayments = async () => {
     try {
       if (viewMode === 'preview') {
         const list = stats?.studentInvoicePreview || [];
-        if (!list.length) { alert('Không có dữ liệu dự kiến hóa đơn để xuất!'); return; }
+        if (!list.length) { await showAlert({ title: 'Lỗi', description: 'Không có dữ liệu dự kiến hóa đơn để xuất!', variant: 'warning' }); return; }
         const ws = XLSX.utils.json_to_sheet(list.map((inv: any) => ({
           'Tên Học Sinh': inv.student_name || '---',
           'Lớp Học': inv.class_name || '---',
@@ -282,7 +296,7 @@ export default function BillingPage() {
         return;
       }
 
-      if (!payments.length) { alert('Không có dữ liệu học phí học viên để xuất!'); return; }
+      if (!payments.length) { await showAlert({ title: 'Lỗi', description: 'Không có dữ liệu học phí học viên để xuất!', variant: 'warning' }); return; }
       const ws = XLSX.utils.json_to_sheet(payments.map(p => {
         const key = `${p.student_id}|${p.class_id}`;
         const sessCount = sessionCountMap[key] ?? '---';
@@ -305,7 +319,7 @@ export default function BillingPage() {
       const safePeriod = String(selectedHistoricalPeriod || 'historical').replace(/[\[\]*?/\\:|<>"]/g, '_');
       XLSX.writeFile(wb, `hoc_phi_hoc_vien_${safePeriod}.xlsx`);
     } catch (err: any) {
-      alert('Lỗi khi xuất file Excel Hóa Đơn: ' + (err.message || String(err)));
+      await showAlert({ title: 'Lỗi', description: 'Lỗi khi xuất file Excel Hóa Đơn: ' + (err.message || String(err)), variant: 'error' });
     }
   };
 
@@ -317,6 +331,8 @@ export default function BillingPage() {
 
   return (
     <div className="space-y-6">
+      <AlertDialog />
+      <ConfirmDialog />
       {/* ── Header & Mode Switcher Card ── */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -382,17 +398,16 @@ export default function BillingPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-2 text-sm text-slate-700">
                   <span className="font-semibold text-slate-900">Kỳ hóa đơn đã chốt:</span>
-                  <Select value={selectedHistoricalPeriod} onValueChange={(val) => val && setSelectedHistoricalPeriod(val)}>
-                    <SelectTrigger className="w-[220px] h-9 bg-white font-medium">
-                      <SelectValue placeholder="Chọn kỳ hóa đơn" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {historicalPeriods.map(m => (
-                        <SelectItem key={m} value={m}>{m}</SelectItem>
-                      ))}
-                      {historicalPeriods.length === 0 && <SelectItem value="none" disabled>Không có dữ liệu</SelectItem>}
-                    </SelectContent>
-                  </Select>
+                  <div className="w-[220px]">
+                    <Combobox
+                      options={historicalPeriods.map(p => ({ value: p, label: p }))}
+                      value={selectedHistoricalPeriod}
+                      onValueChange={(val) => val && setSelectedHistoricalPeriod(val)}
+                      placeholder="Chọn kỳ hóa đơn"
+                      searchPlaceholder="Tìm kỳ hóa đơn..."
+                      emptyText="Không có dữ liệu"
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {historicalPeriods.length > 0 && (

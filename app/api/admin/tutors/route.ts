@@ -82,12 +82,20 @@ export async function POST(request: Request) {
 
     // HÀNH ĐỘNG: XÓA GIA SƯ
     if (parsed.data.action === 'delete') {
+      // Lấy auth_uid trước khi xóa
+      const { data: tutor } = await adminClient.from('tutors').select('auth_uid').eq('tutor_id', parsed.data.tutor_id).single();
+      
       // Soft delete: set is_deleted = true, status = 'inactive'
       const { error: deleteError } = await adminClient.from('tutors').update({ is_deleted: true, status: 'inactive' }).eq('tutor_id', parsed.data.tutor_id);
       if (deleteError) throw deleteError;
 
-      // Tùy chọn: Bạn có thể ban auth, nhưng không xóa cứng. Cẩn thận cascading.
-      return NextResponse.json({ message: 'Đã vô hiệu hóa gia sư (soft delete)' });
+      // Disable tài khoản Auth (Zombie account fix)
+      if (tutor?.auth_uid) {
+         // Ban user 100 năm (khoảng 876000 giờ)
+         await adminClient.auth.admin.updateUserById(tutor.auth_uid, { ban_duration: '876000h' });
+      }
+
+      return NextResponse.json({ message: 'Đã vô hiệu hóa gia sư và tài khoản đăng nhập.' });
     }
 
     return NextResponse.json({ error: 'Hành động không hợp lệ' }, { status: 400 });

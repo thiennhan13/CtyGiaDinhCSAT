@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/supabase/client';
 import { useParams, useRouter } from 'next/navigation';
+import { useAlert, useConfirm } from '@/components/ui/use-dialog';
 
 export default function SessionAttendancePage() {
   const params = useParams() as { class_id: string, session_id: string };
@@ -21,6 +22,8 @@ export default function SessionAttendancePage() {
   
   const router = useRouter();
   const supabase = createClient();
+  const { alert: showAlert, AlertDialog } = useAlert();
+  const { confirm, ConfirmDialog } = useConfirm();
 
   async function fetchData() {
     setLoading(true);
@@ -100,15 +103,14 @@ export default function SessionAttendancePage() {
        });
 
        if (res.ok) {
-         // B1: KHÔNG gọi update sessions ở đây nữa — API /attendance đã tự update status='completed'
-         alert('Thành công! Điểm danh đã lưu.');
+         await showAlert({ title: 'Thành công!', description: 'Điểm danh đã lưu.', variant: 'success' });
          router.push('/tutor/dashboard');
        } else {
          const d = await res.json();
          throw new Error(d.error);
        }
     } catch(err: any) {
-      alert('Lỗi: ' + err.message);
+      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
     } finally {
       isSubmittingRef.current = false;
       setSubmitting(false);
@@ -116,15 +118,21 @@ export default function SessionAttendancePage() {
   }
 
   async function handleCancelSession() {
-    if (!confirm('Bạn có chắc chắn muốn hủy buổi học này? Việc này sẽ không được tính học phí.')) return;
+    const ok = await confirm({
+      title: 'Hủy buổi học này?',
+      description: 'Buổi học sẽ được đánh dấu đã hủy và không được tính học phí.',
+      confirmText: 'Hủy buổi học',
+      variant: 'destructive',
+    });
+    if (!ok) return;
     setSubmitting(true);
     try {
       const { error } = await supabase.from('sessions').update({ status: 'cancelled' }).eq('session_id', sessionId);
       if (error) throw error;
-      alert('Đã hủy buổi học thành công.');
+      await showAlert({ title: 'Thành công', description: 'Đã hủy buổi học.', variant: 'success' });
       router.push('/tutor/dashboard');
     } catch(err: any) {
-      alert('Lỗi khi hủy buổi học: ' + err.message);
+      await showAlert({ title: 'Lỗi khi hủy buổi học', description: err.message, variant: 'error' });
     }
     setSubmitting(false);
   }
@@ -132,6 +140,8 @@ export default function SessionAttendancePage() {
   if (sessionData?.status === 'cancelled') {
     return (
       <div className="space-y-6">
+        <AlertDialog />
+        <ConfirmDialog />
         <div className="flex justify-between items-center">
           <div>
              <h2 className="text-2xl font-bold tracking-tight text-gray-900">Điểm Danh: {sessionData?.classes?.name}</h2>
@@ -151,6 +161,8 @@ export default function SessionAttendancePage() {
 
   return (
     <div className="space-y-6">
+      <AlertDialog />
+      <ConfirmDialog />
       <div className="flex justify-between items-center">
         <div>
            <h2 className="text-2xl font-bold tracking-tight text-gray-900">Điểm Danh: {sessionData?.classes?.name}</h2>

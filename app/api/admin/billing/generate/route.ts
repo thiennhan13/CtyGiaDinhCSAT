@@ -84,16 +84,15 @@ export async function GET(request: Request) {
       fallbackFeeMap[key] = parseFloat(String(cs.tuition_fee_per_session)) || 0;
     });
 
-    // Fallback cấp 2: default_tuition_fee của học sinh (khi cả class_students không có)
+    // Fallback: Lấy tên học sinh để báo lỗi nếu học phí = 0
     const allStudentIds = [...new Set(attendances?.map(a => a.student_id) ?? [])];
     const { data: studentsDefault } = await supabase
       .from('students')
-      .select('student_id, name, default_tuition_fee')
+      .select('student_id, name')
       .in('student_id', allStudentIds);
-    const studentDefaultMap: Record<string, { fee: number; name: string }> = {};
+    const studentDefaultMap: Record<string, { name: string }> = {};
     studentsDefault?.forEach(s => {
       studentDefaultMap[s.student_id] = {
-        fee: parseFloat(String(s.default_tuition_fee)) || 0,
         name: s.name
       };
     });
@@ -101,10 +100,10 @@ export async function GET(request: Request) {
     attendances?.forEach(att => {
       const classId = sessionClassMap[att.session_id];
       const key = `${att.student_id}|${classId}`;
-      // Ưu tiên: snapshot đã lưu → fallback cấp 1 (class_students kể cả dropped) → fallback cấp 2 (default_tuition_fee)
+      // Ưu tiên: snapshot đã lưu → fallback cấp 1 (class_students kể cả dropped)
       let fee = att.tuition_fee_snapshot != null
         ? parseFloat(String(att.tuition_fee_snapshot))
-        : (fallbackFeeMap[key] ?? studentDefaultMap[att.student_id]?.fee ?? 0);
+        : (fallbackFeeMap[key] ?? 0);
       studentClassFees[key] = (studentClassFees[key] || 0) + fee;
     });
 

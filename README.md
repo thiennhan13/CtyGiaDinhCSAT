@@ -1,90 +1,82 @@
 # CSAT Tutor Portal
 
-Hệ thống quản lý trung tâm gia sư, hỗ trợ tự động hóa các khâu vận hành thường ngày như: quản lý hồ sơ học sinh, gia sư, xếp lớp, theo dõi điểm danh và chốt sổ tính học phí/lương gia sư hàng tháng.
+![Next.js](https://img.shields.io/badge/Next.js_15-black?style=flat-square&logo=next.js)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![Status](https://img.shields.io/badge/trạng_thái-nội_bộ-orange?style=flat-square)
+
+Hệ thống quản lý nội bộ của nhóm gia sư CSAT. Dùng để điểm danh tay từng buổi học và tổng kết hóa đơn / bảng lương hàng tháng.
 
 ---
 
-## 🛠️ 1. Công Nghệ Sử Dụng
+## Stack sử dụng
 
-Dự án được xây dựng trên stack công nghệ phổ biến cho ứng dụng web hiện đại:
-- **Framework:** Next.js 15 (App Router), React 19, TypeScript
-- **Giao diện & Styling:** Tailwind CSS v4, thư viện component `shadcn/ui`, `lucide-react`
-- **Cơ sở dữ liệu & Xác thực:** Supabase (PostgreSQL + Supabase Auth)
-- **Xử lý báo cáo Excel:** `xlsx` (SheetJS)
-- **Kiểm soát chất lượng mã nguồn:** ESLint 9 Flat Config
-
----
-
-## 📁 2. Cấu Trúc Thư Mục
-
-Để các lập trình viên dễ nắm bắt khi làm việc với codebase, dự án được quy hoạch theo bố cục sau:
-
-```text
-├── app/
-│   ├── admin/        # Trang giao diện dành riêng cho Quản trị viên
-│   ├── tutor/        # Trang giao diện dành riêng cho Gia sư
-│   ├── api/          # Các API Endpoints xử lý chốt sổ, điểm danh, xếp lớp
-│   └── globals.css   # Style CSS chung của ứng dụng
-├── components/       # Các component UI tái sử dụng (Card, Button, Modal, Table, Badge,...)
-├── database/         # Chứa CSAT_master_schema.sql (nguồn chuẩn duy nhất cho bảng, enum, RPCs)
-├── lib/
-│   ├── format.ts     # Thư viện hàm định dạng tiền tệ VNĐ, số, ngày tháng và màu trạng thái
-│   └── supabase/     # Client kết nối Supabase (Server và Client SSR)
-└── public/           # Hình ảnh, icon và tài nguyên tĩnh
-```
+| Lớp | Công nghệ |
+|---|---|
+| **Framework** | Next.js 15 (App Router), React 19, TypeScript |
+| **Giao diện** | Tailwind CSS v4, shadcn/ui, lucide-react |
+| **Database & Auth** | Supabase (PostgreSQL + RLS + Auth) |
+| **Export** | SheetJS (`xlsx`) — xuất bảng lương & hóa đơn Excel |
 
 ---
 
-## 💡 3. Các Tính Năng Chính
+## Tính năng chính
 
-### 👑 Quản Trị Viên (Admin)
-- **Quản lý Học sinh & Gia sư:** Thêm mới, chỉnh sửa hồ sơ, theo dõi học phí theo lớp, hiển thị sơ đồ tổ chức gia sư trực quan.
-- **Quản lý Lớp học:** Xếp lớp, gán học sinh, quản lý lịch học định kỳ và nhận thông báo nhanh qua Pop-up Modal cho các lớp sắp hết hạn cần gia hạn.
-- **Kế toán & Chốt sổ Tài chính:**
-  - **Chế độ Dự Kiến (Preview):** Xem trước và tính toán thử hóa đơn học phí của học sinh và bảng lương chi tiết của gia sư trước khi phát hành hóa đơn chính thức.
-  - **Chế độ Lịch Sử (Historical):** Xem lại các kỳ chốt sổ đã qua, lọc danh sách chưa thu tiền, đánh dấu thu tiền hoặc hoàn tác (rollback) chốt sổ khi cần.
-  - **Xuất Excel:** Tự động tạo file Excel cho hóa đơn học sinh (kèm số buổi và đơn giá TB) và bảng lương gia sư (tạo nhiều sheet, mỗi gia sư một sheet chi tiết từng buổi).
-- **Trung tâm Thông báo:** Tạo banner thông báo gửi đến bảng điều khiển của gia sư.
+### Gia sư
+- Đăng nhập bằng **email**, mật khẩu mặc định là **số điện thoại**.
+- Xem lịch dạy, bấm vào từng buổi để **điểm danh** (có mặt / vắng mặt + ghi chú).
+- Xem **bảng lương** theo từng kỳ, có thể mở rộng xem chi tiết từng buổi.
 
-### 👩‍🏫 Gia Sư (Tutor)
-- **Đăng nhập & Bảng điều khiển:** Truy cập bằng số điện thoại (mật khẩu mặc định là SĐT), xem nhanh lịch dạy và thông báo từ trung tâm.
-- **Điểm danh Buổi học:** Ghi nhận chuyên cần cho học sinh. Khi điểm danh, hệ thống tự động lưu mức học phí tại thời điểm đó (snapshot) để không bị ảnh hưởng nếu học phí thay đổi trong tương lai.
-- **Theo dõi Lương:** Xem chi tiết bảng lương từng kỳ, có thể mở rộng để xem cụ thể từng buổi dạy ở mỗi lớp.
-
----
-
-## ⚙️ 4. Lưu Ý Kỹ Thuật (Architecture Notes)
-
-- **Sử dụng SQL RPCs trong cơ sở dữ liệu:** Các thao tác quan trọng và có tính ràng buộc cao như *tạo lớp học*, *điểm danh*, *chốt sổ hàng tháng* hay *hủy hóa đơn* được xử lý trực tiếp dưới Database thông qua các hàm RPC (`SECURITY DEFINER`). Cách làm này giúp đảm bảo tính toàn vẹn dữ liệu (ACID), tránh lỗi sai lệch số liệu khi có nhiều người cùng thao tác đồng thời.
-- **Thư viện định dạng tập trung (`lib/format.ts`):** Toàn bộ việc hiển thị tiền VNĐ (`formatVND`), số lượng và ngày tháng trong hệ thống đều dùng chung một bộ hàm tiện ích để tránh viết code trùng lặp và giữ giao diện nhất quán.
+### Admin
+- **Học sinh & Gia sư:** Thêm, sửa hồ sơ; cấp tài khoản gia sư (mật khẩu = SĐT).
+- **Lớp học:** Tạo lớp, gán học sinh, thiết lập lịch cố định hàng tuần.
+- **Kế toán & Chốt sổ:**
+  - *Dự kiến* — kiểm tra số liệu trước khi phát hành hóa đơn.
+  - *Lịch sử* — xem các kỳ đã chốt, đánh dấu đã thu, hủy chốt sổ khi cần.
+  - Xuất Excel: hóa đơn học sinh + bảng lương chi tiết (mỗi gia sư một sheet).
+- **Thông báo:** Tạo banner gửi lên dashboard của gia sư.
 
 ---
 
-## 🚀 5. Hướng Dẫn Cài Đặt Chạy Local
+## Kiến trúc & ghi chú kỹ thuật
 
-**Bước 1:** Tải mã nguồn về máy:
+**Snapshot:** Khi điểm danh, hệ thống chốt cứng học phí (`tuition_fee_snapshot`), phí trung tâm (`csat_fee_snapshot`) và gia sư dạy (`tutor_id_snapshot`) ngay tại thời điểm đó. Mọi thay đổi sau này đều không làm lệch số liệu cũ.
+
+**RPC thay vì raw SQL từ client:** Các thao tác phức tạp (tạo lớp, điểm danh, chốt sổ, rollback) đều chạy qua hàm PostgreSQL `SECURITY DEFINER`. Đảm bảo ACID và tránh race condition khi nhiều người thao tác cùng lúc.
+
+**Chốt sổ thông minh:** API generate đánh dấu `billing_period` cho *tất cả* buổi học trong khoảng ngày (kể cả buổi không ai đi học), tránh bị kẹt lại trong kỳ tiếp theo.
+
+**Rollback từng phần:** Chỉ xóa hóa đơn `unpaid`; hóa đơn `paid` được giữ nguyên.
+
+---
+
+## Chạy local
+
 ```bash
-git clone <url-repository>
+# 1. Clone về
+git clone <url>
 cd CtyGiaDinhCSAT
-```
 
-**Bước 2:** Cấu hình biến môi trường:
-Copy file `.env.example` thành `.env.local` (hoặc `.env`) và điền thông tin kết nối Supabase của dự án:
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-supabase-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-CRON_SECRET=your-cron-secret
-```
+# 2. Điền biến môi trường
+cp .env.example .env
+# Sửa NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
 
-**Bước 3:** Cài đặt các gói thư viện phụ thuộc:
-```bash
+# 3. Cài thư viện
 npm install
-```
 
-**Bước 4:** Khởi động máy chủ phát triển (Development Server):
-```bash
+# 4. Khởi động
 npm run dev
 ```
 
-Mở trình duyệt và truy cập vào [http://localhost:3000](http://localhost:3000) để sử dụng ứng dụng. Toàn bộ mã nguồn đã được kiểm duyệt bằng ESLint 9 và TypeScript compiler, sẵn sàng cho môi trường Production.
+Truy cập [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Database
+
+Toàn bộ schema (bảng, enum, index, RLS, RPC) nằm trong một file duy nhất:
+```
+database/CSAT_master_schema.sql
+```
+Chỉ chạy file này **một lần** trên database trống. Với database đã có dữ liệu, chạy các đoạn `[MIGRATION ONLY]` được đánh dấu trong file.

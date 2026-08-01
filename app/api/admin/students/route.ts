@@ -4,32 +4,38 @@ import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
 
 const createStudentSchema = z.object({
-  action: z.literal('create'),
-  name: z.string().min(2, "Tên phải có ít nhất 2 ký tự"),
-  age: z.union([z.string(), z.number()]).transform(val => Number(val)),
-  province: z.string().min(2, "Vui lòng nhập tỉnh thành"),
-  contact_phone: z.string().optional(),
-  contact_link: z.string().optional(),
-  status: z.string().optional().default('Đang học'),
-  default_tuition_fee: z.union([z.string(), z.number()]).transform(val => Number(val)).optional().default(100000),
-  notes: z.string().optional(),
+  action:              z.literal('create'),
+  // Chỉ bắt buộc tên
+  name:                z.string().min(2, "Tên phải có ít nhất 2 ký tự"),
+  // Tất cả còn lại optional
+  date_of_birth:       z.string().date("Ngày sinh không hợp lệ").optional().nullable(),
+  // student_contact = liên lạc học sinh (Link FB / SĐT Zalo)
+  student_contact:     z.string().optional().nullable(),
+  // parent_contact = liên lạc phụ huynh (Link FB / SĐT Zalo)
+  parent_contact:      z.string().optional().nullable(),
+  province:            z.string().optional().nullable(),
+  parent_name:         z.string().optional().nullable(),
+  zalo_class_name:     z.string().optional().nullable(),
+  status:              z.string().optional().default('Đang học'),
+  notes:               z.string().optional().nullable(),
 });
 
 const updateStudentSchema = z.object({
-  action: z.literal('update'),
-  student_id: z.string().uuid("Student ID không hợp lệ"),
-  name: z.string().min(2).optional(),
-  age: z.union([z.string(), z.number()]).transform(val => Number(val)).optional(),
-  province: z.string().optional(),
-  contact_phone: z.string().optional(),
-  contact_link: z.string().optional(),
-  status: z.string().optional(),
-  default_tuition_fee: z.union([z.string(), z.number()]).transform(val => Number(val)).optional(),
-  notes: z.string().optional(),
+  action:              z.literal('update'),
+  student_id:          z.string().uuid("Student ID không hợp lệ"),
+  name:                z.string().min(2).optional(),
+  date_of_birth:       z.string().date("Ngày sinh không hợp lệ").optional().nullable(),
+  student_contact:     z.string().optional().nullable(),
+  parent_contact:      z.string().optional().nullable(),
+  province:            z.string().optional().nullable(),
+  parent_name:         z.string().optional().nullable(),
+  zalo_class_name:     z.string().optional().nullable(),
+  status:              z.string().optional(),
+  notes:               z.string().optional().nullable(),
 });
 
 const deleteStudentSchema = z.object({
-  action: z.literal('delete'),
+  action:     z.literal('delete'),
   student_id: z.string().uuid("Student ID không hợp lệ"),
 });
 
@@ -60,14 +66,15 @@ export async function POST(request: Request) {
 
     if (parsed.data.action === 'create') {
       const { data, error } = await adminClient.from('students').insert([{ 
-        name: parsed.data.name, 
-        age: parsed.data.age, 
-        province: parsed.data.province, 
-        contact_phone: parsed.data.contact_phone, 
-        contact_link: parsed.data.contact_link, 
-        status: parsed.data.status, 
-        default_tuition_fee: parsed.data.default_tuition_fee, 
-        notes: parsed.data.notes
+        name:                parsed.data.name, 
+        date_of_birth:       parsed.data.date_of_birth ?? null,
+        student_contact:     parsed.data.student_contact ?? null,
+        parent_contact:      parsed.data.parent_contact ?? null,
+        province:            parsed.data.province ?? null,
+        parent_name:         parsed.data.parent_name ?? null,
+        zalo_class_name:     parsed.data.zalo_class_name ?? null,
+        status:              parsed.data.status, 
+        notes:               parsed.data.notes ?? null,
       }]).select().single();
       if (error) throw error;
       return NextResponse.json({ message: 'Thêm học sinh thành công', data });
@@ -75,7 +82,12 @@ export async function POST(request: Request) {
 
     if (parsed.data.action === 'update') {
       const { action, student_id, ...updateData } = parsed.data;
-      const { data, error } = await adminClient.from('students').update(updateData).eq('student_id', student_id).select().single();
+      const { data, error } = await adminClient
+        .from('students')
+        .update(updateData)
+        .eq('student_id', student_id)
+        .select()
+        .single();
       if (error) throw error;
       return NextResponse.json({ message: 'Cập nhật thành công', data });
     }

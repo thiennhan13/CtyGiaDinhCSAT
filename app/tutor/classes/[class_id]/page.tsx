@@ -10,9 +10,10 @@ import { createClient } from '@/lib/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Plus, Trash2, ArrowLeft, Calendar as CalendarIcon, User as UserIcon, MessageSquare } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { formatNumber } from '@/lib/format';
+import { Combobox } from '@/components/ui/combobox';
+import { useAlert, useConfirm } from '@/components/ui/use-dialog';
 
 // L1 FIX: Tránh lỗi timezone khi parse chuỗi 'YYYY-MM-DD'
 // new Date('2026-06-17') trả về UTC midnight → bị lệch múi giờ → sai thứ trong tuần
@@ -35,6 +36,8 @@ export default function TutorClassDetailPage() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tutorId, setTutorId] = useState<string>('');
+  const { alert: showAlert, AlertDialog } = useAlert();
+  const { confirm, ConfirmDialog } = useConfirm();
 
   // Review modal state
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -89,7 +92,7 @@ export default function TutorClassDetailPage() {
       .single();
     
     if (!cData) {
-        alert("Không tìm thấy lớp học hoặc không có quyền truy cập.");
+        await showAlert({ title: 'Lỗi', description: 'Không tìm thấy lớp học hoặc không có quyền truy cập.', variant: 'error' });
         router.push('/tutor/classes');
         return;
     }
@@ -98,7 +101,7 @@ export default function TutorClassDetailPage() {
     const [{ data: sData }, { data: sessData }] = await Promise.all([
        supabase
          .from('class_students')
-         .select('tuition_fee_per_session, students(student_id, name, contact_phone, contact_link)')
+         .select('tuition_fee_per_session, students(student_id, name, parent_contact, student_contact)')
          .eq('class_id', classId)
          .eq('status', 'active'), // Lỗi A FIX: Chỉ hiển thị học sinh đang học, ẩn học sinh đã nghỉ (dropped)
        supabase
@@ -136,10 +139,10 @@ export default function TutorClassDetailPage() {
       }]);
       
       if (error) throw error;
-      alert("Lưu nhận xét thành công!");
+      await showAlert({ title: 'Thành công', description: 'Lưu nhận xét thành công!', variant: 'success' });
       setIsReviewModalOpen(false);
     } catch (err: any) {
-      alert("Lỗi khi lưu nhận xét: " + err.message);
+      await showAlert({ title: 'Lỗi', description: "Lỗi khi lưu nhận xét: " + err.message, variant: 'error' });
     } finally {
       setSubmittingReview(false);
     }
@@ -149,32 +152,38 @@ export default function TutorClassDetailPage() {
     e.preventDefault();
     if (!newSessionDate || !newSessionStart || !newSessionEnd) return;
     
-    const { error } = await supabase.from('sessions').insert([{
-        class_id: classId,
-        date: newSessionDate,
-        start_time: newSessionStart,
-        end_time: newSessionEnd,
-        status: 'scheduled',
-        csat_fee_snapshot: classData.csat_fee_per_session,
-        tutor_id_snapshot: classData.tutor_id || tutorId
-    }]);
-
-    if (error) {
-        alert("Lỗi tạo buổi học: " + error.message);
-    } else {
-        setIsAddSessionModalOpen(false);
-        fetchClassDetails();
+    try {
+      const { error } = await supabase.from('sessions').insert([{
+          class_id: classId,
+          date: newSessionDate,
+          start_time: newSessionStart,
+          end_time: newSessionEnd,
+          status: 'scheduled',
+          csat_fee_snapshot: classData.csat_fee_per_session,
+          tutor_id_snapshot: classData.tutor_id || tutorId
+      }]);
+      if (error) throw error;
+      setIsAddSessionModalOpen(false);
+      fetchClassDetails();
+    } catch (error: any) {
+      await showAlert({ title: 'Lỗi', description: "Lỗi tạo buổi học: " + error.message, variant: 'error' });
     }
   };
 
   const handleDeleteSession = async (sessionId: string) => {
-    if (!confirm('Hành động này sẽ XÓA VĨNH VIỄN buổi học này. Bạn có chắc chắn không?')) return;
-    
-    const { error } = await supabase.from('sessions').delete().eq('session_id', sessionId);
-    if (error) {
-        alert("Lỗi xóa buổi học: " + error.message);
-    } else {
-        fetchClassDetails();
+    const ok = await confirm({
+      title: 'Xóa buổi học này?',
+      description: 'Hành động này sẽ XÓA VĨNH VIỄN buổi học này. Bạn có chắc chắn không?',
+      confirmText: 'Xóa',
+      variant: 'destructive',
+    });
+    if (!ok) return;
+    try {
+      const { error } = await supabase.from('sessions').delete().eq('session_id', sessionId);
+      if (error) throw error;
+      fetchClassDetails();
+    } catch (error: any) {
+      await showAlert({ title: 'Lỗi', description: "Lỗi xóa buổi học: " + error.message, variant: 'error' });
     }
   };
 
@@ -187,11 +196,6 @@ export default function TutorClassDetailPage() {
   const handleBulkDelete = async () => {
     if(!bulkDelStart || !bulkDelEnd || !bulkDeleteSession) return;
     
-    const parseLocalDate = (dateStr: string) => {
-      const [y, m, d] = dateStr.split('-');
-      return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-    };
-
     const dDate = parseLocalDate(bulkDeleteSession.date);
     const dayOfWeek = dDate.getDay();
 
@@ -205,23 +209,29 @@ export default function TutorClassDetailPage() {
       .eq('status', 'scheduled');
 
     if(!toDelete || toDelete.length === 0) {
-      alert("Không tìm thấy buổi học nào phù hợp để xóa.");
+      await showAlert({ title: 'Lỗi', description: 'Không tìm thấy buổi học nào phù hợp để xóa.', variant: 'warning' });
       return;
     }
     
     const filteredToDelete = toDelete.filter(s => parseLocalDate(s.date).getDay() === dayOfWeek);
 
     if(filteredToDelete.length === 0) {
-       alert("Không tìm thấy buổi học nào phù hợp để xóa.");
+       await showAlert({ title: 'Lỗi', description: 'Không tìm thấy buổi học nào phù hợp để xóa.', variant: 'warning' });
        return;
     }
 
-    if(!confirm(`Tìm thấy ${filteredToDelete.length} buổi học. Bạn có chắc muốn xóa tất cả?`)) return;
+    const ok = await confirm({
+      title: `Xóa ${filteredToDelete.length} buổi học?`,
+      description: `Tìm thấy ${filteredToDelete.length} buổi học. Bạn có chắc muốn xóa tất cả?`,
+      confirmText: 'Xóa',
+      variant: 'destructive',
+    });
+    if (!ok) return;
 
-    for(const s of filteredToDelete) {
-       await supabase.from('sessions').delete().eq('session_id', s.session_id);
-    }
-    alert("Đã xóa loạt buổi học.");
+    const sessionIds = filteredToDelete.map(s => s.session_id);
+    await supabase.from('sessions').delete().in('session_id', sessionIds);
+    await showAlert({ title: 'Thành công', description: 'Đã xóa loạt buổi học.', variant: 'success' });
+    
     setBulkDeleteSession(null);
     fetchClassDetails();
   };
@@ -230,37 +240,38 @@ export default function TutorClassDetailPage() {
     e.preventDefault();
     if(!bulkAddStart || !bulkAddEnd || !bulkAddStartTime || !bulkAddEndTime) return;
     
+    const dStart = parseLocalDate(bulkAddStart);
+    const dEnd = parseLocalDate(bulkAddEnd);
+    const targetDay = parseInt(bulkAddDay);
+    
     const generatedSessions = [];
-    // L1 FIX: Dùng parseLocalDate thay vì new Date(string) để tránh lệch timezone
-    let curr = parseLocalDate(bulkAddStart);
-    const end = parseLocalDate(bulkAddEnd);
+    let currentDate = dStart;
 
-    while(curr <= end) {
-       if(curr.getDay().toString() === bulkAddDay) {
-          generatedSessions.push({
-             class_id: classId,
-             date: formatLocalDate(curr), // dùng formatLocalDate thay vì format() của date-fns
-             start_time: bulkAddStartTime,
-             end_time: bulkAddEndTime,
-             csat_fee_snapshot: classData?.csat_fee_per_session || 0,
-             tutor_id_snapshot: classData?.tutor_id || tutorId,
-             status: 'scheduled'
-          });
-       }
-       curr.setDate(curr.getDate() + 1);
+    while (currentDate <= dEnd) {
+      if (currentDate.getDay() === targetDay) {
+        generatedSessions.push({
+          class_id: classId,
+          date: formatLocalDate(currentDate),
+          start_time: bulkAddStartTime,
+          end_time: bulkAddEndTime,
+          csat_fee_snapshot: classData?.csat_fee_per_session || 0,
+          tutor_id_snapshot: classData?.tutor_id || tutorId,
+          status: 'scheduled'
+        });
+      }
+      currentDate = new Date(currentDate.getTime() + 24*60*60*1000);
     }
     
     if(generatedSessions.length === 0) {
-       alert("Không có buổi học nào được tạo trong khoảng thời gian này.");
+       await showAlert({ title: 'Lỗi', description: 'Không có buổi học nào được tạo trong khoảng thời gian này.', variant: 'warning' });
        return;
     }
 
-    const { error } = await supabase.from('sessions').insert(generatedSessions);
-    if(error) {
-       alert("Lỗi: " + error.message);
-    } else {
-       // Nếu ngày kết thúc bulk vượt quá ngày kết thúc lớp, tự động gia hạn
-       if(parseLocalDate(bulkAddEnd) > parseLocalDate(classData.end_date)) {
+    try {
+      const { error } = await supabase.from('sessions').insert(generatedSessions);
+      if(error) throw error;
+      
+      if(parseLocalDate(bulkAddEnd) > parseLocalDate(classData.end_date)) {
            try {
              const { data: { user } } = await supabase.auth.getUser();
              if (user) {
@@ -280,10 +291,12 @@ export default function TutorClassDetailPage() {
            } catch (e) {
                console.error('Failed to renew automatically', e);
            }
-       }
-       alert(`Đã tạo thành công ${generatedSessions.length} buổi học.`);
-       setIsBulkAddOpen(false);
-       fetchClassDetails();
+      }
+      await showAlert({ title: 'Thành công', description: `Đã tạo thành công ${generatedSessions.length} buổi học.`, variant: 'success' });
+      setIsBulkAddOpen(false);
+      fetchClassDetails();
+    } catch (err: any) {
+      await showAlert({ title: 'Lỗi', description: "Lỗi: " + err.message, variant: 'error' });
     }
   };
 
@@ -293,6 +306,8 @@ export default function TutorClassDetailPage() {
 
   return (
     <div className="space-y-6">
+      <AlertDialog />
+      <ConfirmDialog />
       {isEndingOrEnded && (
         <div className="bg-amber-100 border border-amber-400 text-amber-700 px-4 py-3 rounded-lg flex flex-col sm:flex-row justify-between items-center shadow-sm">
            <div>
@@ -328,7 +343,9 @@ export default function TutorClassDetailPage() {
                         <div key={st.student_id} className="flex justify-between items-center p-3 border rounded-lg bg-slate-50">
                             <div>
                                 <p className="font-semibold">{st.name}</p>
-                                <p className="text-xs text-slate-500">SĐT: {st.contact_phone || '---'}</p>
+                                <p className="text-xs text-slate-500">
+                                  Liên lạc: {st.student_contact || st.parent_contact || '---'}
+                                </p>
                             </div>
                             <div className="text-right">
                                 <p className="text-sm font-medium text-emerald-600">Học phí: {formatNumber(assoc.tuition_fee_per_session)}đ/b</p>
@@ -481,20 +498,21 @@ export default function TutorClassDetailPage() {
              
              <div>
                <label className="text-sm font-medium">Ngày Trong Tuần</label>
-               <Select value={bulkAddDay} onValueChange={(val) => setBulkAddDay(val || '1')}>
-                 <SelectTrigger>
-                   <SelectValue />
-                 </SelectTrigger>
-                 <SelectContent>
-                   <SelectItem value="1">Thứ Hai</SelectItem>
-                   <SelectItem value="2">Thứ Ba</SelectItem>
-                   <SelectItem value="3">Thứ Tư</SelectItem>
-                   <SelectItem value="4">Thứ Năm</SelectItem>
-                   <SelectItem value="5">Thứ Sáu</SelectItem>
-                   <SelectItem value="6">Thứ Bảy</SelectItem>
-                   <SelectItem value="0">Chủ Nhật</SelectItem>
-                 </SelectContent>
-               </Select>
+               <Combobox
+                 options={[
+                   { value: '1', label: 'Thứ Hai' },
+                   { value: '2', label: 'Thứ Ba' },
+                   { value: '3', label: 'Thứ Tư' },
+                   { value: '4', label: 'Thứ Năm' },
+                   { value: '5', label: 'Thứ Sáu' },
+                   { value: '6', label: 'Thứ Bảy' },
+                   { value: '0', label: 'Chủ Nhật' },
+                 ]}
+                 value={bulkAddDay}
+                 onValueChange={(val) => setBulkAddDay(val || '1')}
+                 placeholder="Chọn ngày"
+                 searchPlaceholder="Tìm ngày..."
+               />
              </div>
 
              <div className="grid grid-cols-2 gap-4">

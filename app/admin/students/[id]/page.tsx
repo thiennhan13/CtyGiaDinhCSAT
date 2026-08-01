@@ -8,15 +8,47 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from '@/lib/supabase/client';
-import { ArrowLeft, User, Phone, MapPin, ExternalLink, Calendar, BookOpen, CreditCard, Clock, Activity, MessageSquare } from 'lucide-react';
+import { ArrowLeft, User, Phone, MapPin, ExternalLink, Calendar, BookOpen, CreditCard, Clock, Activity, MessageSquare, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatNumber, formatVND } from '@/lib/format';
+import { useAlert, useConfirm } from '@/components/ui/use-dialog';
+
+/** Tính tuổi từ date_of_birth */
+function calcAge(dob: string | null): number | null {
+  if (!dob) return null;
+  const today = new Date();
+  const birth = new Date(dob);
+  const age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  return (m < 0 || (m === 0 && today.getDate() < birth.getDate())) ? age - 1 : age;
+}
+
+/** Hiển thị liên lạc: link → <a>, số điện thoại/text → text */
+function ContactDetail({ value, fallbackText }: { value: string | null; fallbackText?: string }) {
+  if (!value) return <span className="text-slate-900">{fallbackText || '---'}</span>;
+  const isLink = value.startsWith('http://') || value.startsWith('https://');
+  if (isLink) {
+    return (
+      <a href={value} target="_blank" rel="noopener noreferrer"
+        className="text-blue-600 hover:underline flex items-center gap-1 font-medium">
+        <ExternalLink className="h-3 w-3" /> Truy cập liên kết
+      </a>
+    );
+  }
+  return (
+    <span className="font-medium text-slate-900 flex items-center gap-1">
+      <Phone className="w-3 h-3 text-slate-400" /> {value}
+    </span>
+  );
+}
 
 export default function StudentDetailPage() {
   const params = useParams();
   const studentId = params.id as string;
   const router = useRouter();
   const supabase = createClient();
+  const { alert: showAlert, AlertDialog } = useAlert();
+  const { confirm, ConfirmDialog } = useConfirm();
   
   const [student, setStudent] = useState<any>(null);
   const [enrolledClasses, setEnrolledClasses] = useState<any[]>([]);
@@ -37,7 +69,7 @@ export default function StudentDetailPage() {
         .single();
         
       if (!stData) {
-          alert("Không tìm thấy học sinh.");
+          await showAlert({ title: 'Không tìm thấy', description: 'Không tìm thấy học sinh.', variant: 'error' });
           router.push('/admin/students');
           return;
       }
@@ -93,14 +125,19 @@ export default function StudentDetailPage() {
   }, [studentId]);
 
   async function handleMarkAsPaid(paymentId: string) {
-    if (!confirm('Xác nhận đánh dấu Đã thu học phí cho hóa đơn này?')) return;
+    const ok = await confirm({
+      title: 'Xác nhận đã thu học phí?',
+      description: 'Đánh dấu hóa đơn này là Đã thu.',
+      confirmText: 'Xác nhận',
+    });
+    if (!ok) return;
     try {
       const { error } = await supabase.from('payments').update({ status: 'paid' }).eq('payment_id', paymentId);
       if (error) throw error;
-      alert('Đã cập nhật trạng thái thành công!');
+      await showAlert({ title: 'Cập nhật thành công', description: 'Trạng thái đã được cập nhật.', variant: 'success' });
       setPayments(prev => prev.map(p => p.payment_id === paymentId ? { ...p, status: 'paid' } : p));
     } catch (err: any) {
-      alert("Lỗi: " + err.message);
+      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
     }
   }
 
@@ -117,6 +154,8 @@ export default function StudentDetailPage() {
 
   return (
     <div className="space-y-6">
+      <AlertDialog />
+      <ConfirmDialog />
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" onClick={() => router.push('/admin/students')}>
             <ArrowLeft className="h-4 w-4" />
@@ -130,47 +169,68 @@ export default function StudentDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Cột trái: Thông tin cơ bản */}
           <div className="col-span-1 space-y-6">
-             <Card>
-                 <CardHeader>
-                     <CardTitle className="flex items-center gap-2"><User className="w-5 h-5 text-blue-500"/>Thông tin cá nhân</CardTitle>
-                 </CardHeader>
-                 <CardContent className="space-y-4">
-                     <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                         <span className="text-slate-500">Trạng thái</span>
-                         <Badge variant="secondary" className={statusColor(student?.status)}>{student?.status}</Badge>
-                     </div>
-                     <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                         <span className="text-slate-500">Tuổi</span>
-                         <span className="font-medium text-slate-900">{student?.age || '---'}</span>
-                     </div>
-                     <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                         <span className="text-slate-500">Tỉnh/Thành</span>
-                         <span className="font-medium text-slate-900 flex items-center gap-1"><MapPin className="w-3 h-3 text-slate-400"/> {student?.province || '---'}</span>
-                     </div>
-                     <div className="flex flex-col gap-1 pb-3 border-b border-slate-100">
-                         <span className="text-slate-500">SĐT Liên lạc</span>
-                         <span className="font-medium text-slate-900 flex items-center gap-1"><Phone className="w-3 h-3 text-slate-400"/> {student?.contact_phone || '---'}</span>
-                     </div>
-                     <div className="flex flex-col gap-1 pb-3 border-b border-slate-100">
-                         <span className="text-slate-500">Link liên lạc</span>
-                         {student?.contact_link ? (
-                             <a href={student?.contact_link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1 font-medium">
-                                 <ExternalLink className="h-3 w-3" /> Truy cập liên kết
-                             </a>
-                         ) : (
-                             <span className="text-slate-900">---</span>
+                 <Card>
+                     <CardHeader>
+                         <CardTitle className="flex items-center gap-2"><User className="w-5 h-5 text-blue-500"/>Thông tin cá nhân</CardTitle>
+                     </CardHeader>
+                     <CardContent className="space-y-4">
+                         {/* Trạng thái */}
+                         <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                             <span className="text-slate-500">Trạng thái</span>
+                             <Badge variant="secondary" className={statusColor(student?.status)}>{student?.status}</Badge>
+                         </div>
+
+                         {/* Ngày sinh / Tuổi */}
+                         <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                             <span className="text-slate-500 flex items-center gap-1"><Calendar className="w-3 h-3" /> Ngày sinh</span>
+                             <span className="font-medium text-slate-900 text-right">
+                               {student?.date_of_birth
+                                 ? (() => {
+                                     const [y, m, d] = student.date_of_birth.split('-');
+                                     const age = calcAge(student.date_of_birth);
+                                     return <>{d}/{m}/{y}{age != null ? <span className="text-slate-400 text-xs ml-1">({age} tuổi)</span> : null}</>;
+                                   })()
+                                 : (student?.old_age ? `${student.old_age} tuổi` : '---')
+                               }
+                             </span>
+                         </div>
+
+                         {/* Tỉnh/Thành */}
+                         <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                             <span className="text-slate-500 flex items-center gap-1"><MapPin className="w-3 h-3" /> Tỉnh/Thành</span>
+                             <span className="font-medium text-slate-900">{student?.province || '---'}</span>
+                         </div>
+
+                         {/* Liên lạc học sinh */}
+                         <div className="flex flex-col gap-1 pb-3 border-b border-slate-100">
+                             <span className="text-slate-500">Liên lạc học sinh</span>
+                             <ContactDetail value={student?.student_contact} />
+                         </div>
+
+                         {/* Phụ huynh */}
+                         <div className="flex flex-col gap-1 pb-3 border-b border-slate-100">
+                             <span className="text-slate-500 flex items-center gap-1"><Users className="w-3 h-3" /> Phụ huynh</span>
+                             <span className="font-medium text-slate-800">{student?.parent_name || '---'}</span>
+                             <ContactDetail value={student?.parent_contact} />
+                         </div>
+
+                         {/* Lớp Zalo */}
+                         {student?.zalo_class_name && (
+                             <div className="flex flex-col gap-1 pb-3 border-b border-slate-100">
+                                 <span className="text-slate-500">Lớp Zalo</span>
+                                 <span className="font-medium text-indigo-700">📌 {student.zalo_class_name}</span>
+                             </div>
                          )}
-                     </div>
-                     <div className="flex flex-col gap-1 pb-3 border-b border-slate-100">
-                         <span className="text-slate-500">Học phí mặc định</span>
-                         <span className="font-bold text-emerald-600 text-lg">{formatNumber(student?.default_tuition_fee || 0)}đ/Buổi</span>
-                     </div>
-                     <div className="flex flex-col gap-1">
-                         <span className="text-slate-500">Ghi chú</span>
-                         <span className="text-slate-900 whitespace-pre-wrap text-sm">{student?.notes || '---'}</span>
-                     </div>
-                 </CardContent>
-             </Card>
+
+
+
+                         {/* Ghi chú */}
+                         <div className="flex flex-col gap-1">
+                             <span className="text-slate-500">Ghi chú</span>
+                             <span className="text-slate-900 whitespace-pre-wrap text-sm">{student?.notes || '---'}</span>
+                         </div>
+                     </CardContent>
+                 </Card>
           </div>
 
           {/* Cột phải: Các Tabs (Lớp học, Lịch sử điểm danh, Lịch sử thanh toán) */}

@@ -3,14 +3,28 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { createClient } from '@/lib/supabase/client';
 import { Search, Trash2, Archive } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Combobox } from '@/components/ui/combobox';
+import { useAlert, useConfirm } from '@/components/ui/use-dialog';
+
+const STATUS_OPTIONS = [
+  { value: 'Tất cả', label: 'Tất cả trạng thái' },
+  { value: 'active', label: 'Hoạt động' },
+  { value: 'inactive', label: 'Ngừng hoạt động' },
+];
+
+const CLASS_TYPE_OPTIONS = [
+  { value: 'Tất cả', label: 'Tất cả loại lớp' },
+  { value: 'Lớp Cơ bản', label: 'Lớp Cơ bản' },
+  { value: 'Lớp Nâng cao', label: 'Lớp Nâng cao' },
+  { value: 'Lớp Luyện thi', label: 'Lớp Luyện thi' },
+];
 
 export default function ClassesPage() {
   const router = useRouter();
@@ -29,6 +43,8 @@ export default function ClassesPage() {
   const ITEMS_PER_PAGE = 20;
 
   const supabase = createClient();
+  const { alert: showAlert, AlertDialog } = useAlert();
+  const { confirm, ConfirmDialog } = useConfirm();
 
   async function fetchData() {
     setLoading(true);
@@ -73,7 +89,14 @@ export default function ClassesPage() {
   }, [currentPage, searchTerm, statusFilter, classTypeFilter]);
 
   async function handleArchiveClass(classId: string) {
-    if (!confirm('Bạn có chắc chắn muốn ngừng dạy lớp này? Các lịch học sắp tới sẽ bị hủy và học sinh sẽ được đánh dấu đã nghỉ.')) return;
+    const ok = await confirm({
+      title: 'Dừng dạy lớp này?',
+      description: 'Các lịch học sắp tới sẽ bị hủy và học sinh sẽ được đánh dấu đã nghỉ. Hành động này không thể hoàn tác.',
+      confirmText: 'Dừng dạy',
+      cancelText: 'Hủy bỏ',
+      variant: 'destructive',
+    });
+    if (!ok) return;
     try {
       const res = await fetch('/api/admin/classes', {
         method: 'POST',
@@ -82,15 +105,30 @@ export default function ClassesPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      alert('Đã ngừng dạy lớp thành công!');
+      await showAlert({ title: 'Thành công', description: 'Đã dừng dạy lớp.', variant: 'success' });
       fetchData();
     } catch (err: any) {
-      alert("Lỗi: " + err.message);
+      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
     }
   }
 
   async function handleDeleteClass(classId: string) {
-    if (!confirm('CẢNH BÁO: ĐÂY LÀ HÀNH ĐỘNG XÓA HOÀN TOÀN (HARD DELETE) KHÔNG THỂ KHÔI PHỤC.\n\nBạn có chắc chắn muốn xóa lớp này VĨNH VIỄN không?\nNếu bạn chỉ muốn dừng dạy lớp này, VUI LÒNG HỦY THAO TÁC NÀY và dùng nút "Dừng Dạy lớp này" (Icon Lưu trữ).\n\nViệc xóa cứng chỉ nên dùng khi lớp bị tạo sai.')) return;
+    const ok = await confirm({
+      title: 'Xóa vĩnh viễn lớp học?',
+      description: (
+        <span>
+          <strong className="text-red-600">Đây là xóa cứng — không thể khôi phục.</strong>
+          <br />
+          Nếu chỉ muốn dừng dạy, hãy dùng nút <em>"Lưu trữ"</em> thay thế.
+          <br />
+          Chỉ xóa khi lớp bị tạo sai.
+        </span>
+      ),
+      confirmText: 'Xóa vĩnh viễn',
+      cancelText: 'Hủy bỏ',
+      variant: 'destructive',
+    });
+    if (!ok) return;
     try {
       const res = await fetch('/api/admin/classes', {
         method: 'POST',
@@ -99,10 +137,10 @@ export default function ClassesPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      alert('Đã xóa lớp thành công!');
+      await showAlert({ title: 'Đã xóa', description: 'Lớp học đã được xóa vĩnh viễn.', variant: 'success' });
       fetchData();
     } catch (err: any) {
-      alert("Lỗi: " + err.message);
+      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
     }
   }
 
@@ -117,10 +155,13 @@ export default function ClassesPage() {
     if (status === 'active') return 'Hoạt động';
     if (status === 'inactive') return 'Ngừng hoạt động';
     return status;
-  }
+  };
 
   return (
     <div className="space-y-6">
+      <AlertDialog />
+      <ConfirmDialog />
+
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <h2 className="text-3xl font-bold tracking-tight text-slate-900">Quản lý Lớp Học</h2>
         <Link href="/admin/classes/new">
@@ -130,7 +171,7 @@ export default function ClassesPage() {
 
       <Card>
         <CardContent className="p-4 md:p-6 p-0 border-0">
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input 
@@ -141,28 +182,25 @@ export default function ClassesPage() {
               />
             </div>
             
-            <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val || 'Tất cả')}>
-              <SelectTrigger className="w-[180px] bg-slate-50 border-slate-200">
-                <SelectValue placeholder="Trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Tất cả">Tất cả trạng thái</SelectItem>
-                <SelectItem value="active">Hoạt động</SelectItem>
-                <SelectItem value="inactive">Ngừng hoạt động</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="w-full sm:w-[180px]">
+              <Combobox
+                options={STATUS_OPTIONS}
+                value={statusFilter}
+                onValueChange={(val) => setStatusFilter(val || 'Tất cả')}
+                placeholder="Trạng thái"
+                searchPlaceholder="Tìm trạng thái..."
+              />
+            </div>
 
-            <Select value={classTypeFilter} onValueChange={(val) => setClassTypeFilter(val || 'Tất cả')}>
-              <SelectTrigger className="w-[180px] bg-slate-50 border-slate-200">
-                <SelectValue placeholder="Loại lớp" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Tất cả">Tất cả loại lớp</SelectItem>
-                <SelectItem value="Lớp Cơ bản">Lớp Cơ bản</SelectItem>
-                <SelectItem value="Lớp Nâng cao">Lớp Nâng cao</SelectItem>
-                <SelectItem value="Lớp Luyện thi">Lớp Luyện thi</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="w-full sm:w-[200px]">
+              <Combobox
+                options={CLASS_TYPE_OPTIONS}
+                value={classTypeFilter}
+                onValueChange={(val) => setClassTypeFilter(val || 'Tất cả')}
+                placeholder="Loại lớp"
+                searchPlaceholder="Tìm loại lớp..."
+              />
+            </div>
           </div>
 
           <div className="rounded-md border border-slate-200 bg-white overflow-x-auto">

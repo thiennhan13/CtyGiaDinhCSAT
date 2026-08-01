@@ -76,6 +76,12 @@ const updateStudentFeeSchema = z.object({
   student_name: z.string().optional()
 });
 
+const renameClassSchema = z.object({
+  action:   z.literal('rename_class'),
+  class_id: z.string().uuid("Class ID không hợp lệ"),
+  new_name: z.string().min(2, "Tên lớp phải có ít nhất 2 ký tự"),
+});
+
 const classActionSchema = z.discriminatedUnion('action', [
   createClassSchema,
   archiveClassSchema,
@@ -85,6 +91,7 @@ const classActionSchema = z.discriminatedUnion('action', [
   changeTutorSchema,
   updateCsatFeeSchema,
   updateStudentFeeSchema,
+  renameClassSchema,
 ]);
 
 export async function POST(request: Request) {
@@ -387,6 +394,39 @@ export async function POST(request: Request) {
       });
 
       return NextResponse.json({ message: 'Cập nhật học phí thành công' });
+    }
+
+    // ==============================
+    // ACTION: rename_class
+    // ==============================
+    if (parsed.data.action === 'rename_class') {
+      const { class_id, new_name } = parsed.data;
+
+      // Lấy tên cũ để ghi log
+      const { data: oldClass } = await adminClient
+        .from('classes')
+        .select('name')
+        .eq('class_id', class_id)
+        .single();
+
+      const { error } = await adminClient
+        .from('classes')
+        .update({ name: new_name })
+        .eq('class_id', class_id);
+      if (error) throw error;
+
+      // Ghi audit trail
+      await adminClient.from('class_change_log').insert({
+        class_id,
+        change_type:  'rename',
+        old_label:    oldClass?.name ?? '',
+        new_label:    new_name,
+        effective_date: new Date().toISOString().split('T')[0],
+        changed_by:   user.email ?? 'unknown',
+        notes:        `Đổi tên lớp từ "${oldClass?.name ?? ''}" thành "${new_name}"`,
+      });
+
+      return NextResponse.json({ message: `Đổi tên lớp thành công: "${new_name}"` });
     }
 
     return NextResponse.json({ error: 'Hành động không hợp lệ' }, { status: 400 });

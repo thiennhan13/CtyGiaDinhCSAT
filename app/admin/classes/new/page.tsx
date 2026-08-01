@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { createClient } from '@/lib/supabase/client';
-import { format, startOfMonth, startOfWeek, addDays, getMonth, setHours, setMinutes, isBefore, isAfter, endOfMonth } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Trash2 } from 'lucide-react';
+import { Combobox } from '@/components/ui/combobox';
+import { useAlert } from '@/components/ui/use-dialog';
 
 export default function NewClassPage() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function NewClassPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const { alert: showAlert, AlertDialog } = useAlert();
 
   // Data needed for forms
   const [tutors, setTutors] = useState<any[]>([]);
@@ -64,7 +66,7 @@ export default function NewClassPage() {
     if (isSelected) {
       setSelectedStudents(prev => prev.filter(s => s.id !== student.student_id));
     } else {
-      setSelectedStudents(prev => [...prev, { id: student.student_id, name: student.name, fee: student.default_tuition_fee || 100000 }]);
+      setSelectedStudents(prev => [...prev, { id: student.student_id, name: student.name, fee: 100000 }]);
     }
   };
 
@@ -121,15 +123,15 @@ export default function NewClassPage() {
 
   const checkConflictAndSubmit = async () => {
     if (!className || !tutorId) {
-      alert('Vui lòng điền tên lớp và chọn gia sư.');
+      await showAlert({ title: 'Thiếu thông tin', description: 'Vui lòng điền tên lớp và chọn gia sư.', variant: 'warning' });
       return;
     }
     if (schedules.length === 0) {
-      alert('Vui lòng thêm ít nhất 1 buổi học cố định.');
+      await showAlert({ title: 'Chưa có lịch học', description: 'Vui lòng thêm ít nhất 1 buổi học cố định.', variant: 'warning' });
       return;
     }
     if (!isValidDuration) {
-      alert('Thời gian tạo lịch không được vượt quá 3 tháng (90 ngày) để đảm bảo an toàn hệ thống.');
+      await showAlert({ title: 'Khoảng thời gian quá dài', description: 'Thời gian tạo lịch không được vượt quá 3 tháng (90 ngày) để đảm bảo an toàn hệ thống.', variant: 'warning' });
       return;
     }
 
@@ -188,11 +190,11 @@ export default function NewClassPage() {
         throw new Error(data.error || 'Lỗi hệ thống');
       }
 
-      alert(data.message || "Tạo lớp học và lên lịch thành công!");
+      await showAlert({ title: 'Tạo lớp thành công!', description: data.message || 'Lớp học và lịch đã được tạo.', variant: 'success' });
       router.push(`/admin/classes/${data.data?.class_id || ''}`);
 
     } catch (error: any) {
-      alert("Có lỗi xảy ra: " + error.message);
+      await showAlert({ title: 'Lỗi', description: error.message, variant: 'error' });
     } finally {
       setSubmitting(false);
     }
@@ -202,6 +204,7 @@ export default function NewClassPage() {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
+      <AlertDialog />
       <div className="flex items-center gap-4">
         <Button variant="outline" size="sm" onClick={() => router.push('/admin/classes')}>Tắt</Button>
         <h2 className="text-2xl font-bold tracking-tight text-gray-900">Tạo Lớp Học Mới</h2>
@@ -226,29 +229,27 @@ export default function NewClassPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Loại lớp <span className="text-red-500">*</span></label>
-                <Select value={classType} onValueChange={(val) => val && setClassType(val)} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn Loại Lớp" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Lớp Cơ bản">Lớp Cơ bản</SelectItem>
-                    <SelectItem value="Lớp Nâng cao">Lớp Nâng cao</SelectItem>
-                    <SelectItem value="Lớp Luyện thi">Lớp Luyện thi</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Combobox
+                  options={[
+                    { value: 'Lớp Cơ bản', label: 'Lớp Cơ bản' },
+                    { value: 'Lớp Nâng cao', label: 'Lớp Nâng cao' },
+                    { value: 'Lớp Luyện thi', label: 'Lớp Luyện thi' },
+                  ]}
+                  value={classType}
+                  onValueChange={(val) => val && setClassType(val)}
+                  placeholder="Chọn loại lớp"
+                  searchPlaceholder="Tìm loại lớp..."
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Gia sư <span className="text-red-500">*</span></label>
-                <Select value={tutorId} onValueChange={(val) => val && setTutorId(val)} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn Gia Sư" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tutors.map(t => (
-                      <SelectItem key={t.tutor_id} value={t.tutor_id}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Combobox
+                  options={tutors.map(t => ({ value: t.tutor_id, label: t.name }))}
+                  value={tutorId}
+                  onValueChange={(val) => val && setTutorId(val)}
+                  placeholder="Chọn gia sư"
+                  searchPlaceholder="Tìm gia sư..."
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">CSAT (Phí trung tâm trừ mỗi buổi - VND) <span className="text-red-500">*</span></label>
@@ -315,9 +316,9 @@ export default function NewClassPage() {
             )}
 
             <div className="flex justify-end pt-4">
-               <Button onClick={() => {
-                 if (!className) return alert('Vui lòng nhập tên lớp');
-                 if (!tutorId) return alert('Vui lòng chọn gia sư');
+               <Button onClick={async () => {
+                 if (!className) { await showAlert({ title: 'Thiếu thông tin', description: 'Vui lòng nhập tên lớp.', variant: 'warning' }); return; }
+                 if (!tutorId) { await showAlert({ title: 'Thiếu thông tin', description: 'Vui lòng chọn gia sư.', variant: 'warning' }); return; }
                  setStep(2);
                }}>Tiếp tục Lên Lịch Dạy</Button>
             </div>
@@ -359,16 +360,13 @@ export default function NewClassPage() {
                 <div key={index} className="flex items-center gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
                   <div className="space-y-1.5 flex-1">
                     <label className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Ngày Trong Tuần</label>
-                    <Select value={schedule.dayOfWeek} onValueChange={(val) => val && updateSchedule(index, 'dayOfWeek', val)}>
-                      <SelectTrigger className="bg-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {daysOfWeek.map(d => (
-                          <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Combobox
+                      options={daysOfWeek.map(d => ({ value: d.value, label: d.label }))}
+                      value={schedule.dayOfWeek}
+                      onValueChange={(val) => val && updateSchedule(index, 'dayOfWeek', val)}
+                      placeholder="Chọn ngày"
+                      searchPlaceholder="Tìm ngày..."
+                    />
                   </div>
                   <div className="space-y-1.5 w-32">
                     <label className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Bắt Đầu</label>

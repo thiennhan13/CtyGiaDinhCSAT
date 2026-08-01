@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { createClient } from '@/lib/supabase/client';
 import { DollarSign, TrendingUp, BookOpen, FileSpreadsheet, ChevronDown, ChevronRight } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Combobox } from '@/components/ui/combobox';
 import * as XLSX from 'xlsx';
 import { formatVND } from '@/lib/format';
 
@@ -247,15 +247,13 @@ export default function TutorSalaryPage() {
           <h2 className="text-3xl font-bold tracking-tight text-slate-900">Bảng Lương Của Tôi</h2>
           <p className="text-slate-500 text-sm mt-1">{tutorInfo?.name}</p>
         </div>
-        <Select value={selectedPeriod} onValueChange={v => v && setSelectedPeriod(v)}>
-          <SelectTrigger className="w-[220px]">
-            <SelectValue placeholder="Chọn kỳ lương" />
-          </SelectTrigger>
-          <SelectContent>
-            {periods.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-            {periods.length === 0 && <SelectItem value="none" disabled>Chưa có kỳ nào được chốt</SelectItem>}
-          </SelectContent>
-        </Select>
+        <Combobox
+          options={periods.map(p => ({ value: p, label: p }))}
+          value={selectedPeriod}
+          onValueChange={v => v && setSelectedPeriod(v)}
+          placeholder="Chọn kỳ lương"
+          searchPlaceholder="Tìm kỳ..."
+        />
       </div>
 
       {/* ── Empty state ── */}

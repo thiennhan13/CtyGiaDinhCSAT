@@ -9,21 +9,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Search, Plus, UserX, ExternalLink, PencilLine, FileText } from 'lucide-react';
+import { Search, Plus, UserX, ExternalLink, PencilLine, FileText, Phone } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
+import { Combobox } from '@/components/ui/combobox';
+import { useAlert } from '@/components/ui/use-dialog';
 
 type Student = {
   student_id: string;
   name: string;
-  age: number | null;
-  province: string;
-  contact_phone: string;
-  contact_link: string;
+  date_of_birth: string | null;
+  province: string | null;
+  student_contact: string | null;
+  parent_contact: string | null;
+  parent_name: string | null;
+  zalo_class_name: string | null;
   status: string;
-  notes?: string;
+  notes?: string | null;
   created_at: string;
-  default_tuition_fee: number;
 };
 
 interface StudentsClientProps {
@@ -34,6 +36,27 @@ interface StudentsClientProps {
   searchTerm: string;
   statusFilter: string;
   feeFilter: string;
+}
+
+/** Hiển thị thông tin liên lạc: nếu là link thì render <a>, nếu là SĐT thì render text */
+function ContactDisplay({ value, label }: { value: string | null; label: string }) {
+  if (!value) return <span className="text-slate-400 text-sm">---</span>;
+  const isLink = value.startsWith('http://') || value.startsWith('https://');
+  if (isLink) {
+    return (
+      <a href={value} target="_blank" rel="noopener noreferrer"
+        className="text-blue-600 hover:underline flex items-center gap-1 text-sm">
+        <ExternalLink className="h-3 w-3 shrink-0" />
+        <span className="truncate max-w-[160px]">{label}</span>
+      </a>
+    );
+  }
+  return (
+    <span className="text-slate-700 text-sm flex items-center gap-1">
+      <Phone className="h-3 w-3 text-slate-400 shrink-0" />
+      {value}
+    </span>
+  );
 }
 
 export function StudentsClient({
@@ -49,11 +72,10 @@ export function StudentsClient({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const { alert: showAlert, AlertDialog } = useAlert();
 
-  // Local state chỉ dùng để debounce ô tìm kiếm
   const [localSearch, setLocalSearch] = useState(initialSearch);
 
-  // Hàm tạo URL mới với params đã cập nhật
   const createQueryString = useCallback(
     (updates: Record<string, string>) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -66,7 +88,6 @@ export function StudentsClient({
     [searchParams]
   );
 
-  // Debounce tìm kiếm: cập nhật URL sau 350ms
   useEffect(() => {
     const timer = setTimeout(() => {
       startTransition(() => {
@@ -95,11 +116,13 @@ export function StudentsClient({
     });
   };
 
-  // --- Modals (CRUD) ---
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [formData, setFormData] = useState<Partial<Student>>({ status: 'Đang học', default_tuition_fee: 100000, notes: '' });
+  const [formData, setFormData] = useState<Partial<Student>>({
+    status: 'Đang học',
+    notes: '',
+  });
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
   const handleInputChange = (field: keyof Student, value: any) => {
@@ -107,7 +130,17 @@ export function StudentsClient({
   };
 
   const resetForm = () => {
-    setFormData({ status: 'Đang học', name: '', age: null, province: '', contact_phone: '', contact_link: '', default_tuition_fee: 100000, notes: '' });
+    setFormData({
+      status: 'Đang học',
+      name: '',
+      date_of_birth: null,
+      province: '',
+      student_contact: '',
+      parent_contact: '',
+      parent_name: '',
+      zalo_class_name: '',
+      notes: '',
+    });
     setSelectedStudent(null);
   };
 
@@ -129,7 +162,7 @@ export function StudentsClient({
       resetForm();
       refreshPage();
     } catch (err: any) {
-      alert('Lỗi: ' + err.message);
+      await showAlert({ title: 'Lỗi', description: 'Lỗi: ' + err.message, variant: 'error' });
     }
   }
 
@@ -148,7 +181,7 @@ export function StudentsClient({
       resetForm();
       refreshPage();
     } catch (err: any) {
-      alert('Lỗi: ' + err.message);
+      await showAlert({ title: 'Lỗi', description: 'Lỗi: ' + err.message, variant: 'error' });
     }
   }
 
@@ -163,19 +196,24 @@ export function StudentsClient({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setIsDeleteModalOpen(false);
-      resetForm();
       refreshPage();
     } catch (err: any) {
-      alert('Lỗi: ' + err.message);
+      await showAlert({ title: 'Lỗi', description: 'Lỗi: ' + err.message, variant: 'error' });
     }
   }
 
   const openEdit = (student: Student) => {
     setSelectedStudent(student);
     setFormData({
-      name: student.name, age: student.age, province: student.province || '',
-      contact_phone: student.contact_phone || '', contact_link: student.contact_link || '',
-      status: student.status, notes: student.notes || '', default_tuition_fee: student.default_tuition_fee || 100000
+      name:                student.name,
+      date_of_birth:       student.date_of_birth || null,
+      province:            student.province || '',
+      student_contact:     student.student_contact || '',
+      parent_contact:      student.parent_contact || '',
+      parent_name:         student.parent_name || '',
+      zalo_class_name:     student.zalo_class_name || '',
+      status:              student.status,
+      notes:               student.notes || '',
     });
     setIsEditModalOpen(true);
   };
@@ -187,8 +225,18 @@ export function StudentsClient({
     return 'bg-slate-100 text-slate-700 hover:bg-slate-100';
   };
 
+  const calcAge = (dob: string | null) => {
+    if (!dob) return null;
+    const today = new Date();
+    const birth = new Date(dob);
+    const age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    return m < 0 || (m === 0 && today.getDate() < birth.getDate()) ? age - 1 : age;
+  };
+
   return (
     <div className="space-y-6">
+      <AlertDialog />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Quản lý Học Sinh</h2>
@@ -205,33 +253,39 @@ export function StudentsClient({
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                placeholder="Tìm theo tên, SĐT, Tỉnh/Thành..."
+                placeholder="Tìm theo tên, liên lạc, Tỉnh/Thành..."
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
                 className={`pl-9 ${isPending ? 'opacity-70' : ''}`}
               />
             </div>
             <div className="w-full sm:w-auto shrink-0 flex gap-2 flex-col sm:flex-row">
-              <Select value={initialStatus} onValueChange={handleStatusChange}>
-                <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Tất cả trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Tất cả">Tất cả trạng thái</SelectItem>
-                  <SelectItem value="Đang học">Đang học</SelectItem>
-                  <SelectItem value="Tạm dừng">Tạm dừng</SelectItem>
-                  <SelectItem value="Đã nghỉ">Đã nghỉ</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={initialFeeFilter} onValueChange={handleFeeFilterChange}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Tình trạng học phí" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Tất cả">Tất cả tình trạng HP</SelectItem>
-                  <SelectItem value="Chưa nộp học phí">Chưa nộp học phí</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="w-full sm:w-40">
+                <Combobox
+                  options={[
+                    { value: 'Tất cả', label: 'Tất cả trạng thái' },
+                    { value: 'Đang học', label: 'Đang học' },
+                    { value: 'Tạm dừng', label: 'Tạm dừng' },
+                    { value: 'Đã nghỉ', label: 'Đã nghỉ' },
+                  ]}
+                  value={initialStatus}
+                  onValueChange={(val) => handleStatusChange(val || 'Tất cả')}
+                  placeholder="Trạng thái"
+                  searchPlaceholder="Tìm trạng thái..."
+                />
+              </div>
+              <div className="w-full sm:w-48">
+                <Combobox
+                  options={[
+                    { value: 'Tất cả', label: 'Tất cả tình trạng HP' },
+                    { value: 'Chưa nộp học phí', label: 'Chưa nộp học phí' },
+                  ]}
+                  value={initialFeeFilter}
+                  onValueChange={(val) => handleFeeFilterChange(val || 'Tất cả')}
+                  placeholder="Tình trạng học phí"
+                  searchPlaceholder="Tìm..."
+                />
+              </div>
             </div>
           </div>
 
@@ -239,44 +293,54 @@ export function StudentsClient({
             <Table>
               <TableHeader className="bg-slate-50">
                 <TableRow>
-                  <TableHead className="w-[200px]">Họ tên</TableHead>
+                  <TableHead className="w-[220px]">Họ tên</TableHead>
                   <TableHead>Liên hệ</TableHead>
+                  <TableHead>Phụ huynh</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {initialStudents.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center py-8 text-slate-500">Không tìm thấy học sinh nào</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-500">Không tìm thấy học sinh nào</TableCell></TableRow>
                 ) : (
-                  initialStudents.map((s) => (
-                    <TableRow
-                      key={s.student_id}
-                      className="group hover:bg-slate-50/50 transition-colors cursor-pointer"
-                      onClick={() => router.push(`/admin/students/${s.student_id}`)}
-                    >
-                      <TableCell>
-                        <div className="font-semibold text-slate-900">{s.name}</div>
-                        <div className="text-xs text-slate-500">{s.age ? `${s.age} tuổi • ` : ''}{s.province}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">{s.contact_phone || '-'}</div>
-                        {s.contact_link && (
-                          <a href={s.contact_link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1 text-xs mt-1">
-                            <ExternalLink className="h-3 w-3" /> Link liên lạc
-                          </a>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className={statusColor(s.status)}>{s.status}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right space-x-2" onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); router.push(`/admin/students/${s.student_id}`); }} title="Chi tiết"><FileText className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(s); }} title="Chỉnh sửa"><PencilLine className="h-4 w-4 text-blue-600" /></Button>
-                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setSelectedStudent(s); setIsDeleteModalOpen(true); }} title="Xóa"><UserX className="h-4 w-4 text-red-600" /></Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  initialStudents.map((s) => {
+                    const age = calcAge(s.date_of_birth);
+                    return (
+                      <TableRow
+                        key={s.student_id}
+                        className="group hover:bg-slate-50/50 transition-colors cursor-pointer"
+                        onClick={() => router.push(`/admin/students/${s.student_id}`)}
+                      >
+                        <TableCell>
+                          <div className="font-semibold text-slate-900">{s.name}</div>
+                          <div className="text-xs text-slate-500">
+                            {age != null ? `${age} tuổi` : ''}
+                            {age != null && s.province ? ' • ' : ''}
+                            {s.province || ''}
+                          </div>
+                          {s.zalo_class_name && (
+                            <div className="text-xs text-indigo-600 mt-0.5">📌 {s.zalo_class_name}</div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <ContactDisplay value={s.student_contact} label="Liên lạc HS" />
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-xs text-slate-500 mb-0.5">{s.parent_name || ''}</div>
+                          <ContactDisplay value={s.parent_contact} label="Liên lạc PH" />
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className={statusColor(s.status)}>{s.status}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right space-x-2" onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); router.push(`/admin/students/${s.student_id}`); }} title="Chi tiết"><FileText className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(s); }} title="Chỉnh sửa"><PencilLine className="h-4 w-4 text-blue-600" /></Button>
+                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setSelectedStudent(s); setIsDeleteModalOpen(true); }} title="Xóa"><UserX className="h-4 w-4 text-red-600" /></Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
@@ -294,24 +358,64 @@ export function StudentsClient({
         </CardContent>
       </Card>
 
-      {/* Add Modal */}
+      {/* ======= Add Modal ======= */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[580px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Thêm Học Sinh Mới</DialogTitle>
-            <DialogDescription>Nhập đầy đủ thông tin học sinh vào mẫu dưới đây.</DialogDescription>
+            <DialogDescription>Chỉ bắt buộc điền tên. Các thông tin còn lại có thể bổ sung sau.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleAddSubmit} className="space-y-4 py-4">
-            <div className="space-y-2"><Label htmlFor="name">Họ Tên <span className="text-red-500">*</span></Label><Input id="name" value={formData.name || ''} onChange={e => handleInputChange('name', e.target.value)} required /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label htmlFor="age">Tuổi <span className="text-red-500">*</span></Label><Input id="age" type="number" value={formData.age || ''} onChange={e => handleInputChange('age', e.target.value)} required /></div>
-              <div className="space-y-2"><Label htmlFor="province">Tỉnh thành <span className="text-red-500">*</span></Label><Input id="province" value={formData.province || ''} onChange={e => handleInputChange('province', e.target.value)} required /></div>
+          <form onSubmit={handleAddSubmit} className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="add-name">Họ và tên học sinh <span className="text-red-500">*</span></Label>
+              <Input id="add-name" value={formData.name || ''} onChange={e => handleInputChange('name', e.target.value)} required placeholder="Nguyễn Văn A" />
             </div>
-            <div className="space-y-2"><Label htmlFor="phone">SĐT liên lạc</Label><Input id="phone" value={formData.contact_phone || ''} onChange={e => handleInputChange('contact_phone', e.target.value)} /></div>
-            <div className="space-y-2"><Label htmlFor="fb">Link liên lạc (Có thể bỏ qua)</Label><Input id="fb" value={formData.contact_link || ''} onChange={e => handleInputChange('contact_link', e.target.value)} /></div>
-            <div className="space-y-2"><Label htmlFor="fee">Học phí mặc định (VND/Buổi) <span className="text-red-500">*</span></Label><Input id="fee" type="number" value={formData.default_tuition_fee || 0} onChange={e => handleInputChange('default_tuition_fee', e.target.value)} required /></div>
-            <div className="space-y-2"><Label htmlFor="notes">Ghi chú</Label><textarea id="notes" className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 min-h-[80px]" value={formData.notes || ''} onChange={e => handleInputChange('notes', e.target.value)} placeholder="Ghi chú về học sinh..." /></div>
-            <DialogFooter className="pt-4">
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="add-dob">Ngày sinh</Label>
+                <Input id="add-dob" type="date" value={formData.date_of_birth || ''} onChange={e => handleInputChange('date_of_birth', e.target.value || null)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="add-province">Tỉnh thành đang học</Label>
+                <Input id="add-province" value={formData.province || ''} onChange={e => handleInputChange('province', e.target.value)} placeholder="VD: Hà Nội" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="add-student-contact">Liên lạc học sinh</Label>
+              <Input id="add-student-contact" value={formData.student_contact || ''} onChange={e => handleInputChange('student_contact', e.target.value)} placeholder="Link Facebook hoặc số Zalo" />
+              <p className="text-xs text-slate-400">Link FB hoặc số Zalo đều được — ưu tiên cách đang dùng để liên lạc với trung tâm</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="add-parent-name">Họ tên phụ huynh</Label>
+                <Input id="add-parent-name" value={formData.parent_name || ''} onChange={e => handleInputChange('parent_name', e.target.value)} placeholder="Nguyễn Văn B" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="add-parent-contact">Liên lạc phụ huynh</Label>
+                <Input id="add-parent-contact" value={formData.parent_contact || ''} onChange={e => handleInputChange('parent_contact', e.target.value)} placeholder="Link Facebook hoặc số Zalo" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="add-zalo-class">Tên lớp trên nhóm Zalo</Label>
+              <Input id="add-zalo-class" value={formData.zalo_class_name || ''} onChange={e => handleInputChange('zalo_class_name', e.target.value)} placeholder="VD: Cơ bản 1 - Cảnh Thọ" />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="add-notes">Ghi chú</Label>
+              <textarea
+                id="add-notes"
+                className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 min-h-[70px]"
+                value={formData.notes || ''}
+                onChange={e => handleInputChange('notes', e.target.value)}
+                placeholder="Ghi chú về học sinh..."
+              />
+            </div>
+
+            <DialogFooter className="pt-2">
               <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>Hủy</Button>
               <Button type="submit">Lưu thông tin</Button>
             </DialogFooter>
@@ -319,31 +423,79 @@ export function StudentsClient({
         </DialogContent>
       </Dialog>
 
-      {/* Edit Modal */}
+      {/* ======= Edit Modal ======= */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader><DialogTitle>Chỉnh sửa Học Sinh</DialogTitle></DialogHeader>
-          <form onSubmit={handleEditSubmit} className="space-y-4 py-4">
-            <div className="space-y-2"><Label htmlFor="edit-name">Họ Tên</Label><Input id="edit-name" value={formData.name || ''} onChange={e => handleInputChange('name', e.target.value)} required /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label htmlFor="edit-age">Tuổi</Label><Input id="edit-age" type="number" value={formData.age || ''} onChange={e => handleInputChange('age', e.target.value)} required /></div>
-              <div className="space-y-2"><Label htmlFor="edit-province">Tỉnh thành</Label><Input id="edit-province" value={formData.province || ''} onChange={e => handleInputChange('province', e.target.value)} required /></div>
+        <DialogContent className="sm:max-w-[580px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Chỉnh sửa Học Sinh</DialogTitle>
+            <DialogDescription>Cập nhật thông tin học sinh. Chỉ bắt buộc tên.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Họ và tên học sinh <span className="text-red-500">*</span></Label>
+              <Input id="edit-name" value={formData.name || ''} onChange={e => handleInputChange('name', e.target.value)} required />
             </div>
-            <div className="space-y-2"><Label htmlFor="edit-phone">SĐT liên lạc</Label><Input id="edit-phone" value={formData.contact_phone || ''} onChange={e => handleInputChange('contact_phone', e.target.value)} /></div>
-            <div className="space-y-2"><Label>Trạng thái</Label>
-              <Select value={formData.status} onValueChange={(val) => val && handleInputChange('status', val)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Đang học">Đang học</SelectItem>
-                  <SelectItem value="Tạm dừng">Tạm dừng</SelectItem>
-                  <SelectItem value="Đã nghỉ">Đã nghỉ</SelectItem>
-                </SelectContent>
-              </Select>
+
+            <div className="space-y-2">
+              <Label>Trạng thái</Label>
+              <Combobox
+                options={[
+                  { value: 'Đang học', label: 'Đang học' },
+                  { value: 'Tạm dừng', label: 'Tạm dừng' },
+                  { value: 'Đã nghỉ', label: 'Đã nghỉ' },
+                ]}
+                value={formData.status || 'Đang học'}
+                onValueChange={(val) => val && handleInputChange('status', val)}
+                placeholder="Chọn trạng thái"
+                searchPlaceholder="Tìm trạng thái..."
+              />
             </div>
-            <div className="space-y-2"><Label htmlFor="edit-fb">Link liên lạc</Label><Input id="edit-fb" value={formData.contact_link || ''} onChange={e => handleInputChange('contact_link', e.target.value)} /></div>
-            <div className="space-y-2"><Label htmlFor="edit-fee">Học phí mặc định (VND/Buổi) <span className="text-red-500">*</span></Label><Input id="edit-fee" type="number" value={formData.default_tuition_fee || 0} onChange={e => handleInputChange('default_tuition_fee', e.target.value)} required /></div>
-            <div className="space-y-2"><Label htmlFor="edit-notes">Ghi chú</Label><textarea id="edit-notes" className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 min-h-[80px]" value={formData.notes || ''} onChange={e => handleInputChange('notes', e.target.value)} placeholder="Ghi chú về học sinh..." /></div>
-            <DialogFooter className="pt-4">
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="edit-dob">Ngày sinh</Label>
+                <Input id="edit-dob" type="date" value={formData.date_of_birth || ''} onChange={e => handleInputChange('date_of_birth', e.target.value || null)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-province">Tỉnh thành đang học</Label>
+                <Input id="edit-province" value={formData.province || ''} onChange={e => handleInputChange('province', e.target.value)} />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-student-contact">Liên lạc học sinh</Label>
+              <Input id="edit-student-contact" value={formData.student_contact || ''} onChange={e => handleInputChange('student_contact', e.target.value)} placeholder="Link Facebook hoặc số Zalo" />
+              <p className="text-xs text-slate-400">Link FB hoặc số Zalo đều được</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="edit-parent-name">Họ tên phụ huynh</Label>
+                <Input id="edit-parent-name" value={formData.parent_name || ''} onChange={e => handleInputChange('parent_name', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-parent-contact">Liên lạc phụ huynh</Label>
+                <Input id="edit-parent-contact" value={formData.parent_contact || ''} onChange={e => handleInputChange('parent_contact', e.target.value)} placeholder="Link Facebook hoặc số Zalo" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-zalo-class">Tên lớp trên nhóm Zalo</Label>
+              <Input id="edit-zalo-class" value={formData.zalo_class_name || ''} onChange={e => handleInputChange('zalo_class_name', e.target.value)} placeholder="VD: Cơ bản 1 - Cảnh Thọ" />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-notes">Ghi chú</Label>
+              <textarea
+                id="edit-notes"
+                className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 min-h-[70px]"
+                value={formData.notes || ''}
+                onChange={e => handleInputChange('notes', e.target.value)}
+                placeholder="Ghi chú về học sinh..."
+              />
+            </div>
+
+            <DialogFooter className="pt-2">
               <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>Hủy</Button>
               <Button type="submit">Cập nhật</Button>
             </DialogFooter>
@@ -351,7 +503,7 @@ export function StudentsClient({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Modal */}
+      {/* ======= Delete Modal ======= */}
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <DialogContent>
           <DialogHeader>

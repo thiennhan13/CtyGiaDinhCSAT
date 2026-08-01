@@ -10,8 +10,9 @@ import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatVND } from '@/lib/format';
+import { Combobox } from '@/components/ui/combobox';
+import { useAlert } from '@/components/ui/use-dialog';
 
 export default function TutorDashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -36,6 +37,7 @@ export default function TutorDashboard() {
 
   const supabase = createClient();
   const router = useRouter();
+  const { alert: showAlert, AlertDialog } = useAlert();
 
   // Generate week days
   const start = startOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -107,7 +109,7 @@ export default function TutorDashboard() {
   const submitMakeupClass = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!makeupClassId || !makeupDate || !makeupStart || !makeupEnd) {
-      alert('Vui lòng điền đủ thông tin');
+      await showAlert({ title: 'Lỗi', description: 'Vui lòng điền đủ thông tin', variant: 'warning' });
       return;
     }
     setSubmittingMakeup(true);
@@ -123,12 +125,12 @@ export default function TutorDashboard() {
         })
       });
       if (!res.ok) throw new Error('Không thể gửi yêu cầu xin dạy bù.');
-      alert('Xin dạy bù thành công! Lịch sẽ hiển thị ngay bây giờ.');
+      await showAlert({ title: 'Thành công', description: 'Xin dạy bù thành công! Lịch sẽ hiển thị ngay bây giờ.', variant: 'success' });
       setIsMakeupModalOpen(false);
       setCurrentMonthStr(''); // reset to force refetch
       fetchSessionsForMonth(selectedDate);
     } catch (e: any) {
-      alert(e.message);
+      await showAlert({ title: 'Lỗi', description: e.message, variant: 'error' });
     } finally {
       setSubmittingMakeup(false);
     }
@@ -217,6 +219,7 @@ export default function TutorDashboard() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <AlertDialog />
       {/* Calendar & Lessons */}
       <div className="col-span-1 lg:col-span-2 space-y-6">
         <div className="flex items-center justify-between">
@@ -404,14 +407,13 @@ export default function TutorDashboard() {
           <form onSubmit={submitMakeupClass} className="space-y-4">
             <div className="space-y-2">
               <Label>Chọn Lớp Học</Label>
-              <Select value={makeupClassId} onValueChange={(val) => val && setMakeupClassId(val)} required>
-                <SelectTrigger><SelectValue placeholder="-- Danh sách lớp phụ trách --" /></SelectTrigger>
-                <SelectContent>
-                  {myClasses.map(c => (
-                    <SelectItem key={c.class_id} value={c.class_id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Combobox
+                options={myClasses.map(c => ({ value: c.class_id, label: c.name }))}
+                value={makeupClassId}
+                onValueChange={(val) => val && setMakeupClassId(val)}
+                placeholder="-- Danh sách lớp phụ trách --"
+                searchPlaceholder="Tìm lớp..."
+              />
             </div>
             <div className="space-y-2">
               <Label>Ngày dạy bù</Label>
