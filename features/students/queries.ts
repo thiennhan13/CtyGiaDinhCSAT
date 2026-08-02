@@ -80,7 +80,7 @@ export async function getStudentById(studentId: string) {
       .select('*, classes(name)')
       .eq('student_id', studentId)
       .order('created_at', { ascending: false }),
-    supabase.from('tutor_reviews')
+    supabase.from('student_reviews')
       .select('*, tutors(name), classes(name)')
       .eq('student_id', studentId)
       .order('created_at', { ascending: false }),

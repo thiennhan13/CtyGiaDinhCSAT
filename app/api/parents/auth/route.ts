@@ -27,13 +27,14 @@ export async function POST(request: Request) {
     }
 
     const cleanPhone = phone.replace(/\D/g, '');
+    const phoneSuffix = cleanPhone.slice(-9);
 
     // Sử dụng Service Role Key để vượt RLS an toàn (chỉ chạy trên Server)
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('students')
-      .select('student_id')
-      .eq('parent_number', cleanPhone)
+      .select('student_id, parent_number')
+      .ilike('parent_number', `%${phoneSuffix}`)
       .limit(1);
 
     if (error) {
@@ -45,16 +46,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Không tìm thấy học sinh với số điện thoại này.' }, { status: 404 });
     }
 
+    // Lấy đúng số điện thoại gốc có trong database thay vì số phụ huynh nhập
+    const matchedPhone = data[0].parent_number;
+
     // Set HttpOnly Cookie bảo mật — trình duyệt không thể đọc/sửa
     const cookieStore = await cookies();
+    const expireDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 ngày
+
     cookieStore.set({
       name: 'parent_session',
-      value: cleanPhone,
+      value: matchedPhone,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7 // 7 ngày
+      maxAge: 60 * 60 * 24 * 7, // 7 ngày (ưu tiên trình duyệt hiện đại)
+      expires: expireDate       // Fallback cho trình duyệt nhúng cũ (Zalo, FB)
     });
 
     return NextResponse.json(

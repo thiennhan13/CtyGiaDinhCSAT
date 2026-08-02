@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { createAdminClient } from '@/lib/supabase/service';
 import { CsatNavbar } from '@/components/layout/CsatNavbar';
 import { CsatBackground } from '@/components/CsatBackground';
-import { Phone, MapPin, User, Calendar, ExternalLink, MessageSquare, AlertCircle, Star, Brain, BookOpen, LogOut } from 'lucide-react';
+import { Phone, MapPin, User, Calendar, ExternalLink, MessageSquare, AlertCircle, Star, Brain, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { ParentLogoutButton } from './logout-button';
 
@@ -34,7 +34,7 @@ export default async function ParentPortal() {
 
   // Fetch tutor reviews cho học sinh này (Gia sư đánh giá học sinh)
   const { data: reviews } = await supabase
-    .from('tutor_reviews')
+    .from('student_reviews')
     .select(`
       review_id,
       month_year,
@@ -54,6 +54,30 @@ export default async function ParentPortal() {
     .eq('student_id', student.student_id)
     .order('created_at', { ascending: false })
     .limit(10);
+
+  // Lấy danh sách các lớp đang học kèm thông tin gia sư
+  const { data: enrolledClasses } = await supabase
+    .from('class_students')
+    .select(`
+      class_id,
+      classes (
+        name,
+        class_type,
+        status,
+        tutors (
+          name
+        )
+      )
+    `)
+    .eq('student_id', student.student_id)
+    .eq('status', 'active');
+
+  // Đếm tổng số buổi đã đi học
+  const { count: attendanceCount } = await supabase
+    .from('session_attendance')
+    .select('*', { count: 'exact', head: true })
+    .eq('student_id', student.student_id)
+    .eq('status', 'attended');
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
@@ -135,6 +159,58 @@ export default async function ParentPortal() {
                 </div>
               </div>
             </div>
+
+            {/* Thông tin Lớp học */}
+            {enrolledClasses && enrolledClasses.length > 0 && (
+              <div className="csat-card bg-card p-6 border-2 border-foreground rounded-2xl shadow-neo relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
+                <h2 className="font-heading font-bold text-xl mb-5 flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-blue-500" />
+                  Thông tin Lớp học
+                </h2>
+                
+                <div className="space-y-5">
+                  {enrolledClasses.map((clsItem: any) => {
+                    const cls = Array.isArray(clsItem.classes) ? clsItem.classes[0] : clsItem.classes;
+                    if (!cls) return null;
+                    
+                    const tutorName = Array.isArray(cls.tutors) ? cls.tutors[0]?.name : cls.tutors?.name;
+
+                    return (
+                      <div key={clsItem.class_id} className="pb-4 border-b border-border last:border-0 last:pb-0">
+                        <div className="font-bold text-base text-foreground mb-1">{cls.name}</div>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary">
+                            {cls.class_type || 'Lớp học'}
+                          </span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-accent text-foreground border border-border">
+                            Trạng thái: {cls.status || 'N/A'}
+                          </span>
+                        </div>
+                        
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-start gap-2.5">
+                            <User className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                            <div>
+                              <div className="text-muted-foreground text-xs font-semibold">Gia sư phụ trách</div>
+                              <div className="font-medium">{tutorName || 'N/A'}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <div className="pt-4 mt-2 border-t border-border flex items-start gap-2.5">
+                    <Calendar className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                    <div>
+                      <div className="text-muted-foreground text-xs font-semibold">Tổng số buổi đã học</div>
+                      <div className="font-bold text-emerald-600">{attendanceCount || 0} buổi</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             
             <div className="csat-card bg-card p-5 border border-border rounded-xl">
               <h3 className="font-bold text-sm mb-2 flex items-center gap-1.5">
@@ -150,7 +226,7 @@ export default async function ParentPortal() {
             </div>
           </div>
 
-          {/* Cột phải: Nhận xét từ Gia sư (tutor_reviews) */}
+          {/* Cột phải: Nhận xét từ Gia sư (student_reviews) */}
           <div className="md:col-span-2 space-y-6">
             <div className="csat-card bg-card p-6 border-2 border-foreground rounded-2xl shadow-neo">
               <h2 className="font-heading font-bold text-xl mb-1 flex items-center gap-2">

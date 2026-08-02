@@ -55,7 +55,7 @@ function TutorForm() {
 
       if (role === 'admin' || role === 'superadmin') {
         router.push('/admin/dashboard');
-      } else if (role === 'tutor') {
+      } else if (role === 'tutor' || role === 'staff') {
         router.push('/tutor/dashboard');
       } else {
         await supabase.auth.signOut();

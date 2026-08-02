@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/service';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         password: phone,
         email_confirm: true,
         user_metadata: { name: name, phone: phone },
-        app_metadata: { role: 'staff' },
+        app_metadata: { role: 'tutor' },
       });
 
       if (authError) throw authError;
