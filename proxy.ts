@@ -44,7 +44,7 @@ export async function proxy(request: NextRequest) {
 
   // 2. Đã đăng nhập Supabase (gia sư/admin)
   if (user) {
-    const role = user.app_metadata?.role || user.user_metadata?.role || (user.email === 'csattutor@gmail.com' ? 'admin' : 'tutor')
+    const role = user.app_metadata?.role || user.user_metadata?.role || 'tutor'
 
     // Tutor cố vào trang /admin → redirect về /tutor/dashboard
     if (isAdminRoute && role !== 'admin') {

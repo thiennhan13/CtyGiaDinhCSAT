@@ -50,17 +50,12 @@ function TutorForm() {
 
       if (authError) throw authError;
 
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', data.user.id)
-        .single();
+      // Lấy role từ metadata của user (đã được lưu khi tạo tài khoản hoặc gán mặc định)
+      const role = data.user.app_metadata?.role || data.user.user_metadata?.role || 'tutor';
 
-      if (userError) throw userError;
-
-      if (userData.role === 'admin' || userData.role === 'superadmin') {
+      if (role === 'admin' || role === 'superadmin') {
         router.push('/admin/dashboard');
-      } else if (userData.role === 'tutor') {
+      } else if (role === 'tutor') {
         router.push('/tutor/dashboard');
       } else {
         await supabase.auth.signOut();

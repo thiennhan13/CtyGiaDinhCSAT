@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     }
 
     // 2. Kiểm tra quyền: Admin HOẶC Gia sư phụ trách lớp đó
-    const role = user.app_metadata?.role || user.user_metadata?.role || (user.email === 'csattutor@gmail.com' ? 'admin' : 'tutor');
+    const role = user.app_metadata?.role || user.user_metadata?.role || 'tutor';
     const isAdmin = role === 'admin';
 
     if (!isAdmin) {
