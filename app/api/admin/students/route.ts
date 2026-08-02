@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/service';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
@@ -9,13 +9,14 @@ const createStudentSchema = z.object({
   name:                z.string().min(2, "Tên phải có ít nhất 2 ký tự"),
   // Tất cả còn lại optional
   date_of_birth:       z.string().date("Ngày sinh không hợp lệ").optional().nullable(),
-  // student_contact = liên lạc học sinh (Link FB / SĐT Zalo)
+  // student_contact = link liên lạc học sinh (FB, Zalo...)
   student_contact:     z.string().optional().nullable(),
-  // parent_contact = liên lạc phụ huynh (Link FB / SĐT Zalo)
-  parent_contact:      z.string().optional().nullable(),
+  // parent_number = số điện thoại phụ huynh
+  parent_number:       z.string().optional().nullable(),
+  // parent_link = link mạng xã hội phụ huynh (Facebook, Zalo...)
+  parent_link:         z.string().optional().nullable(),
   province:            z.string().optional().nullable(),
   parent_name:         z.string().optional().nullable(),
-  zalo_class_name:     z.string().optional().nullable(),
   status:              z.string().optional().default('Đang học'),
   notes:               z.string().optional().nullable(),
 });
@@ -26,10 +27,10 @@ const updateStudentSchema = z.object({
   name:                z.string().min(2).optional(),
   date_of_birth:       z.string().date("Ngày sinh không hợp lệ").optional().nullable(),
   student_contact:     z.string().optional().nullable(),
-  parent_contact:      z.string().optional().nullable(),
+  parent_number:       z.string().optional().nullable(),
+  parent_link:         z.string().optional().nullable(),
   province:            z.string().optional().nullable(),
   parent_name:         z.string().optional().nullable(),
-  zalo_class_name:     z.string().optional().nullable(),
   status:              z.string().optional(),
   notes:               z.string().optional().nullable(),
 });
@@ -69,10 +70,10 @@ export async function POST(request: Request) {
         name:                parsed.data.name, 
         date_of_birth:       parsed.data.date_of_birth ?? null,
         student_contact:     parsed.data.student_contact ?? null,
-        parent_contact:      parsed.data.parent_contact ?? null,
+        parent_number:       parsed.data.parent_number ?? null,
+        parent_link:         parsed.data.parent_link ?? null,
         province:            parsed.data.province ?? null,
         parent_name:         parsed.data.parent_name ?? null,
-        zalo_class_name:     parsed.data.zalo_class_name ?? null,
         status:              parsed.data.status, 
         notes:               parsed.data.notes ?? null,
       }]).select().single();

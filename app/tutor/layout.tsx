@@ -7,7 +7,7 @@ export default async function TutorLayout({ children }: { children: React.ReactN
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect('/tutor');
   }
 
   const rawRole = user.app_metadata?.role || 'tutor';

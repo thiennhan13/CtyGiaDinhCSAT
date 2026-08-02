@@ -35,7 +35,7 @@ export async function getStudents({
     .order('created_at', { ascending: false });
 
   if (search.trim()) {
-    query = query.or(`name.ilike.%${search.trim()}%,student_contact.ilike.%${search.trim()}%,parent_contact.ilike.%${search.trim()}%`);
+    query = query.or(`name.ilike.%${search.trim()}%,student_contact.ilike.%${search.trim()}%,parent_number.ilike.%${search.trim()}%`);
   }
   if (status && status !== 'all') {
     query = query.eq('status', status);
@@ -67,7 +67,7 @@ export async function getStudentById(studentId: string) {
   const supabase = await createClient();
 
   const [studentRes, attendanceRes, classesRes, paymentsRes, reviewsRes] = await Promise.all([
-    supabase.from('students').select('*, zalo_class_name:classes(name)').eq('student_id', studentId).single(),
+    supabase.from('students').select('*').eq('student_id', studentId).single(),
     supabase.from('attendance')
       .select('*, sessions(date, start_time, end_time, classes(name))')
       .eq('student_id', studentId)

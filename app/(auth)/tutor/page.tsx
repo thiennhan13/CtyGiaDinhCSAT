@@ -3,16 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Input } from '@/components/ui/input';
+import { createClient } from '@/lib/supabase/client';
+import { LogIn, GraduationCap, Users, AlertCircle, Eye, EyeOff, BookOpen, Trophy, UserCheck, ExternalLink, Facebook } from 'lucide-react';
 import { Label } from '@/components/ui/label';
-import {
-  AlertCircle, Phone, Search, BookOpen, Trophy, UserCheck,
-  ExternalLink, Facebook,
-} from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { CsatBackground } from '@/components/CsatBackground';
 import { CsatNavbar } from '@/components/layout/CsatNavbar';
 import { cn } from '@/lib/utils';
-
 
 
 // ─── Dynamic Stats Hook ──────────────────────────────────────
@@ -22,71 +19,118 @@ function usePortalStats() {
   return { stats, loaded };
 }
 
-// ─── Form Phụ Huynh ──────────────────────────────────────────
-function ParentForm() {
-  const [phone, setPhone] = useState('');
+// ─── Form Gia Sư ─────────────────────────────────────────────
+function TutorForm() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  
   const router = useRouter();
+  const supabase = createClient();
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const clean = phone.replace(/\D/g, '');
-    if (!/^0\d{9}$/.test(clean)) {
-      setError('Số điện thoại phải đủ 10 chữ số, bắt đầu bằng 0.');
-      return;
-    }
     setLoading(true);
+
     try {
-      const res = await fetch('/api/parents/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: clean }),
-      });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.error || 'Có lỗi xảy ra.');
+      // Rate limit check trước khi gọi Supabase
+      const rlRes = await fetch('/api/auth/rate-limit', { method: 'POST' });
+      if (!rlRes.ok) {
+        const rlData = await rlRes.json();
+        throw new Error(rlData.error || 'Quá nhiều yêu cầu. Vui lòng thử lại sau.');
       }
-      
-      router.push(data.redirectUrl);
-    } catch (err: any) {
-      setError(err.message || 'Có lỗi xảy ra.');
+
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) throw authError;
+
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
+      if (userError) throw userError;
+
+      if (userData.role === 'admin' || userData.role === 'superadmin') {
+        router.push('/admin/dashboard');
+      } else if (userData.role === 'tutor') {
+        router.push('/tutor/dashboard');
+      } else {
+        await supabase.auth.signOut();
+        throw new Error('Tài khoản không có quyền truy cập hệ thống gia sư.');
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        if (err.message.includes('Invalid login credentials')) {
+          setError('Email hoặc mật khẩu không chính xác.');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError('Đã xảy ra lỗi không xác định.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSearch} className="space-y-4">
+    <form onSubmit={handleLogin} className="space-y-4">
       <div className="space-y-1.5">
-        <Label htmlFor="parent-phone" className="text-sm font-semibold text-foreground">
-          Số điện thoại Phụ huynh
+        <Label htmlFor="tutor-email" className="text-sm font-semibold text-foreground">
+          Email / Tên đăng nhập
         </Label>
         <div className="relative">
-          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            id="parent-phone"
-            type="tel"
-            inputMode="numeric"
-            placeholder="0912 345 678"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            id="tutor-email"
+            type="email"
+            placeholder="giasu@csatoj.vn"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
-            autoComplete="tel"
+            autoComplete="email"
             className="pl-9 h-11 bg-background border border-input rounded-xl text-sm"
           />
         </div>
-        <p className="text-xs text-muted-foreground">
-          Nhập số điện thoại đã đăng ký với trung tâm CSAT
-        </p>
       </div>
-
-      {/* Info box */}
-      <div className="flex items-start gap-2 bg-secondary border border-border rounded-lg p-3 text-[13px] text-muted-foreground">
-        <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-primary" />
-        <span>Phụ huynh tra cứu kết quả học tập, buổi học và học phí của học sinh qua số điện thoại đã đăng ký.</span>
+      
+      <div className="space-y-1.5">
+        <div className="flex justify-between items-center">
+          <Label htmlFor="tutor-password" className="text-sm font-semibold text-foreground">
+            Mật khẩu
+          </Label>
+          <a href="#" className="text-xs font-bold text-primary hover:underline" onClick={(e) => e.preventDefault()}>
+            Quên mật khẩu?
+          </a>
+        </div>
+        <div className="relative">
+          <Input
+            id="tutor-password"
+            type={showPassword ? "text" : "password"}
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+            className="pl-3 pr-10 h-11 bg-background border border-input rounded-xl text-sm font-mono tracking-wider"
+          />
+          <button
+            type="button"
+            tabIndex={-1}
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors border-none bg-transparent"
+          >
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -111,8 +155,8 @@ function ParentForm() {
           </>
         ) : (
           <>
-            <Search className="w-4 h-4" />
-            Truy cập cổng thông tin
+            <LogIn className="w-4 h-4" />
+            Đăng nhập hệ thống
           </>
         )}
       </button>
@@ -138,7 +182,7 @@ function StatCard({ icon: Icon, label, value, bgClass, iconClass }: { icon: any,
 }
 
 // ─── Main Login Page ──────────────────────────────────────────
-export default function LoginPage() {
+export default function TutorLoginPage() {
   const { stats, loaded } = usePortalStats();
 
   return (
@@ -286,16 +330,16 @@ export default function LoginPage() {
                 <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-csat-lime border-2 border-border rounded-full" />
               </div>
               <h2 className="font-heading font-black text-[1.3rem] text-foreground tracking-[-0.01em]">
-                Cổng Phụ Huynh CSAT
+                Chào mừng trở lại
               </h2>
-              <p className="text-[0.8rem] text-muted-foreground mt-0.5">Tra cứu thông tin học sinh và kết quả học tập</p>
+              <p className="text-[0.8rem] text-muted-foreground mt-0.5">Hệ thống Quản lý Gia sư CSAT</p>
             </div>
 
-            <ParentForm />
+            <TutorForm />
 
             {/* Footer */}
             <div className="mt-5 pt-4 border-t border-border text-center">
-              <p className="text-[0.72rem] text-muted-foreground">Dành riêng cho Phụ huynh học sinh Trung Tâm CSAT</p>
+              <p className="text-[0.72rem] text-muted-foreground">Dành riêng cho nội bộ Trung Tâm CSAT</p>
             </div>
           </div>
 
@@ -306,34 +350,6 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
-
-      {/* ── Footer ── */}
-      <footer className="relative z-10 text-center py-5 px-6 text-[0.75rem] text-muted-foreground border-t border-border bg-background/80">
-        <div className="max-w-[800px] mx-auto">
-          <p className="mb-1">
-            © 2025 CSAT · Hệ thống Quản lý Gia sư&nbsp;|&nbsp;Chuyên luyện thi HSG Tin học &amp; Chuyên Tin
-          </p>
-          <p>
-            <a
-              href="https://www.facebook.com/csat.tutor"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary font-semibold no-underline hover:underline"
-            >
-              Facebook CSAT
-            </a>
-            &nbsp;·&nbsp;
-            <a
-              href="https://csatoj.vn"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary font-semibold no-underline hover:underline"
-            >
-              csatoj.vn
-            </a>
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -101,7 +101,7 @@ export default function TutorClassDetailPage() {
     const [{ data: sData }, { data: sessData }] = await Promise.all([
        supabase
          .from('class_students')
-         .select('tuition_fee_per_session, students(student_id, name, parent_contact, student_contact)')
+         .select('tuition_fee_per_session, students(student_id, name, parent_number, parent_link, student_contact)')
          .eq('class_id', classId)
          .eq('status', 'active'), // Lỗi A FIX: Chỉ hiển thị học sinh đang học, ẩn học sinh đã nghỉ (dropped)
        supabase
@@ -171,6 +171,13 @@ export default function TutorClassDetailPage() {
   };
 
   const handleDeleteSession = async (sessionId: string) => {
+    const sessionToDel = sessions.find(s => s.session_id === sessionId);
+    if (sessionToDel?.billing_period) {
+      await showAlert({ title: 'Không thể xóa', description: 'Buổi học này đã được chốt lương/thu học phí (đã nằm trong kỳ thanh toán).', variant: 'error' });
+      return;
+    }
+
+
     const ok = await confirm({
       title: 'Xóa buổi học này?',
       description: 'Hành động này sẽ XÓA VĨNH VIỄN buổi học này. Bạn có chắc chắn không?',
@@ -200,7 +207,7 @@ export default function TutorClassDetailPage() {
     const dayOfWeek = dDate.getDay();
 
     const { data: toDelete } = await supabase.from('sessions')
-      .select('session_id, date')
+      .select('session_id, date, billing_period')
       .eq('class_id', classId)
       .eq('start_time', bulkDeleteSession.start_time)
       .eq('end_time', bulkDeleteSession.end_time)
@@ -213,6 +220,12 @@ export default function TutorClassDetailPage() {
       return;
     }
     
+    const hasBilledSession = toDelete.some(s => s.billing_period != null);
+    if (hasBilledSession) {
+      await showAlert({ title: 'Không thể xóa', description: 'Trong loạt buổi học này có buổi đã được chốt lương/thu học phí. Không thể xóa.', variant: 'error' });
+      return;
+    }
+
     const filteredToDelete = toDelete.filter(s => parseLocalDate(s.date).getDay() === dayOfWeek);
 
     if(filteredToDelete.length === 0) {
@@ -344,7 +357,7 @@ export default function TutorClassDetailPage() {
                             <div>
                                 <p className="font-semibold">{st.name}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  Liên lạc: {st.student_contact || st.parent_contact || '---'}
+                                  Liên lạc: {st.student_contact || st.parent_number || st.parent_link || '---'}
                                 </p>
                             </div>
                             <div className="text-right">

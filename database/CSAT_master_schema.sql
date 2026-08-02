@@ -41,9 +41,9 @@ CREATE TABLE IF NOT EXISTS students (
   old_age INTEGER,
   province VARCHAR(100),
   student_contact VARCHAR(255),
-  parent_contact VARCHAR(255),
+  parent_number VARCHAR(50),
+  parent_link VARCHAR(500),
   parent_name VARCHAR(255),
-  zalo_class_name VARCHAR(255),
   status VARCHAR(255) DEFAULT 'Đang học',
   is_deleted BOOLEAN DEFAULT false,
   notes TEXT,
@@ -53,9 +53,11 @@ CREATE TABLE IF NOT EXISTS students (
 ALTER TABLE public.students ADD COLUMN IF NOT EXISTS date_of_birth DATE;
 ALTER TABLE public.students ADD COLUMN IF NOT EXISTS old_age INTEGER;
 ALTER TABLE public.students ADD COLUMN IF NOT EXISTS student_contact VARCHAR(255);
-ALTER TABLE public.students ADD COLUMN IF NOT EXISTS parent_contact VARCHAR(255);
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS parent_number VARCHAR(50);
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS parent_link VARCHAR(500);
 ALTER TABLE public.students ADD COLUMN IF NOT EXISTS parent_name VARCHAR(255);
-ALTER TABLE public.students ADD COLUMN IF NOT EXISTS zalo_class_name VARCHAR(255);
+-- Đã xóa: zalo_class_name (DROP COLUMN IF EXISTS zalo_class_name)
+-- Đã rename: parent_contact → parent_number (RENAME COLUMN parent_contact TO parent_number)
 
 -- Bảng: tutors
 CREATE TABLE IF NOT EXISTS tutors (

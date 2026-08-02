@@ -211,16 +211,10 @@ export default function StudentDetailPage() {
                          <div className="flex flex-col gap-1 pb-3 border-b border-border/60">
                              <span className="text-muted-foreground flex items-center gap-1"><Users className="w-3 h-3" /> Liên lạc phụ huynh</span>
                              <span className="font-medium text-foreground">{student?.parent_name || '---'}</span>
-                             <ContactDetail value={student?.parent_contact} />
+                             {student?.parent_number && <ContactDetail value={student?.parent_number} />}
+                             {student?.parent_link && <ContactDetail value={student?.parent_link} />}
+                             {!student?.parent_number && !student?.parent_link && <span className="text-sm font-medium">---</span>}
                          </div>
-
-                         {/* Lớp Zalo */}
-                         {student?.zalo_class_name && (
-                             <div className="flex flex-col gap-1 pb-3 border-b border-border/60">
-                                 <span className="text-muted-foreground">Lớp Zalo</span>
-                                 <span className="font-medium text-primary">📌 {student.zalo_class_name}</span>
-                             </div>
-                         )}
 
                          {/* Ghi chú */}
                          <div className="flex flex-col gap-1">

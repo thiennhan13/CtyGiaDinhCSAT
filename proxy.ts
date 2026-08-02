@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -27,19 +27,22 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Xác định loại route
-  const isAuthRoute = pathname === '/login' || pathname.startsWith('/(auth)')
+  const isParentLoginRoute = pathname === '/login'
+  const isTutorLoginRoute = pathname === '/tutor'
+  const isAuthRoute = isParentLoginRoute || isTutorLoginRoute
   const isAdminRoute = pathname.startsWith('/admin')
-  const isTutorRoute = pathname.startsWith('/tutor')
-  const isProtectedRoute = isAdminRoute || isTutorRoute
+  const isTutorDashRoute = pathname.startsWith('/tutor/') // /tutor/dashboard, /tutor/classes...
+  const isParentRoute = pathname.startsWith('/parents')
+  const isProtectedRoute = isAdminRoute || isTutorDashRoute
 
-  // 1. Chưa đăng nhập → redirect về /login nếu cố vào route được bảo vệ
+  // 1. Chưa đăng nhập Supabase → redirect về /tutor nếu cố vào admin/tutor dashboard
   if (!user && isProtectedRoute) {
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    url.pathname = '/tutor'
     return NextResponse.redirect(url)
   }
 
-  // 2. Đã đăng nhập
+  // 2. Đã đăng nhập Supabase (gia sư/admin)
   if (user) {
     const role = user.app_metadata?.role || user.user_metadata?.role || (user.email === 'csattutor@gmail.com' ? 'admin' : 'tutor')
 
@@ -50,8 +53,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    // Đã đăng nhập mà vào lại /login → redirect về dashboard tương ứng
-    if (isAuthRoute) {
+    // Gia sư đã đăng nhập mà vào lại /tutor (trang login) → redirect về dashboard
+    if (isTutorLoginRoute) {
       const url = request.nextUrl.clone()
       url.pathname = role === 'admin' ? '/admin/dashboard' : '/tutor/dashboard'
       return NextResponse.redirect(url)

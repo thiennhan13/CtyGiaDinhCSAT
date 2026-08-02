@@ -70,7 +70,7 @@ interface StudentsClientProps {
 
 type FormData = Partial<Pick<Student,
   'name' | 'date_of_birth' | 'province' | 'student_contact' |
-  'parent_contact' | 'parent_name' | 'zalo_class_name' | 'status' | 'notes'
+  'parent_number' | 'parent_link' | 'parent_name' | 'status' | 'notes'
 >>;
 
 const EMPTY_FORM: FormData = {
@@ -79,9 +79,9 @@ const EMPTY_FORM: FormData = {
   date_of_birth: null,
   province: '',
   student_contact: '',
-  parent_contact: '',
+  parent_number: '',
+  parent_link: '',
   parent_name: '',
-  zalo_class_name: '',
   notes: '',
 };
 
@@ -144,14 +144,15 @@ function StudentFormFields({
           <Input id="f-parent-name" value={formData.parent_name ?? ''} onChange={e => onChange('parent_name', e.target.value)} placeholder="Nguyễn Văn B" />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="f-parent-contact">Liên lạc phụ huynh</Label>
-          <Input id="f-parent-contact" value={formData.parent_contact ?? ''} onChange={e => onChange('parent_contact', e.target.value)} placeholder="Link Facebook hoặc số Zalo" />
+          <Label htmlFor="f-parent-number">SĐT phụ huynh</Label>
+          <Input id="f-parent-number" value={formData.parent_number ?? ''} onChange={e => onChange('parent_number', e.target.value)} placeholder="VD: 0912345678" />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="f-zalo-class">Tên lớp trên nhóm Zalo</Label>
-        <Input id="f-zalo-class" value={formData.zalo_class_name ?? ''} onChange={e => onChange('zalo_class_name', e.target.value)} placeholder="VD: Cơ bản 1 - Cảnh Thọ" />
+        <Label htmlFor="f-parent-link">Link liên lạc phụ huynh</Label>
+        <Input id="f-parent-link" value={formData.parent_link ?? ''} onChange={e => onChange('parent_link', e.target.value)} placeholder="VD: https://zalo.me/... hoặc link Facebook" />
+        <p className="text-xs text-muted-foreground/70">Facebook, Zalo đều được — ưu tiên cách đang dùng để liên lạc với trung tâm</p>
       </div>
 
       <div className="space-y-2">
@@ -248,9 +249,9 @@ export function StudentsClient({
       date_of_birth:   student.date_of_birth,
       province:        student.province ?? '',
       student_contact: student.student_contact ?? '',
-      parent_contact:  student.parent_contact ?? '',
+      parent_number:   student.parent_number ?? '',
+      parent_link:     student.parent_link ?? '',
       parent_name:     student.parent_name ?? '',
-      zalo_class_name: student.zalo_class_name ?? '',
       status:          student.status,
       notes:           student.notes ?? '',
     });
@@ -276,9 +277,9 @@ export function StudentsClient({
         old_age:         null,
         province:        formData.province ?? null,
         student_contact: formData.student_contact ?? null,
-        parent_contact:  formData.parent_contact ?? null,
+        parent_number:   formData.parent_number ?? null,
+        parent_link:     formData.parent_link ?? null,
         parent_name:     formData.parent_name ?? null,
-        zalo_class_name: formData.zalo_class_name ?? null,
         notes:           formData.notes ?? null,
       });
       if (!result.success) throw new Error(result.error);
@@ -302,9 +303,9 @@ export function StudentsClient({
         date_of_birth:   formData.date_of_birth ?? null,
         province:        formData.province ?? null,
         student_contact: formData.student_contact ?? null,
-        parent_contact:  formData.parent_contact ?? null,
+        parent_number:   formData.parent_number ?? null,
+        parent_link:     formData.parent_link ?? null,
         parent_name:     formData.parent_name ?? null,
-        zalo_class_name: formData.zalo_class_name ?? null,
         notes:           formData.notes ?? null,
       });
       if (!result.success) throw new Error(result.error);
@@ -427,16 +428,14 @@ export function StudentsClient({
                             {age != null && s.province ? ' • ' : ''}
                             {s.province ?? ''}
                           </div>
-                          {s.zalo_class_name && (
-                            <div className="text-xs text-primary mt-0.5">📌 {s.zalo_class_name}</div>
-                          )}
                         </TableCell>
                         <TableCell>
                           <ContactDisplay value={s.student_contact} label="Liên lạc HS" />
                         </TableCell>
                         <TableCell>
                           <div className="text-xs text-muted-foreground mb-0.5">{s.parent_name ?? ''}</div>
-                          <ContactDisplay value={s.parent_contact} label="Liên lạc PH" />
+                          {s.parent_number && <ContactDisplay value={s.parent_number} label="SĐT PH" />}
+                          {s.parent_link && <ContactDisplay value={s.parent_link} label="Link PH" />}
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className={statusBadgeClass(s.status)}>{s.status}</Badge>

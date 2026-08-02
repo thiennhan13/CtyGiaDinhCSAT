@@ -13,9 +13,9 @@ export interface Student {
   old_age: number | null;
   province: string | null;
   student_contact: string | null;
-  parent_contact: string | null;
+  parent_number: string | null;
+  parent_link: string | null;
   parent_name: string | null;
-  zalo_class_name: string | null;
   status: 'Đang học' | 'Đã nghỉ' | 'Tạm dừng';
   is_deleted?: boolean;
   notes: string | null;

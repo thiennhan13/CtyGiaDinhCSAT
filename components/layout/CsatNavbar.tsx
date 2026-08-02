@@ -46,9 +46,17 @@ const tutorNavItems: NavItem[] = [
   { href: '/tutor/salary',    label: 'Bảng Lương',      icon: DollarSign,    iconColor: '#108a51', activeBg: 'rgba(16,138,81,0.12)',   activeText: '#0e7a47' },
 ];
 
+// ── Guest/Landing nav items ─────────────────────────────────────
+const guestNavItems: NavItem[] = [
+  { href: '/login',         label: 'Phụ huynh',     icon: Users,         iconColor: '#7d2fc4', activeBg: 'rgba(125,47,196,0.12)',  activeText: '#6f29ae' },
+  { href: '/tutor',         label: 'Gia sư',        icon: GraduationCap, iconColor: '#108a51', activeBg: 'rgba(16,138,81,0.12)',   activeText: '#0e7a47' },
+  { href: 'https://csatoj.vn/awards/', label: 'Vinh danh', icon: Trophy, iconColor: '#f59e0b', activeBg: 'rgba(245,158,11,0.12)', activeText: '#b45309' },
+  { href: 'https://csatoj.vn/users/',  label: 'Bảng xếp hạng', icon: Trophy, iconColor: '#38a9f0', activeBg: 'rgba(56,169,240,0.12)', activeText: '#1272b8' },
+];
+
 // ── Props ───────────────────────────────────────────────────────
 interface CsatNavbarProps {
-  variant: 'admin' | 'tutor' | 'login';
+  variant: 'admin' | 'tutor' | 'login' | 'guest';
   user?: {
     name: string;
     role: string;
@@ -99,6 +107,7 @@ export function CsatNavbar({ variant, user }: CsatNavbarProps) {
   // Select nav items by variant
   const navItems = variant === 'admin' ? adminNavItems
                  : variant === 'tutor' ? tutorNavItems
+                 : variant === 'guest' ? guestNavItems
                  : [];
 
   // Close mobile menu on route change
@@ -139,7 +148,7 @@ export function CsatNavbar({ variant, user }: CsatNavbarProps) {
 
         {/* ── Logo ── */}
         <Link
-          href={variant === 'login' ? '/' : variant === 'admin' ? '/admin/dashboard' : '/tutor/dashboard'}
+          href={variant === 'admin' ? '/admin/dashboard' : variant === 'tutor' ? '/tutor/dashboard' : '/'}
           className="flex items-center px-2 py-0 h-11 bg-transparent no-underline shrink-0"
         >
           <Image
@@ -159,7 +168,8 @@ export function CsatNavbar({ variant, user }: CsatNavbarProps) {
         >
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname.startsWith(item.href);
+            const isExternal = item.href.startsWith('http');
+            const isActive = !isExternal && pathname.startsWith(item.href);
             const hasSubmenu = item.children && item.children.length > 0;
 
             return (
@@ -169,21 +179,35 @@ export function CsatNavbar({ variant, user }: CsatNavbarProps) {
                 onMouseEnter={() => hasSubmenu && setOpenSubmenu(item.href)}
                 onMouseLeave={() => hasSubmenu && setOpenSubmenu(null)}
               >
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-1.5 no-underline font-heading font-bold text-[13.5px] px-3.5 h-[38px] rounded-full mx-0.5 whitespace-nowrap transition-colors cursor-pointer",
-                    isActive
-                      ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground font-extrabold"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                  {item.href.startsWith('http') ? (
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "flex items-center gap-1.5 no-underline font-heading font-bold text-[13.5px] px-3.5 h-[38px] rounded-full mx-0.5 whitespace-nowrap transition-colors cursor-pointer text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                      )}
+                    >
+                      <Icon className="w-3.5 h-3.5 shrink-0" style={{ color: item.iconColor }} />
+                      {item.label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-1.5 no-underline font-heading font-bold text-[13.5px] px-3.5 h-[38px] rounded-full mx-0.5 whitespace-nowrap transition-colors cursor-pointer",
+                        isActive
+                          ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground font-extrabold"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                      )}
+                    >
+                      <Icon
+                        className="w-3.5 h-3.5 shrink-0"
+                        style={{ color: isActive ? undefined : item.iconColor }}
+                      />
+                      {item.label}
+                    </Link>
                   )}
-                >
-                  <Icon
-                    className="w-3.5 h-3.5 shrink-0"
-                    style={{ color: isActive ? undefined : item.iconColor }}
-                  />
-                  {item.label}
-                </Link>
 
                 {/* ── Submenu dropdown ── */}
                 {hasSubmenu && openSubmenu === item.href && (
@@ -239,22 +263,9 @@ export function CsatNavbar({ variant, user }: CsatNavbarProps) {
                 </button>
               </form>
             </div>
-          ) : variant !== 'login' ? (
-            /* ── Not logged in: login + sign up buttons ── */
-            <span className="inline-flex items-center whitespace-nowrap text-[0px]">
-              <Link
-                href="/login"
-                className="text-[13.5px] font-bold rounded-full py-2 px-4 text-foreground border border-border no-underline mr-2 hover:bg-accent/50 transition-colors cursor-pointer"
-              >
-                Đăng nhập
-              </Link>
-              <Link
-                href="/login"
-                className="text-[13.5px] font-bold rounded-full py-2 px-4 text-primary-foreground bg-primary shadow-sm no-underline hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                Đăng ký
-              </Link>
-            </span>
+          ) : variant === 'guest' || variant === 'login' ? (
+            /* ── Not logged in: guest/login specific buttons can go here if needed ── */
+            null
           ) : null}
         </div>
       </div>
@@ -266,23 +277,37 @@ export function CsatNavbar({ variant, user }: CsatNavbarProps) {
         >
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname.startsWith(item.href);
+            const isExternal = item.href.startsWith('http');
+            const isActive = !isExternal && pathname.startsWith(item.href);
 
             return (
               <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    "flex items-center gap-2 no-underline font-heading font-bold text-[13.5px] px-3.5 h-10 rounded-xl transition-colors cursor-pointer",
-                    isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                  )}
-                >
-                  <Icon className="w-3.5 h-3.5 shrink-0" style={{ color: item.iconColor }} />
-                  {item.label}
-                </Link>
+                {isExternal ? (
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 no-underline font-heading font-bold text-[13.5px] px-3.5 h-10 rounded-xl transition-colors cursor-pointer text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                  >
+                    <Icon className="w-3.5 h-3.5 shrink-0" style={{ color: item.iconColor }} />
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "flex items-center gap-2 no-underline font-heading font-bold text-[13.5px] px-3.5 h-10 rounded-xl transition-colors cursor-pointer",
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5 shrink-0" style={{ color: item.iconColor }} />
+                    {item.label}
+                  </Link>
+                )}
                 {/* Sub-items */}
                 {item.children?.map((child) => (
                   <Link

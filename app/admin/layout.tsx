@@ -7,7 +7,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect('/tutor');
   }
 
   // Tầng bảo vệ thứ 2 (sau middleware): chỉ admin mới vào được /admin/**
