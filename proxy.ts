@@ -34,6 +34,12 @@ export async function proxy(request: NextRequest) {
   const isTutorDashRoute = pathname.startsWith('/tutor/') // /tutor/dashboard, /tutor/classes...
   const isParentRoute = pathname.startsWith('/parents')
   const isProtectedRoute = isAdminRoute || isTutorDashRoute
+  const parentSession = request.cookies.get('parent_session')
+
+  // Xử lý Phụ huynh đã đăng nhập: Nếu vào lại /login thì cho thẳng vào /parents
+  if (isParentLoginRoute && parentSession?.value) {
+    return NextResponse.redirect(new URL('/parents', request.url))
+  }
 
   // 1. Chưa đăng nhập Supabase → redirect về /tutor nếu cố vào admin/tutor dashboard
   if (!user && isProtectedRoute) {
