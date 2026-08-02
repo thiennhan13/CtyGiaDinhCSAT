@@ -141,20 +141,33 @@ export default function ClassDetailPage() {
     }
   }
 
-  async function handleRemoveStudent(studentId: string) {
+  async function handleRemoveStudent(studentId: string, studentName?: string) {
     const ok = await confirm({
       title: 'Dừng học sinh này?',
-      description: 'Học sinh sẽ được chuyển sang trạng thái Đã nghỉ. Học sinh sẽ không bị xóa khỏi hệ thống, nhưng sẽ không được điểm danh và không bị tính học phí.',
+      description: 'Học sinh sẽ được chuyển sang trạng thái Đã nghỉ. Các phiếu điểm danh (nếu có) trong tương lai của học sinh này sẽ bị xóa bỏ hoàn toàn.',
       confirmText: 'Dừng học',
       variant: 'destructive',
     });
     if (!ok) return;
-    const { error } = await supabase.from('class_students').update({ status: 'dropped' }).eq('class_id', classId).eq('student_id', studentId);
-    if (!error) {
-      await showAlert({ title: 'Thành công', description: 'Đã cập nhật trạng thái học sinh thành Đã nghỉ.', variant: 'success' });
+
+    try {
+      const res = await fetch('/api/admin/classes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'remove_student',
+          class_id: classId,
+          student_id: studentId,
+          student_name: studentName,
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      await showAlert({ title: 'Thành công', description: data.message, variant: 'success' });
       fetchData();
-    } else {
-      await showAlert({ title: 'Lỗi', description: error.message, variant: 'error' });
+    } catch(err: any) {
+      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
     }
   }
 
@@ -706,7 +719,7 @@ export default function ClassDetailPage() {
                            >
                              <Edit className="w-4 h-4 mr-1" /> Sửa phí
                            </Button>
-                           <Button variant="ghost" size="sm" onClick={() => handleRemoveStudent(cs.student_id)} className="text-amber-600 hover:text-amber-700 hover:bg-amber-500/10 dark:text-amber-400">
+                           <Button variant="ghost" size="sm" onClick={() => handleRemoveStudent(cs.student_id, cs.students?.name)} className="text-amber-600 hover:text-amber-700 hover:bg-amber-500/10 dark:text-amber-400">
                              <Trash2 className="w-4 h-4 mr-1" /> Dừng học
                            </Button>
                          </div>

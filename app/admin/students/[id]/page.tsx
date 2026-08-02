@@ -96,8 +96,7 @@ export default function StudentDetailPage() {
       const { data: attData } = await supabase
         .from('session_attendance')
         .select('status, notes, tuition_fee_snapshot, sessions(date, start_time, end_time, status, classes(name))')
-        .eq('student_id', studentId)
-        .order('sessions(date)', { ascending: false });
+        .eq('student_id', studentId);
         
       if (attData) {
           // Sort descending by date

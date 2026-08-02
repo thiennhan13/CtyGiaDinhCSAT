@@ -162,7 +162,7 @@ export default function TutorDashboard() {
             session_id, 
             csat_fee_snapshot,
             status,
-            session_attendance(status, student_id),
+            session_attendance(status, student_id, tuition_fee_snapshot),
             classes!inner(class_students(student_id, tuition_fee_per_session))
         `)
         .in('class_id', classes)
@@ -180,19 +180,22 @@ export default function TutorDashboard() {
             const classStudents = session.classes?.class_students || [];
             
             // Lấy những học sinh có mặt
-            const presentStudentIds = attendances.filter((a: any) => a.status === 'attended').map((a: any) => a.student_id);
+            const presentAttendances = attendances.filter((a: any) => a.status === 'attended');
             
-            // Tính học phí
-            presentStudentIds.forEach((sid: string) => {
-                const cs = classStudents.find((c: any) => c.student_id === sid);
-                if (cs) {
-                    sessionIncome += (cs.tuition_fee_per_session || 0);
+            // Tính học phí dựa trên snapshot (nếu có) hoặc fallback về class_students (chống lỗi đồng bộ khi admin đổi phí)
+            presentAttendances.forEach((att: any) => {
+                if (att.tuition_fee_snapshot !== null && att.tuition_fee_snapshot !== undefined) {
+                    sessionIncome += Number(att.tuition_fee_snapshot);
+                } else {
+                    const cs = classStudents.find((c: any) => c.student_id === att.student_id);
+                    if (cs) {
+                        sessionIncome += (cs.tuition_fee_per_session || 0);
+                    }
                 }
             });
 
-            // Có buổi học nhưng không có học sinh thì có thể csat_fee_snapshot trừ lẹm vào, hoặc nếu <= 0 thì bằng 0. (Tuỳ logic, ở đây cho phép âm nếu không ai đi học nhưng vẫn mở lớp, hoặc không)
-            // Thường thì nếu không có ai đi học = phí 0.
-            if (presentStudentIds.length > 0) {
+            // Trừ phí CSAT snapshot
+            if (presentAttendances.length > 0) {
                sessionIncome -= (session.csat_fee_snapshot || 0);
             } else {
                sessionIncome = 0;

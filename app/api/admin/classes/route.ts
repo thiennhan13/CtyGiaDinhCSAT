@@ -82,6 +82,13 @@ const renameClassSchema = z.object({
   new_name: z.string().min(2, "Tên lớp phải có ít nhất 2 ký tự"),
 });
 
+const removeStudentSchema = z.object({
+  action: z.literal('remove_student'),
+  class_id: z.string().uuid("Class ID không hợp lệ"),
+  student_id: z.string().uuid("Student ID không hợp lệ"),
+  student_name: z.string().optional()
+});
+
 const classActionSchema = z.discriminatedUnion('action', [
   createClassSchema,
   archiveClassSchema,
@@ -92,6 +99,7 @@ const classActionSchema = z.discriminatedUnion('action', [
   updateCsatFeeSchema,
   updateStudentFeeSchema,
   renameClassSchema,
+  removeStudentSchema,
 ]);
 
 export async function POST(request: Request) {
@@ -111,6 +119,28 @@ export async function POST(request: Request) {
     }
 
     const adminClient = createAdminClient();
+
+    // Hàm kiểm tra chống thất thoát dữ liệu lịch sử
+    const checkUnattendedPastSessions = async (classId: string) => {
+      const todayStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
+      const today = new Date(todayStr);
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const localDate = `${yyyy}-${mm}-${dd}`;
+
+      const { data } = await adminClient
+        .from('sessions')
+        .select('session_id')
+        .eq('class_id', classId)
+        .eq('status', 'scheduled')
+        .lt('date', localDate);
+
+      if (data && data.length > 0) {
+        return `Không thể thực hiện! Lớp này đang có ${data.length} buổi học trong quá khứ chưa được gia sư chốt điểm danh. Vui lòng nhắc gia sư điểm danh đầy đủ trước khi thay đổi thông tin này để tránh sai lệch học phí.`;
+      }
+      return null;
+    };
 
     // ==============================
     // ACTION: create
@@ -340,6 +370,12 @@ export async function POST(request: Request) {
     if (parsed.data.action === 'update_student_fee') {
       const { class_id, student_id, new_fee, student_name } = parsed.data;
 
+      // KIỂM TRA BẢO VỆ DỮ LIỆU LỊCH SỬ
+      const blockReason = await checkUnattendedPastSessions(class_id);
+      if (blockReason) {
+        return NextResponse.json({ error: blockReason }, { status: 400 });
+      }
+
       // 1. Get old fee
       const { data: oldData } = await adminClient
         .from('class_students')
@@ -432,6 +468,61 @@ export async function POST(request: Request) {
       });
 
       return NextResponse.json({ message: `Đổi tên lớp thành công: "${new_name}"` });
+    }
+
+    // ==============================
+    // ACTION: remove_student
+    // Fix: Xóa sạch dữ liệu điểm danh tương lai của học sinh đã nghỉ
+    // ==============================
+    if (parsed.data.action === 'remove_student') {
+      const { class_id, student_id, student_name } = parsed.data;
+
+      // KIỂM TRA BẢO VỆ DỮ LIỆU LỊCH SỬ
+      const blockReason = await checkUnattendedPastSessions(class_id);
+      if (blockReason) {
+        return NextResponse.json({ error: blockReason }, { status: 400 });
+      }
+
+      // 1. Chuyển trạng thái sang dropped
+      const { error: updateErr } = await adminClient
+        .from('class_students')
+        .update({ status: 'dropped' })
+        .eq('class_id', class_id)
+        .eq('student_id', student_id);
+      
+      if (updateErr) throw updateErr;
+
+      // 2. Tìm tất cả các buổi học chưa dạy (scheduled) của lớp này
+      const { data: futureSessions } = await adminClient
+        .from('sessions')
+        .select('session_id')
+        .eq('class_id', class_id)
+        .eq('status', 'scheduled');
+
+      // 3. Xóa tất cả các bản ghi điểm danh tương lai của học sinh này (nếu lỡ lưu)
+      if (futureSessions && futureSessions.length > 0) {
+        const sessionIds = futureSessions.map(s => s.session_id);
+        await adminClient
+          .from('session_attendance')
+          .delete()
+          .in('session_id', sessionIds)
+          .eq('student_id', student_id);
+      }
+
+      // 4. Ghi log
+      await adminClient.from('class_change_log').insert({
+        class_id,
+        change_type: 'remove_student',
+        old_value: 'active',
+        new_value: 'dropped',
+        old_label: `Học sinh: ${student_name || student_id}`,
+        new_label: 'Đã nghỉ học',
+        effective_date: new Date().toISOString().split('T')[0],
+        changed_by: user.email ?? 'unknown',
+        notes: 'Chuyển trạng thái học sinh thành đã nghỉ và xóa các buổi học chưa dạy.',
+      });
+
+      return NextResponse.json({ message: 'Đã cho học sinh nghỉ học thành công' });
     }
 
     return NextResponse.json({ error: 'Hành động không hợp lệ' }, { status: 400 });
