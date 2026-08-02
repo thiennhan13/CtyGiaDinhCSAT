@@ -1,0 +1,81 @@
+# ============================================================
+# CSAT Tutor Manager — GitHub Actions CI Pipeline
+# Kích hoạt khi: push lên main/dev, hoặc tạo Pull Request vào main
+# Nhiệm vụ:
+#   1. Kiểm tra TypeScript Type-Safety (tsc --noEmit)
+#   2. Kiểm tra ESLint (npm run lint)
+#   3. Kiểm tra Next.js Build thực tế (npm run build)
+# Nếu bất kỳ bước nào thất bại → Chặn merge / Không deploy lên Vercel
+# ============================================================
+
+name: CI — TypeCheck & Build
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+
+# Tự động hủy các job cũ nếu có push mới vào cùng nhánh
+# (tiết kiệm phút GitHub Actions)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: 🔍 TypeCheck & Build (Node 20)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # ── Biến môi trường mặc định cho CI (placeholder — không kết nối DB thực) ──
+    # Nếu repo đã có Secrets thật → sẽ được override ở bước "Nạp Secrets" bên dưới
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key-for-ci-build-only
+      SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key-for-ci-build-only
+      CRON_SECRET: placeholder-cron-secret
+      VERCEL_ENV: test
+
+    steps:
+      # ── 1. Checkout source code ──────────────────────────────
+      - name: 📥 Checkout source code
+        uses: actions/checkout@v4
+
+      # ── 2. Setup Node.js với cache npm ──────────────────────
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # ── 3. Cài đặt dependencies (CI mode - nhanh, không thay đổi lockfile) ──
+      - name: 📦 Cài đặt dependencies
+        run: npm ci
+
+      # ── 4. TypeScript Type-Safety Check ──────────────────────
+      # Bắt lỗi type ngay cả khi Vercel bỏ qua do ignoreBuildErrors
+      - name: 🔍 Kiểm tra TypeScript (tsc --noEmit)
+        run: npx tsc --noEmit
+
+      # ── 5. ESLint ─────────────────────────────────────────────
+      # Bắt lỗi code style thực sự (errors), cho phép tối đa 30 warnings
+      # Xem chi tiết: npm run lint:strict sẽ chặn khi có bất kỳ warning nào
+      - name: 🧹 Kiểm tra ESLint
+        run: npm run lint
+
+      # ── 6. Next.js Production Build ──────────────────────────
+      # Xác nhận toàn bộ app có thể build thành công trên server CI.
+      # Bước này sẽ tự động sử dụng các biến giả (placeholder) đã khai báo
+      # trong phần `env:` của job ở trên (dòng 36-41).
+      # Môi trường CI không cần kết nối DB thật, chỉ cần biến tồn tại để không lỗi.
+      - name: 🏗️ Kiểm tra Next.js Build
+        run: npm run build
+
+      # ── 8. Thông báo kết quả ─────────────────────────────────
+      - name: ✅ CI Passed — Sẵn sàng Deploy
+        if: success()
+        run: echo "✅ Tất cả bước kiểm tra đã qua. Vercel sẽ tự động deploy."
