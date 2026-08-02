@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -470,7 +470,7 @@ export default function ClassDetailPage() {
     }
   }
 
-  if (loading) return <div className="p-4 text-center text-gray-400">Đang tải dữ liệu...</div>;
+  if (loading) return <div className="p-4 text-center text-muted-foreground">Đang tải dữ liệu...</div>;
 
   return (
     <div className="space-y-6">
@@ -479,26 +479,26 @@ export default function ClassDetailPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground">
               {classInfo?.name}
             </h2>
             <button
               type="button"
               onClick={() => { setNewClassName(classInfo?.name || ''); setIsRenameOpen(true); }}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary border border-border hover:border-blue-300 rounded-md px-2 py-1 transition-colors"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary border border-border hover:border-primary/40 rounded-md px-2 py-1 transition-colors"
               title="Đổi tên lớp"
             >
               <Edit className="w-3 h-3" /> Đổi tên
             </button>
           </div>
-          <p className="text-gray-500 mt-1">
-            Gia sư phụ trách: <span className="font-semibold text-gray-700">{classInfo?.tutors?.name}</span>
-            <span className="mx-2 text-gray-300">|</span>
-            Battle Pass CSAT/buổi: <span className="font-semibold text-gray-700">{formatVND(classInfo?.csat_fee_per_session || 0)}</span>
+          <p className="text-muted-foreground mt-1">
+            Gia sư phụ trách: <span className="font-semibold text-foreground">{classInfo?.tutors?.name}</span>
+            <span className="mx-2 text-border">|</span>
+            Battle Pass CSAT/buổi: <span className="font-semibold text-foreground">{formatVND(classInfo?.csat_fee_per_session || 0)}</span>
           </p>
         </div>
-        <Button variant="outline" onClick={handleExportReport} className="gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50">
-          <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Xuất Báo Cáo
+        <Button variant="outline" onClick={handleExportReport} className="gap-2 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10">
+          <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Xuất Báo Cáo
         </Button>
       </div>
 
@@ -544,24 +544,24 @@ export default function ClassDetailPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2 p-4 bg-amber-50 rounded-lg border border-amber-200">
-              <h4 className="font-semibold text-amber-800">Đổi Gia Sư Dạy Lớp</h4>
-              <p className="text-xs text-amber-700">Gia sư hiện tại: <strong>{classInfo?.tutors?.name}</strong></p>
+            <div className="space-y-2 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+              <h4 className="font-semibold text-amber-800 dark:text-amber-300">Đổi Gia Sư Dạy Lớp</h4>
+              <p className="text-xs text-amber-700 dark:text-amber-400">Gia sư hiện tại: <strong>{classInfo?.tutors?.name}</strong></p>
               <Button
                 variant="outline"
-                className="w-full border-amber-400 text-amber-700 hover:bg-amber-100"
+                className="w-full border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20"
                 onClick={() => { setIsChangeTutorOpen(true); setNewTutorId(''); }}
               >
                 Chọn Gia Sư Mới...
               </Button>
             </div>
 
-            <div className="space-y-2 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-              <h4 className="font-semibold text-emerald-800">Điều Chỉnh Định Mức Battle Pass CSAT</h4>
-              <p className="text-xs text-emerald-700">Định mức hiện tại: <strong>{formatVND(classInfo?.csat_fee_per_session || 0)} / buổi</strong></p>
+            <div className="space-y-2 p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+              <h4 className="font-semibold text-emerald-800 dark:text-emerald-300">Điều Chỉnh Định Mức Battle Pass CSAT</h4>
+              <p className="text-xs text-emerald-700 dark:text-emerald-400">Định mức hiện tại: <strong>{formatVND(classInfo?.csat_fee_per_session || 0)} / buổi</strong></p>
               <Button
                 variant="outline"
-                className="w-full border-emerald-400 text-emerald-700 hover:bg-emerald-100"
+                className="w-full border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20"
                 onClick={() => { setIsUpdateCsatOpen(true); setNewCsatFee(String(classInfo?.csat_fee_per_session || 0)); }}
               >
                 Thay Đổi Battle Pass CSAT...
@@ -690,9 +690,9 @@ export default function ClassDetailPage() {
                      <TableCell>{formatVND(cs.tuition_fee_per_session)}</TableCell>
                      <TableCell>
                        {cs.status === 'active' ? (
-                         <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-sm font-semibold">Đang học</span>
+                         <span className="px-2 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs rounded-sm font-semibold border border-emerald-500/20">Đang học</span>
                        ) : (
-                         <span className="px-2 py-1 bg-secondary text-muted-foreground text-xs rounded-sm font-semibold">Đã nghỉ</span>
+                         <span className="px-2 py-1 bg-secondary text-muted-foreground text-xs rounded-sm font-semibold border border-border">Đã nghỉ</span>
                        )}
                      </TableCell>
                      <TableCell className="text-right">
@@ -702,11 +702,11 @@ export default function ClassDetailPage() {
                              variant="ghost" 
                              size="sm" 
                              onClick={() => { setEditingStudent(cs); setNewStudentFee(String(cs.tuition_fee_per_session)); setIsUpdateFeeOpen(true); }}
-                             className="text-primary hover:text-primary hover:bg-blue-50"
+                             className="text-primary hover:text-primary hover:bg-primary/10"
                            >
                              <Edit className="w-4 h-4 mr-1" /> Sửa phí
                            </Button>
-                           <Button variant="ghost" size="sm" onClick={() => handleRemoveStudent(cs.student_id)} className="text-amber-600 hover:text-amber-700 hover:bg-amber-50">
+                           <Button variant="ghost" size="sm" onClick={() => handleRemoveStudent(cs.student_id)} className="text-amber-600 hover:text-amber-700 hover:bg-amber-500/10 dark:text-amber-400">
                              <Trash2 className="w-4 h-4 mr-1" /> Dừng học
                            </Button>
                          </div>
@@ -745,7 +745,7 @@ export default function ClassDetailPage() {
                   <TableRow key={s.session_id}>
                     <TableCell>{s.date}</TableCell>
                     <TableCell>{s.start_time.substring(0,5)} - {s.end_time.substring(0,5)}</TableCell>
-                    <TableCell className="text-xs text-gray-500">
+                    <TableCell className="text-xs text-muted-foreground">
                       {s.csat_fee_snapshot != null ? formatVND(s.csat_fee_snapshot) : '—'}
                     </TableCell>
                     <TableCell>
@@ -766,7 +766,7 @@ export default function ClassDetailPage() {
                 ))}
                 {classSessions.length === 0 && (
                    <TableRow>
-                     <TableCell colSpan={5} className="text-center py-4">Chưa có buổi học nào</TableCell>
+                     <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">Chưa có buổi học nào</TableCell>
                    </TableRow>
                 )}
              </TableBody>
@@ -777,7 +777,7 @@ export default function ClassDetailPage() {
       {changeLogs.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-gray-700">
+            <CardTitle className="flex items-center gap-2 text-foreground">
               <History className="w-5 h-5" />
               Lịch Sử Thay Đổi Lớp
             </CardTitle>
@@ -798,20 +798,20 @@ export default function ClassDetailPage() {
               <TableBody>
                 {changeLogs.map(log => (
                   <TableRow key={log.log_id}>
-                    <TableCell className="text-xs text-gray-500">
+                    <TableCell className="text-xs text-muted-foreground">
                       {new Date(log.created_at).toLocaleString('vi-VN')}
                     </TableCell>
                     <TableCell>
                       {log.change_type === 'tutor_change' ? (
-                        <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-sm font-semibold">Đổi Gia Sư</span>
+                        <span className="px-2 py-1 bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs rounded-sm font-semibold border border-amber-500/20">Đổi Gia Sư</span>
                       ) : (
-                        <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-sm font-semibold">Đổi Battle Pass</span>
+                        <span className="px-2 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs rounded-sm font-semibold border border-emerald-500/20">Đổi Battle Pass</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-sm text-gray-600">{log.old_label}</TableCell>
-                    <TableCell className="text-sm font-semibold text-gray-800">{log.new_label}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{log.old_label}</TableCell>
+                    <TableCell className="text-sm font-semibold text-foreground">{log.new_label}</TableCell>
                     <TableCell className="text-sm">{log.effective_date}</TableCell>
-                    <TableCell className="text-xs text-gray-500">{log.notes || '—'}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{log.notes || '—'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -954,7 +954,7 @@ export default function ClassDetailPage() {
             <div>
               <label className="text-sm font-medium">Ngày Hiệu Lực <span className="text-destructive">*</span></label>
               <Input type="date" value={changeTutorDate} onChange={e => setChangeTutorDate(e.target.value)} required />
-              <p className="text-xs text-gray-400 mt-1">Ngày gia sư mới bắt đầu chính thức dạy lớp này.</p>
+              <p className="text-xs text-muted-foreground mt-1">Ngày gia sư mới bắt đầu chính thức dạy lớp này.</p>
             </div>
             <div>
               <label className="text-sm font-medium">Ghi Chú (tuỳ chọn)</label>
@@ -982,7 +982,7 @@ export default function ClassDetailPage() {
       <Dialog open={isUpdateCsatOpen} onOpenChange={setIsUpdateCsatOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-emerald-700">
+            <DialogTitle className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
               <AlertTriangle className="w-5 h-5" />
               Điều Chỉnh Định Mức Battle Pass CSAT
             </DialogTitle>
@@ -1004,7 +1004,7 @@ export default function ClassDetailPage() {
             <div>
               <label className="text-sm font-medium">Ngày Hiệu Lực <span className="text-destructive">*</span></label>
               <Input type="date" value={csatEffectiveDate} onChange={e => setCsatEffectiveDate(e.target.value)} required />
-              <p className="text-xs text-gray-400 mt-1">Hệ thống sẽ cập nhật tự động snapshot phí cho các buổi chưa dạy từ ngày này trở đi.</p>
+              <p className="text-xs text-muted-foreground mt-1">Hệ thống sẽ cập nhật tự động snapshot phí cho các buổi chưa dạy từ ngày này trở đi.</p>
             </div>
             <div>
               <label className="text-sm font-medium">Ghi Chú (tuỳ chọn)</label>
@@ -1014,7 +1014,7 @@ export default function ClassDetailPage() {
                 onChange={e => setCsatNotes(e.target.value)}
               />
             </div>
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-md text-xs text-emerald-700">
+            <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-xs text-emerald-700 dark:text-emerald-400">
               ⚠️ <strong>Lưu ý:</strong> Chỉ các buổi học <strong>chưa dạy (Sắp tới)</strong> từ ngày hiệu lực trở đi mới bị ảnh hưởng. Các buổi đã dạy sẽ <strong>không thay đổi</strong> và được bảo toàn nguyên vẹn.
             </div>
             <DialogFooter className="pt-2">

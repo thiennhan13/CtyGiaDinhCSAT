@@ -50,10 +50,10 @@ function calcAge(dob: string | null): number | null {
 
 /** CSS class cho Badge trạng thái học sinh */
 function statusBadgeClass(status: string): string {
-  if (status === 'Đang học')  return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100';
-  if (status === 'Đã nghỉ')   return 'bg-destructive/10 text-destructive hover:bg-destructive/10';
-  if (status === 'Tạm dừng')  return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 hover:bg-yellow-100';
-  return 'bg-secondary text-foreground hover:bg-secondary';
+  if (status === 'Đang học')  return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20';
+  if (status === 'Đã nghỉ')   return 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20';
+  if (status === 'Tạm dừng')  return 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20';
+  return 'bg-secondary text-foreground';
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────

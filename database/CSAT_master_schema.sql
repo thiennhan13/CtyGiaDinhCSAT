@@ -37,16 +37,25 @@ EXCEPTION WHEN duplicate_object THEN null; END $$;
 CREATE TABLE IF NOT EXISTS students (
   student_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(255) NOT NULL,
-  age INTEGER,
+  date_of_birth DATE,
+  old_age INTEGER,
   province VARCHAR(100),
-  contact_phone VARCHAR(20),
-  contact_link VARCHAR(255),
+  student_contact VARCHAR(255),
+  parent_contact VARCHAR(255),
+  parent_name VARCHAR(255),
+  zalo_class_name VARCHAR(255),
   status VARCHAR(255) DEFAULT 'Đang học',
   is_deleted BOOLEAN DEFAULT false,
   notes TEXT,
-  default_tuition_fee DECIMAL(10,2) NOT NULL DEFAULT 100000.00,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+-- [MIGRATION ONLY]
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS date_of_birth DATE;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS old_age INTEGER;
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS student_contact VARCHAR(255);
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS parent_contact VARCHAR(255);
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS parent_name VARCHAR(255);
+ALTER TABLE public.students ADD COLUMN IF NOT EXISTS zalo_class_name VARCHAR(255);
 
 -- Bảng: tutors
 CREATE TABLE IF NOT EXISTS tutors (
@@ -139,8 +148,11 @@ CREATE TABLE IF NOT EXISTS payments (
   billing_period VARCHAR(255) NOT NULL,
   amount DECIMAL(10,2) NOT NULL,
   status payment_status DEFAULT 'unpaid',
+  paid_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+-- [MIGRATION ONLY]
+ALTER TABLE public.payments ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP WITH TIME ZONE;
 
 -- Bảng: announcements
 CREATE TABLE IF NOT EXISTS announcements (
@@ -200,7 +212,7 @@ ALTER TABLE public.payments
 -- PHẦN 5: ROW LEVEL SECURITY (RLS)
 -- ============================================================
 
-ALTER TABLE students DISABLE ROW LEVEL SECURITY;
+ALTER TABLE students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tutors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE class_students ENABLE ROW LEVEL SECURITY;
@@ -224,18 +236,28 @@ BEGIN
   END LOOP;
 END $$;
 
--- Helper: Kiểm tra Admin
+-- Helper: Kiểm tra Admin (Bảo vệ đa lớp: Service Role, App Metadata, User Metadata, Email)
 CREATE OR REPLACE FUNCTION is_admin()
 RETURNS BOOLEAN AS $$
 DECLARE
-  user_email VARCHAR;
+  v_role TEXT;
+  v_email TEXT;
 BEGIN
-  user_email := auth.jwt() ->> 'email';
-  RETURN (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
-      OR (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-      OR user_email = 'csattutor@gmail.com';
+  -- 1. Nếu là Service Role (Next.js server-side gọi qua Service Role Key)
+  IF (auth.jwt() ->> 'role') = 'service_role' OR current_user = 'service_role' THEN
+    RETURN TRUE;
+  END IF;
+
+  -- 2. Kiểm tra từ JWT token của user đăng nhập
+  v_role := COALESCE(
+    auth.jwt() -> 'app_metadata' ->> 'role',
+    auth.jwt() -> 'user_metadata' ->> 'role'
+  );
+  v_email := auth.jwt() ->> 'email';
+
+  RETURN v_role = 'admin' OR v_email = 'csattutor@gmail.com';
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
 
 -- Policies: Admin — toàn quyền
 CREATE POLICY "Admin_Full_Students"       ON students       FOR ALL TO authenticated USING (is_admin()) WITH CHECK (is_admin());
@@ -329,7 +351,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres, se
 -- ============================================================
 
 -- 7.1: create_class_full — Tạo lớp học (atomic: tạo lớp + học sinh + lịch cùng lúc)
--- Phiên bản mới nhất: Lưu tutor_id_snapshot khi tạo buổi học
+-- Phiên bản bảo mật: Kiểm tra quyền Admin + Lưu tutor_id_snapshot
 CREATE OR REPLACE FUNCTION create_class_full(
     p_name VARCHAR, p_class_type VARCHAR, p_tutor_id UUID, p_csat_fee DECIMAL,
     p_start_date DATE, p_end_date DATE, p_students JSONB, p_sessions JSONB
@@ -337,6 +359,11 @@ CREATE OR REPLACE FUNCTION create_class_full(
 DECLARE
     v_class_id UUID; v_student JSONB; v_session JSONB;
 BEGIN
+    -- CHỐNG LEO THANG ĐẶC QUYỀN: Chỉ Admin mới được tạo lớp
+    IF NOT is_admin() THEN
+        RAISE EXCEPTION 'Quyền truy cập bị từ chối: Thao tác này yêu cầu quyền Quản trị viên (Admin).';
+    END IF;
+
     INSERT INTO classes (name, class_type, tutor_id, csat_fee_per_session, start_date, end_date)
     VALUES (p_name, p_class_type, p_tutor_id, p_csat_fee, p_start_date, p_end_date)
     RETURNING class_id INTO v_class_id;
@@ -367,6 +394,11 @@ CREATE OR REPLACE FUNCTION change_tutor_safe(
 DECLARE
     v_old_tutor_id UUID; v_old_tutor_name TEXT; v_new_tutor_name TEXT; v_updated_count INTEGER;
 BEGIN
+    -- CHỐNG LEO THANG ĐẶC QUYỀN: Chỉ Admin mới được đổi gia sư
+    IF NOT is_admin() THEN
+        RAISE EXCEPTION 'Quyền truy cập bị từ chối: Thao tác này yêu cầu quyền Quản trị viên (Admin).';
+    END IF;
+
     SELECT t.tutor_id, t.name INTO v_old_tutor_id, v_old_tutor_name
     FROM classes c LEFT JOIN tutors t ON t.tutor_id = c.tutor_id WHERE c.class_id = p_class_id;
     IF NOT FOUND THEN RAISE EXCEPTION 'Không tìm thấy lớp học.'; END IF;
@@ -399,6 +431,11 @@ CREATE OR REPLACE FUNCTION update_csat_fee_safe(
 DECLARE
     v_old_fee DECIMAL; v_updated_count INTEGER; v_null_filled INTEGER;
 BEGIN
+    -- CHỐNG LEO THANG ĐẶC QUYỀN: Chỉ Admin mới được đổi phí CSAT
+    IF NOT is_admin() THEN
+        RAISE EXCEPTION 'Quyền truy cập bị từ chối: Thao tác này yêu cầu quyền Quản trị viên (Admin).';
+    END IF;
+
     SELECT csat_fee_per_session INTO v_old_fee FROM classes WHERE class_id = p_class_id;
     IF NOT FOUND THEN RAISE EXCEPTION 'Không tìm thấy lớp học.'; END IF;
 
@@ -425,7 +462,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 7.4: take_attendance_safe — Lưu điểm danh (atomic: upsert attendance + mark session completed)
--- Phiên bản mới nhất: COALESCE bảo vệ tuition_fee_snapshot cũ khi sửa điểm danh (Fix Lỗi 2)
+-- Phiên bản bảo mật: Kiểm tra Admin HOẶC Gia sư phụ trách lớp/buổi học
 CREATE OR REPLACE FUNCTION take_attendance_safe(
     p_session_id UUID,
     p_attendance_data JSONB
@@ -435,6 +472,16 @@ DECLARE
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM sessions WHERE session_id = p_session_id) THEN
         RAISE EXCEPTION 'Buổi học không tồn tại';
+    END IF;
+
+    -- CHỐNG LEO THANG ĐẶC QUYỀN: Kiểm tra quyền Admin HOẶC Gia sư phụ trách
+    IF NOT is_admin() AND NOT EXISTS (
+        SELECT 1 FROM sessions s
+        JOIN classes c ON s.class_id = c.class_id
+        JOIN tutors t ON (c.tutor_id = t.tutor_id OR s.tutor_id_snapshot = t.tutor_id)
+        WHERE s.session_id = p_session_id AND t.auth_uid = auth.uid()
+    ) THEN
+        RAISE EXCEPTION 'Quyền truy cập bị từ chối: Bạn không phải là gia sư phụ trách buổi học này.';
     END IF;
 
     FOR v_record IN SELECT * FROM jsonb_array_elements(p_attendance_data) LOOP
@@ -462,7 +509,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 7.5: rollback_billing_partial — Hủy chốt sổ một phần (giữ hóa đơn đã thu, xóa chưa thu)
--- Fix Lỗi 3: Không khóa cứng nếu có 1 hóa đơn đã paid
+-- Phiên bản bảo mật: Kiểm tra quyền Admin (Chống leo thang đặc quyền)
 CREATE OR REPLACE FUNCTION rollback_billing_partial(
     p_billing_period TEXT
 ) RETURNS JSONB AS $$
@@ -471,6 +518,11 @@ DECLARE
     v_paid_count   INTEGER := 0;
     v_target       RECORD;
 BEGIN
+    -- CHỐNG LEO THANG ĐẶC QUYỀN: Chỉ Admin mới được hủy chốt sổ
+    IF NOT is_admin() THEN
+        RAISE EXCEPTION 'Quyền truy cập bị từ chối: Thao tác này yêu cầu quyền Quản trị viên (Admin).';
+    END IF;
+
     SELECT COUNT(*) INTO v_paid_count   FROM payments WHERE billing_period = p_billing_period AND status = 'paid';
     SELECT COUNT(*) INTO v_unpaid_count FROM payments WHERE billing_period = p_billing_period AND status = 'unpaid';
 

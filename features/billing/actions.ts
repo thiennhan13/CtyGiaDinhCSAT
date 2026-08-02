@@ -42,27 +42,7 @@ export async function markPaymentPaid(paymentId: string): Promise<ActionResult> 
   }
 }
 
-/**
- * Đánh dấu 1 khoản lương gia sư là Đã trả
- */
-export async function markSalaryPaid(
-  tutorId: string,
-  billingPeriod: string
-): Promise<ActionResult> {
-  try {
-    const { supabase } = await requireAdmin();
-    const { error } = await supabase
-      .from('tutor_salaries')
-      .update({ status: 'paid', paid_at: new Date().toISOString() })
-      .eq('tutor_id', tutorId)
-      .eq('billing_period', billingPeriod);
-    if (error) throw error;
-    revalidatePath('/admin/billing');
-    return { success: true, data: null };
-  } catch (err) {
-    return { success: false, error: err instanceof Error ? err.message : 'Lỗi không xác định' };
-  }
-}
+
 
 /**
  * Lấy danh sách các kỳ kế toán đã chốt (để populate dropdown)

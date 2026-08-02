@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -207,7 +207,7 @@ export default function NewClassPage() {
       <AlertDialog />
       <div className="flex items-center gap-4">
         <Button variant="outline" size="sm" onClick={() => router.push('/admin/classes')}>Tắt</Button>
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900">Tạo Lớp Học Mới</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">Tạo Lớp Học Mới</h2>
       </div>
 
       {step === 1 && (
@@ -219,7 +219,7 @@ export default function NewClassPage() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Tên lớp học <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium">Tên lớp học <span className="text-destructive">*</span></label>
                 <Input 
                   placeholder="Ví dụ: TOAN_01" 
                   value={className} 
@@ -228,7 +228,7 @@ export default function NewClassPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Loại lớp <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium">Loại lớp <span className="text-destructive">*</span></label>
                 <Combobox
                   options={[
                     { value: 'Lớp Cơ bản', label: 'Lớp Cơ bản' },
@@ -242,7 +242,7 @@ export default function NewClassPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Gia sư <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium">Gia sư <span className="text-destructive">*</span></label>
                 <Combobox
                   options={tutors.map(t => ({ value: t.tutor_id, label: t.name }))}
                   value={tutorId}
@@ -252,7 +252,7 @@ export default function NewClassPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">CSAT (Phí trung tâm trừ mỗi buổi - VND) <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium">CSAT (Phí trung tâm trừ mỗi buổi - VND) <span className="text-destructive">*</span></label>
                 <Input 
                   type="number"
                   placeholder="Ví dụ: 30000" 
@@ -278,7 +278,7 @@ export default function NewClassPage() {
                     {allStudents.map(s => {
                       const isSelected = !!selectedStudents.find(sel => sel.id === s.student_id);
                       return (
-                        <TableRow key={s.student_id} className={isSelected ? 'bg-indigo-50/50' : ''}>
+                        <TableRow key={s.student_id} className={isSelected ? 'bg-primary/10' : ''}>
                           <TableCell className="text-center">
                             <Checkbox 
                               checked={isSelected}
@@ -345,11 +345,11 @@ export default function NewClassPage() {
             </div>
 
             {!isValidDuration ? (
-              <div className="bg-red-50 text-red-600 p-4 rounded-md border border-red-200 text-sm">
+              <div className="bg-destructive/10 text-destructive p-4 rounded-md border border-destructive/20 text-sm">
                 ⚠️ Thời gian tạo lịch vượt quá 3 tháng. Vui lòng rút ngắn khoảng thời gian để đảm bảo an toàn tải dữ liệu.
               </div>
             ) : (
-              <div className="bg-indigo-50 text-primary p-4 rounded-md border border-indigo-200 flex justify-between items-center">
+              <div className="bg-primary/10 text-primary p-4 rounded-md border border-primary/20 flex justify-between items-center">
                 <span className="font-medium">Tổng số buổi học dự kiến:</span>
                 <span className="text-xl font-bold">{generatedSessionsCount} buổi</span>
               </div>
@@ -377,14 +377,14 @@ export default function NewClassPage() {
                     <Input type="time" value={schedule.endTime} onChange={(e) => updateSchedule(index, 'endTime', e.target.value)} className="bg-card" />
                   </div>
                   <div className="pt-6">
-                    <Button variant="ghost" size="icon" onClick={() => removeSchedule(index)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                    <Button variant="ghost" size="icon" onClick={() => removeSchedule(index)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
               ))}
 
-              <Button variant="outline" type="button" onClick={addScheduleRow} className="w-full border-dashed border-2 py-8 text-muted-foreground hover:text-primary hover:bg-indigo-50 hover:border-indigo-200 transition-colors">
+              <Button variant="outline" type="button" onClick={addScheduleRow} className="w-full border-dashed border-2 py-8 text-muted-foreground hover:text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors">
                 + Thêm Lịch Cố Định
               </Button>
             </div>

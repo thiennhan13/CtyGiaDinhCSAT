@@ -53,7 +53,7 @@ export function BillingHeader({
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900">Kế Toán & Chốt Sổ</h2>
+            <h2 className="text-3xl font-bold tracking-tight text-foreground">Kế Toán & Chốt Sổ</h2>
             <p className="text-sm text-muted-foreground mt-1">Tổng hợp chuyên cần, tính toán học phí học sinh và thanh toán lương gia sư</p>
           </div>
           <div className="bg-secondary p-1.5 rounded-xl flex items-center gap-1 border border-border shadow-inner">
@@ -78,7 +78,7 @@ export function BillingHeader({
           </div>
         </div>
 
-        <Card className="bg-secondary/50/80 border-border/80 shadow-sm">
+        <Card className="bg-secondary/50 border-border/80 shadow-sm">
           <CardContent className="p-4">
             {viewMode === 'preview' ? (
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -90,7 +90,7 @@ export function BillingHeader({
                   {(() => {
                     const days = Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24));
                     return days > 90 ? (
-                      <span className="text-xs text-amber-600 font-semibold bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                      <span className="text-xs text-amber-700 dark:text-amber-400 font-semibold bg-amber-500/10 border border-amber-500/20 rounded px-2 py-1">
                         ⚠️ {days} ngày — API có thể chậm
                       </span>
                     ) : null;
@@ -149,7 +149,7 @@ export function BillingHeader({
                 <div className="flex justify-between"><span className="text-muted-foreground">Hóa đơn sẽ tạo:</span><span className="font-bold text-primary">{stats.studentInvoicePreview?.length || 0} hóa đơn</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Tổng học phí:</span><span className="font-bold">{formatVND(stats.totalStudentTuition)}</span></div>
                 {stats.studentInvoicePreview?.some((s: any) => s.has_zero_fee || s.total_amount === 0) && (
-                  <div className="mt-2 flex items-center gap-2 text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
+                  <div className="mt-2 flex items-center gap-2 text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded p-2">
                     <AlertTriangle className="w-4 h-4 shrink-0" />
                     <span>{stats.studentInvoicePreview.filter((s: any) => s.total_amount === 0).length} học sinh có phí = 0đ sẽ không được tạo hóa đơn.</span>
                   </div>
@@ -177,13 +177,13 @@ export function BillingHeader({
           </CardHeader>
           <CardContent><h3 className="text-2xl font-bold text-foreground">{formatVND(stats?.totalTutorSalary || 0)}</h3></CardContent>
         </Card>
-        <Card className="border-t-4 border-t-emerald-500 bg-emerald-50 border-x-0 border-b-0">
+        <Card className="border-t-4 border-t-emerald-500 bg-emerald-500/10 border-x-0 border-b-0">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-emerald-800 uppercase">Doanh thu trung tâm</CardTitle>
+            <CardTitle className="text-sm font-medium text-emerald-700 dark:text-emerald-400 uppercase">Doanh thu trung tâm</CardTitle>
           </CardHeader>
           <CardContent>
-            <h3 className="text-2xl font-bold text-emerald-900">{formatVND(stats?.totalCenterRevenue || 0)}</h3>
-            <p className="text-xs text-emerald-700 mt-1">Từ định mức Battle Pass CSAT</p>
+            <h3 className="text-2xl font-bold text-emerald-800 dark:text-emerald-300">{formatVND(stats?.totalCenterRevenue || 0)}</h3>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400/80 mt-1">Từ định mức Battle Pass CSAT</p>
           </CardContent>
         </Card>
       </div>

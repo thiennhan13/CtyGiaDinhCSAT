@@ -77,7 +77,7 @@ const updateStudentFeeSchema = z.object({
 });
 
 const renameClassSchema = z.object({
-  action:   z.literal('rename_class'),
+  action: z.literal('rename_class'),
   class_id: z.string().uuid("Class ID không hợp lệ"),
   new_name: z.string().min(2, "Tên lớp phải có ít nhất 2 ký tự"),
 });
@@ -290,11 +290,11 @@ export async function POST(request: Request) {
       const { class_id, new_tutor_id, effective_date, notes } = parsed.data;
 
       const { data: rpcResult, error: rpcErr } = await adminClient.rpc('change_tutor_safe', {
-        p_class_id:       class_id,
-        p_new_tutor_id:   new_tutor_id,
+        p_class_id: class_id,
+        p_new_tutor_id: new_tutor_id,
         p_effective_date: effective_date,
-        p_changed_by:     user.email ?? 'unknown',
-        p_notes:          notes ?? null,
+        p_changed_by: user.email ?? 'unknown',
+        p_notes: notes ?? null,
       });
 
       if (rpcErr) throw rpcErr;
@@ -302,7 +302,7 @@ export async function POST(request: Request) {
       type RpcResult = { message: string; updated_sessions: number };
       const result = rpcResult as unknown as RpcResult | null;
       return NextResponse.json({
-        message:          result?.message ?? 'Đổi gia sư thành công.',
+        message: result?.message ?? 'Đổi gia sư thành công.',
         updated_sessions: result?.updated_sessions ?? 0,
       });
     }
@@ -316,11 +316,11 @@ export async function POST(request: Request) {
       const { class_id, new_csat_fee, effective_date, notes } = parsed.data;
 
       const { data: rpcResult, error: rpcErr } = await adminClient.rpc('update_csat_fee_safe', {
-        p_class_id:       class_id,
-        p_new_fee:        new_csat_fee,
+        p_class_id: class_id,
+        p_new_fee: new_csat_fee,
         p_effective_date: effective_date,
-        p_changed_by:     user.email ?? 'unknown',
-        p_notes:          notes ?? null,
+        p_changed_by: user.email ?? 'unknown',
+        p_notes: notes ?? null,
       });
 
       if (rpcErr) throw rpcErr;
@@ -328,8 +328,8 @@ export async function POST(request: Request) {
       type CsatRpcResult = { message: string; updated_sessions: number; null_snapshots_fixed: number };
       const result = rpcResult as unknown as CsatRpcResult | null;
       return NextResponse.json({
-        message:              result?.message ?? 'Cập nhật phí CSAT thành công.',
-        updated_sessions:     result?.updated_sessions ?? 0,
+        message: result?.message ?? 'Cập nhật phí CSAT thành công.',
+        updated_sessions: result?.updated_sessions ?? 0,
         null_snapshots_fixed: result?.null_snapshots_fixed ?? 0,
       });
     }
@@ -347,7 +347,7 @@ export async function POST(request: Request) {
         .eq('class_id', class_id)
         .eq('student_id', student_id)
         .single();
-      
+
       const oldFee = parseFloat(String(oldData?.tuition_fee_per_session || 0));
 
       // 2. R1 FIX: Backfill tuition_fee_snapshot = oldFee cho các buổi đã dạy
@@ -423,12 +423,12 @@ export async function POST(request: Request) {
       // Ghi audit trail
       await adminClient.from('class_change_log').insert({
         class_id,
-        change_type:  'rename',
-        old_label:    oldClass?.name ?? '',
-        new_label:    new_name,
+        change_type: 'rename',
+        old_label: oldClass?.name ?? '',
+        new_label: new_name,
         effective_date: new Date().toISOString().split('T')[0],
-        changed_by:   user.email ?? 'unknown',
-        notes:        `Đổi tên lớp từ "${oldClass?.name ?? ''}" thành "${new_name}"`,
+        changed_by: user.email ?? 'unknown',
+        notes: `Đổi tên lớp từ "${oldClass?.name ?? ''}" thành "${new_name}"`,
       });
 
       return NextResponse.json({ message: `Đổi tên lớp thành công: "${new_name}"` });

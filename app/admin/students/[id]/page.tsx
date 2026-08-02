@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -142,10 +142,10 @@ export default function StudentDetailPage() {
   }
 
   const statusColor = (status: string) => {
-    if (status === 'Đang học') return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100';
-    if (status === 'Đã nghỉ') return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-100';
-    if (status === 'Tạm dừng') return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 hover:bg-yellow-100';
-    return 'bg-secondary text-foreground hover:bg-secondary';
+    if (status === 'Đang học') return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20';
+    if (status === 'Đã nghỉ') return 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20';
+    if (status === 'Tạm dừng') return 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20';
+    return 'bg-secondary text-foreground';
   }
 
   if (loading) {
@@ -171,7 +171,7 @@ export default function StudentDetailPage() {
           <div className="col-span-1 space-y-6">
                  <Card>
                      <CardHeader>
-                         <CardTitle className="flex items-center gap-2"><User className="w-5 h-5 text-blue-500"/>Thông tin cá nhân</CardTitle>
+                         <CardTitle className="flex items-center gap-2"><User className="w-5 h-5 text-primary"/>Thông tin cá nhân</CardTitle>
                      </CardHeader>
                      <CardContent className="space-y-4">
                          {/* Trạng thái */}
@@ -222,8 +222,6 @@ export default function StudentDetailPage() {
                              </div>
                          )}
 
-
-
                          {/* Ghi chú */}
                          <div className="flex flex-col gap-1">
                              <span className="text-muted-foreground">Ghi chú</span>
@@ -233,7 +231,7 @@ export default function StudentDetailPage() {
                  </Card>
           </div>
 
-          {/* Cột phải: Các Tabs (Lớp học, Lịch sử điểm danh, Lịch sử thanh toán) */}
+          {/* Cột phải: Các Tabs */}
           <div className="col-span-1 md:col-span-2">
              <Card className="h-full">
                  <CardContent className="p-0">
@@ -253,7 +251,7 @@ export default function StudentDetailPage() {
                                 ) : (
                                     <div className="border border-border rounded-lg overflow-x-auto pb-2">
                                         <Table>
-                                            <TableHeader>
+                                            <TableHeader className="bg-secondary/50">
                                                 <TableRow>
                                                     <TableHead>Ngày học</TableHead>
                                                     <TableHead>Lớp</TableHead>
@@ -273,7 +271,7 @@ export default function StudentDetailPage() {
                                                             </TableCell>
                                                             <TableCell className="font-medium text-foreground">{className}</TableCell>
                                                             <TableCell>
-                                                                <Badge variant="outline" className={att.status === 'attended' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}>
+                                                                <Badge variant="outline" className={att.status === 'attended' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20' : 'bg-destructive/10 text-destructive border-destructive/20'}>
                                                                     {att.status === 'attended' ? 'Có mặt' : 'Vắng mặt'}
                                                                 </Badge>
                                                             </TableCell>
@@ -304,14 +302,14 @@ export default function StudentDetailPage() {
                                                     <h4 className="font-bold text-foreground">{classData?.name}</h4>
                                                     <div className="text-sm text-muted-foreground mt-1">Gia sư: <span className="font-medium">{tutorName || '---'}</span></div>
                                                     <div className="text-sm text-muted-foreground flex items-center gap-2 mt-2">
-                                                        <Badge variant="secondary" className={c.status === 'active' ? 'bg-indigo-50 text-primary' : 'bg-secondary text-foreground'}>
+                                                        <Badge variant="secondary" className={c.status === 'active' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-secondary text-foreground'}>
                                                             {c.status === 'active' ? 'Đang học' : 'Đã ra khỏi lớp'}
                                                         </Badge>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
                                                     <div className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">Học phí tại lớp</div>
-                                                    <div className="font-bold text-emerald-600 mt-1">{formatNumber(c.tuition_fee_per_session)}đ/b</div>
+                                                    <div className="font-bold text-emerald-600 dark:text-emerald-400 mt-1">{formatNumber(c.tuition_fee_per_session)}đ/b</div>
                                                 </div>
                                             </div>
                                             )
@@ -329,7 +327,7 @@ export default function StudentDetailPage() {
                                 ) : (
                                     <div className="border border-border rounded-lg overflow-x-auto pb-2">
                                         <Table>
-                                            <TableHeader>
+                                            <TableHeader className="bg-secondary/50">
                                                 <TableRow>
                                                     <TableHead>Kỳ HĐ (Tháng)</TableHead>
                                                     <TableHead>Lớp</TableHead>
@@ -346,7 +344,7 @@ export default function StudentDetailPage() {
                                                         <TableCell className="font-medium text-foreground">{p.billing_period}</TableCell>
                                                         <TableCell>{className || '---'}</TableCell>
                                                         <TableCell>
-                                                            <Badge variant="outline" className={p.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}>
+                                                            <Badge variant="outline" className={p.status === 'paid' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'}>
                                                                 {p.status === 'paid' ? 'Đã thu' : 'Chưa thu'}
                                                             </Badge>
                                                         </TableCell>
@@ -355,7 +353,7 @@ export default function StudentDetailPage() {
                                                         </TableCell>
                                                         <TableCell className="text-right">
                                                             {p.status === 'unpaid' && (
-                                                                <Button size="sm" variant="outline" className="border-emerald-200 text-emerald-700 hover:bg-emerald-50" onClick={() => handleMarkAsPaid(p.payment_id)}>Đánh dấu Đã thu</Button>
+                                                                <Button size="sm" variant="outline" className="border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10" onClick={() => handleMarkAsPaid(p.payment_id)}>Đánh dấu Đã thu</Button>
                                                             )}
                                                         </TableCell>
                                                     </TableRow>

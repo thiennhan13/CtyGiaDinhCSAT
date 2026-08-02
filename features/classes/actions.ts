@@ -41,15 +41,16 @@ export async function updateClassStatus(
 }
 
 export async function removeStudentFromClass(
-  classStudentId: string,
+  studentId: string,
   classId: string
 ): Promise<ActionResult> {
   try {
     const { supabase } = await requireAdmin();
     const { error } = await supabase
       .from('class_students')
-      .update({ status: 'inactive' })
-      .eq('class_student_id', classStudentId);
+      .update({ status: 'dropped' })
+      .eq('class_id', classId)
+      .eq('student_id', studentId);
     if (error) throw error;
     revalidatePath(`/admin/classes/${classId}`);
     return { success: true, data: null };

@@ -3,28 +3,26 @@
 @import "shadcn/tailwind.css";
 
 /* ============================================================
-   CSAT Tutor Portal — Design System
-   Font: Lexend (Vietnamese 100%)
-   Palette: Google Color System
-   Mode: Light + Dark via next-themes (.dark class)
+   CSAT Tutor Portal — Design System v3
+   Phong cách: csatoj.vn — Bold Editorial + Organic Cream
+   Font: Archivo (heading + body) · IBM Plex Mono (code)
+   Palette: CSAT Cream #f2efe7 + Blue #2b50e0 + Lime #d9e64c
    ============================================================ */
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* ── Font ── */
-  --font-heading: var(--font-sans);
-  --font-sans: var(--font-sans);
+  --font-heading: var(--font-archivo);
+  --font-sans:    var(--font-archivo);
+  --font-mono:    var(--font-ibm-plex-mono, "IBM Plex Mono", ui-monospace, monospace);
 
-  /* ── Radius Scale ── */
-  --radius-sm:  calc(var(--radius) * 0.5);   /* 2px */
-  --radius-md:  var(--radius);               /* 4px */
-  --radius-lg:  calc(var(--radius) * 2);     /* 8px */
-  --radius-xl:  calc(var(--radius) * 3);     /* 12px */
-  --radius-2xl: calc(var(--radius) * 4);     /* 16px */
-  --radius-3xl: calc(var(--radius) * 6);     /* 24px */
+  --radius-sm:  calc(var(--radius) * 0.5);
+  --radius-md:  var(--radius);
+  --radius-lg:  calc(var(--radius) * 2);
+  --radius-xl:  calc(var(--radius) * 3);
+  --radius-2xl: calc(var(--radius) * 4);
+  --radius-3xl: calc(var(--radius) * 6);
 
-  /* ── Color Tokens ── */
   --color-background:             var(--background);
   --color-foreground:             var(--foreground);
   --color-card:                   var(--card);
@@ -44,7 +42,6 @@
   --color-input:                  var(--input);
   --color-ring:                   var(--ring);
 
-  /* ── Sidebar Tokens ── */
   --color-sidebar:                        var(--sidebar);
   --color-sidebar-foreground:             var(--sidebar-foreground);
   --color-sidebar-primary:                var(--sidebar-primary);
@@ -54,292 +51,292 @@
   --color-sidebar-border:                 var(--sidebar-border);
   --color-sidebar-ring:                   var(--sidebar-ring);
 
-  /* ── Chart Colors ── */
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
+  --color-csat-blue: var(--csat-blue);
+  --color-csat-lime: var(--csat-lime);
+  --color-csat-cream: var(--csat-cream);
+
+  --shadow-neo: 3px 3px 0 var(--shadow-color);
+  --shadow-neo-md: 5px 5px 0 var(--shadow-color);
+  --shadow-neo-hover: 4px 4px 0 var(--shadow-color);
+  --shadow-neo-md-hover: 6px 6px 0 var(--shadow-color);
 }
 
 /* ============================================================
-   LIGHT MODE — Google Color System
+   CSAT CREAM SYSTEM — Extracted from csatoj.vn style.css
    ============================================================ */
 :root {
-  /* Base radius */
-  --radius: 0.25rem; /* 4px */
+  --radius: 0.5rem;
 
-  /* ── Surface ── */
-  --background:       oklch(0.980 0.003 240);   /* #F8F9FA */
-  --foreground:       oklch(0.130 0.010 240);   /* #202124 */
+  --background:         #f8f7f2;
+  --foreground:         #191917;
+  --card:               #ffffff;
+  --card-foreground:    #191917;
+  --popover:            #ffffff;
+  --popover-foreground: #191917;
 
-  --card:             oklch(1.000 0.000 0);      /* #FFFFFF */
-  --card-foreground:  oklch(0.130 0.010 240);
+  --primary:            #2b50e0;
+  --primary-foreground: #ffffff;
 
-  --popover:          oklch(1.000 0.000 0);
-  --popover-foreground: oklch(0.130 0.010 240);
+  --secondary:            #ece8df;
+  --secondary-foreground: #191917;
 
-  /* ── Primary — Google Blue #4285F4 ── */
-  --primary:            oklch(0.580 0.200 265);
-  --primary-foreground: oklch(1.000 0.000 0);
+  --muted:            #ece8df;
+  --muted-foreground: #7d786c;
 
-  /* ── Secondary ── */
-  --secondary:            oklch(0.960 0.006 240);  /* #F1F3F4 */
-  --secondary-foreground: oklch(0.200 0.010 240);
+  --accent:            #d9e64c;
+  --accent-foreground: #191917;
 
-  /* ── Muted ── */
-  --muted:            oklch(0.960 0.006 240);
-  --muted-foreground: oklch(0.430 0.010 240);   /* #5F6368 */
+  --destructive:            #ee4f2e;
+  --destructive-foreground: #ffffff;
 
-  /* ── Accent ── */
-  --accent:            oklch(0.935 0.020 265);  /* #E8F0FE active bg */
-  --accent-foreground: oklch(0.380 0.200 265);  /* #1A73E8 — contrast 4.6:1 on accent bg */
+  --border: rgba(25,25,23,0.06);
+  --input:  rgba(25,25,23,0.14);
+  --ring:   #2b50e0;
 
-  /* ── Destructive ── */
-  --destructive:          oklch(0.540 0.230 28);   /* #EA4335 Google Red */
-  --destructive-foreground: oklch(1.000 0.000 0);
+  --chart-1: #2b50e0;
+  --chart-2: #108a51;
+  --chart-3: #d9e64c;
+  --chart-4: #ee4f2e;
+  --chart-5: #7d786c;
 
-  /* ── Border / Input ── */
-  --border: oklch(0.890 0.005 240);   /* #DADCE0 */
-  --input:  oklch(0.890 0.005 240);
-  --ring:   oklch(0.580 0.200 265);
+  --sidebar:                    #ffffff;
+  --sidebar-foreground:         #191917;
+  --sidebar-primary:            #2b50e0;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent:             #f2efe7;
+  --sidebar-accent-foreground:  #2b50e0;
+  --sidebar-border:             rgba(25,25,23,0.06);
+  --sidebar-ring:               #2b50e0;
 
-  /* ── Chart (Google Brand) ── */
-  --chart-1: oklch(0.580 0.200 265);  /* Google Blue */
-  --chart-2: oklch(0.545 0.170 152);  /* Google Green */
-  --chart-3: oklch(0.800 0.180 85);   /* Google Yellow */
-  --chart-4: oklch(0.565 0.220 28);   /* Google Red */
-  --chart-5: oklch(0.500 0.160 300);  /* Purple accent */
-
-  /* ── Sidebar ── */
-  --sidebar:                    oklch(1.000 0.000 0);   /* White */
-  --sidebar-foreground:         oklch(0.250 0.010 240);
-  --sidebar-primary:            oklch(0.580 0.200 265);
-  --sidebar-primary-foreground: oklch(1.000 0.000 0);
-  --sidebar-accent:             oklch(0.940 0.018 265); /* #E8F0FE */
-  --sidebar-accent-foreground:  oklch(0.430 0.200 265); /* #1A73E8 */
-  --sidebar-border:             oklch(0.890 0.005 240); /* #DADCE0 */
-  --sidebar-ring:               oklch(0.580 0.200 265);
-
-  /* ── Google Brand (raw, for glass/gradient) ── */
-  --g-blue:   #4285F4;
-  --g-green:  #34A853;
-  --g-yellow: #FBBC05;
-  --g-red:    #EA4335;
+  /* ── CSAT Brand Tokens ── */
+  --csat-blue:       #2b50e0;
+  --csat-blue-hover: #1d3cb8;
+  --csat-lime:       #d9e64c;
+  --csat-mint:       rgba(13,127,110,0.16);
+  --csat-cream:      #f8f7f2;
+  --csat-fg:         #191917;
+  --csat-fg-muted:   #38352f;
+  --csat-fg-lighter: #7d786c;
+  --csat-border:     rgba(25,25,23,0.06);
+  --csat-shadow:     0 1px 2px rgba(25,25,23,0.04), 0 8px 24px rgba(25,25,23,0.06);
+  --csat-shadow-retro: 3px 3px 0 rgba(25,25,23,0.85);
+  --shadow-color: rgba(25,25,23,0.85);
+  --csat-dot-color: rgba(25,25,23,0.08);
+  --csat-watermark-stroke: rgba(25,25,23,0.07);
 }
 
 /* ============================================================
-   DARK MODE — Google Dark Surface
-   Độc lập, không suy ra từ light mode
+   DARK MODE — Warm dark
    ============================================================ */
 .dark {
-  /* ── Surface ── */
-  --background:       oklch(0.135 0.005 240);   /* #1A1C1E */
-  --foreground:       oklch(0.970 0.000 0);     /* Almost pure white */
+  --background:         #1c1a17;
+  --foreground:         #f2efe7;
+  --card:               #272420;
+  --card-foreground:    #f2efe7;
+  --popover:            #272420;
+  --popover-foreground: #f2efe7;
 
-  --card:             oklch(0.195 0.005 240);   /* #2C2E30 */
-  --card-foreground:  oklch(0.970 0.000 0);
+  --primary:            #4a6de8;
+  --primary-foreground: #ffffff;
 
-  --popover:          oklch(0.195 0.005 240);
-  --popover-foreground: oklch(0.970 0.000 0);
+  --secondary:            #2e2a24;
+  --secondary-foreground: #f2efe7;
 
-  /* ── Primary — Google Blue (brighter for dark) ── */
-  --primary:            oklch(0.700 0.190 265);  /* #8AB4F8 sáng rõ */
-  --primary-foreground: oklch(0.100 0.010 240);
+  --muted:            #2e2a24;
+  --muted-foreground: #9b9490;
 
-  /* ── Secondary ── */
-  --secondary:            oklch(0.240 0.005 240);
-  --secondary-foreground: oklch(0.900 0.000 0);
+  --accent:            #d9e64c;
+  --accent-foreground: #191917;
 
-  /* ── Muted ── */
-  --muted:            oklch(0.240 0.005 240);
-  --muted-foreground: oklch(0.830 0.005 240);   /* Light gray — >=3:1 on dark bg */
+  --destructive:            #ef4444;
+  --destructive-foreground: #ffffff;
 
-  /* ── Accent ── */
-  --accent:            oklch(0.280 0.060 265);   /* Dark active bg */
-  --accent-foreground: oklch(0.850 0.130 265);   /* Bright blue text — readable */
+  --border: #3d3830;
+  --input:  #3d3830;
+  --ring:   #4a6de8;
 
-  /* ── Destructive — Google Red (softer for dark) ── */
-  --destructive:            oklch(0.690 0.180 28);    /* #F28B82 */
-  --destructive-foreground: oklch(0.130 0.010 240);
+  --chart-1: #4a6de8;
+  --chart-2: #4ade80;
+  --chart-3: #d9e64c;
+  --chart-4: #f87171;
+  --chart-5: #9b9490;
 
-  /* ── Border / Input ── */
-  --border: oklch(0.310 0.005 240);   /* #3C4043 */
-  --input:  oklch(0.310 0.005 240);
-  --ring:   oklch(0.680 0.180 265);
+  --sidebar:                    #1f1d1a;
+  --sidebar-foreground:         #f2efe7;
+  --sidebar-primary:            #4a6de8;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent:             #2e2a24;
+  --sidebar-accent-foreground:  #d9e64c;
+  --sidebar-border:             #3d3830;
+  --sidebar-ring:               #4a6de8;
+  --shadow-color: rgba(0,0,0,0.85);
 
-  /* ── Chart ── */
-  --chart-1: oklch(0.680 0.180 265);  /* Blue (dark) */
-  --chart-2: oklch(0.680 0.140 152);  /* Green (dark) */
-  --chart-3: oklch(0.830 0.160 85);   /* Yellow (dark) */
-  --chart-4: oklch(0.680 0.180 28);   /* Red (dark) */
-  --chart-5: oklch(0.700 0.140 300);  /* Purple (dark) */
-
-  /* ── Sidebar dark ── */
-  --sidebar:                    oklch(0.160 0.005 240);  /* #232527 */
-  --sidebar-foreground:         oklch(0.940 0.000 0);   /* Near-white */
-  --sidebar-primary:            oklch(0.700 0.190 265);
-  --sidebar-primary-foreground: oklch(0.100 0.010 240);
-  --sidebar-accent:             oklch(0.270 0.060 265);  /* Dark active bg */
-  --sidebar-accent-foreground:  oklch(0.820 0.180 265);  /* Light blue text — readable */
-  --sidebar-border:             oklch(0.310 0.005 240);
-  --sidebar-ring:               oklch(0.700 0.190 265);
+  --csat-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.4);
+  --csat-border: #3d3830;
+  --csat-cream:  #1c1a17;
+  --csat-fg:     #f2efe7;
+  --csat-fg-muted: #9b9490;
+  --csat-fg-lighter: #7d786c;
+  --csat-dot-color: rgba(255,255,255,0.05);
+  --csat-watermark-stroke: rgba(255,255,255,0.04);
 }
 
 /* ============================================================
    BASE LAYER
    ============================================================ */
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+  * { @apply border-border outline-ring/50; }
+
+  html {
+    @apply font-sans;
+    background-color: var(--background);
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
+
   body {
-    @apply bg-background text-foreground min-h-screen overflow-x-hidden;
-    font-family: var(--font-sans), 'Lexend', system-ui, sans-serif;
-    /* 8dp spacing rhythm đảm bảo consistency */
-    font-feature-settings: 'kern' 1, 'liga' 1;
+    @apply text-foreground min-h-screen overflow-x-hidden bg-background;
+    /* ── Dot pattern grid — csatoj.vn match (stronger visibility) ── */
+    background-image: radial-gradient(var(--csat-dot-color) 1.5px, transparent 1.5px);
+    background-size: 15px 15px;
+    font-family: var(--font-sans), "Archivo", "Segoe UI", "Lucida Grande", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.35;
+    font-feature-settings: "kern" 1, "liga" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  html {
-    @apply font-sans;
-    /* Smooth theme transition */
-    transition: background-color 0.2s ease, color 0.2s ease;
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading), "Archivo", system-ui, sans-serif;
+    font-weight: 700;
   }
+  h1 { font-weight: 900; letter-spacing: -0.015em; line-height: 1.14; text-transform: uppercase; }
+  h2 { font-weight: 800; letter-spacing: -0.01em; }
+
+  /* ── Link colors — csatoj.vn exact ── */
+  a { color: #2443cb; transition: color 0.12s ease; }
+  a:hover { color: #1d3cb8; }
+  a:active { color: #ee4f2e; }
 }
 
 /* ============================================================
-   UTILITY LAYER — Glassmorphism + Gradients + Animations
+   UTILITY LAYER
    ============================================================ */
 @layer utilities {
 
-  /* ── Glassmorphism ── */
-  .glass {
-    background: rgba(255, 255, 255, 0.70);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.30);
+  /* ── Cards — csatoj.vn exact shadow + border ── */
+  .csat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--csat-shadow);
+    color: var(--card-foreground);
   }
-  .dark .glass {
-    background: rgba(28, 30, 34, 0.80);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+
+  /* Note: .csat-kpi-card was removed in favor of React Component Composition */
+
+  /* ── Watermark — csatoj.vn body::before exact match ── */
+  .csat-watermark {
+    font-family: var(--font-heading), "Archivo", sans-serif;
+    font-weight: 900;
+    font-size: 17vw;
+    color: transparent;
+    -webkit-text-stroke: 2.5px var(--csat-watermark-stroke);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* ── Buttons — retro box-shadow style ── */
+  .csat-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    font-family: var(--font-heading), "Archivo", sans-serif;
+    font-weight: 700;
+    font-size: 1.05em;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.7em 1.3em;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  }
+  .csat-btn--primary {
+    background: #2b50e0;
+    color: #fff;
+    box-shadow: var(--csat-shadow-retro);
+  }
+  .csat-btn--primary:hover {
+    background: #1d3cb8;
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 rgba(25,25,23,0.85);
+  }
+  .csat-btn--primary:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 rgba(25,25,23,0.85);
+  }
+  .csat-btn--ghost {
+    background: transparent;
+    color: var(--foreground);
+    border: 2px solid var(--foreground);
+  }
+  .csat-btn--ghost:hover {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+  .csat-btn--ghost:active {
+    transform: translate(1px, 1px);
   }
 
   .glass-subtle {
-    background: rgba(255, 255, 255, 0.50);
+    background: rgba(255,255,255,0.92);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.20);
   }
   .dark .glass-subtle {
-    background: rgba(28, 30, 34, 0.60);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(31,29,26,0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
-  /* ── Google Gradient — 2 màu: Blue → Green ── */
-  .gradient-google {
-    background: linear-gradient(135deg, #4285F4 0%, #34A853 100%);
-  }
+  .gradient-csat   { background: linear-gradient(135deg, #2b50e0 0%, #d9e64c 100%); }
 
-  /* ── Gradient mesh background (trang login) ── */
-  .bg-mesh-google {
-    background-color: #eef4ff;
-    background-image:
-      radial-gradient(ellipse at 15% 25%, rgba(66, 133, 244, 0.22) 0%, transparent 55%),
-      radial-gradient(ellipse at 85% 15%, rgba(52, 168, 83, 0.18) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 85%, rgba(66, 133, 244, 0.12) 0%, transparent 45%);
-  }
-  .dark .bg-mesh-google {
-    background-color: #0d111a;
-    background-image:
-      radial-gradient(ellipse at 15% 25%, rgba(66, 133, 244, 0.18) 0%, transparent 55%),
-      radial-gradient(ellipse at 85% 15%, rgba(52, 168, 83, 0.14) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 85%, rgba(66, 133, 244, 0.10) 0%, transparent 45%);
-  }
+  .animate-fade-in  { animation: fadeIn  0.15s ease-out forwards; }
+  .animate-slide-up { animation: slideUp 0.20s ease-out forwards; }
+  .animate-float-1  { animation: float  8s  ease-in-out infinite; }
+  .animate-float-2  { animation: float  12s ease-in-out infinite reverse; }
 
-  /* ── Google button gradient — Blue → Green 2 màu ── */
-  .bg-google-gradient {
-    background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
-    background-size: 200% 200%;
-    animation: googleGradient 6s ease infinite;
-    color: white !important;
-    border: none;
-  }
-  @keyframes googleGradient {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  /* ── Micro-animations ── */
-  .animate-fade-in {
-    animation: fadeIn 0.15s ease-out forwards;
-  }
-  .animate-slide-up {
-    animation: slideUp 0.20s ease-out forwards;
-  }
-  .animate-float-1 {
-    animation: float 8s ease-in-out infinite;
-  }
-  .animate-float-2 {
-    animation: float 12s ease-in-out infinite reverse;
-  }
-  .animate-float-3 {
-    animation: float 10s ease-in-out infinite 2s;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  @keyframes fadeIn  { from { opacity:0; } to { opacity:1; } }
+  @keyframes slideUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
   @keyframes float {
-    0%   { transform: translateY(0px) rotate(0deg); }
+    0%   { transform: translateY(0px)   rotate(0deg);  }
     50%  { transform: translateY(-20px) rotate(10deg); }
-    100% { transform: translateY(0px) rotate(0deg); }
+    100% { transform: translateY(0px)   rotate(0deg);  }
   }
 
-  /* ── Shimmer loading skeleton ── */
   .shimmer {
-    background: linear-gradient(
-      90deg,
-      oklch(0.92 0.005 240) 25%,
-      oklch(0.96 0.003 240) 50%,
-      oklch(0.92 0.005 240) 75%
-    );
+    background: linear-gradient(90deg, #ece8df 25%, #f2efe7 50%, #ece8df 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
   .dark .shimmer {
-    background: linear-gradient(
-      90deg,
-      oklch(0.22 0.005 240) 25%,
-      oklch(0.28 0.003 240) 50%,
-      oklch(0.22 0.005 240) 75%
-    );
+    background: linear-gradient(90deg, #2e2a24 25%, #3d3830 50%, #2e2a24 75%);
     background-size: 200% 100%;
   }
-  @keyframes shimmer {
-    0%   { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-  }
+  @keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
 
-  /* ── prefers-reduced-motion ── */
   @media (prefers-reduced-motion: reduce) {
-    .animate-fade-in,
-    .animate-slide-up,
-    .animate-float-1,
-    .animate-float-2,
-    .animate-float-3,
-    .bg-google-gradient,
-    .shimmer {
-      animation: none !important;
-      transition: none !important;
-    }
+    .animate-fade-in, .animate-slide-up,
+    .animate-float-1, .animate-float-2,
+    .shimmer { animation: none !important; transition: none !important; }
   }
 }

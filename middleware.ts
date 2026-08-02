@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -24,7 +24,6 @@ export async function proxy(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-
   const { pathname } = request.nextUrl
 
   // Xác định loại route
@@ -33,25 +32,25 @@ export async function proxy(request: NextRequest) {
   const isTutorRoute = pathname.startsWith('/tutor')
   const isProtectedRoute = isAdminRoute || isTutorRoute
 
-  // Chưa đăng nhập → redirect về /login
+  // 1. Chưa đăng nhập → redirect về /login nếu cố vào route được bảo vệ
   if (!user && isProtectedRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
+  // 2. Đã đăng nhập
   if (user) {
-    const role = user.app_metadata?.role ?? 'tutor'
+    const role = user.app_metadata?.role || user.user_metadata?.role || (user.email === 'csattutor@gmail.com' ? 'admin' : 'tutor')
 
-    // Admin truy cập route tutor → không chặn (admin có thể xem cả)
-    // Tutor cố vào /admin → redirect về dashboard tutor
+    // Tutor cố vào trang /admin → redirect về /tutor/dashboard
     if (isAdminRoute && role !== 'admin') {
       const url = request.nextUrl.clone()
       url.pathname = '/tutor/dashboard'
       return NextResponse.redirect(url)
     }
 
-    // Đã đăng nhập mà vào /login → redirect về trang chính
+    // Đã đăng nhập mà vào lại /login → redirect về dashboard tương ứng
     if (isAuthRoute) {
       const url = request.nextUrl.clone()
       url.pathname = role === 'admin' ? '/admin/dashboard' : '/tutor/dashboard'

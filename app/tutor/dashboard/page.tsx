@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -229,7 +229,7 @@ export default function TutorDashboard() {
            </Button>
         </div>
 
-        <Card className="overflow-hidden border-0 shadow-sm border-t-2 border-indigo-500">
+        <div className="csat-card overflow-hidden">
           <div className="bg-card px-6 py-4 flex items-center justify-between border-b">
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" className="h-8 w-8" onClick={handlePrevWeek}>
@@ -303,14 +303,13 @@ export default function TutorDashboard() {
                ))
              )}
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Announcements */}
       <div className="col-span-1 space-y-6">
         {/* Thu nhập tháng này */}
-        <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500 bg-card">
-          <CardContent className="p-6">
+        <div className="csat-card p-6">
             <h3 className="text-sm font-semibold uppercase text-muted-foreground tracking-wider mb-2">Thống Kê Tháng Hiện Tại ({format(new Date(), 'MM/yyyy')})</h3>
             <div className="space-y-4">
               <div>
@@ -322,17 +321,16 @@ export default function TutorDashboard() {
                  <span className="font-bold text-foreground">{currentMonthStats.sessionsCount} buổi</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+        </div>
 
-        <Card className="border-0 shadow-sm border-t-2 border-border">
-           <CardHeader className="flex flex-row items-center justify-between pb-2">
-             <CardTitle className="text-lg font-bold text-foreground">Thông báo từ TT</CardTitle>
+        <div className="csat-card p-6">
+           <div className="flex flex-row items-center justify-between pb-2">
+             <h3 className="text-lg font-bold text-foreground">Thông báo từ TT</h3>
              {announcements.length > 0 && (
                <span className="text-xs text-muted-foreground/70">{announcements.length} thông báo</span>
              )}
-           </CardHeader>
-           <CardContent className="pt-2">
+           </div>
+           <div className="pt-2">
              <div className="space-y-2">
                {announcements.length === 0 ? (
                  <p className="text-sm text-muted-foreground italic text-center py-4">Chưa có thông báo nào</p>
@@ -357,8 +355,8 @@ export default function TutorDashboard() {
                  ))
                )}
              </div>
-           </CardContent>
-        </Card>
+           </div>
+        </div>
       </div>
 
       {/* ── Pop-up chi tiết thông báo (Bug 4: overflow-safe) ── */}

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -150,7 +150,7 @@ export default function AdminTutorDetailPage() {
         </div>
         <Badge
           variant="secondary"
-          className={tutor.status === 'inactive' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}
+          className={tutor.status === 'inactive' ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'}
         >
           {tutor.status === 'inactive' ? 'Vô hiệu hóa' : 'Đang hoạt động'}
         </Badge>
@@ -160,7 +160,7 @@ export default function AdminTutorDetailPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <BookOpen className="w-8 h-8 text-indigo-500 shrink-0" />
+            <BookOpen className="w-8 h-8 text-primary shrink-0" />
             <div>
               <p className="text-xs text-muted-foreground font-semibold uppercase">Lớp đang dạy</p>
               <p className="text-2xl font-bold text-foreground">{stats.activeClasses}</p>
@@ -169,7 +169,7 @@ export default function AdminTutorDetailPage() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <Calendar className="w-8 h-8 text-blue-500 shrink-0" />
+            <Calendar className="w-8 h-8 text-primary shrink-0" />
             <div>
               <p className="text-xs text-muted-foreground font-semibold uppercase">Buổi đã dạy</p>
               <p className="text-2xl font-bold text-foreground">{stats.totalSessions}</p>
@@ -178,10 +178,10 @@ export default function AdminTutorDetailPage() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <TrendingUp className="w-8 h-8 text-emerald-500 shrink-0" />
+            <TrendingUp className="w-8 h-8 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <div>
               <p className="text-xs text-muted-foreground font-semibold uppercase">Tổng thu nhập</p>
-              <p className="text-xl font-bold text-emerald-700">
+              <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
                 {formatVND(salaryHistory.reduce((s, r) => s + r.net, 0))}
               </p>
             </div>
@@ -193,13 +193,13 @@ export default function AdminTutorDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-indigo-500" />
+            <BookOpen className="w-5 h-5 text-primary" />
             Các Lớp Phụ Trách
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-secondary/50">
               <TableRow>
                 <TableHead>Tên Lớp</TableHead>
                 <TableHead>Loại</TableHead>
@@ -214,7 +214,7 @@ export default function AdminTutorDetailPage() {
                   <TableCell className="font-medium">{c.name}</TableCell>
                   <TableCell><Badge variant="outline">{c.class_type || 'Cơ bản'}</Badge></TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className={c.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}>
+                    <Badge variant="secondary" className={c.status === 'active' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20'}>
                       {c.status === 'active' ? 'Hoạt động' : 'Ngừng'}
                     </Badge>
                   </TableCell>

@@ -128,9 +128,9 @@ export function ClassesClient({
 
 
   const statusColor = (status: string) => {
-    if (status === 'active') return 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100';
-    if (status === 'inactive') return 'bg-rose-100 text-rose-700 hover:bg-rose-100';
-    return 'bg-secondary text-foreground hover:bg-secondary';
+    if (status === 'active') return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20';
+    if (status === 'inactive') return 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20';
+    return 'bg-secondary text-foreground';
   };
 
   const translateStatus = (status: string) => {
@@ -187,7 +187,7 @@ export function ClassesClient({
 
           <div className="rounded-md border border-border bg-card overflow-x-auto pb-2">
             <Table>
-              <TableHeader className="bg-secondary/50/50">
+              <TableHeader className="bg-secondary/50">
                 <TableRow>
                   <TableHead className="w-[300px]">Tên Lớp</TableHead>
                   <TableHead>Loại Lớp</TableHead>
@@ -209,7 +209,7 @@ export function ClassesClient({
                   classes.map(c => (
                     <TableRow 
                       key={c.class_id} 
-                      className="hover:bg-secondary/50/50 transition-colors cursor-pointer"
+                      className="hover:bg-secondary/40 transition-colors cursor-pointer"
                       onClick={() => router.push(`/admin/classes/${c.class_id}`)}
                     >
                       <TableCell className="font-medium text-foreground">{c.name}</TableCell>
@@ -227,11 +227,11 @@ export function ClassesClient({
                            <Button variant="outline" size="sm">Chi tiết</Button>
                          </Link>
                          {c.status !== 'inactive' && (
-                           <Button variant="ghost" size="sm" onClick={() => handleArchiveClass(c.class_id)} title="Dừng dạy lớp này" className="text-amber-600 hover:text-amber-800 hover:bg-amber-50">
+                           <Button variant="ghost" size="sm" onClick={() => handleArchiveClass(c.class_id)} title="Dừng dạy lớp này" className="text-amber-600 hover:text-amber-800 hover:bg-amber-500/10 dark:text-amber-400">
                              <Archive className="h-4 w-4" />
                            </Button>
                          )}
-                         <Button variant="ghost" size="sm" onClick={() => handleDeleteClass(c.class_id)} title="Xóa cứng lớp này" className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                         <Button variant="ghost" size="sm" onClick={() => handleDeleteClass(c.class_id)} title="Xóa cứng lớp này" className="text-destructive hover:text-destructive hover:bg-destructive/10">
                            <Trash2 className="h-4 w-4" />
                          </Button>
                       </TableCell>

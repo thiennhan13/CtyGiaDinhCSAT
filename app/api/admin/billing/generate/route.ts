@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/service';
 import { createClient } from '@/lib/supabase/server';
 import { startOfMonth, subMonths, format } from 'date-fns';
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
   try {
     // 2 & 3. Dùng RPC hoặc truy vấn thủ công.
     // Lấy tất cả session attendance trong khoảng thời gian có status = 'attended'
-    
+
     const { data: sessions, error: sessionErr } = await supabase
       .from('sessions')
       .select('session_id, class_id')
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
     // Sum up the total fee per student per class based on snapshots
     // Key: "student_id|class_id" -> totalAmount
     const studentClassFees: Record<string, number> = {};
-    
+
     // L5 FIX: Không lọc theo status — bao gồm cả học sinh đã nghỉ (dropped)
     // Nếu lọc status='active', học sinh nghỉ trước khi chốt sổ sẽ không tìm được fee fallback → fee = 0
     const classIds = Array.from(classIdsSet);
@@ -148,7 +148,7 @@ export async function GET(request: Request) {
       const { error: insertErr } = await supabase
         .from('payments')
         .insert(paymentsToInsert);
-        
+
       // Lỗi 23505 = unique_violation: hóa đơn kỳ này đã tồn tại (double-click / double request)
       // Xử lý gracefully thay vì crash 500
       if (insertErr) {

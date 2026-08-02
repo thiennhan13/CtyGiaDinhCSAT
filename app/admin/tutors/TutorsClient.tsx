@@ -147,7 +147,7 @@ export function TutorsClient({
         <CardContent>
           <div>
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-secondary/50">
                 <TableRow>
                   <TableHead>Tên Gia Sư</TableHead>
                   <TableHead>Email</TableHead>
@@ -165,7 +165,11 @@ export function TutorsClient({
                     <TableCell className="font-medium">{t.name}</TableCell>
                     <TableCell>{t.email}</TableCell>
                     <TableCell>
-                      {t.status === 'inactive' ? <span className="text-red-500 font-medium">Đã vô hiệu hóa</span> : <span className="text-emerald-500 font-medium">Đang hoạt động</span>}
+                      {t.status === 'inactive' ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20">Đã vô hiệu hóa</span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">Đang hoạt động</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-2">

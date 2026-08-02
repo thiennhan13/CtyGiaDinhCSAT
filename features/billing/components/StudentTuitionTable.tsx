@@ -135,8 +135,8 @@ export function StudentTuitionTable({
                 ) : (
                   <>
                     {stats.studentInvoicePreview.some((s: any) => s.total_amount === 0) && (
-                      <div className="mb-3 flex items-start gap-2 text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
-                        <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-amber-600" />
+                      <div className="mb-3 flex items-start gap-2 text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 text-sm">
+                        <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
                         <div>
                           <strong>Cảnh báo:</strong> Các học sinh sau có học phí = 0đ và sẽ KHÔNG được tạo hóa đơn:{' '}
                           <strong>{stats.studentInvoicePreview.filter((s: any) => s.total_amount === 0).map((s: any) => s.student_name).join(', ')}</strong>.
@@ -157,7 +157,7 @@ export function StudentTuitionTable({
                       </TableHeader>
                       <TableBody>
                         {stats.studentInvoicePreview.map((inv: any) => (
-                          <TableRow key={`${inv.student_id}|${inv.class_id}`} className={inv.total_amount === 0 ? 'bg-amber-50' : ''}>
+                          <TableRow key={`${inv.student_id}|${inv.class_id}`} className={inv.total_amount === 0 ? 'bg-amber-500/10 dark:bg-amber-950/20' : ''}>
                             <TableCell className="font-medium">{inv.student_name}</TableCell>
                             <TableCell className="text-muted-foreground">{inv.class_name}</TableCell>
                             <TableCell className="text-center">

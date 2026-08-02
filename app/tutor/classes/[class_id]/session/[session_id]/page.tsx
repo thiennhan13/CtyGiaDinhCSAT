@@ -144,13 +144,13 @@ export default function SessionAttendancePage() {
         <ConfirmDialog />
         <div className="flex justify-between items-center">
           <div>
-             <h2 className="text-2xl font-bold tracking-tight text-gray-900">Điểm Danh: {sessionData?.classes?.name}</h2>
-             <p className="text-gray-500">{sessionData?.date}</p>
+             <h2 className="text-2xl font-bold tracking-tight text-foreground">Điểm Danh: {sessionData?.classes?.name}</h2>
+             <p className="text-muted-foreground">{sessionData?.date}</p>
           </div>
           <Button variant="outline" onClick={() => router.back()}>Quay lại</Button>
         </div>
-        <Card className="bg-red-50 border-red-200">
-          <CardContent className="py-12 flex flex-col items-center justify-center text-red-600">
+        <Card className="bg-destructive/10 border-destructive/20">
+          <CardContent className="py-12 flex flex-col items-center justify-center text-destructive">
             <h3 className="text-xl font-bold mb-2">Buổi học này đã bị hủy</h3>
             <p>Học sinh được nghỉ và sẽ không tính học phí cho buổi này.</p>
           </CardContent>
@@ -165,8 +165,8 @@ export default function SessionAttendancePage() {
       <ConfirmDialog />
       <div className="flex justify-between items-center">
         <div>
-           <h2 className="text-2xl font-bold tracking-tight text-gray-900">Điểm Danh: {sessionData?.classes?.name}</h2>
-           <p className="text-gray-500">{sessionData?.date}</p>
+           <h2 className="text-2xl font-bold tracking-tight text-foreground">Điểm Danh: {sessionData?.classes?.name}</h2>
+           <p className="text-muted-foreground">{sessionData?.date}</p>
         </div>
         <Button variant="outline" onClick={() => router.back()}>Quay lại</Button>
       </div>
@@ -177,24 +177,24 @@ export default function SessionAttendancePage() {
           <CardDescription>Chọn &quot;Có mặt&quot; hoặc &quot;Vắng mặt&quot; (Học phí chỉ tính khi Có mặt)</CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? <p>Đang tải...</p> : (
+          {loading ? <p className="text-muted-foreground">Đang tải...</p> : (
             <div className="space-y-4">
                {students.map(s => {
                  const currentStatus = attendance[s.student_id]?.status;
                  return (
-                   <div key={s.student_id} className="p-4 border rounded-lg bg-gray-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                      <div className="font-medium text-lg min-w-[200px]">{s.name}</div>
+                   <div key={s.student_id} className="p-4 border border-border rounded-lg bg-secondary/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="font-medium text-lg min-w-[200px] text-foreground">{s.name}</div>
                       <div className="flex gap-2">
                         <Button 
                           type="button"
                           variant={currentStatus === 'attended' ? 'default' : 'outline'}
-                          className={currentStatus === 'attended' ? 'bg-green-600 hover:bg-green-700' : ''}
+                          className={currentStatus === 'attended' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
                           onClick={() => handleStatusToggle(s.student_id, 'attended')}
                         >Có mặt</Button>
                         <Button 
                           type="button"
                           variant={currentStatus === 'absent' ? 'default' : 'outline'}
-                          className={currentStatus === 'absent' ? 'bg-red-600 hover:bg-red-700' : ''}
+                          className={currentStatus === 'absent' ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : ''}
                           onClick={() => handleStatusToggle(s.student_id, 'absent')}
                         >Vắng mặt</Button>
                       </div>

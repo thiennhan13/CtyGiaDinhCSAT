@@ -1,8 +1,7 @@
 /**
  * types/database.ts
  * Centralized TypeScript interfaces cho toàn bộ hệ thống CSAT Tutor.
- * Đây là nguồn duy nhất (Single Source of Truth) cho tất cả các kiểu dữ liệu
- * liên quan đến database — thay thế các local type bị khai báo rải rác.
+ * Nguồn duy nhất (Single Source of Truth) đồng bộ 100% với database/CSAT_master_schema.sql.
  */
 
 // ─── Core Entities ─────────────────────────────────────────────────────────────
@@ -18,6 +17,7 @@ export interface Student {
   parent_name: string | null;
   zalo_class_name: string | null;
   status: 'Đang học' | 'Đã nghỉ' | 'Tạm dừng';
+  is_deleted?: boolean;
   notes: string | null;
   created_at: string;
 }
@@ -26,8 +26,9 @@ export interface Tutor {
   tutor_id: string;
   name: string;
   email: string | null;
-  phone: string | null;
+  phone?: string | null; // Client payload dùng làm mật khẩu Auth ban đầu
   status: 'active' | 'inactive';
+  is_deleted?: boolean;
   auth_uid: string | null;
   created_at: string;
 }
@@ -37,15 +38,24 @@ export interface Class {
   name: string;
   tutor_id: string | null;
   status: 'active' | 'inactive' | 'archived';
+  class_type: string;
   start_date: string | null;
   end_date: string | null;
-  schedule_days: string[] | null;
-  start_time: string | null;
-  end_time: string | null;
   csat_fee_per_session: number;
   created_at: string;
   // Relations (optional — populated by Supabase joins)
   tutors?: Pick<Tutor, 'tutor_id' | 'name' | 'auth_uid'> | Pick<Tutor, 'tutor_id' | 'name' | 'auth_uid'>[];
+}
+
+export interface ClassStudent {
+  class_id: string;
+  student_id: string;
+  status: 'active' | 'dropped';
+  tuition_fee_per_session: number;
+  created_at: string;
+  // Relations
+  students?: Pick<Student, 'student_id' | 'name' | 'student_contact'>;
+  classes?: Pick<Class, 'class_id' | 'name'>;
 }
 
 export interface Session {
@@ -59,8 +69,21 @@ export interface Session {
   csat_fee_snapshot: number | null;
   tutor_id_snapshot: string | null;
   notes: string | null;
+  created_at?: string;
   // Relations
   classes?: Pick<Class, 'class_id' | 'name'> | Pick<Class, 'class_id' | 'name'>[];
+}
+
+export interface SessionAttendance {
+  session_id: string;
+  student_id: string;
+  status: 'attended' | 'absent';
+  tuition_fee_snapshot: number | null;
+  notes: string | null;
+  // Relations
+  sessions?: Pick<Session, 'session_id' | 'date' | 'start_time' | 'end_time'> & {
+    classes?: Pick<Class, 'class_id' | 'name'> | Pick<Class, 'class_id' | 'name'>[];
+  };
 }
 
 export interface Payment {
@@ -74,36 +97,29 @@ export interface Payment {
   created_at: string;
   // Relations
   classes?: Pick<Class, 'class_id' | 'name'> | Pick<Class, 'class_id' | 'name'>[];
+  students?: Pick<Student, 'student_id' | 'name'>;
 }
 
-export interface Attendance {
-  attendance_id: string;
-  session_id: string;
-  student_id: string;
-  status: 'attended' | 'absent';
-  notes: string | null;
-  // Relations
-  sessions?: Pick<Session, 'session_id' | 'date' | 'start_time' | 'end_time'> & {
-    classes?: Pick<Class, 'class_id' | 'name'> | Pick<Class, 'class_id' | 'name'>[];
-  };
-}
-
-export interface ClassStudent {
-  class_student_id: string;
+export interface ClassChangeLog {
+  log_id: string;
   class_id: string;
-  student_id: string;
-  status: 'active' | 'inactive';
-  tuition_fee_per_session: number;
-  enrolled_at: string | null;
-  // Relations
-  students?: Pick<Student, 'student_id' | 'name' | 'student_contact'>;
-  classes?: Pick<Class, 'class_id' | 'name'>;
+  change_type: string;
+  old_value: string | null;
+  new_value: string | null;
+  old_label: string | null;
+  new_label: string | null;
+  effective_date: string;
+  changed_by: string | null;
+  notes: string | null;
+  created_at: string;
 }
 
 export interface Announcement {
   announcement_id: string;
   title: string;
   content: string;
+  link?: string | null;
+  media_url?: string | null;
   created_at: string;
 }
 
@@ -124,7 +140,7 @@ export interface TutorReview {
 
 // ─── API / Form Types ───────────────────────────────────────────────────────────
 
-/** Payload dùng khi tạo mới học sinh (các trường bắt buộc / tùy chọn) */
+/** Payload dùng khi tạo mới học sinh */
 export type CreateStudentInput = Omit<Student, 'student_id' | 'created_at'>;
 
 /** Payload dùng khi cập nhật thông tin học sinh */
