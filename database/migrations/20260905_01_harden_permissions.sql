@@ -1,216 +1,69 @@
--- Fresh database only. Existing deployments: database/migrations/20260905_01_harden_permissions.sql
+-- CSAT: apply to an existing database in Supabase SQL Editor as postgres.
+-- No business rows are updated or deleted. Read database/UPDATE_PERMISSIONS_20260905.md first.
 BEGIN;
--- =====================================================================
--- CSAT TUTOR MANAGER — MASTER DATABASE SCHEMA
--- Phiên bản: Tổng hợp đầy đủ (Schema + Migrations + Bug Fixes)
--- Bao gồm: CSATschema.sql + migration_bug_fixes.sql
---           + final_safety_migration.sql + fix_attendance_snapshot_and_partial_rollback.sql
---
--- HƯỚNG DẪN: Chỉ chạy file này MỘT LẦN duy nhất trên một database TRỐNG.
--- Database ĐÃ CÓ DỮ LIỆU: dùng migration riêng, không chạy lại master schema.
--- =====================================================================
-
-
--- ============================================================
--- PHẦN 1: EXTENSIONS & ENUM TYPES
--- ============================================================
-
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
-DO $$ BEGIN CREATE TYPE attendance_status AS ENUM ('attended', 'absent');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN CREATE TYPE payment_status AS ENUM ('unpaid', 'paid');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN CREATE TYPE class_student_status AS ENUM ('active', 'dropped');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN CREATE TYPE session_status AS ENUM ('scheduled', 'completed', 'cancelled');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-
--- ============================================================
--- PHẦN 2: BẢNG DỮ LIỆU (TABLES)
--- [MIGRATION ONLY]: Các lệnh ALTER TABLE bên dưới an toàn để chạy trên DB có sẵn
--- ============================================================
-
--- Bảng: students
-CREATE TABLE IF NOT EXISTS students (
-  student_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(255) NOT NULL,
-  date_of_birth DATE,
-  old_age INTEGER,
-  province VARCHAR(100),
-  student_contact VARCHAR(255),
-  parent_number VARCHAR(50),
-  parent_link VARCHAR(500),
-  parent_name VARCHAR(255),
-  status VARCHAR(255) DEFAULT 'Đang học',
-  is_deleted BOOLEAN DEFAULT false,
-  notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
--- [MIGRATION ONLY]
-ALTER TABLE public.students ADD COLUMN IF NOT EXISTS date_of_birth DATE;
-ALTER TABLE public.students ADD COLUMN IF NOT EXISTS old_age INTEGER;
-ALTER TABLE public.students ADD COLUMN IF NOT EXISTS student_contact VARCHAR(255);
-ALTER TABLE public.students ADD COLUMN IF NOT EXISTS parent_number VARCHAR(50);
-ALTER TABLE public.students ADD COLUMN IF NOT EXISTS parent_link VARCHAR(500);
-ALTER TABLE public.students ADD COLUMN IF NOT EXISTS parent_name VARCHAR(255);
--- Đã xóa: zalo_class_name (DROP COLUMN IF EXISTS zalo_class_name)
--- Đã rename: parent_contact → parent_number (RENAME COLUMN parent_contact TO parent_number)
-
--- Bảng: tutors
-CREATE TABLE IF NOT EXISTS tutors (
-  tutor_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  auth_uid UUID NOT NULL UNIQUE,
-  name VARCHAR(255) NOT NULL,
-  email VARCHAR(255),
-  status VARCHAR(255) DEFAULT 'active',
-  is_deleted BOOLEAN DEFAULT false,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
--- [MIGRATION ONLY] Thêm cột email nếu chưa có
-ALTER TABLE public.tutors ADD COLUMN IF NOT EXISTS email VARCHAR(255);
-
--- Bảng: classes
-CREATE TABLE IF NOT EXISTS classes (
-  class_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  tutor_id UUID REFERENCES tutors(tutor_id) ON DELETE SET NULL,
-  name VARCHAR(255) NOT NULL,
-  start_date DATE,
-  end_date DATE,
-  status VARCHAR(255) DEFAULT 'active',
-  class_type VARCHAR(255) NOT NULL DEFAULT 'Lớp Cơ bản',
-  csat_fee_per_session DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
--- [MIGRATION ONLY]
-ALTER TABLE public.classes ADD COLUMN IF NOT EXISTS class_type VARCHAR(255) NOT NULL DEFAULT 'Lớp Cơ bản';
-
--- Bảng: class_students
-CREATE TABLE IF NOT EXISTS class_students (
-  class_id UUID REFERENCES classes(class_id) ON DELETE CASCADE,
-  student_id UUID REFERENCES students(student_id) ON DELETE CASCADE,
-  tuition_fee_per_session DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-  status class_student_status DEFAULT 'active',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (class_id, student_id)
-);
-
--- Bảng: student_reviews
-CREATE TABLE IF NOT EXISTS student_reviews (
-  review_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  student_id UUID REFERENCES students(student_id) ON DELETE CASCADE,
-  tutor_id UUID REFERENCES tutors(tutor_id) ON DELETE SET NULL,
-  class_id UUID REFERENCES classes(class_id) ON DELETE SET NULL,
-  month_year VARCHAR(7),
-  general_assessment TEXT,
-  learning_attitude TEXT,
-  logical_thinking TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Bảng: sessions
--- Ghi chú: tutor_id_snapshot & csat_fee_snapshot & billing_period là các cột đã thêm qua migration
-CREATE TABLE IF NOT EXISTS sessions (
-  session_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  class_id UUID REFERENCES classes(class_id) ON DELETE CASCADE,
-  date DATE NOT NULL,
-  start_time TIME NOT NULL,
-  end_time TIME NOT NULL,
-  status session_status DEFAULT 'scheduled',
-  csat_fee_snapshot DECIMAL(10,2),
-  billing_period VARCHAR(255),
-  tutor_id_snapshot UUID REFERENCES tutors(tutor_id) ON DELETE SET NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
--- [MIGRATION ONLY]
-ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS billing_period VARCHAR(255);
-ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS csat_fee_snapshot DECIMAL(10,2);
-ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS tutor_id_snapshot UUID REFERENCES tutors(tutor_id) ON DELETE SET NULL;
-
--- Bảng: session_attendance
-CREATE TABLE IF NOT EXISTS session_attendance (
-  attendance_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  session_id UUID REFERENCES sessions(session_id) ON DELETE CASCADE,
-  student_id UUID REFERENCES students(student_id) ON DELETE CASCADE,
-  status attendance_status NOT NULL,
-  tuition_fee_snapshot DECIMAL(10,2),
-  notes TEXT,
-  UNIQUE(session_id, student_id)
-);
--- [MIGRATION ONLY]
-ALTER TABLE public.session_attendance ADD COLUMN IF NOT EXISTS tuition_fee_snapshot DECIMAL(10,2);
-
--- Bảng: payments
-CREATE TABLE IF NOT EXISTS payments (
-  payment_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  student_id UUID REFERENCES students(student_id) ON DELETE SET NULL,
-  class_id UUID REFERENCES classes(class_id) ON DELETE SET NULL,
-  billing_period VARCHAR(255) NOT NULL,
-  amount DECIMAL(10,2) NOT NULL,
-  status payment_status DEFAULT 'unpaid',
-  paid_at TIMESTAMP WITH TIME ZONE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
--- [MIGRATION ONLY]
-ALTER TABLE public.payments ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP WITH TIME ZONE;
-
--- Bảng: announcements
-CREATE TABLE IF NOT EXISTS announcements (
-  announcement_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  title VARCHAR(255) NOT NULL,
-  content TEXT,
-  link VARCHAR(255),
-  media_url TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Bảng: class_change_log (Audit log đổi gia sư / đổi phí CSAT)
-CREATE TABLE IF NOT EXISTS public.class_change_log (
-  log_id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  class_id       UUID REFERENCES classes(class_id) ON DELETE CASCADE,
-  change_type    VARCHAR(50) NOT NULL,
-  old_value      TEXT,
-  new_value      TEXT,
-  old_label      TEXT,
-  new_label      TEXT,
-  effective_date DATE NOT NULL,
-  changed_by     TEXT,
-  notes          TEXT,
-  created_at     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
-
--- ============================================================
--- PHẦN 3: INDEXES
--- ============================================================
-
-CREATE INDEX IF NOT EXISTS idx_classes_tutor_id ON public.classes(tutor_id);
-CREATE INDEX IF NOT EXISTS idx_class_students_student_id ON public.class_students(student_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_class_id ON public.sessions(class_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_date ON public.sessions(date);
-CREATE INDEX IF NOT EXISTS idx_session_attendance_student_id ON public.session_attendance(student_id);
-CREATE INDEX IF NOT EXISTS idx_session_attendance_session_id ON public.session_attendance(session_id);
-CREATE INDEX IF NOT EXISTS idx_payments_student_id ON public.payments(student_id);
-CREATE INDEX IF NOT EXISTS idx_payments_billing_period ON public.payments(billing_period);
-CREATE INDEX IF NOT EXISTS idx_sessions_tutor_id_snapshot ON public.sessions(tutor_id_snapshot);
-CREATE INDEX IF NOT EXISTS idx_class_change_log_class_id ON public.class_change_log(class_id);
-CREATE INDEX IF NOT EXISTS idx_class_change_log_class_type ON public.class_change_log(class_id, change_type);
-
-
--- ============================================================
--- PHẦN 4: UNIQUE CONSTRAINTS
--- ============================================================
-
--- Ngăn tạo trùng hóa đơn cho cùng học sinh + lớp + kỳ (chống race condition chốt sổ)
-ALTER TABLE public.payments
-  DROP CONSTRAINT IF EXISTS unique_payment_per_period;
-ALTER TABLE public.payments
-  ADD CONSTRAINT unique_payment_per_period UNIQUE (class_id, student_id, billing_period);
-
+SET LOCAL lock_timeout = '5s';
+SET LOCAL statement_timeout = '60s';
+-- Fail before changing permissions if production differs from the supported schema.
+DO $$
+DECLARE v_signature TEXT; v_unknown TEXT; v_column RECORD;
+BEGIN
+  FOR v_column IN SELECT * FROM (VALUES
+    ('students','student_id'), ('tutors','tutor_id'), ('tutors','auth_uid'), ('tutors','status'), ('tutors','is_deleted'),
+    ('classes','class_id'), ('classes','tutor_id'), ('classes','csat_fee_per_session'),
+    ('class_students','class_id'), ('class_students','student_id'), ('class_students','tuition_fee_per_session'),
+    ('sessions','session_id'), ('sessions','class_id'), ('sessions','status'), ('sessions','billing_period'),
+    ('sessions','tutor_id_snapshot'), ('sessions','csat_fee_snapshot'), ('sessions','created_at'),
+    ('session_attendance','session_id'), ('session_attendance','student_id'), ('session_attendance','tuition_fee_snapshot'),
+    ('payments','payment_id'), ('payments','billing_period'), ('announcements','announcement_id'),
+    ('student_reviews','tutor_id'), ('student_reviews','class_id'), ('student_reviews','student_id'), ('class_change_log','log_id')
+  ) AS required(table_name, column_name) LOOP
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns c WHERE c.table_schema = 'public'
+                   AND c.table_name = v_column.table_name AND c.column_name = v_column.column_name) THEN
+      RAISE EXCEPTION 'CSAT preflight: missing public.%.%. Stop and compare the production schema.', v_column.table_name, v_column.column_name;
+    END IF;
+  END LOOP;
+  FOREACH v_signature IN ARRAY ARRAY[
+    'public.is_admin()',
+    'public.create_class_full(character varying,character varying,uuid,numeric,date,date,jsonb,jsonb)',
+    'public.change_tutor_safe(uuid,uuid,date,text,text)', 'public.update_csat_fee_safe(uuid,numeric,date,text,text)',
+    'public.take_attendance_safe(uuid,jsonb)', 'public.rollback_billing_partial(text)', 'public.get_unique_billing_periods()'
+  ] LOOP
+    IF to_regprocedure(v_signature) IS NULL THEN
+      RAISE EXCEPTION 'CSAT preflight: missing function %. Stop and compare the production schema.', v_signature;
+    END IF;
+  END LOOP;
+  SELECT string_agg(p.oid::regprocedure::TEXT, ', ') INTO v_unknown
+  FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+  WHERE n.nspname = 'public' AND p.proname IN ('is_admin','current_tutor_id','guard_tutor_session_write',
+    'create_class_full','change_tutor_safe','update_csat_fee_safe','take_attendance_safe','rollback_billing_partial','get_unique_billing_periods')
+    AND p.oid NOT IN (
+      SELECT to_regprocedure(s) FROM unnest(ARRAY[
+        'public.is_admin()', 'public.current_tutor_id()', 'public.guard_tutor_session_write()',
+        'public.create_class_full(character varying,character varying,uuid,numeric,date,date,jsonb,jsonb)',
+        'public.change_tutor_safe(uuid,uuid,date,text,text)', 'public.update_csat_fee_safe(uuid,numeric,date,text,text)',
+        'public.take_attendance_safe(uuid,jsonb)', 'public.rollback_billing_partial(text)', 'public.get_unique_billing_periods()'
+      ]) s WHERE to_regprocedure(s) IS NOT NULL
+    );
+  IF v_unknown IS NOT NULL THEN
+    RAISE EXCEPTION 'CSAT preflight: unexpected RPC overloads: %. Review before migration.', v_unknown;
+  END IF;
+  SELECT string_agg(tablename || '.' || policyname, ', ') INTO v_unknown FROM pg_catalog.pg_policies
+  WHERE schemaname = 'public' AND tablename IN ('students','tutors','classes','class_students','sessions',
+    'session_attendance','payments','announcements','student_reviews','class_change_log')
+    AND policyname NOT IN ('Admin_Full_Students','Admin_Full_Tutors','Admin_Full_Classes','Admin_Full_Class_Students',
+      'Admin_Full_Sessions','Admin_Full_Attendance','Admin_Full_Payments','Admin_Full_Announcements','Admin_Full_Student_Reviews',
+      'Admin_Full_ClassChangeLog','Tutor_View_Self','Public_View_Announcements','Tutor_View_Assigned_Students',
+      'Tutor_View_Assigned_Classes','Tutor_View_Class_Students','Tutor_View_Assigned_Sessions','Tutor_Manage_Assigned_Sessions',
+      'Tutor_Manage_Attendance','Tutor_Manage_Own_Reviews','Tutor_Insert_Assigned_Sessions','Tutor_Update_Assigned_Sessions',
+      'Tutor_Delete_Assigned_Sessions','Tutor_View_Attendance','Tutor_View_Own_Reviews','Tutor_Write_Assigned_Reviews');
+  IF v_unknown IS NOT NULL THEN
+    RAISE EXCEPTION 'CSAT preflight: unexpected policies: %. Review before migration.', v_unknown;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM auth.users WHERE raw_app_meta_data ->> 'role' = 'admin') THEN
+    RAISE EXCEPTION 'CSAT preflight: no account has app_metadata.role=admin. Confirm and assign a real admin before migration; do not use user_metadata or email fallback.';
+  END IF;
+END;
+$$;
 
 -- BEGIN CSAT PERMISSIONS 20260905
 -- Only server-managed app_metadata grants admin access. Missing claims always deny.
@@ -670,54 +523,5 @@ REVOKE ALL PRIVILEGES ON FUNCTION public.guard_tutor_session_write() FROM PUBLIC
 
 -- END CSAT PERMISSIONS 20260905
 
--- ============================================================
--- PHẦN 8: BACKFILL DỮ LIỆU CŨ
--- [MIGRATION ONLY]: Chỉ cần thiết nếu đã có dữ liệu trước khi thêm các cột snapshot
--- ============================================================
-
--- Backfill tutor_id_snapshot từ gia sư hiện tại của lớp (chỉ cho sessions chưa có)
-UPDATE public.sessions s
-SET tutor_id_snapshot = c.tutor_id
-FROM public.classes c
-WHERE s.class_id = c.class_id
-  AND s.tutor_id_snapshot IS NULL
-  AND c.tutor_id IS NOT NULL;
-
--- Backfill csat_fee_snapshot từ phí hiện tại của lớp (chỉ cho sessions chưa có)
-UPDATE public.sessions s
-SET csat_fee_snapshot = c.csat_fee_per_session
-FROM public.classes c
-WHERE s.class_id = c.class_id
-  AND s.csat_fee_snapshot IS NULL
-  AND c.csat_fee_per_session IS NOT NULL;
-
-
--- ============================================================
--- PHẦN 10: KHỞI TẠO TÀI KHOẢN ADMIN
--- [MIGRATION ONLY]: Cập nhật tài khoản admin csattutor@gmail.com
--- ============================================================
-
-DO $$
-DECLARE v_user_id UUID;
-BEGIN
-  SELECT id INTO v_user_id FROM auth.users WHERE email = 'csattutor@gmail.com' LIMIT 1;
-  IF v_user_id IS NOT NULL THEN
-    UPDATE auth.users
-    SET raw_app_meta_data = '{"provider":"email","providers":["email"],"role":"admin"}',
-        raw_user_meta_data = '{"name":"Admin CSAT","role":"admin"}'
-    WHERE id = v_user_id;
-
-    IF NOT EXISTS (SELECT 1 FROM public.tutors WHERE auth_uid = v_user_id) THEN
-      INSERT INTO public.tutors (auth_uid, name, email, status)
-      VALUES (v_user_id, 'Admin CSAT', 'csattutor@gmail.com', 'active');
-    END IF;
-  END IF;
-END $$;
-
-
--- ============================================================
--- RELOAD SCHEMA CACHE
--- ============================================================
 NOTIFY pgrst, 'reload schema';
-
 COMMIT;

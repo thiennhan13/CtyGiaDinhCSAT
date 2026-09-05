@@ -41,8 +41,8 @@ export async function POST(request: Request) {
     }
 
     // 2. Kiểm tra quyền: Admin HOẶC Gia sư phụ trách lớp đó
-    const role = user.app_metadata?.role || user.user_metadata?.role || 'tutor';
-    const isAdmin = role === 'admin';
+    // user_metadata is editable by the account holder and must never grant admin.
+    const isAdmin = user.app_metadata?.role === 'admin';
 
     if (!isAdmin) {
       // Tìm gia sư tương ứng với auth_uid của user hiện tại

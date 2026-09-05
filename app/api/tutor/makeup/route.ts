@@ -33,9 +33,9 @@ export async function POST(request: Request) {
     const adminSupabase = createAdminClient();
 
     // Verify user is tutor of the class
-    const { data: tutor } = await adminSupabase.from('tutors').select('tutor_id').eq('auth_uid', user.id).single();
+    const { data: tutor } = await adminSupabase.from('tutors').select('tutor_id, status, is_deleted').eq('auth_uid', user.id).single();
 
-    if (!tutor) {
+    if (!tutor || tutor.status !== 'active' || tutor.is_deleted) {
       return NextResponse.json({ error: 'Không tìm thấy thông tin gia sư.' }, { status: 403 });
     }
 

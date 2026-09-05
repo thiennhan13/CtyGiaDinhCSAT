@@ -5,7 +5,7 @@
 #   1. Kiểm tra TypeScript Type-Safety (tsc --noEmit)
 #   2. Kiểm tra ESLint (npm run lint)
 #   3. Kiểm tra Next.js Build thực tế (npm run build)
-# Nếu bất kỳ bước nào thất bại → Chặn merge / Không deploy lên Vercel
+# CI báo lỗi khi kiểm tra thất bại; việc chặn merge/deploy cần cấu hình riêng trên GitHub/Vercel.
 # ============================================================
 
 name: CI — TypeCheck & Build
@@ -55,6 +55,11 @@ jobs:
       # ── 3. Cài đặt dependencies (CI mode - nhanh, không thay đổi lockfile) ──
       - name: 📦 Cài đặt dependencies
         run: npm ci
+
+      - name: 🔐 Database and API permission regressions
+        run: |
+          npm ci --prefix database/tests
+          npm test --prefix database/tests
 
       # ── 4. TypeScript Type-Safety Check ──────────────────────
       # Bắt lỗi type ngay cả khi Vercel bỏ qua do ignoreBuildErrors

@@ -50,8 +50,8 @@ function TutorForm() {
 
       if (authError) throw authError;
 
-      // Lấy role từ metadata của user (đã được lưu khi tạo tài khoản hoặc gán mặc định)
-      const role = data.user.app_metadata?.role || data.user.user_metadata?.role || 'tutor';
+      // Chỉ dùng role do server quản lý để điều hướng sau đăng nhập.
+      const role = data.user.app_metadata?.role || 'tutor';
 
       if (role === 'admin' || role === 'superadmin') {
         router.push('/admin/dashboard');
