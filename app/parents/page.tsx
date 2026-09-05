@@ -1,83 +1,29 @@
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
-import { createAdminClient } from '@/lib/supabase/service';
+import { createClient } from '@/lib/supabase/server';
+import { z } from 'zod';
+import type { ParentPortalData } from '@/lib/parents';
 import { CsatNavbar } from '@/components/layout/CsatNavbar';
 import { CsatBackground } from '@/components/CsatBackground';
 import { Phone, MapPin, User, Calendar, ExternalLink, MessageSquare, AlertCircle, Star, Brain, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { ParentLogoutButton } from './logout-button';
 
-export default async function ParentPortal() {
-  const cookieStore = await cookies();
-  const parentSession = cookieStore.get('parent_session');
-  
-  if (!parentSession || !parentSession.value) {
-    redirect('/login');
+export default async function ParentPortal({ searchParams }: { searchParams: Promise<{ student?: string }> }) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+  if (user.app_metadata?.role !== 'parent') redirect('/tutor');
+  const { student: requestedStudent } = await searchParams;
+  if (requestedStudent && !z.string().uuid().safeParse(requestedStudent).success) redirect('/parents');
+  const { data, error } = await supabase.rpc('get_parent_portal', { p_student_id: requestedStudent || null });
+  if (error) {
+    if (error.code !== '42501') throw new Error('Không tải được cổng phụ huynh.');
+    return <ParentAccessMessage message="Tài khoản chưa được cấp quyền, đã bị khóa hoặc học sinh không còn được liên kết. Vui lòng liên hệ CSAT." />;
   }
-
-  const phone = parentSession.value;
-
-  // Sử dụng Service Role Key — vượt RLS an toàn, chỉ chạy trên Server
-  const supabase = createAdminClient();
-
-  // Fetch student info based on parent phone
-  const { data: students, error: studentError } = await supabase
-    .from('students')
-    .select('*')
-    .eq('parent_number', phone);
-
-  if (studentError || !students || students.length === 0) {
-    redirect('/login');
-  }
-
-  const student = students[0];
-
-  // Fetch tutor reviews cho học sinh này (Gia sư đánh giá học sinh)
-  const { data: reviews } = await supabase
-    .from('student_reviews')
-    .select(`
-      review_id,
-      month_year,
-      general_assessment,
-      learning_attitude,
-      logical_thinking,
-      created_at,
-      tutors (
-        tutor_id,
-        name
-      ),
-      classes (
-        class_id,
-        name
-      )
-    `)
-    .eq('student_id', student.student_id)
-    .order('created_at', { ascending: false })
-    .limit(10);
-
-  // Lấy danh sách các lớp đang học kèm thông tin gia sư
-  const { data: enrolledClasses } = await supabase
-    .from('class_students')
-    .select(`
-      class_id,
-      classes (
-        name,
-        class_type,
-        status,
-        tutors (
-          name
-        )
-      )
-    `)
-    .eq('student_id', student.student_id)
-    .eq('status', 'active');
-
-  // Đếm tổng số buổi đã đi học
-  const { count: attendanceCount } = await supabase
-    .from('session_attendance')
-    .select('*', { count: 'exact', head: true })
-    .eq('student_id', student.student_id)
-    .eq('status', 'attended');
+  const portal = data as ParentPortalData;
+  if (!portal?.student) return <ParentAccessMessage message="Tài khoản chưa được liên kết với học sinh đang được quản lý. Vui lòng liên hệ CSAT để kiểm tra." />;
+  const { student, students, reviews, enrolledClasses, attendanceCount } = portal;
+  const phone = portal.parent.phone;
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
@@ -105,9 +51,18 @@ export default async function ParentPortal() {
               Bảng xếp hạng CSATOJ
               <ExternalLink className="w-4 h-4 ml-1.5" />
             </a>
+            <Link href="/parents/account" className="csat-btn text-sm">Đổi mật khẩu</Link>
             <ParentLogoutButton />
           </div>
         </div>
+
+        {students.length > 1 && (
+          <nav aria-label="Chọn học sinh" className="flex flex-wrap gap-3 mb-6">
+            {students.map(child => <Link key={child.student_id} href={'/parents?student=' + child.student_id}
+              aria-current={child.student_id === student.student_id ? 'page' : undefined}
+              className={'csat-btn text-sm ' + (child.student_id === student.student_id ? 'csat-btn--primary' : '')}>{child.name}</Link>)}
+          </nav>
+        )}
 
         {/* STUDENT INFO & REVIEWS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -170,11 +125,11 @@ export default async function ParentPortal() {
                 </h2>
                 
                 <div className="space-y-5">
-                  {enrolledClasses.map((clsItem: any) => {
-                    const cls = Array.isArray(clsItem.classes) ? clsItem.classes[0] : clsItem.classes;
+                  {enrolledClasses.map((clsItem) => {
+                    const cls = clsItem.classes;
                     if (!cls) return null;
                     
-                    const tutorName = Array.isArray(cls.tutors) ? cls.tutors[0]?.name : cls.tutors?.name;
+                    const tutorName = cls.tutors?.name;
 
                     return (
                       <div key={clsItem.class_id} className="pb-4 border-b border-border last:border-0 last:pb-0">
@@ -239,13 +194,9 @@ export default async function ParentPortal() {
 
               {reviews && reviews.length > 0 ? (
                 <div className="space-y-5">
-                  {reviews.map((review: any) => {
-                    const tutorName = Array.isArray(review.tutors)
-                      ? review.tutors[0]?.name
-                      : review.tutors?.name;
-                    const className = Array.isArray(review.classes)
-                      ? review.classes[0]?.name
-                      : review.classes?.name;
+                  {reviews.map((review) => {
+                    const tutorName = review.tutors?.name;
+                    const className = review.classes?.name;
 
                     return (
                       <div key={review.review_id} className="p-5 rounded-xl border border-border bg-accent/30 relative">
@@ -309,4 +260,13 @@ export default async function ParentPortal() {
       </main>
     </div>
   );
+}
+
+function ParentAccessMessage({ message }: { message: string }) {
+  return <div className="min-h-screen bg-background"><CsatNavbar variant="guest" />
+    <main className="max-w-xl mx-auto px-4 pt-28 space-y-5">
+      <h1 className="font-heading text-2xl font-bold">Quyền truy cập phụ huynh</h1>
+      <p role="status">{message}</p>
+      <div className="flex flex-wrap gap-3"><Link href="/parents" className="csat-btn">Về trang học sinh</Link><ParentLogoutButton /></div>
+    </main></div>;
 }

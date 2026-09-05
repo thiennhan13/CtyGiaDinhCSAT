@@ -12,6 +12,7 @@ import {
 import { CsatBackground } from '@/components/CsatBackground';
 import { CsatNavbar } from '@/components/layout/CsatNavbar';
 import { cn } from '@/lib/utils';
+import { normalizeParentPhone } from '@/lib/parents';
 
 
 
@@ -25,6 +26,7 @@ function usePortalStats() {
 // ─── Form Phụ Huynh ──────────────────────────────────────────
 function ParentForm() {
   const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -32,9 +34,9 @@ function ParentForm() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const clean = phone.replace(/\D/g, '');
-    if (!/^0\d{9}$/.test(clean)) {
-      setError('Số điện thoại phải đủ 10 chữ số, bắt đầu bằng 0.');
+    const clean = normalizeParentPhone(phone);
+    if (!clean) {
+      setError('Vui lòng nhập số di động Việt Nam, bắt đầu bằng 0 hoặc +84.');
       return;
     }
     setLoading(true);
@@ -42,7 +44,7 @@ function ParentForm() {
       const res = await fetch('/api/parents/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: clean }),
+        body: JSON.stringify({ phone: clean, password }),
       });
       const data = await res.json();
       
@@ -50,7 +52,8 @@ function ParentForm() {
         throw new Error(data.error || 'Có lỗi xảy ra.');
       }
       
-      router.push(data.redirectUrl);
+      router.replace('/parents');
+      router.refresh();
     } catch (err: any) {
       setError(err.message || 'Có lỗi xảy ra.');
     } finally {
@@ -74,7 +77,8 @@ function ParentForm() {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
-            autoComplete="tel"
+            autoComplete="username"
+            maxLength={30}
             className="pl-9 h-11 bg-background border border-input rounded-xl text-sm"
           />
         </div>
@@ -83,10 +87,16 @@ function ParentForm() {
         </p>
       </div>
 
+      <div className="space-y-1.5">
+        <Label htmlFor="parent-password">Mật khẩu</Label>
+        <Input id="parent-password" type="password" autoComplete="current-password" required maxLength={128}
+          value={password} onChange={e => setPassword(e.target.value)} className="h-11 rounded-xl" />
+      </div>
+
       {/* Info box */}
       <div className="flex items-start gap-2 bg-secondary border border-border rounded-lg p-3 text-[13px] text-muted-foreground">
         <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-primary" />
-        <span>Phụ huynh tra cứu kết quả học tập, buổi học và học phí của học sinh qua số điện thoại đã đăng ký.</span>
+        <span>Đăng nhập bằng mật khẩu do admin cấp. Nếu chưa có tài khoản hoặc quên mật khẩu, vui lòng liên hệ CSAT.</span>
       </div>
 
       {error && (

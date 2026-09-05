@@ -29,7 +29,7 @@ interface NavItem {
 // ── Admin nav items ─────────────────────────────────────────────
 const adminNavItems: NavItem[] = [
   { href: '/admin/dashboard',   label: 'Trang chủ',      icon: Home,          iconColor: '#38a9f0', activeBg: 'rgba(56,169,240,0.12)',  activeText: '#1272b8' },
-  { href: '/admin/students',    label: 'Học sinh',        icon: Users,         iconColor: '#7d2fc4', activeBg: 'rgba(125,47,196,0.12)',  activeText: '#6f29ae' },
+  { href: '/admin/students',    label: 'Học sinh',        icon: Users,         iconColor: '#7d2fc4', activeBg: 'rgba(125,47,196,0.12)',  activeText: '#6f29ae', children: [{ href: '/admin/parents', label: 'Tài khoản phụ huynh' }] },
   { href: '/admin/tutors',      label: 'Gia sư',         icon: GraduationCap, iconColor: '#108a51', activeBg: 'rgba(16,138,81,0.12)',   activeText: '#0e7a47',
     children: [
       { href: '/admin/tutors-tree', label: 'Sơ đồ Gia sư' },

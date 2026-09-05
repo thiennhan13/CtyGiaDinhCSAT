@@ -1,6 +1,6 @@
 # CSAT Tutor Portal
 
-![Next.js](https://img.shields.io/badge/Next.js_15-black?style=flat-square&logo=next.js)
+![Next.js](https://img.shields.io/badge/Next.js_16-black?style=flat-square&logo=next.js)
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
@@ -14,7 +14,7 @@ Hệ thống quản lý nội bộ của nhóm gia sư CSAT. Dùng để điểm
 
 | Lớp | Công nghệ |
 |---|---|
-| **Framework** | Next.js 15 (App Router), React 19, TypeScript |
+| **Framework** | Next.js 16 (App Router), React 19, TypeScript |
 | **Giao diện** | Tailwind CSS v4, shadcn/ui, lucide-react |
 | **Database & Auth** | Supabase (PostgreSQL + RLS + Auth) |
 | **Export** | SheetJS (`xlsx`) — xuất bảng lương & hóa đơn Excel |
@@ -28,6 +28,12 @@ Hệ thống quản lý nội bộ của nhóm gia sư CSAT. Dùng để điểm
 - Xem lịch dạy, bấm vào từng buổi để **điểm danh** (có mặt / vắng mặt + ghi chú).
 - Xem **bảng lương** theo từng kỳ, có thể mở rộng xem chi tiết từng buổi.
 
+### Phụ huynh
+
+- Đăng nhập Supabase bằng **số di động + mật khẩu admin cấp**; có thể đổi mật khẩu.
+- Chỉ xem học sinh được admin liên kết; hỗ trợ nhiều học sinh trên cùng tài khoản.
+- Admin cấp/reset mật khẩu, sửa liên kết và khóa quyền truy cập tại `/admin/parents`.
+- Cần tự áp dụng migration và bật Phone Auth theo [hướng dẫn cập nhật tài khoản phụ huynh](database/UPDATE_PARENT_ACCOUNTS_20260905.md).
 ### Admin
 - **Học sinh & Gia sư:** Thêm, sửa hồ sơ; cấp tài khoản gia sư (mật khẩu = SĐT).
 - **Lớp học:** Tạo lớp, gán học sinh, thiết lập lịch cố định hàng tuần.
