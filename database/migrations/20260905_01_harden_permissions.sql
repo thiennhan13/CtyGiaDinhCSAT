@@ -1,3 +1,4 @@
+-- Compatibility: replaces student_reviews.Admin_Full_Access_Reviews if present.
 -- CSAT: apply to an existing database in Supabase SQL Editor as postgres.
 -- No business rows are updated or deleted. Read database/UPDATE_PERMISSIONS_20260905.md first.
 BEGIN;
@@ -55,7 +56,10 @@ BEGIN
       'Admin_Full_ClassChangeLog','Tutor_View_Self','Public_View_Announcements','Tutor_View_Assigned_Students',
       'Tutor_View_Assigned_Classes','Tutor_View_Class_Students','Tutor_View_Assigned_Sessions','Tutor_Manage_Assigned_Sessions',
       'Tutor_Manage_Attendance','Tutor_Manage_Own_Reviews','Tutor_Insert_Assigned_Sessions','Tutor_Update_Assigned_Sessions',
-      'Tutor_Delete_Assigned_Sessions','Tutor_View_Attendance','Tutor_View_Own_Reviews','Tutor_Write_Assigned_Reviews');
+      'Tutor_Delete_Assigned_Sessions','Tutor_View_Attendance','Tutor_View_Own_Reviews','Tutor_Write_Assigned_Reviews')
+    -- Legacy policy name reported by the production operator. Its old predicate
+    -- is not trusted or preserved: the policy replacement below removes it.
+    AND NOT (tablename = 'student_reviews' AND policyname = 'Admin_Full_Access_Reviews');
   IF v_unknown IS NOT NULL THEN
     RAISE EXCEPTION 'CSAT preflight: unexpected policies: %. Review before migration.', v_unknown;
   END IF;

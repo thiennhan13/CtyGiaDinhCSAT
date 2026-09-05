@@ -257,6 +257,7 @@ test('preflight rejects missing admin, unknown policies and overloaded RPCs atom
     for (const change of [
       "update auth.users set raw_app_meta_data='{}'",
       'create policy unknown_public_access on public.students for select using(true)',
+      'create policy "Admin_Full_Access_Reviews" on public.students for select using(true)',
       "create function public.take_attendance_safe(text) returns int language sql as $$ select 1 $$"
     ]) {
       await db.exec('begin'); await db.exec(change);
@@ -266,5 +267,30 @@ test('preflight rejects missing admin, unknown policies and overloaded RPCs atom
       await db.exec('rollback');
       assert.equal(await scalar(db,"select has_function_privilege('anon','public.take_attendance_safe(uuid,jsonb)','execute')"),true);
     }
+  } finally {await db.close();}
+});
+
+// The production report supplied the table/name, not the original predicate.
+// Use a deliberately over-permissive fixture to prove the old policy is removed.
+test('migration replaces legacy review policy without preserving its permissions', async()=>{
+  const db=await setup(legacy);
+  try {
+    await db.exec('create policy "Admin_Full_Access_Reviews" on public.student_reviews for all to authenticated using(true) with check(true)');
+    const before=await businessData(db);
+    await db.exec(migration);
+    await db.exec(migration);
+    assert.deepEqual(await businessData(db),before);
+    assert.equal(await scalar(db,"select count(*) from pg_policies where schemaname='public' and tablename='student_reviews' and policyname='Admin_Full_Access_Reviews'"),0);
+    assert.equal(await scalar(db,"select count(*) from pg_policies where schemaname='public' and tablename='student_reviews' and policyname='Admin_Full_Student_Reviews'"),1);
+    const verified=await rows(db,verification);
+    assert.ok(verified.every(row=>row.passed),JSON.stringify(verified));
+    await db.exec('begin');
+    await claims(db,tutorClaims);
+    await db.query('insert into public.student_reviews(tutor_id,class_id,student_id) values($1,$2,$3)',[id(1),id(10),id(11)]);
+    await denied(db,'insert into public.student_reviews(tutor_id,class_id,student_id) values($1,$2,$3)',[id(1),id(20),id(13)]);
+    await claims(db,adminClaims);
+    await db.query('insert into public.student_reviews(tutor_id,class_id,student_id) values($1,$2,$3)',[id(2),id(20),id(13)]);
+    assert.equal(await scalar(db,'select count(*) from public.student_reviews'),2);
+    await db.exec('rollback');
   } finally {await db.close();}
 });

@@ -30,6 +30,12 @@ Nếu chưa có tài khoản admin đúng, dừng tại đây để xác nhận 
 
 3. Migration kiểm tra cột cần thiết, chữ ký RPC và các policy ngoài danh sách đã biết. Nếu production đã có tùy chỉnh, giữ nguyên thông báo `CSAT preflight` để đối chiếu; không bỏ đoạn kiểm tra rồi chạy tiếp. Kiểm tra này phát hiện một số khác biệt cấu trúc, không thay thế việc xem toàn bộ schema production.
 
+## Nếu lần chạy trước báo Admin_Full_Access_Reviews
+
+Bản migration đã bổ sung tương thích chính xác với `student_reviews.Admin_Full_Access_Reviews`, theo tên policy mà chủ hệ thống báo từ production. Chưa đọc được điều kiện của policy thật; migration không giữ lại hoặc tin cậy điều kiện đó. Nó thay policy cũ bằng `Admin_Full_Student_Reviews` và các policy gia sư đã được kiểm thử. Tên tương tự trên bảng khác và các policy lạ khác vẫn bị chặn.
+
+Lỗi preflight xảy ra trước các thay đổi quyền, nên lần chạy thất bại này chưa áp dụng bản sửa. Trong SQL Editor, thay toàn bộ query cũ bằng nội dung file migration mới rồi chạy lại; không xóa riêng policy trên production. Nếu phiên còn báo transaction aborted, chạy `ROLLBACK;` trước.
+
 ## Chạy cập nhật
 
 Mở **Supabase → SQL Editor → New query**, sao chép **toàn bộ** [20260905_01_harden_permissions.sql](migrations/20260905_01_harden_permissions.sql), rồi Run một lần.
@@ -59,9 +65,10 @@ Dependency kiểm thử nằm riêng trong `database/tests`; không thêm công 
 
 ## Kết quả kiểm tra trước bàn giao
 
-- Bộ kiểm thử Node báo 44 kiểm tra đạt: các kịch bản quyền được chạy với cả schema cũ + migration và master mới, cùng kiểm thử API/preflight.
+- Bộ kiểm thử Node báo 45 kiểm tra đạt: các kịch bản quyền được chạy với cả schema cũ + migration và master mới, cùng kiểm thử API/preflight.
 - Chạy migration hai lần không làm đổi dữ liệu mẫu của 10 bảng; policy bảng ngoài CSAT được giữ nguyên.
-- File hậu kiểm trả đủ 9 dòng true trong hai môi trường thử.
+- File hậu kiểm trả đủ 9 dòng true trong hai môi trường thử và khi cập nhật từ database có policy legacy trên.
+- Ca policy legacy cố ý cấp quyền quá rộng trong dữ liệu giả: sau migration, policy cũ biến mất; gia sư chỉ nhận xét đúng lớp/học sinh, admin vẫn truy cập hợp lệ. Cùng tên policy trên bảng khác vẫn bị preflight từ chối.
 - TypeScript và production build đạt; ESLint không có lỗi, còn 19 cảnh báo đã có. Build dùng URL/key Supabase giả.
 - Chưa kiểm thử đăng nhập trên website production, chưa đọc/xác nhận schema production và chưa chạy migration thật.
 
