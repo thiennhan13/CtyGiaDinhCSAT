@@ -30,10 +30,12 @@ Hệ thống quản lý nội bộ của nhóm gia sư CSAT. Dùng để điểm
 
 ### Phụ huynh
 
-- Đăng nhập Supabase bằng **số di động + mật khẩu admin cấp**; có thể đổi mật khẩu.
-- Chỉ xem học sinh được admin liên kết; hỗ trợ nhiều học sinh trên cùng tài khoản.
-- Admin cấp/reset mật khẩu, sửa liên kết và khóa quyền truy cập tại `/admin/parents`.
-- Cần tự áp dụng migration và bật Phone Auth theo [hướng dẫn cập nhật tài khoản phụ huynh](database/UPDATE_PARENT_ACCOUNTS_20260905.md).
+- Tra cứu trực tiếp bằng **số điện thoại đã đăng ký**, không mật khẩu/OTP; không cần Phone Auth hoặc nhà cung cấp SMS.
+- Số điện thoại là khóa tra cứu, không xác minh danh tính: ai biết số đã đăng ký đều có thể xem học sinh được liên kết.
+- Admin quản lý số điện thoại, liên kết học sinh và khóa quyền tra cứu tại `/admin/parents`.
+- Hồ sơ/liên kết từ bản mật khẩu được giữ lại. Phiên tra cứu có hạn dùng 12 giờ; không ảnh hưởng phiên đăng nhập admin/gia sư.
+- Database đã chạy migration02: áp dụng **migration03** theo [hướng dẫn nâng cấp và phạm vi ảnh hưởng](database/UPDATE_PARENT_PHONE_LOOKUP_20260906.md). Không chạy lại master schema hoặc migration02 trên database hiện tại.
+
 ### Admin
 - **Học sinh & Gia sư:** Thêm, sửa hồ sơ; cấp tài khoản gia sư (mật khẩu = SĐT).
 - **Lớp học:** Tạo lớp, gán học sinh, thiết lập lịch cố định hàng tuần.
@@ -85,4 +87,4 @@ Toàn bộ schema (bảng, enum, index, RLS, RPC) nằm trong một file duy nh�
 ```
 database/CSAT_master_schema.sql
 ```
-Chỉ chạy file này **một lần** trên database trống. Với database đã có dữ liệu, chạy các đoạn `[MIGRATION ONLY]` được đánh dấu trong file.
+Chỉ chạy master schema trên **database trống**. Với database đã có dữ liệu, dùng các file migration riêng trong `database/migrations/` theo đúng thứ tự và hướng dẫn cập nhật tương ứng. Đã áp dụng bản phụ huynh ngày 05/09 thì chỉ chạy tiếp `20260906_03_parent_phone_lookup.sql`.

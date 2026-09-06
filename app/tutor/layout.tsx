@@ -11,7 +11,7 @@ export default async function TutorLayout({ children }: { children: React.ReactN
   }
 
   const rawRole = user.app_metadata?.role || 'tutor';
-  if (rawRole === 'parent') redirect('/parents');
+  if (rawRole === 'parent') redirect('/login');
   const role = rawRole === 'admin' ? 'Admin' : 'Gia Sư';
   const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Người dùng';
   const initials = name.substring(0, 2).toUpperCase();

@@ -11,12 +11,12 @@ export function ParentLogoutButton() {
     setBusy(true); setError('');
     try {
       const res = await fetch('/api/parents/logout', { method: 'POST' });
-      if (!res.ok) throw new Error('Chưa đăng xuất được. Vui lòng thử lại.');
+      if (!res.ok) throw new Error('Chưa đóng tra cứu được. Vui lòng thử lại.');
       router.replace('/login'); router.refresh();
-    } catch (err) { setError(err instanceof Error ? err.message : 'Chưa đăng xuất được.'); }
+    } catch (err) { setError(err instanceof Error ? err.message : 'Chưa đóng tra cứu được.'); }
     finally { setBusy(false); }
   }
   return <div><button onClick={handleLogout} disabled={busy} className="csat-btn text-sm bg-card border-2 border-foreground shadow-neo flex items-center gap-1.5">
-    <LogOut className="w-3.5 h-3.5" />{busy ? 'Đang đăng xuất…' : 'Đăng xuất'}
+    <LogOut className="w-3.5 h-3.5" />{busy ? 'Đang đóng tra cứu…' : 'Đóng tra cứu'}
   </button>{error && <p role="alert" className="text-destructive text-xs mt-2">{error}</p>}</div>;
 }

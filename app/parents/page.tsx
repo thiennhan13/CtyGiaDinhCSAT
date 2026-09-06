@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/service';
+import { readLookupHash } from '@/lib/parent-lookup';
 import { z } from 'zod';
 import type { ParentPortalData } from '@/lib/parents';
 import { CsatNavbar } from '@/components/layout/CsatNavbar';
@@ -8,20 +9,21 @@ import { Phone, MapPin, User, Calendar, ExternalLink, MessageSquare, AlertCircle
 import Link from 'next/link';
 import { ParentLogoutButton } from './logout-button';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ParentPortal({ searchParams }: { searchParams: Promise<{ student?: string }> }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  if (user.app_metadata?.role !== 'parent') redirect('/tutor');
+  const hash = await readLookupHash();
+  if (!hash) redirect('/login');
+  const supabase = createAdminClient();
   const { student: requestedStudent } = await searchParams;
   if (requestedStudent && !z.string().uuid().safeParse(requestedStudent).success) redirect('/parents');
-  const { data, error } = await supabase.rpc('get_parent_portal', { p_student_id: requestedStudent || null });
+  const { data, error } = await supabase.rpc('get_parent_lookup', { p_token_hash: hash, p_student_id: requestedStudent || null });
   if (error) {
     if (error.code !== '42501') throw new Error('Không tải được cổng phụ huynh.');
-    return <ParentAccessMessage message="Tài khoản chưa được cấp quyền, đã bị khóa hoặc học sinh không còn được liên kết. Vui lòng liên hệ CSAT." />;
+    return <ParentAccessMessage message="Phiên tra cứu đã hết hạn, hồ sơ bị khóa hoặc học sinh không còn được liên kết. Hãy đóng tra cứu rồi nhập lại số điện thoại; liên hệ CSAT nếu cần hỗ trợ." />;
   }
   const portal = data as ParentPortalData;
-  if (!portal?.student) return <ParentAccessMessage message="Tài khoản chưa được liên kết với học sinh đang được quản lý. Vui lòng liên hệ CSAT để kiểm tra." />;
+  if (!portal?.student) return <ParentAccessMessage message="Số điện thoại chưa được liên kết với học sinh đang được quản lý. Vui lòng liên hệ CSAT để kiểm tra." />;
   const { student, students, reviews, enrolledClasses, attendanceCount } = portal;
   const phone = portal.parent.phone;
 
@@ -51,7 +53,6 @@ export default async function ParentPortal({ searchParams }: { searchParams: Pro
               Bảng xếp hạng CSATOJ
               <ExternalLink className="w-4 h-4 ml-1.5" />
             </a>
-            <Link href="/parents/account" className="csat-btn text-sm">Đổi mật khẩu</Link>
             <ParentLogoutButton />
           </div>
         </div>

@@ -5,7 +5,7 @@ const path = require('node:path');
 const { PGlite } = require('@electric-sql/pglite');
 const read = file => fs.readFileSync(path.join(__dirname,file),'utf8').replace(/\r\n/g,'\n');
 const migration = read('../migrations/20260905_02_parent_accounts.sql');
-const master = read('../CSAT_master_schema.sql');
+const master = read('../CSAT_master_schema.sql').split('-- BEGIN CSAT PHONE LOOKUP 20260906')[0] + 'COMMIT;';
 const id = n => '20000000-0000-4000-8000-' + String(n).padStart(12,'0');
 const admin = { role:'authenticated', sub:id(1), app_metadata:{role:'admin'} };
 const parent = n => ({role:'authenticated', sub:id(n), app_metadata:{role:'parent'}});
@@ -58,7 +58,7 @@ async function setup(upgrade) {
   await db.exec('reset role');
   return db;
 }
-for (const upgrade of [true,false]) test(upgrade ? 'Parent migration on existing hardened database' : 'Parent schema on fresh database',async t=>{
+for (const upgrade of [true,false]) test(upgrade ? 'Parent migration on existing hardened database' : 'Historical parent02 schema baseline',async t=>{
   const db = await setup(upgrade);
   try {
     const verification = (await db.query(read('../verification/20260905_parent_accounts.sql'))).rows;

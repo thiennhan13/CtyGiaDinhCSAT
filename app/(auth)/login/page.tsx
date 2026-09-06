@@ -26,7 +26,6 @@ function usePortalStats() {
 // ─── Form Phụ Huynh ──────────────────────────────────────────
 function ParentForm() {
   const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -44,7 +43,7 @@ function ParentForm() {
       const res = await fetch('/api/parents/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: clean, password }),
+        body: JSON.stringify({ phone: clean }),
       });
       const data = await res.json();
       
@@ -77,7 +76,7 @@ function ParentForm() {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
-            autoComplete="username"
+            autoComplete="tel"
             maxLength={30}
             className="pl-9 h-11 bg-background border border-input rounded-xl text-sm"
           />
@@ -87,16 +86,11 @@ function ParentForm() {
         </p>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="parent-password">Mật khẩu</Label>
-        <Input id="parent-password" type="password" autoComplete="current-password" required maxLength={128}
-          value={password} onChange={e => setPassword(e.target.value)} className="h-11 rounded-xl" />
-      </div>
 
       {/* Info box */}
       <div className="flex items-start gap-2 bg-secondary border border-border rounded-lg p-3 text-[13px] text-muted-foreground">
         <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-primary" />
-        <span>Đăng nhập bằng mật khẩu do admin cấp. Nếu chưa có tài khoản hoặc quên mật khẩu, vui lòng liên hệ CSAT.</span>
+        <span>Nhập số điện thoại đã được CSAT mở tra cứu để xem thông tin học tập. Nếu chưa tra cứu được, vui lòng liên hệ trung tâm.</span>
       </div>
 
       {error && (
@@ -117,12 +111,12 @@ function ParentForm() {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            Đang đăng nhập...
+            Đang tra cứu...
           </>
         ) : (
           <>
             <Search className="w-4 h-4" />
-            Truy cập cổng thông tin
+            Tra cứu thông tin
           </>
         )}
       </button>

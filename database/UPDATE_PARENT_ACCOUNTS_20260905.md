@@ -1,3 +1,5 @@
+> **Phương án cũ đã được thay thế ngày 06/09/2026.** Không tiếp tục hướng dẫn mật khẩu/Phone Auth bên dưới cho phiên bản hiện tại. Nếu đã chạy migration02, chuyển sang [hướng dẫn nâng cấp tra cứu bằng số điện thoại](UPDATE_PARENT_PHONE_LOOKUP_20260906.md); hồ sơ và liên kết cũ được giữ lại. Nội dung bên dưới chỉ lưu để đối chiếu lịch sử.
+
 # Cập nhật tài khoản phụ huynh — migration 20260905_02
 
 Phương án đã được duyệt: **Supabase Auth, số di động + mật khẩu admin cấp**, chỉ xem học sinh được admin liên kết. Chủ hệ thống đã xác nhận hậu kiểm migration phân quyền `20260905_01` trả về true. Đợt tài khoản phụ huynh này có **migration mới cần tự chạy**; deploy Vercel không tự cập nhật database.

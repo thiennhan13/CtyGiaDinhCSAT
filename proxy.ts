@@ -3,6 +3,13 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { authRedirect } from '@/lib/auth-routing'
 
 export async function proxy(request: NextRequest) {
+  const path = request.nextUrl.pathname
+  if (path === '/login' || path === '/parents' || path.startsWith('/parents/') || path.startsWith('/api/parents/')) {
+    const response = NextResponse.next({ request })
+    response.headers.set('Cache-Control', 'private, no-store')
+    response.headers.set('X-Robots-Tag', 'noindex, noarchive')
+    return response
+  }
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(

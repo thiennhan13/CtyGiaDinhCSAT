@@ -9,7 +9,6 @@ export function normalizeParentPhone(value: string): string | null {
   return /^\+84[35789]\d{8}$/.test(phone) ? phone : null;
 }
 
-export const parentPasswordSchema = z.string().min(12, 'Mật khẩu mới cần ít nhất 12 ký tự.').max(128);
 export const parentPhoneSchema = z.string().max(30).transform(normalizeParentPhone)
   .refine((phone): phone is string => phone !== null, 'Số điện thoại di động Việt Nam không hợp lệ.');
 
