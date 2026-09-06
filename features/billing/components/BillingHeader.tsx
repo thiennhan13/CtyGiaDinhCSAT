@@ -84,9 +84,9 @@ export function BillingHeader({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-2 text-sm text-foreground">
                   <span className="font-semibold text-foreground">Khoảng thời gian dự kiến:</span>
-                  <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-[140px] h-9 bg-card" />
+                  <Input type="date" aria-label="Ngày bắt đầu kỳ" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-[140px] h-9 bg-card" />
                   <span>đến</span>
-                  <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-[140px] h-9 bg-card" />
+                  <Input type="date" aria-label="Ngày kết thúc kỳ" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-[140px] h-9 bg-card" />
                   {(() => {
                     const days = Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24));
                     return days > 90 ? (

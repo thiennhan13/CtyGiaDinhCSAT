@@ -7,18 +7,21 @@ import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/supabase/client';
 import { useParams, useRouter } from 'next/navigation';
 import { useAlert, useConfirm } from '@/components/ui/use-dialog';
+import { buildAttendanceForm, buildAttendancePayload, type AttendanceForm, type AttendanceStudent } from '@/lib/attendance-form';
 
 export default function SessionAttendancePage() {
   const params = useParams() as { class_id: string, session_id: string };
   const classId = params.class_id;
   const sessionId = params.session_id;
 
-  const [students, setStudents] = useState<any[]>([]);
-  const [attendance, setAttendance] = useState<Record<string, { status: 'attended' | 'absent', notes: string }>>({});
+  const [students, setStudents] = useState<AttendanceStudent[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceForm>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [sessionData, setSessionData] = useState<any>(null);
-  const isSubmittingRef = useRef(false); // B6: guard double-submit
+  const isSubmittingRef = useRef(false);
+  const loadSequence = useRef(0);
+  const [loadError, setLoadError] = useState('');
   
   const router = useRouter();
   const supabase = createClient();
@@ -26,91 +29,58 @@ export default function SessionAttendancePage() {
   const { confirm, ConfirmDialog } = useConfirm();
 
   async function fetchData() {
-    setLoading(true);
-    // 1. Fetch Session Info
-    const { data: sess } = await supabase.from('sessions').select('*, classes(name)').eq('session_id', sessionId).single();
-    if (sess) setSessionData(sess);
-
-    // 2. Fetch students currently in this class
-    const { data: classStds } = await supabase.from('class_students').select('student_id, students(student_id, name)').eq('class_id', classId).eq('status', 'active');
-    
-    // 3. Fetch existing attendance for this session
-    const { data: existingAtt } = await supabase.from('session_attendance').select('*, students(student_id, name)').eq('session_id', sessionId);
-    
-    if (classStds) {
-      const stdList: any[] = classStds.map(cs => Array.isArray(cs.students) ? cs.students[0] : cs.students).filter(Boolean);
-      
-      const attMap: any = {};
-      if (existingAtt && existingAtt.length > 0) {
-        existingAtt.forEach(a => {
-          attMap[a.student_id] = { status: a.status, notes: a.notes || '' };
-          // Giữ lại học sinh cũ đã điểm danh nhưng hiện tại bị đuổi/khoá để không bị mất hiển thị
-          if (!stdList.find(s => s?.student_id === a.student_id) && a.students) {
-             const studentToAdd = Array.isArray(a.students) ? a.students[0] : a.students;
-             if (studentToAdd) stdList.push(studentToAdd);
-          }
-        });
-      } else {
-        stdList.forEach((s: any) => {
-          attMap[s?.student_id] = { status: 'attended', notes: '' }; // default attended
-        });
-      }
-      setStudents(stdList || []);
-      setAttendance(attMap);
+    const sequence = ++loadSequence.current;
+    setLoading(true); setLoadError(''); setSessionData(null); setStudents([]); setAttendance({});
+    try {
+      const [sessionResult, rosterResult, attendanceResult] = await Promise.all([
+        supabase.from('sessions').select('*, classes(name)').eq('session_id', sessionId).eq('class_id', classId).single(),
+        supabase.from('class_students').select('student_id, students(student_id, name)').eq('class_id', classId).eq('status', 'active'),
+        supabase.from('session_attendance').select('student_id, status, notes, students(student_id, name)').eq('session_id', sessionId),
+      ]);
+      if (sequence !== loadSequence.current) return;
+      if (sessionResult.error || !sessionResult.data) throw new Error('Không tải được buổi học hoặc bạn không có quyền truy cập.');
+      if (rosterResult.error || attendanceResult.error || !rosterResult.data || !attendanceResult.data)
+        throw new Error('Chưa tải đủ danh sách và điểm danh đã lưu. Vui lòng thử lại.');
+      const form = buildAttendanceForm(rosterResult.data, attendanceResult.data);
+      setSessionData(sessionResult.data); setStudents(form.students); setAttendance(form.attendance);
+    } catch (error) {
+      if (sequence === loadSequence.current) setLoadError(error instanceof Error ? error.message : 'Không tải được dữ liệu điểm danh.');
+    } finally {
+      if (sequence === loadSequence.current) setLoading(false);
     }
-    setLoading(false);
   }
 
   useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    void fetchData();
+    return () => { loadSequence.current++; };
   }, [classId, sessionId]);
 
   function handleStatusToggle(studentId: string, status: 'attended' | 'absent') {
-    setAttendance(prev => ({
-      ...prev,
-      [studentId]: { ...prev[studentId], status }
-    }));
+    setAttendance(prev => ({ ...prev, [studentId]: { notes: prev[studentId]?.notes || '', status } }));
   }
 
   function handleNotesChange(studentId: string, notes: string) {
-    setAttendance(prev => ({
-      ...prev,
-      [studentId]: { ...prev[studentId], notes }
-    }));
+    setAttendance(prev => ({ ...prev, [studentId]: { status: prev[studentId]?.status ?? null, notes } }));
   }
 
   async function handleSave() {
-    // B6: Chặn double-submit khi mạng chậm
-    if (isSubmittingRef.current) return;
+    if (isSubmittingRef.current || loading || loadError || !sessionData) return;
     isSubmittingRef.current = true;
     setSubmitting(true);
-    
-    // Build array for upsert
-    const attData = students.map(s => ({
-      session_id: sessionId,
-      student_id: s.student_id,
-      status: attendance[s.student_id].status,
-      notes: attendance[s.student_id].notes
-    }));
-
     try {
-       // Send to a custom route handler for safety, or upsert directly if RLS configured
-       const res = await fetch('/api/attendance', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ sessionId, attendanceData: attData })
-       });
-
-       if (res.ok) {
-         await showAlert({ title: 'Thành công!', description: 'Điểm danh đã lưu.', variant: 'success' });
-         router.push('/tutor/dashboard');
-       } else {
-         const d = await res.json();
-         throw new Error(d.error);
-       }
-    } catch(err: any) {
-      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
+      const attData = buildAttendancePayload(sessionId, students, attendance);
+      const res = await fetch('/api/attendance', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, attendanceData: attData }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || 'Chưa lưu được điểm danh. Vui lòng thử lại.');
+      }
+      await showAlert({ title: 'Thành công!', description: 'Đã lưu các học sinh có trạng thái được chọn. Học sinh chưa điểm danh được giữ nguyên.', variant: 'success' });
+      router.push('/tutor/dashboard');
+    } catch (error) {
+      await showAlert({ title: 'Lỗi', description: error instanceof Error ? error.message : 'Chưa lưu được điểm danh.', variant: 'error' });
     } finally {
       isSubmittingRef.current = false;
       setSubmitting(false);
@@ -118,23 +88,25 @@ export default function SessionAttendancePage() {
   }
 
   async function handleCancelSession() {
+    if (isSubmittingRef.current || loading || loadError || !sessionData) return;
     const ok = await confirm({
-      title: 'Hủy buổi học này?',
-      description: 'Buổi học sẽ được đánh dấu đã hủy và không được tính học phí.',
-      confirmText: 'Hủy buổi học',
-      variant: 'destructive',
+      title: 'Hủy buổi học này?', description: 'Buổi học sẽ được đánh dấu đã hủy và không được tính học phí.',
+      confirmText: 'Hủy buổi học', variant: 'destructive',
     });
-    if (!ok) return;
+    if (!ok || isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setSubmitting(true);
     try {
       const { error } = await supabase.from('sessions').update({ status: 'cancelled' }).eq('session_id', sessionId);
       if (error) throw error;
       await showAlert({ title: 'Thành công', description: 'Đã hủy buổi học.', variant: 'success' });
       router.push('/tutor/dashboard');
-    } catch(err: any) {
-      await showAlert({ title: 'Lỗi khi hủy buổi học', description: err.message, variant: 'error' });
+    } catch (error) {
+      await showAlert({ title: 'Lỗi khi hủy buổi học', description: error instanceof Error ? error.message : 'Chưa hủy được buổi học.', variant: 'error' });
+    } finally {
+      isSubmittingRef.current = false;
+      setSubmitting(false);
     }
-    setSubmitting(false);
   }
 
   if (sessionData?.status === 'cancelled') {
@@ -174,31 +146,39 @@ export default function SessionAttendancePage() {
       <Card>
         <CardHeader>
           <CardTitle>Danh Sách Học Sinh</CardTitle>
-          <CardDescription>Chọn &quot;Có mặt&quot; hoặc &quot;Vắng mặt&quot; (Học phí chỉ tính khi Có mặt)</CardDescription>
+          <CardDescription>Chọn &quot;Có mặt&quot; hoặc &quot;Vắng mặt&quot; cho học sinh cần lưu. Học sinh chưa có trạng thái sẽ không được ghi điểm danh hoặc tính học phí trong lần lưu này.</CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? <p className="text-muted-foreground">Đang tải...</p> : (
-            <div className="space-y-4">
+          {loading ? <p role="status" className="text-muted-foreground">Đang tải...</p> : loadError ? (
+            <div className="space-y-3"><p role="alert" className="text-destructive">{loadError}</p>
+              <Button variant="outline" onClick={() => void fetchData()}>Thử tải lại</Button></div>
+          ) : (
+            <fieldset disabled={submitting} className="space-y-4 min-w-0">
                {students.map(s => {
                  const currentStatus = attendance[s.student_id]?.status;
                  return (
-                   <div key={s.student_id} className="p-4 border border-border rounded-lg bg-secondary/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                      <div className="font-medium text-lg min-w-[200px] text-foreground">{s.name}</div>
+                   <div key={s.student_id} role="group" aria-label={s.name} className="p-4 border border-border rounded-lg bg-secondary/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="font-medium text-lg min-w-0 text-foreground">{s.name}
+                        {!currentStatus && <p className="text-sm text-muted-foreground font-normal">Chưa điểm danh</p>}
+                      </div>
                       <div className="flex gap-2">
                         <Button 
                           type="button"
+                          aria-pressed={currentStatus === 'attended'}
                           variant={currentStatus === 'attended' ? 'default' : 'outline'}
                           className={currentStatus === 'attended' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
                           onClick={() => handleStatusToggle(s.student_id, 'attended')}
                         >Có mặt</Button>
                         <Button 
                           type="button"
+                          aria-pressed={currentStatus === 'absent'}
                           variant={currentStatus === 'absent' ? 'default' : 'outline'}
                           className={currentStatus === 'absent' ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : ''}
                           onClick={() => handleStatusToggle(s.student_id, 'absent')}
                         >Vắng mặt</Button>
                       </div>
                       <Input 
+                        aria-label={"Ghi chú của " + s.name}
                         placeholder="Ghi chú (Tùy chọn)" 
                         className="max-w-xs"
                         value={attendance[s.student_id]?.notes || ''}
@@ -208,15 +188,15 @@ export default function SessionAttendancePage() {
                  );
                })}
 
-               <div className="pt-6 border-t mt-4 flex gap-4">
+               <div className="pt-6 border-t mt-4 flex flex-col sm:flex-row gap-4">
                  <Button onClick={handleSave} disabled={submitting || students.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg">
-                   {submitting ? 'Đang lưu...' : 'Chốt Điểm Danh (Lưu vĩnh viễn)'}
+                   {submitting ? 'Đang lưu...' : 'Lưu điểm danh'}
                  </Button>
                  <Button onClick={handleCancelSession} disabled={submitting} variant="destructive" className="h-12 px-8">
                    Hủy buổi học
                  </Button>
                </div>
-            </div>
+            </fieldset>
           )}
         </CardContent>
       </Card>

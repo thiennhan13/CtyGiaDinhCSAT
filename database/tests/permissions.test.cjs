@@ -137,6 +137,18 @@ async function suite(t, db) {
     const actual=await rows(db,'select status,tuition_fee_snapshot from public.session_attendance where student_id=$1',[id(11)]);
     assert.deepEqual(actual,[{status:'absent',tuition_fee_snapshot:'100000.00'}]);
   });
+  await check('partial attendance updates preserve omitted history and do not invent attendance for new roster members', async()=>{
+    await claims(db,adminClaims);
+    await db.query('insert into session_attendance(session_id,student_id,status,tuition_fee_snapshot,notes) values($1,$2,$3,$4,$5)',[id(100),id(12),'absent',150000,'Keep this history']);
+    await db.query('insert into students(student_id,name) values($1,$2)',[id(14),'New student']);
+    await db.query('insert into class_students(class_id,student_id,tuition_fee_per_session) values($1,$2,$3)',[id(10),id(14),200000]);
+    await claims(db,tutorClaims);
+    await db.query(attendanceSQL,attendance());
+    const omitted=(await rows(db,'select status,tuition_fee_snapshot,notes from session_attendance where session_id=$1 and student_id=$2',[id(100),id(12)]))[0];
+    assert.equal(omitted.status,'absent');assert.equal(Number(omitted.tuition_fee_snapshot),150000);assert.equal(omitted.notes,'Keep this history');
+    assert.equal(await scalar(db,'select count(*) from session_attendance where session_id=$1 and student_id=$2',[id(100),id(14)]),0);
+    assert.equal(Number(await scalar(db,'select tuition_fee_snapshot from session_attendance where session_id=$1 and student_id=$2',[id(100),id(11)])),100000);
+  });
   await check('RPC ignores injected fees for new attendance, including dropped students', async()=>{
     await claims(db,adminClaims);
     await db.query("update public.class_students set status='dropped' where student_id=$1",[id(12)]);
