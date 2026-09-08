@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { StudentReview } from './student-reviews';
 
 /** Canonical Vietnamese mobile number. Never infer identity from a suffix. */
 export function normalizeParentPhone(value: string): string | null {
@@ -17,7 +18,7 @@ export interface ParentPortalData {
   parent: { name: string; phone: string };
   students: ParentStudent[];
   student: (ParentStudent & { date_of_birth: string | null; province: string | null; status: string | null; parent_name: string; parent_number: string }) | null;
-  reviews: Array<{ review_id: string; month_year: string | null; general_assessment: string | null; learning_attitude: string | null; logical_thinking: string | null; tutors: { name: string | null }; classes: { name: string | null } }>;
+  reviews: Array<StudentReview & { tutors: { name: string | null }; classes: { name: string | null } }>;
   enrolledClasses: Array<{ class_id: string; classes: { name: string; class_type: string; status: string; tutors: { name: string | null } } }>;
   attendanceCount: number;
 }

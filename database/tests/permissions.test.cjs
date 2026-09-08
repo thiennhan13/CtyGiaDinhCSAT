@@ -219,7 +219,17 @@ async function suite(t, db) {
     for (const [tutor,cls,student] of [[1,10,13],[1,20,13],[2,10,11]]) {
       await denied(db,'insert into public.student_reviews(tutor_id,class_id,student_id) values($1,$2,$3)',[id(tutor),id(cls),id(student)]);
     }
-    await denied(db,'update public.student_reviews set student_id=$1',[id(13)]);
+    // The original policy rejects the new row; published-only protection can also hide it from UPDATE.
+    await db.exec('savepoint review_identity');
+    try {
+      const result = await db.query('update public.student_reviews set student_id=$1 returning review_id',[id(13)]);
+      assert.equal(result.rows.length,0,'A tutor must not move a review to another student');
+    } catch (error) {
+      assert.equal(error.code,'42501',error.message);
+      await db.exec('rollback to savepoint review_identity');
+    }
+    await db.exec('release savepoint review_identity');
+    assert.equal(await scalar(db,'select student_id from public.student_reviews limit 1'),id(11));
   });
   await check('disabled tutor cannot use old JWT to read or mutate data', async()=>{
     for (const mutation of ["status='inactive'",'is_deleted=true']) {

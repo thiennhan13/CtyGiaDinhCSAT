@@ -1,11 +1,12 @@
 import { redirect } from 'next/navigation';
+import { ReviewContent } from '@/components/reviews/ReviewContent';
 import { createAdminClient } from '@/lib/supabase/service';
 import { readLookupHash } from '@/lib/parent-lookup';
 import { z } from 'zod';
 import type { ParentPortalData } from '@/lib/parents';
 import { CsatNavbar } from '@/components/layout/CsatNavbar';
 import { CsatBackground } from '@/components/CsatBackground';
-import { Phone, MapPin, User, Calendar, ExternalLink, MessageSquare, AlertCircle, Star, Brain, BookOpen } from 'lucide-react';
+import { Phone, MapPin, User, Calendar, ExternalLink, MessageSquare, AlertCircle, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { ParentLogoutButton } from './logout-button';
 
@@ -214,36 +215,7 @@ export default async function ParentPortal({ searchParams }: { searchParams: Pro
                           </span>
                         </div>
 
-                        {/* 3 tiêu chí đánh giá */}
-                        <div className="space-y-3">
-                          {review.general_assessment && (
-                            <div className="flex items-start gap-2.5 bg-background p-3 rounded-lg border border-border">
-                              <Star className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-                              <div>
-                                <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Đánh giá chung</div>
-                                <div className="text-sm text-foreground leading-relaxed">{review.general_assessment}</div>
-                              </div>
-                            </div>
-                          )}
-                          {review.learning_attitude && (
-                            <div className="flex items-start gap-2.5 bg-background p-3 rounded-lg border border-border">
-                              <BookOpen className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                              <div>
-                                <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Thái độ học tập</div>
-                                <div className="text-sm text-foreground leading-relaxed">{review.learning_attitude}</div>
-                              </div>
-                            </div>
-                          )}
-                          {review.logical_thinking && (
-                            <div className="flex items-start gap-2.5 bg-background p-3 rounded-lg border border-border">
-                              <Brain className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
-                              <div>
-                                <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Tư duy logic</div>
-                                <div className="text-sm text-foreground leading-relaxed">{review.logical_thinking}</div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        <ReviewContent review={review} />
                       </div>
                     );
                   })}

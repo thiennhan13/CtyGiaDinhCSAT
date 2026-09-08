@@ -1,5 +1,8 @@
 'use client';
 
+import { ReviewContent } from '@/components/reviews/ReviewContent';
+
+
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -380,20 +383,8 @@ export default function StudentDetailPage() {
                                                         {format(new Date(r.created_at), 'dd/MM/yyyy')}
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div>
-                                                        <h5 className="text-xs uppercase font-bold text-muted-foreground mb-1">Đánh giá chung</h5>
-                                                        <p className="text-sm text-foreground whitespace-pre-wrap">{r.general_assessment || '---'}</p>
-                                                    </div>
-                                                    <div>
-                                                        <h5 className="text-xs uppercase font-bold text-muted-foreground mb-1">Thái độ học tập</h5>
-                                                        <p className="text-sm text-foreground whitespace-pre-wrap">{r.learning_attitude || '---'}</p>
-                                                    </div>
-                                                    <div className="md:col-span-2">
-                                                        <h5 className="text-xs uppercase font-bold text-muted-foreground mb-1">Tư duy logic / Giải quyết vấn đề</h5>
-                                                        <p className="text-sm text-foreground whitespace-pre-wrap">{r.logical_thinking || '---'}</p>
-                                                    </div>
-                                                </div>
+                                                <p className="text-xs font-semibold text-primary">{r.review_status === 'draft' ? 'Bản nháp · chưa hiển thị cho phụ huynh' : 'Đã gửi'}</p>
+                                                <ReviewContent review={r} />
                                             </div>
                                             )
                                         })}

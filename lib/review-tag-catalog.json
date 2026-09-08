@@ -1,0 +1,560 @@
+{
+  "version": 1,
+  "status": "approved",
+  "groups": [
+    {
+      "id": "knowledge",
+      "label": "Kiến thức",
+      "description": "Chủ đề đã có nội dung học hoặc bài làm để nhận xét.",
+      "assessed": true
+    },
+    {
+      "id": "skill",
+      "label": "Kỹ năng giải bài",
+      "description": "Cách học sinh phân tích, thực hiện và kiểm tra lời giải.",
+      "assessed": true
+    },
+    {
+      "id": "strength",
+      "label": "Điểm mạnh",
+      "description": "Biểu hiện cụ thể được gia sư đánh giá cao trong phạm vi nhận xét.",
+      "assessed": false
+    },
+    {
+      "id": "progress",
+      "label": "Tiến bộ",
+      "description": "Sự thay đổi có thể đối chiếu với lần quan sát trước.",
+      "assessed": false
+    },
+    {
+      "id": "habit",
+      "label": "Thói quen học tập",
+      "description": "Hành vi học tập đã được quan sát trong giai đoạn nhận xét.",
+      "assessed": false
+    }
+  ],
+  "levels": [
+    {
+      "id": "consolidate",
+      "label": "Cần củng cố",
+      "description": "Còn vướng ở điểm nền tảng cụ thể cần luyện lại."
+    },
+    {
+      "id": "guided",
+      "label": "Làm được khi có gợi ý",
+      "description": "Thực hiện được với sự hỗ trợ; cần nói rõ phần được gợi ý."
+    },
+    {
+      "id": "independent",
+      "label": "Tự vận dụng trong bài đã học",
+      "description": "Tự thực hiện trên dạng bài đã được học hoặc luyện."
+    },
+    {
+      "id": "transfer",
+      "label": "Vận dụng trong bài có thay đổi",
+      "description": "Tự xử lý được biến thể; cần ghi rõ thay đổi và mức hỗ trợ."
+    }
+  ],
+  "tags": [
+    {
+      "id": "k-io",
+      "group": "knowledge",
+      "label": "Nhập–xuất dữ liệu",
+      "scope": "both",
+      "source": "A01 · Cơ bản 1–4",
+      "evidence": "Bài nào cho thấy con tự nhập, xuất đúng dữ liệu và định dạng?"
+    },
+    {
+      "id": "k-types",
+      "group": "knowledge",
+      "label": "Biến, kiểu dữ liệu & phép tính",
+      "scope": "both",
+      "source": "A02 · Cơ bản 2–4",
+      "evidence": "Con chọn kiểu, xử lý chia nguyên hoặc phép lấy dư như thế nào trong bài cụ thể?"
+    },
+    {
+      "id": "k-conditions",
+      "group": "knowledge",
+      "label": "Điều kiện & chia trường hợp",
+      "scope": "both",
+      "source": "A03 · Cơ bản 5–8",
+      "evidence": "Con phân chia được những trường hợp nào; còn bỏ sót điều kiện nào?"
+    },
+    {
+      "id": "k-loops",
+      "group": "knowledge",
+      "label": "Vòng lặp & mô phỏng",
+      "scope": "both",
+      "source": "A04 · Cơ bản 9–13",
+      "evidence": "Ghi bài làm thể hiện cách duyệt, cập nhật biến và xác định điểm dừng."
+    },
+    {
+      "id": "k-arrays",
+      "group": "knowledge",
+      "label": "Mảng & bài toán dãy",
+      "scope": "both",
+      "source": "A05–A06 · Cơ bản 14–18; Nâng cao 5–6",
+      "evidence": "Con xử lý vị trí, giá trị hoặc đoạn liên tiếp ra sao; cần gợi ý ở bước nào?"
+    },
+    {
+      "id": "k-frequency",
+      "group": "knowledge",
+      "label": "Đánh dấu & đếm tần suất",
+      "scope": "both",
+      "source": "Cơ bản 15 · liên hệ A05, B11",
+      "evidence": "Con giải thích được ý nghĩa mảng đếm hoặc chọn cách lưu tần suất trong bài nào?"
+    },
+    {
+      "id": "k-sorting",
+      "group": "knowledge",
+      "label": "Sắp xếp dữ liệu",
+      "scope": "both",
+      "source": "B12 · Cơ bản 16; Nâng cao 18",
+      "evidence": "Ghi tiêu chí sắp xếp, cách xử lý phần tử bằng nhau và lý do sắp xếp giúp giải bài."
+    },
+    {
+      "id": "k-functions",
+      "group": "knowledge",
+      "label": "Hàm & tổ chức chương trình",
+      "scope": "both",
+      "source": "A08 · Cơ bản 22–24",
+      "evidence": "Con tự xác định tham số, kết quả hoặc tách nhiệm vụ thành hàm như thế nào?"
+    },
+    {
+      "id": "k-divisors",
+      "group": "knowledge",
+      "label": "Chia hết, ước & số chính phương",
+      "scope": "both",
+      "source": "B02–B03 · đề xuất chi tiết Cơ bản 19–21",
+      "evidence": "Ghi tính chất số học con đã dùng, ví dụ kiểm tra và phần cần củng cố.",
+      "keywords": "số học number theory số học ước bội chia hết"
+    },
+    {
+      "id": "k-primes",
+      "group": "knowledge",
+      "label": "Số nguyên tố & sàng",
+      "scope": "both",
+      "source": "B03–B04 · Cơ bản 19–21, 23–24",
+      "evidence": "Con chọn thử ước hay sàng trong bài nào, và giải thích được lựa chọn đến đâu?",
+      "keywords": "số học number theory số học nguyên tố sàng"
+    },
+    {
+      "id": "k-gcd",
+      "group": "knowledge",
+      "label": "ƯCLN, BCNN & Euclid",
+      "scope": "both",
+      "source": "B05 · đề xuất chi tiết Cơ bản 19–21",
+      "evidence": "Con vận dụng ƯCLN/BCNN hoặc giải thích thuật toán Euclid trong bài cụ thể nào?",
+      "keywords": "số học number theory số học UCLN BCNN gcd lcm"
+    },
+    {
+      "id": "k-factors",
+      "group": "knowledge",
+      "label": "Thừa số nguyên tố & bài áp dụng",
+      "scope": "advanced",
+      "source": "B06–B07 · đề xuất chi tiết Nâng cao 1–2, 33",
+      "evidence": "Ghi rõ nội dung đã học: phân tích thừa số, đếm ước hay số mũ trong giai thừa.",
+      "keywords": "số học number theory số học Legendre giai thừa"
+    },
+    {
+      "id": "k-modulo",
+      "group": "knowledge",
+      "label": "Modulo & lũy thừa nhanh",
+      "scope": "advanced",
+      "source": "B08 · đề xuất chi tiết Nâng cao 9",
+      "evidence": "Con giải thích phép toán modulo, cách giảm số mũ và kiểm tra tràn số như thế nào?",
+      "keywords": "số học number theory số học mod pow"
+    },
+    {
+      "id": "k-strings",
+      "group": "knowledge",
+      "label": "Xâu ký tự & xử lý xâu",
+      "scope": "both",
+      "source": "A09, B14 · Cơ bản 25–27; Nâng cao 10–11",
+      "evidence": "Ghi bài đếm, tách từ, chuẩn hóa hoặc đối xứng và mức độ con tự xử lý."
+    },
+    {
+      "id": "k-matrix",
+      "group": "knowledge",
+      "label": "Ma trận & mảng hai chiều",
+      "scope": "both",
+      "source": "A07 · Cơ bản 28; Nâng cao 8",
+      "evidence": "Con duyệt hàng/cột hoặc xử lý chỉ số trên bảng như thế nào?"
+    },
+    {
+      "id": "k-prefix",
+      "group": "knowledge",
+      "label": "Mảng cộng dồn & tổng đoạn",
+      "scope": "advanced",
+      "source": "C01 · Nâng cao 3–4; đề xuất chi tiết buổi 8",
+      "evidence": "Con tự suy ra công thức tổng đoạn hoặc hình chữ nhật đến đâu? Ghi rõ một hay hai chiều.",
+      "keywords": "dãy prefix sum tiền xử lý"
+    },
+    {
+      "id": "k-difference",
+      "group": "knowledge",
+      "label": "Mảng hiệu & cập nhật đoạn",
+      "scope": "advanced",
+      "source": "C02 · Nâng cao 7",
+      "evidence": "Con giải thích hai biên cập nhật và cách khôi phục dãy trong bài nào?",
+      "keywords": "dãy difference array"
+    },
+    {
+      "id": "k-vector",
+      "group": "knowledge",
+      "label": "Vector, pair & dữ liệu có thuộc tính",
+      "scope": "advanced",
+      "source": "B09–B10, C04 · Nâng cao 17–18",
+      "evidence": "Ghi chính xác công cụ đã dùng; con tổ chức kích thước hoặc các thuộc tính ra sao?",
+      "keywords": "cấu trúc dữ liệu STL"
+    },
+    {
+      "id": "k-stack",
+      "group": "knowledge",
+      "label": "Stack — ngăn xếp",
+      "scope": "advanced",
+      "source": "C06 · Nâng cao 13",
+      "evidence": "Con mô phỏng đúng thứ tự vào sau–ra trước và kiểm tra ngăn xếp rỗng trong bài nào?",
+      "keywords": "cấu trúc dữ liệu STL"
+    },
+    {
+      "id": "k-queue",
+      "group": "knowledge",
+      "label": "Queue & Deque — hàng đợi",
+      "scope": "advanced",
+      "source": "C06 · Nâng cao 14",
+      "evidence": "Con lựa chọn Queue hay Deque theo yêu cầu thao tác nào?",
+      "keywords": "cấu trúc dữ liệu STL"
+    },
+    {
+      "id": "k-set",
+      "group": "knowledge",
+      "label": "Set & Multiset",
+      "scope": "advanced",
+      "source": "C05 · Nâng cao 15",
+      "evidence": "Con phân biệt phần tử duy nhất, phần tử lặp và thao tác xóa trong bài nào?",
+      "keywords": "cấu trúc dữ liệu STL"
+    },
+    {
+      "id": "k-map",
+      "group": "knowledge",
+      "label": "Map — ánh xạ khóa–giá trị",
+      "scope": "advanced",
+      "source": "B11, C05 · Nâng cao 16",
+      "evidence": "Con giải thích khóa, giá trị và lý do chọn map thay cho mảng đếm như thế nào?",
+      "keywords": "cấu trúc dữ liệu STL"
+    },
+    {
+      "id": "k-greedy",
+      "group": "knowledge",
+      "label": "Thuật toán tham lam",
+      "scope": "advanced",
+      "source": "C10 · Nâng cao 20–21",
+      "evidence": "Ghi lựa chọn cục bộ và lập luận tính đúng; không chỉ ghi con làm được bài."
+    },
+    {
+      "id": "k-two-pointers",
+      "group": "knowledge",
+      "label": "Hai con trỏ & cửa sổ trượt",
+      "scope": "advanced",
+      "source": "C03 · Nâng cao 22–23",
+      "evidence": "Con nêu được điều kiện áp dụng và lý do di chuyển con trỏ trong bài nào?"
+    },
+    {
+      "id": "k-binary",
+      "group": "knowledge",
+      "label": "Tìm kiếm nhị phân",
+      "scope": "advanced",
+      "source": "B13, C11 · Nâng cao 24–26",
+      "evidence": "Ghi rõ tìm trên dãy hay đáp án; con xử lý biên và giải thích tính đơn điệu đến đâu?"
+    },
+    {
+      "id": "k-hashing",
+      "group": "knowledge",
+      "label": "Hashing — băm xâu nhập môn",
+      "scope": "advanced",
+      "source": "Nâng cao 27 · phạm vi băm xâu đang đề xuất",
+      "evidence": "Chỉ nhận xét khi đã học nội dung này. Con hiểu cách so sánh và khả năng va chạm như thế nào?"
+    },
+    {
+      "id": "k-dp-state",
+      "group": "knowledge",
+      "label": "Quy hoạch động — trạng thái & chuyển",
+      "scope": "advanced",
+      "source": "D01 · đề xuất chi tiết Nâng cao 28",
+      "evidence": "Con tự mô tả trạng thái, điều kiện đầu, công thức chuyển và thứ tự tính trong bài nào?",
+      "keywords": "quy hoạch động dp"
+    },
+    {
+      "id": "k-dp-grid",
+      "group": "knowledge",
+      "label": "Quy hoạch động trên lưới",
+      "scope": "advanced",
+      "source": "D02 · đề xuất chi tiết Nâng cao 29",
+      "evidence": "Con giải thích được ô phụ thuộc và khởi tạo các ô biên đến đâu?",
+      "keywords": "quy hoạch động dp ma trận"
+    },
+    {
+      "id": "k-knapsack",
+      "group": "knowledge",
+      "label": "Cái túi 0/1 & chọn tập con",
+      "scope": "advanced",
+      "source": "D03–D04 · đề xuất chi tiết Nâng cao 30",
+      "evidence": "Ghi biến thể đã học; con có phân biệt mỗi phần tử dùng một lần và dùng lặp không?",
+      "keywords": "quy hoạch động dp balo knapsack"
+    },
+    {
+      "id": "k-lis",
+      "group": "knowledge",
+      "label": "LIS — dãy con tăng dài nhất",
+      "scope": "advanced",
+      "source": "D05 · đề xuất chi tiết Nâng cao 31",
+      "evidence": "Con xác định trạng thái và truy vết đến đâu; có phân biệt dãy con với đoạn liên tiếp không?",
+      "keywords": "quy hoạch động dp dãy"
+    },
+    {
+      "id": "k-brute",
+      "group": "knowledge",
+      "label": "Vét cạn & kiểm chứng lời giải",
+      "scope": "both",
+      "source": "B01 · liên hệ Cơ bản 11–13; Nâng cao 32",
+      "evidence": "Ghi cách con tổ chức phương án, tránh bỏ sót và ước lượng số trường hợp."
+    },
+    {
+      "id": "k-recursion",
+      "group": "knowledge",
+      "label": "Đệ quy & quay lui cơ bản",
+      "scope": "advanced",
+      "source": "C07–C08 · Nâng cao 34",
+      "evidence": "Con giải thích điều kiện dừng, chọn–thử–hoàn tác và cách tránh lặp cấu hình trong bài nào?"
+    },
+    {
+      "id": "s-reading",
+      "group": "skill",
+      "label": "Đọc đề & xác định ràng buộc",
+      "scope": "both",
+      "evidence": "Con diễn đạt lại đề, dữ liệu vào/ra và giới hạn như thế nào?"
+    },
+    {
+      "id": "s-model",
+      "group": "skill",
+      "label": "Mô hình hóa bài toán",
+      "scope": "both",
+      "evidence": "Con chuyển yêu cầu thành dãy, bảng, trường hợp hoặc đại lượng cần tính ra sao?"
+    },
+    {
+      "id": "s-select",
+      "group": "skill",
+      "label": "Lựa chọn thuật toán",
+      "scope": "both",
+      "evidence": "Ghi các cách đã cân nhắc và lý do con chọn một cách giải."
+    },
+    {
+      "id": "s-correctness",
+      "group": "skill",
+      "label": "Lập luận tính đúng",
+      "scope": "both",
+      "evidence": "Con giải thích được bước nào của lời giải; phần nào còn cần gợi ý?"
+    },
+    {
+      "id": "s-complexity",
+      "group": "skill",
+      "label": "Phân tích độ phức tạp",
+      "scope": "both",
+      "evidence": "Con ước lượng số thao tác hoặc bộ nhớ theo dữ liệu và so sánh cách giải đến đâu?"
+    },
+    {
+      "id": "s-code",
+      "group": "skill",
+      "label": "Chuyển ý tưởng thành chương trình",
+      "scope": "both",
+      "evidence": "Ghi phần con tự cài đặt và phần được hỗ trợ; tránh suy ra từ kết quả chấm đơn thuần."
+    },
+    {
+      "id": "s-index",
+      "group": "skill",
+      "label": "Kiểm soát chỉ số & điều kiện biên",
+      "scope": "both",
+      "evidence": "Con tự xử lý hoặc bỏ sót biên nào trong mảng, vòng lặp hay đoạn dữ liệu?"
+    },
+    {
+      "id": "s-types",
+      "group": "skill",
+      "label": "Chọn kiểu dữ liệu & kiểm soát tràn số",
+      "scope": "both",
+      "evidence": "Ghi phép tính trung gian và cách con xác định kiểu dữ liệu phù hợp."
+    },
+    {
+      "id": "s-test",
+      "group": "skill",
+      "label": "Tự tạo dữ liệu kiểm thử",
+      "scope": "both",
+      "evidence": "Con tự chọn các trường hợp nhỏ, biên, trùng hoặc đặc biệt nào?",
+      "keywords": "kiểm thử test case"
+    },
+    {
+      "id": "s-debug",
+      "group": "skill",
+      "label": "Tìm nguyên nhân & sửa lỗi",
+      "scope": "both",
+      "evidence": "Con thu hẹp nguyên nhân bằng cách nào và tự sửa được phần nào?",
+      "keywords": "debug gỡ lỗi"
+    },
+    {
+      "id": "s-trace",
+      "group": "skill",
+      "label": "Theo dõi trạng thái & truy vết",
+      "scope": "both",
+      "evidence": "Ghi cách con tính tay, theo dõi biến hoặc dựng lại phương án từ kết quả đã lưu."
+    },
+    {
+      "id": "s-explain",
+      "group": "skill",
+      "label": "Trình bày & giải thích lời giải",
+      "scope": "both",
+      "evidence": "Con trình bày được ý tưởng, bước thực hiện và lý do đúng đến đâu?"
+    },
+    {
+      "id": "p-pattern",
+      "group": "strength",
+      "label": "Nhận ra quy luật của bài toán",
+      "scope": "both",
+      "evidence": "Ghi quy luật con tự nhận ra và cách con kiểm tra nhận định đó."
+    },
+    {
+      "id": "p-logic",
+      "group": "strength",
+      "label": "Lập luận mạch lạc, có căn cứ",
+      "scope": "both",
+      "evidence": "Ghi lập luận cụ thể được đánh giá cao, thay vì chỉ nhận xét con thông minh."
+    },
+    {
+      "id": "p-alternative",
+      "group": "strength",
+      "label": "Đề xuất được cách giải khác",
+      "scope": "both",
+      "evidence": "Ghi cách giải khác, mức độ con tự đề xuất và giá trị của cách tiếp cận đó."
+    },
+    {
+      "id": "p-counterexample",
+      "group": "strength",
+      "label": "Tự tìm được phản ví dụ",
+      "scope": "both",
+      "evidence": "Ghi cách giải bị bác bỏ và phản ví dụ do con tìm ra.",
+      "keywords": "phản ví dụ tính đúng"
+    },
+    {
+      "id": "p-careful",
+      "group": "strength",
+      "label": "Kiểm chứng lời giải cẩn thận",
+      "scope": "both",
+      "evidence": "Ghi các trường hợp hoặc cách đối chiếu con chủ động thực hiện."
+    },
+    {
+      "id": "p-clear",
+      "group": "strength",
+      "label": "Giải thích rõ ràng, dễ theo dõi",
+      "scope": "both",
+      "evidence": "Ghi nội dung con giải thích và điểm cụ thể giúp người nghe hiểu."
+    },
+    {
+      "id": "p-connect",
+      "group": "strength",
+      "label": "Kết nối được kiến thức đã học",
+      "scope": "both",
+      "evidence": "Con liên hệ những kiến thức nào để giải bài đang xét?"
+    },
+    {
+      "id": "p-organized",
+      "group": "strength",
+      "label": "Tổ chức chương trình rõ ràng",
+      "scope": "both",
+      "evidence": "Ghi cách đặt tên, tách hàm hoặc tổ chức dữ liệu giúp lời giải dễ kiểm tra."
+    },
+    {
+      "id": "r-independent",
+      "group": "progress",
+      "label": "Tự giải với ít gợi ý hơn",
+      "scope": "both",
+      "evidence": "So với lần nào, trên bài có mức độ tương đương nào, con đã cần ít hỗ trợ ở bước gì?",
+      "keywords": "tự giải độc lập chủ động"
+    },
+    {
+      "id": "r-index",
+      "group": "progress",
+      "label": "Kiểm soát chỉ số tốt hơn",
+      "scope": "both",
+      "evidence": "Đối chiếu lỗi chỉ số trước đây với cách xử lý trong lần quan sát này."
+    },
+    {
+      "id": "r-types",
+      "group": "progress",
+      "label": "Chọn kiểu dữ liệu phù hợp hơn",
+      "scope": "both",
+      "evidence": "Ghi lỗi hoặc mức hỗ trợ trước đây và cách con chủ động chọn kiểu lần này."
+    },
+    {
+      "id": "r-explain",
+      "group": "progress",
+      "label": "Trình bày lời giải rõ hơn",
+      "scope": "both",
+      "evidence": "Lần trước còn thiếu bước nào; lần này con đã giải thích được điều gì?"
+    },
+    {
+      "id": "r-efficiency",
+      "group": "progress",
+      "label": "Biết so sánh hiệu quả cách giải",
+      "scope": "both",
+      "evidence": "So với lần trước, con đã tự so sánh số thao tác hoặc bộ nhớ như thế nào?"
+    },
+    {
+      "id": "r-transfer",
+      "group": "progress",
+      "label": "Vận dụng tốt hơn ở bài biến thể",
+      "scope": "both",
+      "evidence": "Ghi lần đối chiếu, phần thay đổi của bài và mức hỗ trợ thực tế trong lần này."
+    },
+    {
+      "id": "h-ask",
+      "group": "habit",
+      "label": "Chủ động hỏi khi chưa rõ",
+      "scope": "both",
+      "evidence": "Ghi câu hỏi hoặc tình huống con chủ động nêu phần chưa hiểu."
+    },
+    {
+      "id": "h-practice",
+      "group": "habit",
+      "label": "Hoàn thành phần luyện tập đã thống nhất",
+      "scope": "both",
+      "evidence": "Ghi phần bài được giao, phạm vi đã hoàn thành và giai đoạn quan sát."
+    },
+    {
+      "id": "h-revise",
+      "group": "habit",
+      "label": "Giải lại bài sau khi được góp ý",
+      "scope": "both",
+      "evidence": "Ghi bài được sửa, phần con làm lại và cách kiểm tra sau phản hồi."
+    },
+    {
+      "id": "h-persist",
+      "group": "habit",
+      "label": "Kiên trì thử và kiểm tra cách làm",
+      "scope": "both",
+      "evidence": "Ghi các bước con đã thử khi gặp vướng mắc, trong tình huống cụ thể."
+    },
+    {
+      "id": "h-prepare",
+      "group": "habit",
+      "label": "Chuẩn bị câu hỏi trước buổi học",
+      "scope": "both",
+      "evidence": "Ghi câu hỏi, ghi chú hoặc phần tự chuẩn bị đã quan sát được."
+    },
+    {
+      "id": "h-reference",
+      "group": "habit",
+      "label": "Tự giải thích phần đã tham khảo",
+      "scope": "both",
+      "evidence": "Ghi nội dung con tham khảo và phần con đã tự trình bày hoặc làm lại; không suy đoán từ văn phong mã nguồn."
+    }
+  ]
+}

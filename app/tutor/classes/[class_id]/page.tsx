@@ -39,15 +39,6 @@ export default function TutorClassDetailPage() {
   const { alert: showAlert, AlertDialog } = useAlert();
   const { confirm, ConfirmDialog } = useConfirm();
 
-  // Review modal state
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [reviewStudent, setReviewStudent] = useState<any>(null);
-  const [reviewMonthYear, setReviewMonthYear] = useState(format(new Date(), 'yyyy-MM'));
-  const [reviewGeneral, setReviewGeneral] = useState('');
-  const [reviewAttitude, setReviewAttitude] = useState('');
-  const [reviewLogical, setReviewLogical] = useState('');
-  const [submittingReview, setSubmittingReview] = useState(false);
-
   const [isAddSessionModalOpen, setIsAddSessionModalOpen] = useState(false);
   const [newSessionDate, setNewSessionDate] = useState('');
   const [newSessionStart, setNewSessionStart] = useState('18:00');
@@ -121,32 +112,6 @@ export default function TutorClassDetailPage() {
     fetchClassDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classId]);
-
-  const handleSubmitReview = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!reviewStudent || !reviewMonthYear) return;
-    setSubmittingReview(true);
-    
-    try {
-      const { error } = await supabase.from('student_reviews').insert([{
-        student_id: reviewStudent.student_id,
-        tutor_id: tutorId,
-        class_id: classId,
-        month_year: reviewMonthYear,
-        general_assessment: reviewGeneral,
-        learning_attitude: reviewAttitude,
-        logical_thinking: reviewLogical
-      }]);
-      
-      if (error) throw error;
-      await showAlert({ title: 'Thành công', description: 'Lưu nhận xét thành công!', variant: 'success' });
-      setIsReviewModalOpen(false);
-    } catch (err: any) {
-      await showAlert({ title: 'Lỗi', description: "Lỗi khi lưu nhận xét: " + err.message, variant: 'error' });
-    } finally {
-      setSubmittingReview(false);
-    }
-  };
 
   const handleAddSession = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -366,14 +331,7 @@ export default function TutorClassDetailPage() {
                                   variant="outline" 
                                   size="sm" 
                                   className="mt-2 text-primary border-indigo-200 hover:bg-indigo-50"
-                                  onClick={() => {
-                                      setReviewStudent(st);
-                                      setReviewGeneral('');
-                                      setReviewAttitude('');
-                                      setReviewLogical('');
-                                      setReviewMonthYear(format(new Date(), 'yyyy-MM'));
-                                      setIsReviewModalOpen(true);
-                                  }}
+                                  onClick={() => router.push(`/tutor/classes/${classId}/students/${st.student_id}/review`)}
                                 >
                                   <MessageSquare className="w-3 h-3 mr-1" /> Nhận xét
                                 </Button>
@@ -547,56 +505,7 @@ export default function TutorClassDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Review Modal */}
-      <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Nhận xét định kỳ: {reviewStudent?.name}</DialogTitle>
-            <DialogDescription>
-              Ghi nhận đánh giá của gia sư về tình hình học tập trong tháng.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmitReview} className="space-y-4 py-4">
-             <div>
-               <label className="text-sm font-medium">Kỳ đánh giá (Tháng/Năm) <span className="text-destructive">*</span></label>
-               <Input type="month" value={reviewMonthYear} onChange={(e) => setReviewMonthYear(e.target.value)} required />
-             </div>
-             <div>
-               <label className="text-sm font-medium">Đánh giá chung</label>
-               <textarea 
-                 className="flex w-full rounded-md border border-border bg-card px-3 py-2 text-sm min-h-[80px]"
-                 value={reviewGeneral}
-                 onChange={(e) => setReviewGeneral(e.target.value)}
-                 placeholder="Tiến bộ tổng quan, mức độ hoàn thành bài tập..."
-               />
-             </div>
-             <div>
-               <label className="text-sm font-medium">Thái độ học tập</label>
-               <textarea 
-                 className="flex w-full rounded-md border border-border bg-card px-3 py-2 text-sm min-h-[80px]"
-                 value={reviewAttitude}
-                 onChange={(e) => setReviewAttitude(e.target.value)}
-                 placeholder="Chăm chỉ, tập trung, hay hỏi..."
-               />
-             </div>
-             <div>
-               <label className="text-sm font-medium">Tư duy logic / Giải quyết vấn đề</label>
-               <textarea 
-                 className="flex w-full rounded-md border border-border bg-card px-3 py-2 text-sm min-h-[80px]"
-                 value={reviewLogical}
-                 onChange={(e) => setReviewLogical(e.target.value)}
-                 placeholder="Khả năng phân tích bài toán, tư duy thuật toán..."
-               />
-             </div>
-             <DialogFooter className="pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsReviewModalOpen(false)}>Hủy</Button>
-                <Button type="submit" disabled={submittingReview}>
-                   {submittingReview ? 'Đang lưu...' : 'Lưu Nhận Xét'}
-                </Button>
-             </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+
     </div>
   );
 }
