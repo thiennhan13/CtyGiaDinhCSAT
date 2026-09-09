@@ -1,71 +1,14 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/service';
-import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
-
-const makeupSchema = z.object({
-  class_id: z.string().uuid("Class ID không hợp lệ"),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format date must be YYYY-MM-DD"),
-  start_time: z.string().regex(/^\d{2}:\d{2}$/, "Start time must be HH:MM"),
-  end_time: z.string().regex(/^\d{2}:\d{2}$/, "End time must be HH:MM"),
-});
-
+import { businessError, businessSession } from '@/lib/business-api';
+const schema = z.object({ class_id: z.uuid(), date: z.iso.date(), start_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  end_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/), requestId: z.uuid().optional() });
 export async function POST(request: Request) {
-  try {
-    const supabaseUser = await createClient();
-    const { data: { user } } = await supabaseUser.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const parsed = makeupSchema.safeParse(body);
-
-    if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
-    }
-
-    const { class_id, date, start_time, end_time } = parsed.data;
-
-    // Initialize Admin Supabase to bypass RLS for session insert
-    // Or we could check if user has the right to this class, then insert using Admin Client
-    const adminSupabase = createAdminClient();
-
-    // Verify user is tutor of the class
-    const { data: tutor } = await adminSupabase.from('tutors').select('tutor_id, status, is_deleted').eq('auth_uid', user.id).single();
-
-    if (!tutor || tutor.status !== 'active' || tutor.is_deleted) {
-      return NextResponse.json({ error: 'Không tìm thấy thông tin gia sư.' }, { status: 403 });
-    }
-
-    const { data: classInfo } = await adminSupabase.from('classes').select('class_id, csat_fee_per_session').eq('class_id', class_id).eq('tutor_id', tutor.tutor_id).single();
-
-    if (!classInfo) {
-      return NextResponse.json({ error: 'Lớp học không thuộc quyền quản lý của bạn.' }, { status: 403 });
-    }
-
-    // Insert session using admin client since tutor doesn't have INSERT RLS policy on sessions
-    const { data: session, error } = await adminSupabase
-      .from('sessions')
-      .insert([{
-        class_id,
-        date,
-        start_time,
-        end_time,
-        status: 'scheduled',
-        csat_fee_snapshot: classInfo.csat_fee_per_session,
-        tutor_id_snapshot: tutor.tutor_id
-      }])
-      .select()
-      .single();
-
-    if (error) {
-      throw error;
-    }
-
-    return NextResponse.json({ message: 'Tạo lịch dạy bù thành công', session });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  const session = await businessSession(false, request); if (session.response) return session.response;
+  const parsed = schema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return NextResponse.json({ error: 'Lịch học bù không hợp lệ.' }, { status: 422 });
+  const p = parsed.data;
+  const { data, error } = await session.supabase.rpc('manage_class', { p_action: 'add_sessions', p_class_id: p.class_id,
+    p_data: { sessions: [{ date: p.date, start_time: p.start_time, end_time: p.end_time }] }, p_request_id: p.requestId ?? crypto.randomUUID() });
+  return error ? businessError(error) : NextResponse.json(data);
 }

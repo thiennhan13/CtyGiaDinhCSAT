@@ -5,7 +5,7 @@ const path = require('node:path');
 const { PGlite } = require('@electric-sql/pglite');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const master = read('database/CSAT_master_schema.sql');
+const master = read('database/tests/fixtures/schema-before-accounting.sql');
 const migration = read('database/migrations/20260907_04_student_review_tags.sql');
 const catalog = JSON.parse(read('lib/review-tag-catalog.json'));
 const id = n => `30000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -58,7 +58,7 @@ async function setup(upgrade) {
   return db;
 }
 
-for (const upgrade of [false, true]) test(`Review tags ${upgrade ? 'upgrade' : 'fresh schema'}`, async t => {
+for (const upgrade of [false, true]) test(`Review tags ${upgrade ? 'upgrade' : 'historical 04 baseline'}`, async t => {
   const db = await setup(upgrade);
   async function check(name, fn) {
     await t.test(name, async () => {

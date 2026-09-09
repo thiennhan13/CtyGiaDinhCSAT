@@ -1,4 +1,5 @@
 'use client';
+import { postBusiness } from '@/lib/business-client';
 
 import { ReviewContent } from '@/components/reviews/ReviewContent';
 
@@ -80,24 +81,20 @@ export default function StudentDetailPage() {
 
       // Fetch classes
       const { data: classData } = await supabase
-        .from('class_students')
+        .from('class_students_current')
         .select('status, tuition_fee_per_session, classes(class_id, name, status, start_date, end_date, csat_fee_per_session, tutors(name))')
         .eq('student_id', studentId);
         
       if (classData) setEnrolledClasses(classData);
 
       // Fetch payments
-      const { data: pData } = await supabase
-        .from('payments')
-        .select('*, classes(name)')
-        .eq('student_id', studentId)
-        .order('billing_period', { ascending: false });
+      const { data: pData } = await supabase.rpc('payment_accounts',{p_student_id:studentId});
         
       if (pData) setPayments(pData);
 
       // Fetch attendance
       const { data: attData } = await supabase
-        .from('session_attendance')
+        .from('attendance_current')
         .select('status, notes, tuition_fee_snapshot, sessions(date, start_time, end_time, status, classes(name))')
         .eq('student_id', studentId);
         
@@ -127,17 +124,20 @@ export default function StudentDetailPage() {
   }, [studentId]);
 
   async function handleMarkAsPaid(paymentId: string) {
+    const payment = payments.find(p=>p.payment_id===paymentId);
+    if (!payment || payment.balance === 0) return;
     const ok = await confirm({
-      title: 'Xác nhận đã thu học phí?',
-      description: 'Đánh dấu hóa đơn này là Đã thu.',
+      title: payment.balance < 0 ? 'Ghi nhận đã hoàn tiền?' : 'Ghi nhận đã thu học phí?',
+      description: `Xác nhận số tiền thực tế ${payment.balance < 0 ? 'đã hoàn' : 'đã thu'}: ${formatVND(Math.abs(payment.balance))}.`,
       confirmText: 'Xác nhận',
     });
     if (!ok) return;
     try {
-      const { error } = await supabase.from('payments').update({ status: 'paid' }).eq('payment_id', paymentId);
-      if (error) throw error;
+      const payment=payments.find(p=>p.payment_id===paymentId);
+      if(!payment)throw new Error('Không tìm thấy chứng từ.');
+      await postBusiness('/api/admin/billing/payments',{paymentId,expectedBalance:payment.balance});
       await showAlert({ title: 'Cập nhật thành công', description: 'Trạng thái đã được cập nhật.', variant: 'success' });
-      setPayments(prev => prev.map(p => p.payment_id === paymentId ? { ...p, status: 'paid' } : p));
+      setPayments(prev => prev.map(p => p.payment_id === paymentId ? { ...p, status: 'paid', balance: 0 } : p));
     } catch (err: any) {
       await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
     }
@@ -340,16 +340,16 @@ export default function StudentDetailPage() {
                                                         <TableCell className="font-medium text-foreground">{p.billing_period}</TableCell>
                                                         <TableCell>{className || '---'}</TableCell>
                                                         <TableCell>
-                                                            <Badge variant="outline" className={p.status === 'paid' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'}>
-                                                                {p.status === 'paid' ? 'Đã thu' : 'Chưa thu'}
+                                                            <Badge variant="outline" className={p.balance === 0 ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'}>
+                                                                {p.balance < 0 ? 'Cần hoàn' : p.balance === 0 ? 'Đã quyết toán' : 'Còn phải thu'}
                                                             </Badge>
                                                         </TableCell>
                                                         <TableCell className="text-right font-bold text-foreground">
-                                                            {formatVND(p.amount)}
+                                                            <div>Gốc: {formatVND(p.amount)}</div><div>Điều chỉnh: {formatVND(p.adjustment_amount ?? 0)}</div><div>{p.balance < 0 ? 'Cần hoàn' : 'Còn phải thu'}: {formatVND(Math.abs(p.balance))}</div>
                                                         </TableCell>
                                                         <TableCell className="text-right">
-                                                            {p.status === 'unpaid' && (
-                                                                <Button size="sm" variant="outline" className="border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10" onClick={() => handleMarkAsPaid(p.payment_id)}>Đánh dấu Đã thu</Button>
+                                                            {p.balance !== 0 && (
+                                                                <Button size="sm" variant="outline" className="border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10" onClick={() => handleMarkAsPaid(p.payment_id)}>{p.balance < 0 ? 'Ghi nhận đã hoàn' : 'Ghi nhận đã thu'}</Button>
                                                             )}
                                                         </TableCell>
                                                     </TableRow>

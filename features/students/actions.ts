@@ -1,4 +1,5 @@
 'use server';
+import { recordOutstandingPayment } from '@/lib/payment-actions';
 
 /**
  * features/students/actions.ts
@@ -101,13 +102,8 @@ export async function deleteStudent(studentId: string): Promise<ActionResult> {
  */
 export async function markPaymentAsPaid(paymentId: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
-    const { error } = await supabase
-      .from('payments')
-      .update({ status: 'paid' })
-      .eq('payment_id', paymentId);
-
-    if (error) throw error;
+    await requireAdmin();
+    await recordOutstandingPayment(paymentId);
     revalidatePath('/admin/students');
     revalidatePath('/admin/billing');
     return { success: true, data: null };

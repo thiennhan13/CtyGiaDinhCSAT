@@ -1,4 +1,5 @@
 'use server';
+import { recordOutstandingPayment } from '@/lib/payment-actions';
 
 /**
  * features/billing/actions.ts
@@ -28,12 +29,8 @@ async function requireAdmin() {
  */
 export async function markPaymentPaid(paymentId: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
-    const { error } = await supabase
-      .from('payments')
-      .update({ status: 'paid', paid_at: new Date().toISOString() })
-      .eq('payment_id', paymentId);
-    if (error) throw error;
+    await requireAdmin();
+    await recordOutstandingPayment(paymentId);
     revalidatePath('/admin/billing');
     revalidatePath('/admin/students');
     return { success: true, data: null };

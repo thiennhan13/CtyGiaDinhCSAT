@@ -98,14 +98,14 @@ test('network failures, non-JSON errors and closed-period errors never leave sub
 test('rapid repeated save sends only one request and cannot save incomplete loading state',async()=>{
   let finish,count=0;const f=saveFixture({fetch:()=>{count++;return new Promise(resolve=>{finish=resolve;});}});
   const first=f.save();await f.save();assert.equal(count,1);finish({ok:true});await first;
-  for(const extra of [{loading:true},{loadError:'Offline'},{sessionData:null}]){
+  for(const extra of [{loading:true},{loadError:'Offline'},{sessionData:null},{sessionData:{session_id:'S',billing_period:'Closed'}}]){
     const guarded=saveFixture(extra);await guarded.save();assert.equal(guarded.state.requests.length,0);
   }
 });
 test('actual loader refuses partial data, clears stale records and recovers on retry',async()=>{
   const state={};let failure=true;
-  const data={sessions:{session_id:'S'},class_students:enrolled,session_attendance:existing};
-  const supabase={from(table){const q={select(){return q;},eq(){return q;},single(){return q;},then(resolve,reject){return Promise.resolve({data:data[table],error:failure&&table==='session_attendance'?{message:'Offline'}:null}).then(resolve,reject);}};return q;}};
+  const data={sessions:{session_id:'S'}};
+  const supabase={rpc:async()=>({data:{class_id:'C',roster:enrolled,attendance:existing},error:typeof failure!=='undefined'&&failure?{message:'Offline'}:null}),from(table){const q={select(){return q;},eq(){return q;},single(){return q;},then(resolve,reject){return Promise.resolve({data:data[table],error:failure&&table==='session_attendance'?{message:'Offline'}:null}).then(resolve,reject);}};return q;}};
   const load=handler('fetchData',{supabase,classId:'C',sessionId:'S',loadSequence:{current:0},buildAttendanceForm,
     setLoading:v=>state.loading=v,setLoadError:v=>state.error=v,setSessionData:v=>state.session=v,setStudents:v=>state.students=v,setAttendance:v=>state.attendance=v});
   await load();assert.equal(state.loading,false);assert.ok(state.error);assert.equal(state.students.length,0);assert.equal(state.session,null);
@@ -113,7 +113,7 @@ test('actual loader refuses partial data, clears stale records and recovers on r
 });
 test('late responses from a previous route cannot overwrite the current attendance form',async()=>{
   let release;const state={};const sequence={current:0};
-  const supabase={from(table){const q={select(){return q;},eq(){return q;},single(){return q;},then(resolve,reject){return new Promise(r=>{if(table==='sessions')release=()=>r({data:{session_id:'Old'},error:null});else r({data:[],error:null});}).then(resolve,reject);}};return q;}};
+  const supabase={rpc:async()=>({data:{class_id:'C',roster:enrolled,attendance:existing},error:null}),from(table){const q={select(){return q;},eq(){return q;},single(){return q;},then(resolve,reject){return new Promise(r=>{if(table==='sessions')release=()=>r({data:{session_id:'Old'},error:null});else r({data:[],error:null});}).then(resolve,reject);}};return q;}};
   const load=handler('fetchData',{supabase,classId:'C',sessionId:'S',loadSequence:sequence,buildAttendanceForm,
     setLoading:v=>state.loading=v,setLoadError:v=>state.error=v,setSessionData:v=>state.session=v,setStudents(){},setAttendance(){}});
   const pending=load();await new Promise(r=>setImmediate(r));sequence.current++;state.session={session_id:'New'};release();await pending;

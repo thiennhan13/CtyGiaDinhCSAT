@@ -5,6 +5,8 @@
     "test": "node --test *.test.cjs"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "0.3.16"
+    "@electric-sql/pglite": "0.3.16",
+    "embedded-postgres": "17.10.0-beta.17",
+    "pg": "8.23.0"
   }
 }

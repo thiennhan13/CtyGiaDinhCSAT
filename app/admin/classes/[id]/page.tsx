@@ -1,4 +1,6 @@
 'use client';
+import { SessionReconciliation } from '@/features/attendance/SessionReconciliation';
+import { changeClass } from '@/lib/business-client';
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -91,13 +93,13 @@ export default function ClassDetailPage() {
 
   async function fetchData() {
     setLoading(true);
-    const { data: cls } = await supabase.from('classes').select('*, tutors(name)').eq('class_id', classId).single();
+    const { data: cls } = await supabase.from('class_current_state').select('*, tutors(name)').eq('class_id', classId).single();
     if (cls) {
       setClassInfo(cls);
       setNewCsatFee(String(cls.csat_fee_per_session || 0));
     }
 
-    const { data: classStds } = await supabase.from('class_students').select('*, students(name)').eq('class_id', classId);
+    const { data: classStds } = await supabase.from('class_students_current').select('*, students(name)').eq('class_id', classId);
     if (classStds) setStudentsInClass(classStds);
 
     const { data: stds } = await supabase.from('students').select('*').neq('is_deleted', true);
@@ -109,11 +111,7 @@ export default function ClassDetailPage() {
     const { data: sessions } = await supabase.from('sessions').select('*').eq('class_id', classId).order('date', { ascending: false });
     if (sessions) setClassSessions(sessions);
 
-    const { data: logs } = await supabase
-      .from('class_change_log')
-      .select('*')
-      .eq('class_id', classId)
-      .order('created_at', { ascending: false });
+    const { data: logs } = await supabase.rpc('admin_class_history', { p_class_id: classId });
     if (logs) setChangeLogs(logs);
 
     setLoading(false);
@@ -125,26 +123,16 @@ export default function ClassDetailPage() {
   }, [classId]);
 
   async function handleAssignStudent(e: React.FormEvent) {
-    e.preventDefault();
-    if (!selectedStudentId) return;
-
-    const fee = parseFloat(tuitionFee) || 0;
-    const { error } = await supabase.from('class_students').upsert([
-       { class_id: classId, student_id: selectedStudentId, tuition_fee_per_session: fee, status: 'active' }
-    ], { onConflict: 'class_id, student_id' });
-    if (!error) {
-       setSelectedStudentId('');
-       setTuitionFee('100000');
-       fetchData();
-    } else {
-       await showAlert({ title: 'Lỗi', description: error.message, variant: 'error' });
-    }
-  }
+ e.preventDefault(); if (!selectedStudentId) return;
+ try { await changeClass('enroll',classId,{student_id:selectedStudentId,tuition_fee_per_session:Number(tuitionFee)});
+ setSelectedStudentId('');setTuitionFee('100000');await fetchData();
+ } catch(error){await showAlert({title:'Lỗi',description:(error as Error).message,variant:'error'});}
+}
 
   async function handleRemoveStudent(studentId: string, studentName?: string) {
     const ok = await confirm({
       title: 'Dừng học sinh này?',
-      description: 'Học sinh sẽ được chuyển sang trạng thái Đã nghỉ. Các phiếu điểm danh (nếu có) trong tương lai của học sinh này sẽ bị xóa bỏ hoàn toàn.',
+      description: 'Học sinh sẽ được chuyển sang trạng thái Đã nghỉ. Các phiếu điểm danh và học phí đã phát sinh được giữ nguyên.',
       confirmText: 'Dừng học',
       variant: 'destructive',
     });
@@ -172,38 +160,16 @@ export default function ClassDetailPage() {
   }
 
   async function handleCreateSession(e: React.FormEvent) {
-    e.preventDefault();
-    if (!sessionDate || !startTime || !endTime) return;
+ e.preventDefault(); if(!sessionDate || !startTime || !endTime)return;
+ try {await changeClass('add_sessions',classId,{sessions:[{date:sessionDate,start_time:startTime,end_time:endTime}]});
+ setSessionDate('');await fetchData();}catch(error){await showAlert({title:'Lỗi',description:(error as Error).message,variant:'error'});}
+}
 
-    const { error } = await supabase.from('sessions').insert([
-       { 
-         class_id: classId, 
-         date: sessionDate, 
-         start_time: startTime, 
-         end_time: endTime,
-         csat_fee_snapshot: classInfo?.csat_fee_per_session || 0,
-         tutor_id_snapshot: classInfo?.tutor_id || null, // Fix Bug #1: chốt gia sư tại thời điểm tạo buổi
-       }
-    ]);
-    
-    if (!error) {
-       await showAlert({ title: 'Tạo buổi học thành công', description: 'Buổi học đã được thêm vào lịch.', variant: 'success' });
-       setSessionDate('');
-       fetchData();
-    } else {
-       await showAlert({ title: 'Lỗi', description: error.message, variant: 'error' });
-    }
-  }
-
-  async function handleCancelSession(sessionId: string) {
-    const ok = await confirm({ title: 'Hủy buổi học này?', description: 'Buổi học sẽ được đánh dấu Đã Hủy.', confirmText: 'Hủy buổi', variant: 'destructive' });
-    if (!ok) return;
-    const { error } = await supabase.from('sessions').update({ status: 'cancelled' }).eq('session_id', sessionId);
-    if (!error) {
-       await showAlert({ title: 'Đã hủy buổi học', description: '', variant: 'success' });
-       fetchData();
-    }
-  }
+  async function handleCancelSession(sessionId:string){
+ if(!await confirm({title:'Hủy buổi học?',description:'Giữ bản ghi và chuyển sang trạng thái đã hủy.',confirmText:'Hủy buổi',variant:'destructive'}))return;
+ try{await changeClass('cancel_sessions',classId,{session_ids:[sessionId]});await fetchData();}
+ catch(error){await showAlert({title:'Lỗi',description:(error as Error).message,variant:'error'});}
+}
 
   const openBulkDelete = (s: any) => {
     setBulkDeleteSession(s);
@@ -243,7 +209,7 @@ export default function ClassDetailPage() {
        return;
     }
 
-    const actionText = action === 'cancel' ? 'BÁO NGHỈ LỄ (Hủy)' : 'XÓA VĨNH VIỄN';
+    const actionText = action === 'cancel' ? 'BÁO NGHỈ LỄ (Hủy)' : 'HỦY LỊCH';
     const ok = await confirm({
       title: `${actionText} ${filteredToUpdate.length} buổi học?`,
       description: `Tìm thấy ${filteredToUpdate.length} buổi học. Bạn có chắc muốn ${actionText} tất cả?`,
@@ -254,14 +220,8 @@ export default function ClassDetailPage() {
 
     const sessionIds = filteredToUpdate.map(s => s.session_id);
     
-    if (action === 'cancel') {
-       await supabase.from('sessions').update({ status: 'cancelled' }).in('session_id', sessionIds);
-       await showAlert({ title: 'Thành công', description: 'Đã cập nhật trạng thái các buổi học thành Đã Hủy (Nghỉ Lễ).', variant: 'success' });
-    } else {
-       await supabase.from('sessions').delete().in('session_id', sessionIds);
-       await showAlert({ title: 'Thành công', description: 'Đã xóa vĩnh viễn các buổi học.', variant: 'success' });
-    }
-    
+    try { await changeClass('cancel_sessions',classId,{session_ids:sessionIds}); }
+    catch(error){await showAlert({title:'Lỗi',description:(error as Error).message,variant:'error'});return;}
     setBulkDeleteSession(null);
     fetchData();
   };
@@ -451,7 +411,7 @@ export default function ClassDetailPage() {
       'Ngày dạy': s.date,
       'Giờ học': `${s.start_time?.substring(0,5)} - ${s.end_time?.substring(0,5)}`,
       'Gia sư': s.tutor_id_snapshot || classInfo?.tutors?.name,
-      'Phí CSAT': s.csat_fee_snapshot || classInfo?.csat_fee_per_session,
+      'Phí CSAT': s.csat_fee_snapshot ?? 'Chưa xác minh',
       'Trạng thái': s.status === 'completed' ? 'Đã dạy' : s.status === 'cancelled' ? 'Đã hủy' : 'Sắp diễn ra'
     })));
     XLSX.utils.book_append_sheet(wb, wsSessions, 'Lịch sử buổi học');
@@ -767,6 +727,7 @@ export default function ClassDetailPage() {
                       {s.status === 'cancelled' && <span className="text-destructive font-medium">Đã hủy</span>}
                     </TableCell>
                     <TableCell className="text-right space-x-2">
+                       {!s.billing_period && s.status !== 'cancelled' && <SessionReconciliation classId={classId} sessionId={s.session_id} onSaved={() => void fetchData()} />}
                        {s.status === 'scheduled' && (
                           <>
                             <Button variant="outline" size="sm" onClick={() => { setEditSessionData({ session_id: s.session_id, date: s.date, start_time: s.start_time.substring(0,5), end_time: s.end_time.substring(0,5) }); setIsEditSessionOpen(true); }}>Sửa</Button>
@@ -794,7 +755,7 @@ export default function ClassDetailPage() {
               <History className="w-5 h-5" />
               Lịch Sử Thay Đổi Lớp
             </CardTitle>
-            <CardDescription>Audit log ghi lại mọi thay đổi gia sư và Battle Pass CSAT.</CardDescription>
+            <CardDescription>Lịch sử thay đổi gia sư, học phí, tên lớp và học sinh nghỉ.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -818,7 +779,7 @@ export default function ClassDetailPage() {
                       {log.change_type === 'tutor_change' ? (
                         <span className="px-2 py-1 bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs rounded-sm font-semibold border border-amber-500/20">Đổi Gia Sư</span>
                       ) : (
-                        <span className="px-2 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs rounded-sm font-semibold border border-emerald-500/20">Đổi Battle Pass</span>
+                        <span className="px-2 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs rounded-sm font-semibold border border-emerald-500/20">{({ student_fee_update: 'Đổi học phí', csat_fee_update: 'Đổi Battle Pass', rename_class: 'Đổi tên lớp', drop_student: 'Học sinh nghỉ' } as Record<string,string>)[log.change_type] || log.change_type}</span>
                       )}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{log.old_label}</TableCell>

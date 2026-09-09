@@ -30,7 +30,7 @@ export default function TutorClassesPage() {
       }
 
       const { data, error } = await supabase
-        .from('classes')
+        .from('class_current_state')
         .select('class_id, name, status, start_date, end_date')
         .eq('tutor_id', tutorData.tutor_id);
 
@@ -39,7 +39,7 @@ export default function TutorClassesPage() {
         // → Fetch riêng số học sinh ACTIVE per class rồi merge vào
         const classIds = data.map(c => c.class_id);
         const { data: activeCounts } = await supabase
-          .from('class_students')
+          .from('class_students_current')
           .select('class_id')
           .in('class_id', classIds)
           .eq('status', 'active');

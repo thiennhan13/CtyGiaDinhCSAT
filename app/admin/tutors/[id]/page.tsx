@@ -22,6 +22,7 @@ export default function AdminTutorDetailPage() {
   const [classes, setClasses] = useState<any[]>([]);
   const [changeLogs, setChangeLogs] = useState<any[]>([]);
   const [salaryHistory, setSalaryHistory] = useState<any[]>([]);
+  const [salaryError, setSalaryError] = useState('');
   const [stats, setStats] = useState({ totalSessions: 0, activeClasses: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +42,7 @@ export default function AdminTutorDetailPage() {
 
       // 2. Danh sách lớp học (đang + đã dạy)
       const { data: classData } = await supabase
-        .from('classes')
+        .from('class_current_state')
         .select('class_id, name, class_type, status, start_date, end_date, csat_fee_per_session')
         .eq('tutor_id', tutorId)
         .order('status', { ascending: true })
@@ -63,70 +64,12 @@ export default function AdminTutorDetailPage() {
       if (sessionCount !== null) setStats(prev => ({ ...prev, totalSessions: sessionCount }));
 
       // 4. Lịch sử thay đổi liên quan đến gia sư này (đổi vào hoặc đổi ra)
-      const { data: logData } = await supabase
-        .from('class_change_log')
-        .select('*, classes(name)')
-        .or(`old_value.eq.${tutorId},new_value.eq.${tutorId}`)
-        .eq('change_type', 'tutor_change')
-        .order('created_at', { ascending: false })
-        .limit(20);
+      const { data: logData } = await supabase.rpc('admin_class_history', { p_tutor_id: tutorId });
       if (logData) setChangeLogs(logData);
 
-      // 5. Lương theo kỳ đã chốt sổ (từ billing stats)
-      const { data: periods } = await supabase
-        .from('sessions')
-        .select('billing_period')
-        .eq('tutor_id_snapshot', tutorId)
-        .eq('status', 'completed')
-        .not('billing_period', 'is', null);
-
-      if (periods && periods.length > 0) {
-        const uniquePeriods = [...new Set(periods.map(p => p.billing_period))];
-        const salaryRows: any[] = [];
-
-        for (const period of uniquePeriods.slice(0, 10)) {
-          // Lấy sessions của gia sư trong kỳ này
-          const { data: periodSessions } = await supabase
-            .from('sessions')
-            .select('session_id, csat_fee_snapshot')
-            .eq('tutor_id_snapshot', tutorId)
-            .eq('billing_period', period)
-            .eq('status', 'completed');
-
-          if (!periodSessions || periodSessions.length === 0) continue;
-
-          const sessionIds = periodSessions.map(s => s.session_id);
-          const { data: atts } = await supabase
-            .from('session_attendance')
-            .select('session_id, tuition_fee_snapshot, status')
-            .in('session_id', sessionIds)
-            .eq('status', 'attended');
-
-          let tuitionTotal = 0;
-          let csatTotal = 0;
-
-          atts?.forEach(att => {
-            const fee = parseFloat(String(att.tuition_fee_snapshot || 0));
-            tuitionTotal += fee;
-          });
-
-          periodSessions.forEach(sess => {
-            const csatFee = parseFloat(String(sess.csat_fee_snapshot || 0));
-            // Chỉ trừ CSAT nếu buổi có học sinh đến
-            const hasAttended = atts?.some(a => a.session_id === sess.session_id);
-            if (hasAttended) csatTotal += csatFee;
-          });
-
-          salaryRows.push({
-            period,
-            sessions: periodSessions.length,
-            tuition: tuitionTotal,
-            csat: csatTotal,
-            net: tuitionTotal - csatTotal,
-          });
-        }
-        setSalaryHistory(salaryRows.sort((a, b) => b.period.localeCompare(a.period)));
-      }
+      const { data: salaryRows, error: salaryError } = await supabase.rpc('admin_tutor_salary_history', { p_tutor_id: tutorId });
+      if (salaryError) setSalaryError('Không tải được lịch sử lương. Vui lòng thử lại.');
+      else { setSalaryHistory(salaryRows ?? []); setSalaryError(''); }
 
       setLoading(false);
     }
@@ -156,6 +99,7 @@ export default function AdminTutorDetailPage() {
         </Badge>
       </div>
 
+      {salaryError && <p role="alert" className="text-destructive">{salaryError}</p>}
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
@@ -246,7 +190,7 @@ export default function AdminTutorDetailPage() {
             <DollarSign className="w-5 h-5 text-amber-500" />
             Lịch Sử Lương Theo Kỳ
           </CardTitle>
-          <CardDescription>10 kỳ gần nhất đã chốt sổ</CardDescription>
+          <CardDescription>Các kỳ đã chốt sổ, gồm điều chỉnh được ghi nhận</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { formatVND } from '@/lib/format';
+import { getVietnamMonthRange } from '@/lib/calendar';
 import { Combobox } from '@/components/ui/combobox';
 import { useAlert } from '@/components/ui/use-dialog';
 
@@ -52,7 +53,7 @@ export default function TutorDashboard() {
       const { data: tutor } = await supabase.from('tutors').select('tutor_id').eq('auth_uid', user.id).single();
       if (tutor) {
         setTutorId(tutor.tutor_id);
-        const { data: myClassesData } = await supabase.from('classes').select('*').eq('tutor_id', tutor.tutor_id).eq('status', 'active');
+        const { data: myClassesData } = await supabase.from('class_current_state').select('*').eq('tutor_id', tutor.tutor_id).eq('status', 'active');
         if (myClassesData && myClassesData.length > 0) {
           setMyClasses(myClassesData);
           return myClassesData.map(c => c.class_id);
@@ -73,7 +74,7 @@ export default function TutorDashboard() {
     if (classIds.length === 0) {
         classIds = await fetchTutorDataAndClasses();
         // Fetch stats here once we know classes
-        fetchCurrentMonthStats(classIds);
+        fetchCurrentMonthStats();
     }
     
     if (classIds.length === 0) {
@@ -146,68 +147,14 @@ export default function TutorDashboard() {
     if (data) setAnnouncements(data);
   };
 
-  const fetchCurrentMonthStats = async (classes: string[]) => {
-    if (classes.length === 0) return;
-    
-    const today = new Date();
-    const firstDayThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const lastDayThisMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    
-    const startStr = format(firstDayThisMonth, 'yyyy-MM-dd');
-    const endStr = format(lastDayThisMonth, 'yyyy-MM-dd');
-
-    const { data: sessionData } = await supabase
-        .from('sessions')
-        .select(`
-            session_id, 
-            csat_fee_snapshot,
-            status,
-            session_attendance(status, student_id, tuition_fee_snapshot),
-            classes!inner(class_students(student_id, tuition_fee_per_session))
-        `)
-        .in('class_id', classes)
-        .gte('date', startStr)
-        .lte('date', endStr)
-        .eq('status', 'completed');
-
-    if (sessionData) {
-        let totalEarnings = 0;
-        let sessionsCount = sessionData.length;
-
-        sessionData.forEach((session: any) => {
-            let sessionIncome = 0;
-            const attendances = session.session_attendance || [];
-            const classStudents = session.classes?.class_students || [];
-            
-            // Lấy những học sinh có mặt
-            const presentAttendances = attendances.filter((a: any) => a.status === 'attended');
-            
-            // Tính học phí dựa trên snapshot (nếu có) hoặc fallback về class_students (chống lỗi đồng bộ khi admin đổi phí)
-            presentAttendances.forEach((att: any) => {
-                if (att.tuition_fee_snapshot !== null && att.tuition_fee_snapshot !== undefined) {
-                    sessionIncome += Number(att.tuition_fee_snapshot);
-                } else {
-                    const cs = classStudents.find((c: any) => c.student_id === att.student_id);
-                    if (cs) {
-                        sessionIncome += (cs.tuition_fee_per_session || 0);
-                    }
-                }
-            });
-
-            // Trừ phí CSAT snapshot
-            if (presentAttendances.length > 0) {
-               sessionIncome -= (session.csat_fee_snapshot || 0);
-            } else {
-               sessionIncome = 0;
-            }
-            
-            if (sessionIncome > 0) {
-                totalEarnings += sessionIncome;
-            }
-        });
-        
-        setCurrentMonthStats({ sessionsCount, earning: totalEarnings });
+    const fetchCurrentMonthStats = async () => {
+    const { startDate, endDate } = getVietnamMonthRange();
+    const { data, error } = await supabase.rpc('tutor_month_summary', { p_start_date: startDate, p_end_date: endDate });
+    if (error) {
+      await showAlert({ title: 'Không tải được thống kê', description: 'Vui lòng tải lại trang để lấy số liệu lương mới nhất.', variant: 'error' });
+      return;
     }
+    setCurrentMonthStats({ sessionsCount: Number(data.sessions), earning: Number(data.net) });
   };
 
   useEffect(() => {

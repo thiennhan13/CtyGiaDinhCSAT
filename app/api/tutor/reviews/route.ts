@@ -27,11 +27,11 @@ async function authorize(classId: string, studentId: string) {
     .eq('auth_uid', user.id).eq('status', 'active').not('is_deleted', 'is', true).maybeSingle();
   if (tutorError) return { response: databaseError(tutorError) };
   if (!tutor) return { response: json({ error: 'Tài khoản chưa có quyền gia sư đang hoạt động.' }, 403) };
-  const { data: classInfo, error: classError } = await supabase.from('classes').select('class_id,name,class_type')
+  const { data: classInfo, error: classError } = await supabase.from('class_current_state').select('class_id,name,class_type')
     .eq('class_id', classId).eq('tutor_id', tutor.tutor_id).maybeSingle();
   if (classError) return { response: databaseError(classError) };
   if (!classInfo) return { response: json({ error: 'Lớp học không thuộc quyền phụ trách của bạn.' }, 403) };
-  const { data: enrollment, error: enrollmentError } = await supabase.from('class_students').select('student_id')
+  const { data: enrollment, error: enrollmentError } = await supabase.from('class_students_current').select('student_id')
     .eq('class_id', classId).eq('student_id', studentId).eq('status', 'active').maybeSingle();
   if (enrollmentError) return { response: databaseError(enrollmentError) };
   if (!enrollment) return { response: json({ error: 'Học sinh không còn trong danh sách đang học của lớp.' }, 403) };

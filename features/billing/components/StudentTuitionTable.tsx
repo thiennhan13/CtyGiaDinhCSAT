@@ -40,8 +40,8 @@ export function StudentTuitionTable({
     sessionCountMap[`${inv.student_id}|${inv.class_id}`] = inv.session_count || 0;
   });
 
-  const unpaidCount = payments.filter(p => p.status === 'unpaid').length;
-  const paidCount   = payments.filter(p => p.status === 'paid').length;
+  const unpaidCount = payments.filter(p => p.balance > 0).length;
+  const paidCount   = payments.filter(p => p.balance === 0).length;
 
   const exportCustomerPayments = async () => {
     try {
@@ -70,15 +70,17 @@ export function StudentTuitionTable({
         const key = `${p.student_id}|${p.class_id}`;
         const sessCount = sessionCountMap[key] ?? '---';
         const avg = typeof sessCount === 'number' && sessCount > 0
-          ? Math.round(p.amount / sessCount)
+          ? Math.round((Number(p.amount) + Number(p.adjustment_amount ?? 0)) / sessCount)
           : '---';
         return {
           'Tên Học Sinh': p.students?.name || '---',
           'Lớp Học': p.classes?.name || '---',
           'Số Buổi Đã Học': sessCount,
-          'Học Phí Phải Đóng (₫)': p.amount || 0,
+          'Học Phí Gốc (₫)': p.amount || 0,
+          'Điều Chỉnh (₫)': p.adjustment_amount || 0,
+          'Công Nợ Ròng (₫)': p.balance,
           'Học Phí TB/Buổi (₫)': avg,
-          'Trạng Thái': p.status === 'paid' ? 'Đã thu' : 'Chưa thu',
+          'Trạng Thái': p.balance < 0 ? 'Cần hoàn' : p.balance === 0 ? 'Đã quyết toán' : 'Còn phải thu',
           'Kỳ Hóa Đơn': selectedHistoricalPeriod || '---',
         };
       }));
@@ -199,14 +201,14 @@ export function StudentTuitionTable({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {payments.filter(p => !unpaidOnly || p.status === 'unpaid')
+                    {payments.filter(p => !unpaidOnly || p.balance > 0)
                       .slice((paymentPage - 1) * ITEMS_PER_PAGE, paymentPage * ITEMS_PER_PAGE)
                       .map(p => {
                         const mapKey = `${p.student_id}|${p.class_id}`;
                         const sessCount = sessionCountMap[mapKey];
                         const sessDisplay = loading ? '...' : (sessCount != null ? sessCount : '---');
                         const avgDisplay = typeof sessCount === 'number' && sessCount > 0
-                          ? formatVND(Math.round(p.amount / sessCount))
+                          ? formatVND(Math.round((Number(p.amount) + Number(p.adjustment_amount ?? 0)) / sessCount))
                           : '---';
                         return (
                           <TableRow key={p.payment_id}>
@@ -215,15 +217,15 @@ export function StudentTuitionTable({
                             <TableCell className="text-center">
                               <Badge variant="secondary">{sessDisplay} buổi</Badge>
                             </TableCell>
-                            <TableCell className="text-right font-bold text-primary">{formatVND(p.amount)}</TableCell>
+                            <TableCell className="text-right text-sm"><div>Gốc: {formatVND(p.amount)}</div><div>Điều chỉnh: {formatVND(p.adjustment_amount ?? 0)}</div><div className="font-bold text-primary">{p.balance < 0 ? "Cần hoàn: " : "Còn phải thu: "}{formatVND(Math.abs(p.balance))}</div></TableCell>
                             <TableCell className="text-right text-muted-foreground text-sm">{avgDisplay}</TableCell>
                             <TableCell>
-                              {p.status === 'paid' ? <Badge className="bg-green-600">Đã thu</Badge> : <Badge variant="destructive">Chưa thu</Badge>}
+                              {p.balance < 0 ? <Badge variant="outline">Cần hoàn tiền</Badge> : p.balance === 0 ? <Badge className="bg-green-600">Đã quyết toán</Badge> : <Badge variant="destructive">Còn phải thu</Badge>}
                             </TableCell>
                             <TableCell className="text-right">
-                              {p.status === 'unpaid' && (
+                              {p.balance !== 0 && (
                                 <Button variant="outline" size="sm" onClick={() => handleMarkAsPaid(p.payment_id)}>
-                                  Đánh dấu đã thu
+                                  {p.balance < 0 ? 'Ghi nhận đã hoàn' : 'Ghi nhận đã thu'}
                                 </Button>
                               )}
                             </TableCell>

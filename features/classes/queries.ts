@@ -12,7 +12,7 @@ export async function getClasses(params: {
   const page = params.page || 1;
   const limit = params.limit || 20;
   
-  let query = supabase.from('classes').select('*, tutors(name)', { count: 'exact' });
+  let query = supabase.from('class_current_state').select('*, tutors(name)', { count: 'exact' });
 
   if (params.status && params.status !== 'Tất cả') {
     query = query.eq('status', params.status);

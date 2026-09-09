@@ -5,7 +5,7 @@ const path = require('node:path');
 const { PGlite } = require('@electric-sql/pglite');
 const read = file => fs.readFileSync(path.join(__dirname,file),'utf8').replace(/\r\n/g,'\n');
 const migration = read('../migrations/20260905_02_parent_accounts.sql');
-const master = read('../CSAT_master_schema.sql').split('-- BEGIN CSAT PHONE LOOKUP 20260906')[0] + 'COMMIT;';
+const master = read('fixtures/schema-before-accounting.sql').split('-- BEGIN CSAT PHONE LOOKUP 20260906')[0] + 'COMMIT;';
 const id = n => '20000000-0000-4000-8000-' + String(n).padStart(12,'0');
 const admin = { role:'authenticated', sub:id(1), app_metadata:{role:'admin'} };
 const parent = n => ({role:'authenticated', sub:id(n), app_metadata:{role:'parent'}});

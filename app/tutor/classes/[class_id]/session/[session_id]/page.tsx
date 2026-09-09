@@ -1,4 +1,5 @@
 'use client';
+import { changeClass } from '@/lib/business-client';
 
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -32,16 +33,15 @@ export default function SessionAttendancePage() {
     const sequence = ++loadSequence.current;
     setLoading(true); setLoadError(''); setSessionData(null); setStudents([]); setAttendance({});
     try {
-      const [sessionResult, rosterResult, attendanceResult] = await Promise.all([
+      const [sessionResult, rosterResult] = await Promise.all([
         supabase.from('sessions').select('*, classes(name)').eq('session_id', sessionId).eq('class_id', classId).single(),
-        supabase.from('class_students').select('student_id, students(student_id, name)').eq('class_id', classId).eq('status', 'active'),
-        supabase.from('session_attendance').select('student_id, status, notes, students(student_id, name)').eq('session_id', sessionId),
+        supabase.rpc('session_attendance_roster', { p_session_id: sessionId }),
       ]);
       if (sequence !== loadSequence.current) return;
       if (sessionResult.error || !sessionResult.data) throw new Error('Không tải được buổi học hoặc bạn không có quyền truy cập.');
-      if (rosterResult.error || attendanceResult.error || !rosterResult.data || !attendanceResult.data)
+      if (rosterResult.error || !rosterResult.data || rosterResult.data.class_id !== classId)
         throw new Error('Chưa tải đủ danh sách và điểm danh đã lưu. Vui lòng thử lại.');
-      const form = buildAttendanceForm(rosterResult.data, attendanceResult.data);
+      const form = buildAttendanceForm(rosterResult.data.roster, rosterResult.data.attendance);
       setSessionData(sessionResult.data); setStudents(form.students); setAttendance(form.attendance);
     } catch (error) {
       if (sequence === loadSequence.current) setLoadError(error instanceof Error ? error.message : 'Không tải được dữ liệu điểm danh.');
@@ -64,7 +64,7 @@ export default function SessionAttendancePage() {
   }
 
   async function handleSave() {
-    if (isSubmittingRef.current || loading || loadError || !sessionData) return;
+    if (isSubmittingRef.current || loading || loadError || !sessionData || sessionData.billing_period) return;
     isSubmittingRef.current = true;
     setSubmitting(true);
     try {
@@ -97,8 +97,7 @@ export default function SessionAttendancePage() {
     isSubmittingRef.current = true;
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('sessions').update({ status: 'cancelled' }).eq('session_id', sessionId);
-      if (error) throw error;
+      await changeClass('cancel_sessions',classId,{session_ids:[sessionId]});
       await showAlert({ title: 'Thành công', description: 'Đã hủy buổi học.', variant: 'success' });
       router.push('/tutor/dashboard');
     } catch (error) {
@@ -146,6 +145,7 @@ export default function SessionAttendancePage() {
       <Card>
         <CardHeader>
           <CardTitle>Danh Sách Học Sinh</CardTitle>
+          {sessionData?.billing_period && <p className="text-sm text-muted-foreground">Buổi đã chốt sổ. Trạng thái hiển thị gồm các đính chính; liên hệ admin để điều chỉnh.</p>}
           <CardDescription>Chọn &quot;Có mặt&quot; hoặc &quot;Vắng mặt&quot; cho học sinh cần lưu. Học sinh chưa có trạng thái sẽ không được ghi điểm danh hoặc tính học phí trong lần lưu này.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -153,7 +153,7 @@ export default function SessionAttendancePage() {
             <div className="space-y-3"><p role="alert" className="text-destructive">{loadError}</p>
               <Button variant="outline" onClick={() => void fetchData()}>Thử tải lại</Button></div>
           ) : (
-            <fieldset disabled={submitting} className="space-y-4 min-w-0">
+            <fieldset disabled={submitting || !!sessionData.billing_period} className="space-y-4 min-w-0">
                {students.map(s => {
                  const currentStatus = attendance[s.student_id]?.status;
                  return (

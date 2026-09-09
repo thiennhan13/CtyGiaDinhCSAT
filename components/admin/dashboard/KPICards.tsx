@@ -54,11 +54,12 @@ export function KPICards({ kpis }: KPICardsProps) {
               </svg>
             </div>
             <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
-              Doanh thu ({format(new Date(), 'MM/yyyy')})
+              Thu ròng đã ghi nhận ({format(new Date(), 'MM/yyyy')})
             </p>
             <h3 className="text-xl font-extrabold text-foreground leading-tight">
               {formatVND(totalRevenue)}
             </h3>
+            <p className="text-xs text-muted-foreground mt-2">Các lần thu, hoàn và đính chính từ khi nâng cấp sổ thu tiền.</p>
           </div>
           <div className="h-1 shrink-0 bg-primary" />
         </KPICardWrapper>

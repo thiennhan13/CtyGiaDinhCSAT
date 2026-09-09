@@ -21,6 +21,7 @@ function client(state) {
     auth: { getUser: async () => ({ data: { user: state.user } }) },
     rpc: async (name, params) => { state.calls.push({ name, params }); return { data: { review_id: params.p_review_id }, error: state.rpcError || null }; },
     from(table) {
+      table=({class_current_state:'classes',class_students_current:'class_students'})[table]??table;
       const filters = []; let single = false, limit = Infinity;
       const chain = {
         select() { return chain; }, eq(k, v) { filters.push(r => r[k] === v); return chain; },

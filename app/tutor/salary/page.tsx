@@ -14,6 +14,7 @@ import { formatVND } from '@/lib/format';
 export default function TutorSalaryPage() {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
+  const [loadError,setLoadError]=useState('');
   const [tutorInfo, setTutorInfo] = useState<any>(null);
   const [periods, setPeriods] = useState<string[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState('');
@@ -29,49 +30,14 @@ export default function TutorSalaryPage() {
   // Load tutor info & available periods
   useEffect(() => {
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: tutorData } = await supabase
-        .from('tutors')
-        .select('tutor_id, name, email')
-        .eq('auth_uid', user.id)
-        .single();
-      if (tutorData) setTutorInfo(tutorData);
-      if (!tutorData) { setLoading(false); return; }
-
-      // R3 FIX: Lấy danh sách kỳ từ sessions.tutor_id_snapshot (bao gồm cả lớp đã đổi gia sư)
-      const { data: periodData } = await supabase
-        .from('sessions')
-        .select('billing_period, class_id')
-        .eq('tutor_id_snapshot', tutorData.tutor_id)
-        .eq('status', 'completed')
-        .not('billing_period', 'is', null);
-
-      // Lấy class_id từ snapshot để query payments (kể cả lớp đã chuyển sang gia sư khác)
-      const classIdsFromSnapshot = [...new Set(
-        (periodData || []).map((s: any) => s.class_id).filter(Boolean)
-      )];
-
-      let paidPeriodData: any[] = [];
-      if (classIdsFromSnapshot.length > 0) {
-        const { data: paymentsData } = await supabase
-          .from('payments')
-          .select('billing_period')
-          .in('class_id', classIdsFromSnapshot)
-          .eq('status', 'paid');
-        if (paymentsData) paidPeriodData = paymentsData;
-      }
-
-      const periodsFromSessions = (periodData || []).map(p => p.billing_period as string);
-      const periodsFromPayments = (paidPeriodData || []).map(p => p.billing_period as string);
-      const unique = [...new Set([...periodsFromSessions, ...periodsFromPayments])]
-        .filter(Boolean)
-        .sort((a, b) => b.localeCompare(a));
-      setPeriods(unique);
-      if (unique.length > 0) setSelectedPeriod(unique[0]);
-      setLoading(false);
-    }
+ try {
+  const {data:{user}}=await supabase.auth.getUser();if(!user){setLoading(false);return;}
+  const {data:tutor}=await supabase.from('tutors').select('tutor_id, name, email').eq('auth_uid',user.id).single();
+  setTutorInfo(tutor);if(!tutor){setLoading(false);return;}
+  const response=await fetch('/api/tutor/salary');const result=await response.json();if(!response.ok)throw new Error(result.error);
+  setPeriods(result.periods);if(result.periods.length)setSelectedPeriod(result.periods[0]);
+ }catch(error){setLoadError((error as Error).message);}finally{setLoading(false);}
+}
     init();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -80,93 +46,25 @@ export default function TutorSalaryPage() {
   useEffect(() => {
     if (!selectedPeriod || !tutorInfo) return;
 
-    async function loadSalary() {
-      setLoading(true);
-      setSalaryData(null);
-      setSessionDetails([]);
-      setExpandedSessions({});
-
-      // Lấy sessions của gia sư trong kỳ này (theo tutor_id_snapshot — đúng sau khi đổi gia sư)
-      const { data: sessionsData } = await supabase
-        .from('sessions')
-        .select('session_id, date, start_time, end_time, csat_fee_snapshot, classes(class_id, name)')
-        .eq('tutor_id_snapshot', tutorInfo.tutor_id)
-        .eq('billing_period', selectedPeriod)
-        .eq('status', 'completed')
-        .order('date', { ascending: true });
-
-      if (!sessionsData || sessionsData.length === 0) { setLoading(false); return; }
-
-      const sessionIds = sessionsData.map(s => s.session_id);
-
-      // Lấy điểm danh + tên học sinh để hiển thị chi tiết từng buổi
-      const { data: atts } = await supabase
-        .from('session_attendance')
-        .select('session_id, student_id, tuition_fee_snapshot, status, students(name)')
-        .in('session_id', sessionIds);
-
-      let totalTuition = 0;
-      let totalCsat    = 0;
-
-      // Tổng kết theo lớp
-      const classMap: Record<string, { class_name: string; session_count: number; tuition: number; csat: number }> = {};
-
-      const detailRows = sessionsData.map(sess => {
-        const sessAtts    = (atts || []).filter(a => a.session_id === sess.session_id);
-        const attendedAtts = sessAtts.filter(a => a.status === 'attended');
-        const sessionTuition = attendedAtts.reduce(
-          (sum, a) => sum + parseFloat(String(a.tuition_fee_snapshot || 0)), 0
-        );
-        const csatFee = attendedAtts.length > 0
-          ? parseFloat(String(sess.csat_fee_snapshot || 0))
-          : 0;
-        const net = sessionTuition - csatFee;
-
-        totalTuition += sessionTuition;
-        totalCsat    += csatFee;
-
-        const cls = sess.classes as any;
-        const classId   = cls?.class_id   || 'unknown';
-        const className = cls?.name        || '---';
-
-        if (!classMap[classId]) {
-          classMap[classId] = { class_name: className, session_count: 0, tuition: 0, csat: 0 };
-        }
-        classMap[classId].session_count += 1;
-        classMap[classId].tuition       += sessionTuition;
-        classMap[classId].csat          += csatFee;
-
-        return {
-          session_id:    sess.session_id,
-          date:          sess.date,
-          start_time:    sess.start_time,
-          end_time:      sess.end_time,
-          className,
-          classId,
-          attendedCount: attendedAtts.length,
-          totalStudents: sessAtts.length,
-          tuition:       sessionTuition,
-          csat:          csatFee,
-          net,
-          students:      attendedAtts.map(a => ({
-            name: (a.students as any)?.name || a.student_id,
-            fee:  parseFloat(String(a.tuition_fee_snapshot || 0)),
-          })),
-        };
-      });
-
-      setSessionDetails(detailRows);
-      setSalaryData({
-        period:   selectedPeriod,
-        sessions: sessionsData.length,
-        tuition:  totalTuition,
-        csat:     totalCsat,
-        net:      totalTuition - totalCsat,
-        classSummary: Object.values(classMap).sort((a, b) => b.tuition - a.tuition),
-      });
-      setLoading(false);
-    }
+    let active=true;
+    async function loadSalary(){
+ setLoading(true);setLoadError('');setSalaryData(null);setSessionDetails([]);setExpandedSessions({});
+ try {
+  const response=await fetch('/api/tutor/salary?'+new URLSearchParams({billingPeriod:selectedPeriod}));
+  const result=await response.json();if(!response.ok)throw new Error(result.error);
+  if(!active)return;
+  const sessions=result.sessions as import('@/lib/billing-report').BillingSession[];
+  const details=sessions.map(s=>({session_id:s.session_id,date:s.date,start_time:s.start_time,end_time:s.end_time,
+   className:s.class_name,classId:s.class_id,attendedCount:s.attendance.filter(a=>a.status==='attended').length,
+   totalStudents:s.attendance.length,tuition:s.tuition,csat:s.csat,net:s.net,
+   students:s.attendance.filter(a=>a.status==='attended').map(a=>({name:a.student_name,fee:a.fee}))}));
+  setSessionDetails(details);
+  setSalaryData({period:selectedPeriod,sessions:sessions.length,tuition:result.totalStudentTuition,
+   csat:result.totalCsatRevenue,net:result.totalTutorSalary,classSummary:result.tutorSalaryDetail[0]?.classes??[]});
+ }catch(error){if(active)setLoadError((error as Error).message);}finally{if(active)setLoading(false);}
+}
     loadSalary();
+    return()=>{active=false;};
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPeriod, tutorInfo]);
 
@@ -200,7 +98,7 @@ export default function TutorSalaryPage() {
 
     classOrder.forEach(classId => {
       const rows = byClass[classId];
-      const cls = salaryData.classSummary?.find((c: any) => c.class_name === rows[0].className);
+      const cls = salaryData.classSummary?.find((c: any) => c.class_id === classId);
       const clsTuition = cls?.tuition ?? rows.reduce((s: number, r: any) => s + r.tuition, 0);
       const clsCsat    = cls?.csat    ?? rows.reduce((s: number, r: any) => s + r.csat, 0);
       const clsNet     = clsTuition - clsCsat;
@@ -241,6 +139,7 @@ export default function TutorSalaryPage() {
 
   return (
     <div className="space-y-6">
+      {loadError&&<p role="alert" className="text-destructive">{loadError}</p>}
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>

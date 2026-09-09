@@ -6,7 +6,7 @@ const { PGlite } = require('@electric-sql/pglite');
 
 const read = file => fs.readFileSync(path.join(__dirname, file), 'utf8').replace(/\r\n/g, '\n');
 const legacy = read('fixtures/schema-before-permissions.sql');
-const master = read('../CSAT_master_schema.sql');
+const master = read('fixtures/schema-before-accounting.sql');
 const migration = read('../migrations/20260905_01_harden_permissions.sql');
 const verification = read('../verification/20260905_permissions.sql');
 const id = n => `00000000-0000-0000-0000-${String(n).padStart(12, '0')}`;
@@ -267,7 +267,7 @@ test('existing database migration preserves data, reruns safely, and enforces pe
     await suite(t,db);
   } finally {await db.close();}
 });
-test('fresh master schema has the same permissions and valid tutor workflows', async t=>{
+test('historical 04 baseline has the same pre-accounting permissions and workflows', async t=>{
   const security = sql => sql.slice(sql.indexOf('-- BEGIN CSAT PERMISSIONS 20260905'),sql.indexOf('-- END CSAT PERMISSIONS 20260905'));
   assert.equal(security(master),security(migration),'Fresh-install and incremental permissions must match');
   const db=await setup(master);

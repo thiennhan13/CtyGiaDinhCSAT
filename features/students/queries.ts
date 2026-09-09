@@ -41,12 +41,11 @@ export async function getStudents({
     query = query.eq('status', status);
   }
   if (feeFilter === 'unpaid') {
-    // Join qua payments để lọc học sinh chưa thanh toán
-    query = (supabase
-      .from('students')
-      .select('*, payments!inner(status)', { count: 'exact' })
-      .eq('payments.status', 'unpaid')
-      .order('created_at', { ascending: false }) as typeof query);
+    const { data, error } = await supabase.rpc('payment_accounts');
+    if (error) throw error;
+    const ids = [...new Set((data as Array<{ student_id: string | null; balance: number }>).filter(p => p.balance > 0 && p.student_id).map(p => p.student_id!))];
+    if (!ids.length) return { students: [], totalStudents: 0, totalPages: 0 };
+    query = query.in('student_id', ids);
   }
 
   const from = (page - 1) * pageSize;
@@ -68,25 +67,22 @@ export async function getStudentById(studentId: string) {
 
   const [studentRes, attendanceRes, classesRes, paymentsRes, reviewsRes] = await Promise.all([
     supabase.from('students').select('*').eq('student_id', studentId).single(),
-    supabase.from('attendance')
-      .select('*, sessions(date, start_time, end_time, classes(name))')
+    supabase.from('attendance_current')
+      .select('*, sessions!inner(date, start_time, end_time, classes(name))')
       .eq('student_id', studentId)
-      .order('created_at', { ascending: false })
+      .order('sessions(date)', { ascending: false })
       .limit(30),
-    supabase.from('class_students')
+    supabase.from('class_students_current')
       .select('*, classes(name, tutors(name))')
       .eq('student_id', studentId),
-    supabase.from('payments')
-      .select('*, classes(name)')
-      .eq('student_id', studentId)
-      .order('created_at', { ascending: false }),
+    supabase.rpc('payment_accounts', { p_student_id: studentId }),
     supabase.from('student_reviews')
       .select('*, tutors(name), classes(name)')
       .eq('student_id', studentId)
       .order('created_at', { ascending: false }),
   ]);
 
-  if (studentRes.error) throw studentRes.error;
+  for (const result of [studentRes, attendanceRes, classesRes, paymentsRes, reviewsRes]) if (result.error) throw result.error;
 
   return {
     student: studentRes.data,

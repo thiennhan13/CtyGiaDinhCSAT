@@ -12,7 +12,6 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   const today = new Date();
-  const currentMonthStr = format(today, 'yyyy-MM');
   const in14 = new Date(today);
   in14.setDate(today.getDate() + 14);
   const todayStr = today.toISOString().split('T')[0];
@@ -27,28 +26,19 @@ export default async function DashboardPage() {
 
   // Fetch song song tất cả dữ liệu trên server (Vercel Tokyo ↔ Supabase Tokyo: ~0ms latency)
   const [
-    paymentsResult,
+    financeResult,
     classCountResult,
-    unpaidCountResult,
     expiringResult,
     announcementsResult,
     sessionsResult,
   ] = await Promise.all([
+    supabase.rpc('admin_finance_summary'),
     supabase
-      .from('payments')
-      .select('amount')
-      .eq('status', 'paid')
-      .eq('billing_period', currentMonthStr),
-    supabase
-      .from('classes')
+      .from('class_current_state')
       .select('class_id', { count: 'exact', head: true })
       .eq('status', 'active'),
     supabase
-      .from('payments')
-      .select('payment_id', { count: 'exact', head: true })
-      .eq('status', 'unpaid'),
-    supabase
-      .from('classes')
+      .from('class_current_state')
       .select('class_id, name, end_date, tutors(name)')
       .eq('status', 'active')
       .not('end_date', 'is', null)
@@ -68,14 +58,15 @@ export default async function DashboardPage() {
       .order('start_time'),
   ]);
 
-  const totalRevenue = paymentsResult.data?.reduce((acc, p) => acc + (p.amount || 0), 0) ?? 0;
+  if (financeResult.error) throw new Error('Không thể tải báo cáo thu tiền. Vui lòng thử lại.');
+  const totalRevenue = Number(financeResult.data?.recorded_net_receipts ?? 0);
 
   return (
     <DashboardClient
       initialKpis={{
         totalRevenue,
         activeClassCount: classCountResult.count ?? 0,
-        unpaidCount: unpaidCountResult.count ?? 0,
+        unpaidCount: Number(financeResult.data?.unpaid_count ?? 0),
         expiringClasses: expiringResult.data ?? [],
       }}
       initialAnnouncements={announcementsResult.data ?? []}

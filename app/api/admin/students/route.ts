@@ -95,14 +95,11 @@ export async function POST(request: Request) {
 
     if (parsed.data.action === 'delete') {
       const studentId = parsed.data.student_id;
-      // Hard Delete: Xóa liên kết trước để tránh lỗi Foreign Key
-      await adminClient.from('session_attendance').delete().eq('student_id', studentId);
-      await adminClient.from('class_students').delete().eq('student_id', studentId);
-      await adminClient.from('payments').delete().eq('student_id', studentId);
+      // Foreign keys preserve all existing class, attendance and financial history.
       
       const { error } = await adminClient.from('students').delete().eq('student_id', studentId);
-      if (error) throw error;
-      return NextResponse.json({ message: 'Đã xóa hoàn toàn học sinh (hard delete)' });
+      if (error) return NextResponse.json({ error: error.code === '23503' ? 'Học sinh đã có lịch sử lớp học hoặc học phí. Hãy chuyển trạng thái thay vì xóa.' : 'Không thể xóa học sinh.' }, { status: error.code === '23503' ? 409 : 500 });
+      return NextResponse.json({ message: 'Đã xóa học sinh chưa có lịch sử liên quan.' });
     }
 
     return NextResponse.json({ error: 'Hành động không hợp lệ' }, { status: 400 });

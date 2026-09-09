@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { createClient } from '@/lib/supabase/client';
-import { Search, Trash2, Archive } from 'lucide-react';
+import { Search, Archive } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Combobox } from '@/components/ui/combobox';
 import { useAlert, useConfirm } from '@/components/ui/use-dialog';
@@ -93,39 +93,6 @@ export function ClassesClient({
       await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
     }
   }
-
-  async function handleDeleteClass(classId: string) {
-    const ok = await confirm({
-      title: 'Xóa vĩnh viễn lớp học?',
-      description: (
-        <span>
-          <strong className="text-red-600">Đây là xóa cứng — không thể khôi phục.</strong>
-          <br />
-          Nếu chỉ muốn dừng dạy, hãy dùng nút <em>"Lưu trữ"</em> thay thế.
-          <br />
-          Chỉ xóa khi lớp bị tạo sai.
-        </span>
-      ),
-      confirmText: 'Xóa vĩnh viễn',
-      cancelText: 'Hủy bỏ',
-      variant: 'destructive',
-    });
-    if (!ok) return;
-    try {
-      const res = await fetch('/api/admin/classes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'hard_delete', class_id: classId })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      await showAlert({ title: 'Đã xóa', description: 'Lớp học đã được xóa vĩnh viễn.', variant: 'success' });
-      router.refresh();
-    } catch (err: any) {
-      await showAlert({ title: 'Lỗi', description: err.message, variant: 'error' });
-    }
-  }
-
 
   const statusColor = (status: string) => {
     if (status === 'active') return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20';
@@ -231,9 +198,6 @@ export function ClassesClient({
                              <Archive className="h-4 w-4" />
                            </Button>
                          )}
-                         <Button variant="ghost" size="sm" onClick={() => handleDeleteClass(c.class_id)} title="Xóa cứng lớp này" className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                           <Trash2 className="h-4 w-4" />
-                         </Button>
                       </TableCell>
                     </TableRow>
                   ))

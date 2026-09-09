@@ -26,7 +26,6 @@ interface BillingHeaderProps {
   billingPeriodName: string;
   setBillingPeriodName: (v: string) => void;
   triggerBillingCron: () => Promise<void>;
-  handleRollbackBilling: () => Promise<void>;
 }
 
 export function BillingHeader({
@@ -46,7 +45,6 @@ export function BillingHeader({
   billingPeriodName,
   setBillingPeriodName,
   triggerBillingCron,
-  handleRollbackBilling,
 }: BillingHeaderProps) {
   return (
     <>
@@ -118,11 +116,7 @@ export function BillingHeader({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {historicalPeriods.length > 0 && (
-                    <Button variant="destructive" size="sm" onClick={handleRollbackBilling} disabled={generating} className="gap-1.5 shadow-sm h-9">
-                      <AlertTriangle className="w-4 h-4" /> Hủy chốt sổ đợt này
-                    </Button>
-                  )}
+                  <span className="text-sm text-muted-foreground">Kỳ đã chốt được giữ nguyên.</span>
                 </div>
               </div>
             )}

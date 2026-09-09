@@ -1,7 +1,8 @@
 /**
  * types/database.ts
  * Centralized TypeScript interfaces cho toàn bộ hệ thống CSAT Tutor.
- * Nguồn duy nhất (Single Source of Truth) đồng bộ 100% với database/CSAT_master_schema.sql.
+ * Kiểu dữ liệu ứng dụng; cấu trúc SQL chuẩn nằm trong database/CSAT_master_schema.sql.
+ * Báo cáo sổ kế toán dùng các kiểu riêng trong lib/billing-report.ts.
  */
 
 // ─── Core Entities ─────────────────────────────────────────────────────────────
@@ -88,8 +89,8 @@ export interface SessionAttendance {
 
 export interface Payment {
   payment_id: string;
-  student_id: string;
-  class_id: string;
+  student_id: string | null;
+  class_id: string | null;
   billing_period: string;
   amount: number;
   status: 'paid' | 'unpaid';

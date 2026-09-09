@@ -5,7 +5,7 @@ const path = require('node:path');
 const { PGlite } = require('@electric-sql/pglite');
 const read = file => fs.readFileSync(path.join(__dirname,file),'utf8').replace(/\r\n/g,'\n');
 const migration = read('../migrations/20260905_02_parent_accounts.sql');
-const master = read('../CSAT_master_schema.sql');
+const master = read('fixtures/schema-before-accounting.sql');
 const id = n => '20000000-0000-4000-8000-' + String(n).padStart(12,'0');
 const admin = { role:'authenticated', sub:id(1), app_metadata:{role:'admin'} };
 const parent = n => ({role:'authenticated', sub:id(n), app_metadata:{role:'parent'}});
@@ -73,7 +73,7 @@ const hash=n=>require('node:crypto').createHash('sha256').update(String(n)).dige
 const beginSQL='select public.start_parent_lookup($1,$2,$3)';
 const lookupSQL='select public.get_parent_lookup($1,$2)';
 async function service(db) { await claims(db,{role:'service_role'},'service_role'); }
-for(const upgrade of [true,false]) test(upgrade?'Phone lookup upgrades populated parent02':'Phone lookup fresh current schema',async t=>{
+for(const upgrade of [true,false]) test(upgrade?'Phone lookup upgrades populated parent02':'Phone lookup historical 04 baseline',async t=>{
   const db=await setup(upgrade);
   try {
     const verified=(await db.query(read('../verification/20260906_parent_phone_lookup.sql'))).rows;

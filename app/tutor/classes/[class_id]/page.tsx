@@ -1,4 +1,5 @@
 'use client';
+import { changeClass } from '@/lib/business-client';
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -76,7 +77,7 @@ export default function TutorClassDetailPage() {
     setTutorId(tutorData.tutor_id);
 
     const { data: cData } = await supabase
-      .from('classes')
+      .from('class_current_state')
       .select('*')
       .eq('class_id', classId)
       .eq('tutor_id', tutorData.tutor_id)
@@ -91,7 +92,7 @@ export default function TutorClassDetailPage() {
 
     const [{ data: sData }, { data: sessData }] = await Promise.all([
        supabase
-         .from('class_students')
+         .from('class_students_current')
          .select('tuition_fee_per_session, students(student_id, name, parent_number, parent_link, student_contact)')
          .eq('class_id', classId)
          .eq('status', 'active'), // Lỗi A FIX: Chỉ hiển thị học sinh đang học, ẩn học sinh đã nghỉ (dropped)
@@ -118,16 +119,7 @@ export default function TutorClassDetailPage() {
     if (!newSessionDate || !newSessionStart || !newSessionEnd) return;
     
     try {
-      const { error } = await supabase.from('sessions').insert([{
-          class_id: classId,
-          date: newSessionDate,
-          start_time: newSessionStart,
-          end_time: newSessionEnd,
-          status: 'scheduled',
-          csat_fee_snapshot: classData.csat_fee_per_session,
-          tutor_id_snapshot: classData.tutor_id || tutorId
-      }]);
-      if (error) throw error;
+      await changeClass('add_sessions',classId,{sessions:[{date:newSessionDate,start_time:newSessionStart,end_time:newSessionEnd}]});
       setIsAddSessionModalOpen(false);
       fetchClassDetails();
     } catch (error: any) {
@@ -144,15 +136,14 @@ export default function TutorClassDetailPage() {
 
 
     const ok = await confirm({
-      title: 'Xóa buổi học này?',
-      description: 'Hành động này sẽ XÓA VĨNH VIỄN buổi học này. Bạn có chắc chắn không?',
+      title: 'Hủy buổi học này?',
+      description: 'Hành động này sẽ HỦY buổi học này. Bạn có chắc chắn không?',
       confirmText: 'Xóa',
       variant: 'destructive',
     });
     if (!ok) return;
     try {
-      const { error } = await supabase.from('sessions').delete().eq('session_id', sessionId);
-      if (error) throw error;
+      await changeClass('cancel_sessions',classId,{session_ids:[sessionId]});
       fetchClassDetails();
     } catch (error: any) {
       await showAlert({ title: 'Lỗi', description: "Lỗi xóa buổi học: " + error.message, variant: 'error' });
@@ -207,8 +198,9 @@ export default function TutorClassDetailPage() {
     if (!ok) return;
 
     const sessionIds = filteredToDelete.map(s => s.session_id);
-    await supabase.from('sessions').delete().in('session_id', sessionIds);
-    await showAlert({ title: 'Thành công', description: 'Đã xóa loạt buổi học.', variant: 'success' });
+    try {await changeClass('cancel_sessions',classId,{session_ids:sessionIds});}
+    catch(error){await showAlert({title:'Lỗi',description:(error as Error).message,variant:'error'});return;}
+    await showAlert({ title: 'Thành công', description: 'Đã hủy loạt buổi học.', variant: 'success' });
     
     setBulkDeleteSession(null);
     fetchClassDetails();
@@ -246,30 +238,7 @@ export default function TutorClassDetailPage() {
     }
 
     try {
-      const { error } = await supabase.from('sessions').insert(generatedSessions);
-      if(error) throw error;
-      
-      if(parseLocalDate(bulkAddEnd) > parseLocalDate(classData.end_date)) {
-           try {
-             const { data: { user } } = await supabase.auth.getUser();
-             if (user) {
-                const { data: tutorData } = await supabase.from('tutors').select('tutor_id').eq('auth_uid', user.id).single();
-                if (tutorData) {
-                    await fetch('/api/tutor/classes/renew', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            class_id: classId,
-                            tutor_id: tutorData.tutor_id,
-                            new_end_date: bulkAddEnd
-                        })
-                    });
-                }
-             }
-           } catch (e) {
-               console.error('Failed to renew automatically', e);
-           }
-      }
+      await changeClass('add_sessions',classId,{sessions:generatedSessions.map(s=>({date:s.date,start_time:s.start_time,end_time:s.end_time}))});
       await showAlert({ title: 'Thành công', description: `Đã tạo thành công ${generatedSessions.length} buổi học.`, variant: 'success' });
       setIsBulkAddOpen(false);
       fetchClassDetails();
@@ -292,9 +261,9 @@ export default function TutorClassDetailPage() {
              <strong className="font-bold">Nhắc nhở: </strong>
              <span className="block sm:inline"> Lớp học này đã kết thúc thời gian dự kiến <strong>({format(new Date(classData.end_date), 'dd/MM/yyyy')})</strong>. Bạn có muốn gia hạn thêm?</span>
              <br/>
-             <span className="text-sm opacity-80 mt-1 block">Bấm "Gia hạn" để tạo thêm lịch học các tuần tiếp theo. Hệ thống sẽ tự động cập nhật ngày kết thúc của lớp.</span>
+             <span className="text-sm opacity-80 mt-1 block">Liên hệ admin để cập nhật thời hạn lớp và xếp lịch mới.</span>
            </div>
-           <Button variant="outline" className="mt-3 sm:mt-0 border-amber-500 text-amber-700 bg-card hover:bg-amber-50 shrink-0" onClick={() => setIsBulkAddOpen(true)}>Gia hạn lớp học</Button>
+           <Button variant="outline" className="mt-3 sm:mt-0 border-amber-500 text-amber-700 bg-card hover:bg-amber-50 shrink-0" onClick={() => setIsBulkAddOpen(true)}>Bổ sung lịch trong thời hạn lớp</Button>
         </div>
       )}
       <div className="flex items-center justify-between">
