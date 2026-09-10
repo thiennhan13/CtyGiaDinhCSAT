@@ -90,7 +90,7 @@ test('legacy nullable soft-delete flags do not incorrectly block an active tutor
   const state = fixture(); state.tutors[0].is_deleted = null; state.students[0].is_deleted = null;
   assert.equal((await route(state).POST(request(body()))).status, 200);
 });
-test('GET returns only this tutor/student/class history with private no-store response', async () => {
+test('GET returns assigned student/class history across tutor changes with private no-store response', async () => {
   const state = fixture(); state.student_reviews = [
     { review_id: id(100), tutor_id: id(1), class_id: id(10), student_id: id(11) },
     { review_id: id(101), tutor_id: id(2), class_id: id(10), student_id: id(11) },
@@ -98,7 +98,7 @@ test('GET returns only this tutor/student/class history with private no-store re
   ];
   const response = await route(state).GET(new Request(`https://portal.test/api/tutor/reviews?class_id=${id(10)}&student_id=${id(11)}`));
   assert.equal(response.status, 200); assert.match(response.headers.get('cache-control'), /no-store/);
-  assert.deepEqual((await response.json()).reviews.map(r => r.review_id), [id(100)]);
+  assert.deepEqual((await response.json()).reviews.map(r => r.review_id), [id(100), id(101)]);
 });
 test('DB deployment, authorization, concurrency and transport errors are actionable', async () => {
   for (const [code, status] of [['PGRST202',503],['42703',503],['40001',409],['23505',409],['42501',403],['22023',400],['23514',400],['UNKNOWN',500]]) {

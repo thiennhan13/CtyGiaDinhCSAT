@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check, Plus, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,11 +12,14 @@ import {
 
 const control = 'w-full min-h-11 rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
 
-export function ReviewTagEditor({ value, onChange, classType, disabled }: {
+export function ReviewTagEditor({ value, onChange, classType, disabled, suggestions = [] }: {
+  suggestions?: {id:string;reason:string}[];
   value: ReviewTagInput[]; onChange: (tags: ReviewTagInput[]) => void; classType: string; disabled: boolean;
 }) {
   const [scope, setScope] = useState(initialReviewScope(classType));
+  useEffect(()=>setScope(initialReviewScope(classType)),[classType]);
   const [group, setGroup] = useState<ReviewGroup>('knowledge');
+  const [activeTag,setActiveTag] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const query = normalizeReviewSearch(search.trim());
   const inScope = (tag: (typeof REVIEW_TAGS)[number]) => scope !== 'basic' || tag.scope === 'both';
@@ -26,6 +29,7 @@ export function ReviewTagEditor({ value, onChange, classType, disabled }: {
   const update = (id: string, patch: Partial<ReviewTagInput>) => onChange(value.map(tag => tag.tag_id === id ? { ...tag, ...patch } : tag));
 
   return <div className="space-y-6">
+    {suggestions.length>0 && <section className="space-y-3 rounded-xl border border-primary/25 bg-primary/5 p-4"><h2 className="font-bold">Gợi ý cho tháng này</h2><p className="text-xs leading-6 text-muted-foreground">Gợi ý từ nội dung buổi và trọng tâm đã chọn. Gia sư quyết định thẻ phù hợp, mức độ và minh chứng; chưa có thẻ nào được chọn tự động.</p><div className="flex flex-wrap gap-2">{suggestions.map(s=><button type="button" key={s.id} disabled={disabled || value.some(t=>t.tag_id===s.id)} onClick={()=>{onChange([...value,emptyReviewTag(s.id)]);setActiveTag(s.id);}} className="min-h-11 rounded-lg border bg-card px-3 py-2 text-left text-xs disabled:opacity-50"><strong>{getReviewTag(s.id)?.label}</strong><span className="mt-1 block text-[10px] text-muted-foreground">{s.reason}</span></button>)}</div></section>}
     <section className="space-y-4 rounded-xl border border-foreground/15 bg-card p-4 sm:p-5" aria-labelledby="tag-library-title">
       <div><h2 id="tag-library-title" className="text-lg font-extrabold">Chọn thẻ nhận xét</h2><p className="mt-1 text-xs leading-relaxed text-muted-foreground">Ưu tiên 3–6 thẻ tiêu biểu, có quan sát cụ thể. Thư viện gồm 64 thẻ kiến thức, kỹ năng, điểm mạnh, tiến bộ và thói quen.</p></div>
       <div><label className="mb-2 block text-xs font-semibold" htmlFor="review-scope">Khung gợi ý kiến thức</label>
@@ -47,7 +51,7 @@ export function ReviewTagEditor({ value, onChange, classType, disabled }: {
           const selected = value.some(item => item.tag_id === tag.id);
           return <button key={tag.id} type="button" aria-pressed={selected} disabled={disabled}
             className={`flex min-h-12 items-center gap-2.5 rounded-lg border p-3 text-left text-xs leading-relaxed disabled:opacity-60 ${selected ? 'border-primary bg-primary/5 text-primary' : 'border-foreground/15 hover:border-primary'}`}
-            onClick={() => onChange(selected ? value.filter(item => item.tag_id !== tag.id) : [...value, emptyReviewTag(tag.id)])}>
+            onClick={() => { onChange(selected ? value.filter(item => item.tag_id !== tag.id) : [...value, emptyReviewTag(tag.id)]); setActiveTag(selected ? null : tag.id); }}>
             {selected ? <Check className="size-4 shrink-0" /> : <Plus className="size-4 shrink-0" />}<span>{tag.label}</span>
           </button>;
         })}
@@ -63,7 +67,7 @@ export function ReviewTagEditor({ value, onChange, classType, disabled }: {
         const assessed = ['knowledge', 'skill'].includes(definition.group);
         const issues = tagReadiness(tag);
         const prefix = `tag-${tag.tag_id}`;
-        return <details key={tag.tag_id} open className="group rounded-xl border border-foreground/15 bg-card">
+        return <details key={tag.tag_id} open={activeTag===tag.tag_id} onToggle={e=>{if(e.currentTarget.open)setActiveTag(tag.tag_id);else setActiveTag(current=>current===tag.tag_id?null:current);}} name="review-evidence" className="group rounded-xl border border-foreground/15 bg-card">
           <summary className="cursor-pointer rounded-t-xl bg-secondary/30 p-4 text-sm font-bold">{definition.label}<span className="mt-1 block text-[11px] font-normal text-muted-foreground">{issues.length ? 'Cần bổ sung thông tin trước khi gửi' : 'Đã có nội dung để xem trước'}</span></summary>
           <div className="space-y-4 border-t border-foreground/10 p-4">
             {!inScope(definition) && <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-900">Thẻ Nâng cao đã chọn được giữ lại. Kiểm tra nội dung học thực tế trước khi nhận xét.</p>}

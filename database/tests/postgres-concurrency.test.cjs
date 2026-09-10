@@ -10,7 +10,7 @@ const {execFileSync}=require('node:child_process');
 const {Client}=require('pg');
 const {setup,as,id,value,verifyFixtureRosters}=require('./accounting.test.cjs');
 async function port(){const s=net.createServer();await new Promise(r=>s.listen(0,'127.0.0.1',r));const p=s.address().port;await new Promise(r=>s.close(r));return p;}
-test('PostgreSQL 17: concurrent close, schedule and receipt requests; backup restores independently', {timeout:120000,skip:process.platform!=='win32'}, async()=>{
+test('PostgreSQL 17: concurrent accounting, learning drafts and email leases; backup restores independently', {timeout:120000,skip:process.platform!=='win32'}, async()=>{
  // Native Windows PostgreSQL cannot re-exec reliably from a non-ASCII path.
  const runtime=fs.mkdtempSync(path.join(os.tmpdir(),'csat-pg-test-')),dataDir=path.join(runtime,'data');
  assert.ok(path.resolve(runtime).startsWith(path.resolve(os.tmpdir())+path.sep));
@@ -32,7 +32,7 @@ test('PostgreSQL 17: concurrent close, schedule and receipt requests; backup res
  try{
   await pg.initialise();await pg.start();started=true;
   const a=await connect();await setup(a);await a.exec('reset role');
-  for(const name of ['20260908_07_class_workflows.sql','20260908_08_read_models.sql','20260908_09_reporting.sql','20260909_10_schema_alignment.sql'])
+  for(const name of fs.readdirSync(path.join(__dirname,'../migrations')).filter(n=>/^202609(08|09|10)_/.test(n)).sort().slice(2))
    await a.exec(fs.readFileSync(path.join(__dirname,'../migrations',name),'utf8'));
   await as(a);await verifyFixtureRosters(a);const b=await connect();await as(b);
   const preview=await value(a,'select billing_report($1,$2,null)',['2026-06-02','2026-06-03']);
@@ -57,6 +57,22 @@ test('PostgreSQL 17: concurrent close, schedule and receipt requests; backup res
   assert.equal(await value(a,'select count(*)::int from sessions where class_id=$1',[c.class_id]),1);
   // A completed close also blocks a concurrent attempt to change its attendance.
   await assert.rejects(()=>value(b,'select take_attendance_safe($1,$2)',[id(41),JSON.stringify([{student_id:id(10),status:'absent'}])]),/đã chốt/);
+
+  // Two editors starting from the same revision: exactly one write wins.
+  const learningBody={goal:'Concurrent draft',focus_tags:[],next_step:'',stage_index:null,title:'',content:'',continuation:'',program:'basic',format:'group',template_id:'30000000-0000-4000-8000-000000000001'};
+  const learningSQL="select save_learning_record($1,'class',null,null,0,$2,false)";
+  const learningWrites=await Promise.allSettled([value(a,learningSQL,[c.class_id,JSON.stringify(learningBody)]),value(b,learningSQL,[c.class_id,JSON.stringify({...learningBody,goal:'Other editor'})])]);
+  assert.equal(learningWrites.filter(r=>r.status==='fulfilled').length,1);
+  assert.equal(learningWrites.find(r=>r.status==='rejected').reason.code,'40001');
+  // Two workers cannot claim the same email, and leases survive a backup.
+  await a.exec('reset role');
+  await a.exec("update parent_portal_settings set email_enabled=true");
+  await a.query("insert into review_email_runs(month,snapshot,sender,origin,admin_emails) values('2026-09','[]','test@example.test','https://example.test','{}')");
+  await a.query("insert into review_email_outbox(month,kind,recipient_key,recipient,payload) values('2026-09','tutor','test','test@example.test','{}')");
+  for(const worker of [a,b]){await worker.exec('reset role');await worker.query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({role:'service_role'})]);await worker.exec('set role service_role');}
+  const claims=await Promise.all([value(a,"select review_email_work('claim')"),value(b,"select review_email_work('claim')")]);
+  assert.equal(claims.filter(Boolean).length,1);
+
   // Cold physical backup: copy only after a clean shutdown, then restore to a separate data directory.
   await Promise.all(clients.splice(0).map(c=>c.end()));
   await pg.stop();started=false;

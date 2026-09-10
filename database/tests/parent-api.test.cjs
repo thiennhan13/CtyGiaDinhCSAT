@@ -147,7 +147,7 @@ test('parent routes are independent from Supabase JWT; admin/tutor routing stays
   assert.equal(authRedirect('/admin/parents',null),'/tutor');
   assert.equal(authRedirect('/admin/parents',{app_metadata:{role:'tutor'}}),'/tutor/dashboard');
   assert.equal(authRedirect('/admin/parents',{user_metadata:{role:'admin'}}),'/tutor/dashboard');
-  const page=fs.readFileSync(path.join(root,'app/parents/page.tsx'),'utf8');assert.match(page,/readLookupHash/);assert.match(page,/get_parent_lookup/);assert.doesNotMatch(page,/get_parent_portal|auth.getUser|parent_session/);
+  const page=fs.readFileSync(path.join(root,'app/parents/page.tsx'),'utf8');assert.match(page,/readLookupHash/);assert.match(page,/parent_learning_portal/);assert.doesNotMatch(page,/get_parent_portal|auth.getUser|parent_session/);
 });
 test('same-origin checks use forwarded authority and reject foreign or opaque origins',()=>{
   const {isSameOrigin}=load('lib/parents.ts',state());const req=origin=>new Request('http://localhost:3000/api',{headers:{host:'portal.test','x-forwarded-proto':'https',origin}});

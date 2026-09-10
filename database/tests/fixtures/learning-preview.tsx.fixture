@@ -1,0 +1,27 @@
+import {notFound} from 'next/navigation';
+import {ParentPortalView} from '@/components/learning/ParentPortalView';
+import {TutorReviewWorkspace} from '@/components/reviews/TutorReviewWorkspace';
+import {LearningWorkspace} from '@/components/learning/LearningWorkspace';
+import seeds from '@/lib/learning-template-seeds.json';
+import {emptyLearningBody,type LearningTemplate} from '@/lib/learning';
+import type {ParentLearningData} from '@/lib/parent-learning';
+export default async function Page({searchParams,params}:{searchParams:Promise<{view?:string}>;params:Promise<{class_id:string}>}){
+ if(process.env.NODE_ENV!=='development')notFound();
+ const {view}=await searchParams;const {class_id}=await params;
+ if(view==='review')return <main className="mx-auto max-w-6xl px-4 py-8"><TutorReviewWorkspace classId={class_id} studentId="20000000-0000-4000-8000-000000000010" initialMonth="2026-09"/></main>;
+ if(view==='learning')return <main className="mx-auto max-w-6xl px-4 py-8"><LearningWorkspace/></main>;
+ const template={...seeds[0],template_id:'30000000-0000-4000-8000-000000000001',version:1} as LearningTemplate;
+ const portal:ParentLearningData={
+ parent:{name:'Phụ huynh kiểm thử',phone:'+84900000000'},
+ student:{student_id:'20000000-0000-4000-8000-000000000010',name:'Học sinh minh họa — dữ liệu kiểm thử',date_of_birth:null,province:null,status:'Đang học',parent_name:'Phụ huynh kiểm thử',parent_number:'+84900000000'},
+ students:[{student_id:'20000000-0000-4000-8000-000000000010',name:'Học sinh minh họa'}],
+ enrolledClasses:[],attendanceCount:0,month:'2026-09',reviewCount:0,reviewPage:0,reviews:[],
+ plans:[{class_id,class_name:'Lớp kiểm thử Cơ bản',kind:'class',body:{...emptyLearningBody(),program:'basic',format:'group',template_id:template.template_id,goal:'Dữ liệu kiểm thử bố cục: rèn nền tảng, đọc đề và kiểm tra chương trình.',stage_index:2},template,published_at:'2026-09-01T00:00:00Z'}],
+ attendance:[{session_id:'20000000-0000-4000-8000-000000000041',class_name:'Lớp kiểm thử',date:'2026-09-05',start_time:'18:00:00',end_time:'19:30:00',session_status:'completed',status:null,lesson:{...emptyLearningBody(),title:'Mảng một chiều',content:'Nội dung kiểm thử giao diện, không phải dữ liệu học sinh thật.'}}],
+ invoices:[{payment_id:'qa-only',class_name:'Lớp kiểm thử',period:'Kỳ kiểm thử',amount:400000,balance:100000}],
+ provisional:[{class_name:'Lớp kiểm thử',month:'2026-09',amount:null,unknown:1}],
+ tutors:[{class_name:'Lớp kiểm thử',name:'Gia sư minh họa',introduction:'Thông tin chỉ phục vụ kiểm thử.'}],
+ contact:{label:'Kênh kiểm thử',url:'https://example.com'}
+ };
+ return <ParentPortalView portal={portal}/>;
+}

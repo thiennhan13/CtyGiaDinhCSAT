@@ -19,7 +19,11 @@ export async function POST(request: Request) {
   if (action !== 'create' && !classId) return NextResponse.json({ error: 'Thiếu lớp học.' }, { status: 422 });
   if (action === 'hard_delete') return NextResponse.json({ error: 'Lớp học được giữ lịch sử. Hãy dùng thao tác lưu trữ/kết thúc lớp.' }, { status: 409 });
   const mapped = action === 'archive' ? 'set_status' : action === 'remove_student' ? 'drop_student' : action;
+  if (action === 'create') {
+    const { data, error } = await session.supabase.rpc('create_class_with_learning', {p_data:details,p_request_id:requestId ?? crypto.randomUUID()});
+    return error ? businessError(error) : NextResponse.json({...data,data:{class_id:data.class_id}});
+  }
   const { data, error } = await session.supabase.rpc('manage_class', { p_action: mapped, p_class_id: classId ?? null,
     p_data: action === 'archive' ? { ...details, status: 'archived' } : details, p_request_id: requestId ?? crypto.randomUUID() });
-  return error ? businessError(error) : NextResponse.json(action === 'create' ? { ...data, data: { class_id: data.class_id } } : data);
+  return error ? businessError(error) : NextResponse.json(data);
 }

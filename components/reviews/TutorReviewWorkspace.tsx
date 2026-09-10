@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { monthSchema, PROGRAMS, type LearningWorkspace } from '@/lib/learning';
 import { ArrowLeft, BookOpen, Check, Loader2, Plus, Save, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useConfirm } from '@/components/ui/use-dialog';
 import { getVietnamMonthRange } from '@/lib/calendar';
 import {
-  saveReviewSchema, snapshotReviewTags, tagReadiness,
+  saveReviewSchema, snapshotReviewTags, tagReadiness, suggestMonthlyTags,
   type ReviewTagInput, type ReviewWorkspaceData, type StudentReview,
 } from '@/lib/student-reviews';
 import { ReviewTagEditor } from './ReviewTagEditor';
@@ -34,10 +35,12 @@ function formFromReview(review: StudentReview): ReviewForm {
   };
 }
 
-export function TutorReviewWorkspace({ classId, studentId }: { classId: string; studentId: string }) {
+export function TutorReviewWorkspace({ classId, studentId, initialMonth }: { classId: string; studentId: string; initialMonth?: string }) {
   const router = useRouter();
   const { confirm, ConfirmDialog } = useConfirm();
+  const [selectedMonth, setSelectedMonth] = useState(initialMonth || getVietnamMonthRange().startDate.slice(0,7));
   const [data, setData] = useState<ReviewWorkspaceData | null>(null);
+  const [learning,setLearning] = useState<LearningWorkspace | null>(null);
   const [loadError, setLoadError] = useState('');
   const [retry, setRetry] = useState(0);
   const [form, setForm] = useState<ReviewForm>(blankForm);
@@ -51,20 +54,43 @@ export function TutorReviewWorkspace({ classId, studentId }: { classId: string; 
   const [validation, setValidation] = useState<string[]>([]);
   const errorRef = useRef<HTMLDivElement>(null);
   const saving = useRef(false);
-  const dirty = !published && JSON.stringify(form) !== baseline;
+  const foreignDraft = !!data?.tutorId && data.reviews.some(r=>r.review_id===reviewId && r.review_status==='draft' && r.tutor_id!==data.tutorId);
+  const dirty = !published && !foreignDraft && JSON.stringify(form) !== baseline;
   const readyTags = form.review_context.trim() ? form.tags.filter(tag => !tagReadiness(tag).length) : [];
   const incomplete = form.tags.length - readyTags.length;
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`/api/tutor/reviews?class_id=${classId}&student_id=${studentId}`, { cache: 'no-store', signal: controller.signal })
+    fetch(`/api/tutor/reviews?class_id=${classId}&student_id=${studentId}&month=${selectedMonth}`, { cache: 'no-store', signal: controller.signal })
       .then(async response => {
         const payload = await readResponse(response);
         if (!response.ok) throw new Error(payload.error || 'Không tải được nhận xét.');
-        if (!controller.signal.aborted) { setData(payload); setLoadError(''); }
+        if (!controller.signal.aborted) {
+          setData(payload); setLoadError('');
+          const existing = (payload.reviews as StudentReview[]).find(r => r.month_year === selectedMonth);
+          const next = existing ? formFromReview(existing) : { ...blankForm(), month_year: selectedMonth, review_context: 'Tháng ' + selectedMonth };
+          setForm(next); setBaseline(JSON.stringify(next)); setReviewId(existing?.review_id || crypto.randomUUID());
+          setExpectedUpdatedAt(existing?.updated_at || null);
+          setPublished(existing?.review_status === 'published');
+        }
       }).catch((reason: Error) => { if (!controller.signal.aborted) setLoadError(reason.message); });
     return () => controller.abort();
-  }, [classId, studentId, retry]);
+  }, [classId, studentId, retry, selectedMonth]);
+
+  useEffect(() => {
+    const controller=new AbortController();
+    fetch('/api/learning?class_id='+classId+'&month='+selectedMonth,{signal:controller.signal,cache:'no-store'}).then(async r=>{
+      if(r.ok){const result=await r.json();if(!controller.signal.aborted)setLearning(result);}
+    }).catch(()=>{});
+    return ()=>controller.abort();
+  },[classId,selectedMonth]);
+  const monthLessons = learning?.records.filter(r=>r.kind==='session' && learning.sessions.some(s=>s.session_id===r.session_id && s.date.startsWith(form.month_year) && s.status!=='cancelled')) || [];
+  const program = learning?.records.find(r=>r.kind==='class')?.draft.program;
+  const suggestions = suggestMonthlyTags(
+    learning?.records.filter(r=>r.kind==='class' || r.kind==='student' && r.student_id===studentId).flatMap(r=>r.draft.focus_tags) || [],
+    monthLessons.map(r=>r.draft.title+' '+r.draft.content).join(' '),
+    data?.reviews.filter(r=>r.month_year && r.month_year<form.month_year && r.review_status==='published').sort((a,b)=>(b.month_year||'').localeCompare(a.month_year||''))[0]?.review_tags || []
+  );
 
   useEffect(() => {
     if (!dirty) return;
@@ -98,20 +124,23 @@ export function TutorReviewWorkspace({ classId, studentId }: { classId: string; 
   }
   async function newReview() {
     if (saving.current || !await mayLeave()) return;
-    const next = blankForm(); setForm(next); setBaseline(JSON.stringify(next)); setReviewId(crypto.randomUUID());
+    const existing = data?.reviews.find(r => r.month_year === selectedMonth);
+    if (existing) { await resumeReview(existing); return; }
+    const next = { ...blankForm(), month_year: selectedMonth, review_context: 'Tháng ' + selectedMonth }; setForm(next); setBaseline(JSON.stringify(next)); setReviewId(crypto.randomUUID());
     setExpectedUpdatedAt(null); setPublished(false); setError(''); setNotice(''); setValidation([]);
   }
   async function resumeReview(review: StudentReview) {
     if (saving.current || !await mayLeave()) return;
+    if(review.month_year && review.month_year!==selectedMonth){setData(null);setSelectedMonth(review.month_year);return;}
     const next = formFromReview(review); setForm(next); setBaseline(JSON.stringify(next));
-    setReviewId(review.review_id); setExpectedUpdatedAt(review.updated_at || null); setPublished(false);
-    setError(''); setValidation([]); setNotice('Đang tiếp tục bản nháp đã lưu.');
+    setReviewId(review.review_id); setExpectedUpdatedAt(review.updated_at || null); setPublished(review.review_status === 'published');
+    setError(''); setValidation([]); setNotice(review.review_status === 'published' ? 'Nhận xét tháng này đã được công bố.' : review.tutor_id !== data?.tutorId ? 'Bản nháp do gia sư khác tạo. Liên hệ admin để kiểm tra phân công.' : 'Đang tiếp tục bản nháp đã lưu.');
     document.getElementById('review-editor-heading')?.scrollIntoView({ block: 'start', behavior: 'instant' });
   }
   function update(patch: Partial<ReviewForm>) { setForm(current => ({ ...current, ...patch })); setNotice(''); }
 
   async function save(status: 'draft' | 'published') {
-    if (saving.current || published) return;
+    if (saving.current || published || foreignDraft) return;
     const parsed = saveReviewSchema.safeParse({ ...form, review_id: reviewId, student_id: studentId, class_id: classId, expected_updated_at: expectedUpdatedAt, review_status: status });
     if (!parsed.success) {
       setError('Kiểm tra nội dung trước khi tiếp tục.'); setValidation([...new Set(parsed.error.issues.map(issue => issue.message))]);
@@ -134,6 +163,19 @@ export function TutorReviewWorkspace({ classId, studentId }: { classId: string; 
     } finally { saving.current = false; setBusy(null); }
   }
 
+  const autoSaveAttempt = useRef('');
+  const autoSaveRef = useRef<() => void>(()=>{});
+  autoSaveRef.current = () => {
+    if(!dirty || published || saving.current || !data)return;
+    const parsed=saveReviewSchema.safeParse({...form,review_id:reviewId,student_id:studentId,class_id:classId,expected_updated_at:expectedUpdatedAt,review_status:'draft'});
+    const signature=JSON.stringify(form);
+    if(parsed.success && autoSaveAttempt.current!==signature){autoSaveAttempt.current=signature;void save('draft');}
+  };
+  useEffect(()=>{
+    if(!dirty || published || busy || !data)return;
+    const timer=setTimeout(()=>autoSaveRef.current(),1800);
+    return ()=>clearTimeout(timer);
+  },[form,dirty,published,busy,data]);
   if (!data) return <div className="rounded-2xl border border-foreground/15 bg-card p-7">
     {loadError ? <><h1 className="text-xl font-bold">Chưa mở được trang nhận xét</h1><p role="alert" className="my-4 text-sm">{loadError}</p><div className="flex gap-3"><Button onClick={() => { setLoadError(''); setRetry(value => value + 1); }}>Thử lại</Button><Button variant="outline" onClick={() => router.push(`/tutor/classes/${classId}`)}>Về lớp học</Button></div></> : <p role="status" className="flex items-center gap-2"><Loader2 className="size-4 animate-spin motion-reduce:animate-none" />Đang tải thông tin học sinh và nhận xét…</p>}
   </div>;
@@ -153,15 +195,18 @@ export function TutorReviewWorkspace({ classId, studentId }: { classId: string; 
       <p className="font-semibold">{error}</p>{validation.length > 0 && <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">{validation.map(message => <li key={message}>{message}</li>)}</ul>}
     </div>
     {notice && <p role="status" className="flex items-start gap-2 rounded-xl border border-emerald-600/25 bg-emerald-50 p-4 text-sm text-emerald-900"><Check className="mt-0.5 size-4 shrink-0" />{notice}</p>}
+    {foreignDraft && <p role="status" className="rounded-xl border border-amber-500/30 p-4 text-sm">Bản nháp tháng này do gia sư trước tạo. Nội dung được giữ nguyên; admin có thể chuyển bản nháp cho bạn trong trang quản lý lớp.</p>}
+    <label className="block max-w-xs space-y-2 text-sm font-semibold">Tháng nhận xét<Input type="month" value={selectedMonth} disabled={!!busy} onChange={async event => { const next = event.target.value; if (monthSchema.safeParse(next).success && await mayLeave()) {setData(null); setSelectedMonth(next);setNotice('');setError('');} }} /></label>
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,.9fr)]">
-      <fieldset disabled={!!busy || published} className="min-w-0 space-y-5">
+      <fieldset disabled={!!busy || published || foreignDraft} className="min-w-0 space-y-5">
         <legend className="sr-only">Soạn nhận xét cho {data.student.name}</legend>
         <section className="space-y-4 rounded-xl border border-foreground/15 bg-card p-4 sm:p-5">
-          <div><label className="mb-2 block text-xs font-semibold" htmlFor="review-month">Kỳ nhận xét</label><Input id="review-month" type="month" value={form.month_year} onChange={event => update({ month_year: event.target.value })} className="min-h-11" /></div>
-          <div><label className="mb-2 block text-xs font-semibold" htmlFor="review-context">Buổi / giai đoạn được nhận xét</label><Input id="review-context" value={form.review_context} maxLength={120} onChange={event => update({ review_context: event.target.value })} placeholder="Ví dụ: Buổi 14–18 · Ôn tập dãy và mảng" className="min-h-11" /></div>
-          <p className="text-xs text-muted-foreground">Nhận xét gắn với phạm vi đã quan sát. Thẻ và mức độ được để trống để gia sư lựa chọn.</p>
+          <div><label className="mb-2 block text-xs font-semibold" htmlFor="review-month">Kỳ nhận xét</label><Input id="review-month" type="month" value={form.month_year} readOnly className="min-h-11" /></div>
+          <div><label className="mb-2 block text-xs font-semibold" htmlFor="review-context">Nội dung trọng tâm trong tháng</label><Input id="review-context" value={form.review_context} maxLength={120} onChange={event => update({ review_context: event.target.value })} placeholder="Ví dụ: Buổi 14–18 · Ôn tập dãy và mảng" className="min-h-11" /></div>
+          <p className="text-xs text-muted-foreground">Nhận xét tổng hợp một lần trong tháng. Thẻ và mức độ được để trống để gia sư lựa chọn.</p>
+          {monthLessons.length>0 && <details className="rounded-lg border p-3"><summary className="cursor-pointer text-xs font-semibold">Nội dung các buổi trong tháng · tham khảo khi viết</summary><ul className="mt-3 space-y-2 text-xs leading-6">{monthLessons.map(r=><li key={r.record_id}><strong>{learning?.sessions.find(s=>s.session_id===r.session_id)?.date}: {r.draft.title}</strong><p>{r.draft.content}</p>{r.draft.continuation && <p>Học tiếp: {r.draft.continuation}</p>}</li>)}</ul></details>}
         </section>
-        <ReviewTagEditor value={form.tags} onChange={tags => update({ tags })} classType={data.class.class_type} disabled={!!busy || published} />
+        <ReviewTagEditor suggestions={suggestions} value={form.tags} onChange={tags => update({ tags })} classType={program ? PROGRAMS[program] : data.class.class_type} disabled={!!busy || published || foreignDraft} />
         <section className="space-y-4 rounded-xl border border-foreground/15 bg-card p-4 sm:p-5">
           <h2 className="text-lg font-extrabold">Nhận xét bằng lời</h2><p className="text-xs text-muted-foreground">Bổ sung những điều cần trao đổi ngoài các thẻ đã chọn. Có thể gửi nhận xét bằng lời khi chưa cần dùng thẻ.</p>
           {([
@@ -180,16 +225,16 @@ export function TutorReviewWorkspace({ classId, studentId }: { classId: string; 
         </section>
         <p className="text-xs leading-relaxed text-muted-foreground" aria-live="polite">{form.tags.length ? `${readyTags.length}/${form.tags.length} thẻ đủ thông tin để xem trước. ${incomplete ? 'Các thẻ còn thiếu thông tin sẽ cần hoàn thiện trước khi gửi.' : ''}` : 'Có thể chọn thẻ hoặc viết nhận xét bằng lời.'}</p>
         <div className="grid gap-2 sm:grid-cols-2">
-          <Button variant="outline" className="min-h-11" disabled={!!busy || published} onClick={() => save('draft')}>{busy === 'draft' ? <Loader2 className="size-4 animate-spin motion-reduce:animate-none" /> : <Save className="size-4" />}Lưu bản nháp</Button>
-          <Button className="min-h-11" disabled={!!busy || published} onClick={() => save('published')}>{busy === 'published' ? <Loader2 className="size-4 animate-spin motion-reduce:animate-none" /> : <Send className="size-4" />}{published ? 'Đã gửi nhận xét' : 'Gửi nhận xét'}</Button>
+          <Button variant="outline" className="min-h-11" disabled={!!busy || published || foreignDraft} onClick={() => save('draft')}>{busy === 'draft' ? <Loader2 className="size-4 animate-spin motion-reduce:animate-none" /> : <Save className="size-4" />}Lưu bản nháp</Button>
+          <Button className="min-h-11" disabled={!!busy || published || foreignDraft} onClick={() => save('published')}>{busy === 'published' ? <Loader2 className="size-4 animate-spin motion-reduce:animate-none" /> : <Send className="size-4" />}{published ? 'Đã gửi nhận xét' : 'Gửi nhận xét'}</Button>
         </div>
         <p className="text-[11px] leading-relaxed text-muted-foreground">Bản nháp chỉ dành cho gia sư và quản trị. Nhận xét đã gửi sẽ xuất hiện trên cổng phụ huynh.</p>
-        {(published || expectedUpdatedAt) && <Button variant="ghost" className="min-h-11 w-full" disabled={!!busy} onClick={newReview}><Plus className="size-4" />Tạo nhận xét mới</Button>}
-        {dirty && <p className="text-xs font-medium text-primary">Có thay đổi chưa lưu.</p>}
+        {(published || expectedUpdatedAt) && <Button variant="ghost" className="min-h-11 w-full" disabled={!!busy} onClick={newReview}><Plus className="size-4" />Mở nhận xét tháng đang chọn</Button>}
+        {dirty && <p className="text-xs font-medium text-primary">Có thay đổi; bản nháp sẽ tự lưu sau khi bạn ngừng nhập.</p>}
       </aside>
     </div>
     <section className="rounded-xl border border-foreground/15 bg-card p-4 sm:p-6" aria-labelledby="review-history-title">
-      <h2 id="review-history-title" className="text-xl font-extrabold">Nhận xét gần đây của bạn</h2><p className="mt-2 text-xs text-muted-foreground">Tối đa 30 nhận xét gần đây cho học sinh trong lớp này. Mở bản nháp để tiếp tục; nhận xét đã gửi được giữ nguyên.</p>
+      <h2 id="review-history-title" className="text-xl font-extrabold">Nhận xét gần đây trong lớp</h2><p className="mt-2 text-xs text-muted-foreground">Tối đa 30 nhận xét gần đây cho học sinh trong lớp này. Mở bản nháp để tiếp tục; nhận xét đã gửi được giữ nguyên.</p>
       <div className="mt-5 space-y-3">{data.reviews.map(review => <details key={review.review_id} className="rounded-xl border border-foreground/15">
         <summary className="cursor-pointer p-4 text-sm"><strong>Kỳ {review.month_year || 'chưa ghi'}</strong><span className="ml-3 rounded-full bg-secondary px-2.5 py-1 text-[11px]">{review.review_status === 'draft' ? 'Bản nháp' : 'Đã gửi'}</span>{review.review_context && <span className="mt-2 block text-xs text-muted-foreground">{review.review_context}</span>}</summary>
         <div className="space-y-4 border-t border-foreground/10 p-4"><ReviewContent review={review} />{review.review_status === 'draft' && <Button variant="outline" className="min-h-11" disabled={!!busy || review.review_id === reviewId} onClick={() => resumeReview(review)}>{review.review_id === reviewId ? 'Bản nháp đang mở' : 'Tiếp tục bản nháp'}</Button>}</div>

@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { isSameOrigin } from '@/lib/parents';
 import { saveReviewSchema, snapshotReviewTags } from '@/lib/student-reviews';
 
-const querySchema = z.object({ class_id: z.string().uuid(), student_id: z.string().uuid() });
+const querySchema = z.object({ class_id: z.string().uuid(), student_id: z.string().uuid(), month: z.string().regex(/^20\d{2}-(0[1-9]|1[0-2])$/).optional() });
 const reviewColumns = 'review_id,student_id,tutor_id,class_id,month_year,general_assessment,learning_attitude,logical_thinking,review_context,review_tags,review_status,created_at,updated_at';
 const json = (data: unknown, status = 200) => NextResponse.json(data, { status, headers: { 'Cache-Control': 'private, no-store' } });
 
@@ -49,10 +49,16 @@ export async function GET(request: Request) {
     const access = await authorize(parsed.data.class_id, parsed.data.student_id);
     if (access.response) return access.response;
     const { data: reviews, error } = await access.supabase.from('student_reviews').select(reviewColumns)
-      .eq('tutor_id', access.tutor.tutor_id).eq('class_id', parsed.data.class_id).eq('student_id', parsed.data.student_id)
+      .eq('class_id', parsed.data.class_id).eq('student_id', parsed.data.student_id)
       .order('updated_at', { ascending: false }).limit(30);
     if (error) return databaseError(error);
-    return json({ student: access.student, class: access.classInfo, reviews: reviews || [] });
+    let selected = null;
+    if (parsed.data.month) {
+      const result = await access.supabase.from('student_reviews').select(reviewColumns).eq('class_id', parsed.data.class_id).eq('student_id', parsed.data.student_id).eq('month_year', parsed.data.month).maybeSingle();
+      if (result.error) return databaseError(result.error);
+      selected = result.data;
+    }
+    return json({ student: access.student, class: access.classInfo, tutorId: access.tutor.tutor_id, reviews: selected ? [selected, ...(reviews || []).filter(r => r.review_id !== selected.review_id)] : reviews || [] });
   } catch { return json({ error: 'Không tải được thông tin nhận xét. Vui lòng thử lại.' }, 500); }
 }
 

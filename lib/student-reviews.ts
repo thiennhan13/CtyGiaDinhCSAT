@@ -27,6 +27,7 @@ const tagInputSchema = z.object({
 export type ReviewTagInput = z.infer<typeof tagInputSchema>;
 export interface ReviewTagSnapshot extends ReviewTagInput { label: string; group: ReviewGroup; catalog_version: number; }
 export interface StudentReview {
+  corrections?: {correction_id:string;message:string;created_at:string}[];
   review_id: string; student_id?: string; tutor_id?: string; class_id?: string;
   month_year: string | null; general_assessment: string | null;
   learning_attitude: string | null; logical_thinking: string | null;
@@ -34,6 +35,7 @@ export interface StudentReview {
   review_status?: 'draft' | 'published'; created_at?: string; updated_at?: string;
 }
 export interface ReviewWorkspaceData {
+  tutorId?: string;
   student: { student_id: string; name: string };
   class: { class_id: string; name: string; class_type: string };
   reviews: StudentReview[];
@@ -102,4 +104,26 @@ export function normalizeReviewSearch(value: string) {
 export function initialReviewScope(classType: string): 'basic' | 'advanced' | 'all' {
   const value = normalizeReviewSearch(classType);
   return value.includes('nang cao') ? 'advanced' : value.includes('co ban') ? 'basic' : 'all';
+}
+
+/** Suggestions are navigation aids only: never copy an assessment or proficiency level. */
+export function suggestMonthlyTags(focusIds: string[], lessonText: string, previous: ReviewTagSnapshot[]) {
+ const text = normalizeReviewSearch(lessonText);
+ const terms: Record<string,string[]> = {
+  'k-io':['nhap','xuat'], 'k-types':['kieu du lieu','bien'], 'k-conditions':['dieu kien'],
+  'k-loops':['vong lap','for','while'], 'k-arrays':['day','mang mot chieu'], 'k-frequency':['tan suat','danh dau'],
+  'k-sorting':['sap xep'], 'k-functions':['ham'], 'k-divisors':['so hoc','chia het','uoc'],
+  'k-primes':['nguyen to','sang','so hoc'], 'k-gcd':['ucln','bcnn','so hoc'],
+  'k-factors':['thua so'], 'k-modulo':['modulo','luy thua'], 'k-strings':['xau','string'],
+  'k-matrix':['ma tran','hai chieu'], 'k-prefix':['cong don','mang tong'],
+  'k-difference':['mang hieu'], 'k-vector':['vector'], 'k-stack':['stack','ngan xep'],
+  'k-queue':['queue','deque','hang doi'], 'k-set':['set'], 'k-map':['map'],
+  'k-greedy':['tham lam'], 'k-two-pointers':['hai con tro','cua so truot'], 'k-binary':['nhi phan'],
+  'k-hashing':['hash','bam'], 'k-dp-state':['quy hoach dong'], 'k-brute':['vet can'], 'k-recursion':['de quy','quay lui']
+ };
+ const result = new Map<string,string>();
+ for (const id of focusIds) if (getReviewTag(id)) result.set(id,'Trọng tâm đã chọn');
+ for (const tag of previous) if (tag.propose_focus && getReviewTag(tag.tag_id)) result.set(tag.tag_id,'Bước rèn tiếp từ nhận xét trước');
+ for (const [id,words] of Object.entries(terms)) if(words.some(word=>text.includes(word)) && !result.has(id)) result.set(id,'Nội dung buổi học trong tháng');
+ return [...result].slice(0,16).map(([id,reason])=>({id,reason}));
 }

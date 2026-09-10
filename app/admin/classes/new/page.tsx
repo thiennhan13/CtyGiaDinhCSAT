@@ -28,6 +28,7 @@ export default function NewClassPage() {
   // Step 1: Class Info & Students
   const [className, setClassName] = useState('');
   const [classType, setClassType] = useState('Lớp Cơ bản');
+  const [teachingFormat, setTeachingFormat] = useState('group');
   const [tutorId, setTutorId] = useState('');
   const [csatFee, setCsatFee] = useState<number>(0);
   const [selectedStudents, setSelectedStudents] = useState<{ id: string, name: string, fee: number }[]>([]);
@@ -167,6 +168,8 @@ export default function NewClassPage() {
         action: 'create',
         name: className,
         class_type: classType,
+        program: classType === 'Lớp Cơ bản' ? 'basic' : classType === 'Lớp Nâng cao' ? 'advanced' : 'voi',
+        teaching_format: teachingFormat,
         tutor_id: tutorId,
         csat_fee_per_session: csatFee,
         start_date: startDate,
@@ -233,7 +236,7 @@ export default function NewClassPage() {
                   options={[
                     { value: 'Lớp Cơ bản', label: 'Lớp Cơ bản' },
                     { value: 'Lớp Nâng cao', label: 'Lớp Nâng cao' },
-                    { value: 'Lớp Luyện thi', label: 'Lớp Luyện thi' },
+                    { value: 'Ôn thi VOI', label: 'Ôn thi VOI · Chờ giáo án' },
                   ]}
                   value={classType}
                   onValueChange={(val) => val && setClassType(val)}
@@ -242,6 +245,7 @@ export default function NewClassPage() {
                 />
               </div>
               <div className="space-y-2">
+                <label className="mb-4 block space-y-2 text-sm font-medium">Hình thức học<select className="block min-h-11 w-full rounded-lg border bg-background px-3" value={teachingFormat} onChange={e=>setTeachingFormat(e.target.value)}><option value="group">Học nhóm</option><option value="individual">Học 1–1</option></select></label>
                 <label className="text-sm font-medium">Gia sư <span className="text-destructive">*</span></label>
                 <Combobox
                   options={tutors.map(t => ({ value: t.tutor_id, label: t.name }))}

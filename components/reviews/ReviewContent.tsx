@@ -1,7 +1,7 @@
 import { BookOpen, Star, Target } from 'lucide-react';
 import { REVIEW_GROUP_ORDER, REVIEW_GROUPS, REVIEW_LEVELS, type StudentReview } from '@/lib/student-reviews';
 
-export function ReviewContent({ review }: { review: Pick<StudentReview, 'review_context' | 'review_tags' | 'general_assessment' | 'learning_attitude' | 'logical_thinking'> }) {
+export function ReviewContent({ review }: { review: Pick<StudentReview, 'corrections' | 'review_context' | 'review_tags' | 'general_assessment' | 'learning_attitude' | 'logical_thinking'> }) {
   const tags = Array.isArray(review.review_tags) ? review.review_tags : [];
   const texts = [
     ['Đánh giá chung', review.general_assessment],
@@ -10,6 +10,7 @@ export function ReviewContent({ review }: { review: Pick<StudentReview, 'review_
   ];
   return (
     <div className="space-y-5 text-sm [overflow-wrap:anywhere]">
+      {review.corrections?.map(c=><section key={c.correction_id} className="rounded-xl border border-primary/30 bg-primary/5 p-4"><h3 className="text-sm font-bold">Thông tin đính chính từ trung tâm</h3><p className="mt-2 whitespace-pre-wrap text-sm leading-7">{c.message}</p><p className="mt-2 text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})} · Nhận xét gốc được giữ bên dưới để đối chiếu.</p></section>)}
       {review.review_context && <p className="rounded-lg bg-secondary/60 px-3 py-2 text-xs whitespace-pre-wrap">{review.review_context}</p>}
       {REVIEW_GROUP_ORDER.map(group => {
         const items = tags.filter(tag => tag.group === group);

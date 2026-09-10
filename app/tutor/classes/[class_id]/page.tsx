@@ -276,6 +276,7 @@ export default function TutorClassDetailPage() {
         </div>
       </div>
 
+      <div className="flex flex-wrap gap-3"><Button onClick={() => router.push('/tutor/classes/'+classId+'/learning')}>Lộ trình & nội dung buổi</Button><Button variant="outline" onClick={() => router.push('/tutor/reviews')}>Nhận xét tháng</Button></div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
          {/* Thông tin học viên */}
          <Card>
