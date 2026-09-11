@@ -15,6 +15,6 @@ export function Roadmap({ body, template }: { body: LearningBody; template?: Lea
         <ul className="my-3 list-disc space-y-1 pl-5 text-sm leading-6">{stage.outcomes.map((outcome,i) => <li key={i}>{outcome}</li>)}</ul>
         <div className="space-y-2">{stage.lessons.map((lesson,i) => <details key={i} className="rounded-lg border border-foreground/10 bg-card p-3 print:break-inside-avoid"><summary className="cursor-pointer text-sm font-semibold">Buổi {lesson.range} · {lesson.title}</summary><div className="mt-3 space-y-2 text-sm leading-7"><p>{lesson.description}</p><p className="text-xs text-muted-foreground">{lesson.source}</p></div></details>)}</div>
       </li>)}</ol><p className="text-xs leading-6 text-muted-foreground">Nguồn: {template.source}</p>
-    </> : <p className="rounded-xl border border-dashed p-5 text-sm">{body.program === 'voi' ? 'Khung Ôn thi VOI đang chờ giáo án được trung tâm xác nhận. Mục tiêu và bước chuẩn bị riêng sẽ được gia sư cập nhật.' : 'Gia sư chưa công bố phiên bản giáo án cho lớp.'}</p>}
+    </> : <p className="rounded-xl border border-dashed p-5 text-sm">{body.program === 'voi' ? 'Khung HSGQG đang chờ giáo án được trung tâm xác nhận. Mục tiêu và bước chuẩn bị riêng sẽ được gia sư cập nhật.' : body.program === 'custom' ? 'Lộ trình luyện thi được điều chỉnh theo kỳ thi, mục tiêu và nội dung cần củng cố. Gia sư sẽ cập nhật nội dung phù hợp với lớp.' : 'Gia sư chưa công bố phiên bản giáo án cho lớp.'}</p>}
   </div>;
 }

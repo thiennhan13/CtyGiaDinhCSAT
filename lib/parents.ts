@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import type { StudentReview } from './student-reviews';
 
-/** Canonical Vietnamese mobile number. Never infer identity from a suffix. */
+/** Store Vietnamese mobile numbers as 0xxxxxxxxx; accept full international input. */
 export function normalizeParentPhone(value: string): string | null {
   if (!/^[+\d\s().-]+$/.test(value)) return null;
   let phone = value.replace(/[\s().-]/g, '');
-  if (phone.startsWith('0084')) phone = `+84${phone.slice(4)}`;
-  if (/^0[35789]\d{8}$/.test(phone)) phone = `+84${phone.slice(1)}`;
-  return /^\+84[35789]\d{8}$/.test(phone) ? phone : null;
+  if (/^0084[35789]\d{8}$/.test(phone)) phone = '0' + phone.slice(4);
+  else if (/^\+84[35789]\d{8}$/.test(phone)) phone = '0' + phone.slice(3);
+  return /^0[35789]\d{8}$/.test(phone) ? phone : null;
 }
 
 export const parentPhoneSchema = z.string().max(30).transform(normalizeParentPhone)

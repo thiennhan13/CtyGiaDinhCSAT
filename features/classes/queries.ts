@@ -19,7 +19,9 @@ export async function getClasses(params: {
   }
   
   if (params.classType && params.classType !== 'Tất cả') {
-    query = query.eq('class_type', params.classType);
+    query = params.classType === 'Lớp HSGQG'
+      ? query.in('class_type', ['Lớp HSGQG', 'HSGQG', 'Ôn thi VOI'])
+      : query.eq('class_type', params.classType);
   }
   
   if (params.search) {

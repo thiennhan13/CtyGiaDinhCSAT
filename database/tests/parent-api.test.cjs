@@ -10,7 +10,7 @@ process.env.SUPABASE_SERVICE_ROLE_KEY='test-only-service-key';
 const id = n => '30000000-0000-4000-8000-'+String(n).padStart(12,'0');
 function state(overrides={}) { return {
   user:{id:id(1),app_metadata:{role:'admin'}}, calls:[], cookies:[],
-  parent_accounts:[{parent_id:id(2),phone:'+84912345678',active:true}],students:[{student_id:id(11),is_deleted:false}],
+  parent_accounts:[{parent_id:id(2),phone:'0912345678',active:true}],students:[{student_id:id(11),is_deleted:false}],
   targetUser:{id:id(2),app_metadata:{role:'parent'}}, ...overrides,
 }; }
 function client(s) {
@@ -32,7 +32,7 @@ function client(s) {
     from(table) {
       const filters=[]; let single=false;
       const chain = {
-        select(){return chain;}, limit(){return chain;}, order(){return chain;}, range(){return chain;},ilike(){return chain;},
+        select(){return chain;}, limit(){return chain;}, order(){return chain;}, range(){return chain;},ilike(column,pattern){s.calls.push({name:'ilike',payload:{column,pattern}});return chain;},
         eq(k,v){filters.push(r=>r[k]===v);return chain;}, in(k,v){filters.push(r=>v.includes(r[k]));return chain;},
         single(){single=true;return chain;},
         then(resolve,reject){const rows=(s[table]||[]).filter(r=>filters.every(f=>f(r)));return Promise.resolve({data:single?rows[0]||null:rows,error:s.queryErrors?.[table]||null,count:rows.length}).then(resolve,reject);},
@@ -66,7 +66,7 @@ const did = (s,name) => s.calls.filter(c=>c.name===name);
 
 test('phone normalization accepts full local/international numbers and rejects suffixes',()=>{
   const {normalizeParentPhone}=load('lib/parents.ts',state());
-  for(const value of ['0912 345 678','+84 912-345-678','0084912345678']) assert.equal(normalizeParentPhone(value),'+84912345678');
+  for(const value of ['0912 345 678','+84 912-345-678','0084912345678']) assert.equal(normalizeParentPhone(value),'0912345678');
   for(const value of ['912345678','12345678','abc0912345678','+1 912345678','++84912345678','0112345678']) assert.equal(normalizeParentPhone(value),null);
 });
 test('admin endpoints require verified admin; parent lookup never grants admin',async()=>{
@@ -84,7 +84,7 @@ test('cross-site parent lookup, logout and admin mutations fail before DB access
 test('admin creates a phone contact through guarded RPC without provisioning Auth or passwords',async()=>{
   const s=state();const response=await post(manage,s,createBody);const body=await response.json();
   assert.equal(response.status,200);assert.equal(body.password,undefined);
-  assert.deepEqual(did(s,'admin_save_parent_contact')[0].payload,{p_parent_id:null,p_display_name:'Parent',p_phone:'+84912345678',p_student_ids:[id(11)],p_active:true});
+  assert.deepEqual(did(s,'admin_save_parent_contact')[0].payload,{p_parent_id:null,p_display_name:'Parent',p_phone:'0912345678',p_student_ids:[id(11)],p_active:true});
   assert.equal(did(s,'create').length,0);assert.equal(did(s,'service').length,0);
 });
 test('validation, duplicate phone and missing migration errors are surfaced without Auth mutations',async()=>{
@@ -95,7 +95,7 @@ test('validation, duplicate phone and missing migration errors are surfaced with
 });
 test('admin edits existing links/active flag and cannot accidentally change phone from stale client',async()=>{
   const s=state();assert.equal((await post(manage,s,{action:'update',parentId:id(2),name:'Edited',phone:'0987654321',studentIds:[],active:false})).status,200);
-  assert.deepEqual(did(s,'admin_save_parent_contact')[0].payload,{p_parent_id:id(2),p_display_name:'Edited',p_phone:'+84912345678',p_student_ids:[],p_active:false});
+  assert.deepEqual(did(s,'admin_save_parent_contact')[0].payload,{p_parent_id:id(2),p_display_name:'Edited',p_phone:'0912345678',p_student_ids:[],p_active:false});
   assert.equal(did(s,'target').length,0);
 });
 test('password and reset endpoints are retired and never alter Auth identities',async()=>{
@@ -109,7 +109,7 @@ test('phone-only lookup creates an opaque HttpOnly session, returns no token or 
   assert.deepEqual(body,{success:true,redirectUrl:'/parents'});
   const cookie=s.cookies.find(c=>c[0]==='csat_parent_lookup');assert.match(cookie[1],/^[A-Za-z0-9_-]{43}$/);
   assert.equal(cookie[2].httpOnly,true);assert.equal(cookie[2].sameSite,'lax');assert.equal(cookie[2].maxAge,43200);
-  const payload=did(s,'start_parent_lookup')[0].payload;assert.equal(payload.p_phone,'+84912345678');
+  const payload=did(s,'start_parent_lookup')[0].payload;assert.equal(payload.p_phone,'0912345678');
   assert.equal(payload.p_token_hash,require('node:crypto').createHash('sha256').update(cookie[1]).digest('hex'));
   assert.match(payload.p_client_key,/^[a-f0-9]{64}$/);assert.notEqual(payload.p_token_hash,cookie[1]);
   for(const name of ['getUser','login','create','password','logout'])assert.equal(did(s,name).length,0);
@@ -153,4 +153,11 @@ test('same-origin checks use forwarded authority and reject foreign or opaque or
   const {isSameOrigin}=load('lib/parents.ts',state());const req=origin=>new Request('http://localhost:3000/api',{headers:{host:'portal.test','x-forwarded-proto':'https',origin}});
   assert.equal(isSameOrigin(req('https://portal.test')),true);
   for(const origin of ['https://attacker.test','http://portal.test','null','not-a-url'])assert.equal(isSameOrigin(req(origin)),false);
+});
+
+test('admin searches domestic storage using local or international prefixes',async()=>{
+ for(const q of ['0912','+84912','0084912']){
+  const s=state();await load(manage,s).GET(new Request('https://portal.test/api?q='+encodeURIComponent(q)));
+  assert.deepEqual(did(s,'ilike')[0].payload,{column:'phone',pattern:'%0912%'});
+ }
 });

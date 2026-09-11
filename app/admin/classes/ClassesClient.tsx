@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Combobox } from '@/components/ui/combobox';
 import { useAlert, useConfirm } from '@/components/ui/use-dialog';
 import { updateClassStatus } from '@/features/classes/actions';
+import { CLASS_TYPE_OPTIONS as LEARNING_CLASS_TYPES } from '@/lib/learning';
 
 const STATUS_OPTIONS = [
   { value: 'Tất cả', label: 'Tất cả trạng thái' },
@@ -22,9 +23,7 @@ const STATUS_OPTIONS = [
 
 const CLASS_TYPE_OPTIONS = [
   { value: 'Tất cả', label: 'Tất cả loại lớp' },
-  { value: 'Lớp Cơ bản', label: 'Lớp Cơ bản' },
-  { value: 'Lớp Nâng cao', label: 'Lớp Nâng cao' },
-  { value: 'Lớp Luyện thi', label: 'Lớp Luyện thi' },
+  ...LEARNING_CLASS_TYPES,
 ];
 
 interface ClassesClientProps {

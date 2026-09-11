@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Trash2 } from 'lucide-react';
 import { Combobox } from '@/components/ui/combobox';
 import { useAlert } from '@/components/ui/use-dialog';
+import { CLASS_TYPE_OPTIONS, defaultProgram } from '@/lib/learning';
 
 export default function NewClassPage() {
   const router = useRouter();
@@ -168,7 +169,7 @@ export default function NewClassPage() {
         action: 'create',
         name: className,
         class_type: classType,
-        program: classType === 'Lớp Cơ bản' ? 'basic' : classType === 'Lớp Nâng cao' ? 'advanced' : 'voi',
+        program: defaultProgram(classType),
         teaching_format: teachingFormat,
         tutor_id: tutorId,
         csat_fee_per_session: csatFee,
@@ -233,11 +234,7 @@ export default function NewClassPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Loại lớp <span className="text-destructive">*</span></label>
                 <Combobox
-                  options={[
-                    { value: 'Lớp Cơ bản', label: 'Lớp Cơ bản' },
-                    { value: 'Lớp Nâng cao', label: 'Lớp Nâng cao' },
-                    { value: 'Ôn thi VOI', label: 'Ôn thi VOI · Chờ giáo án' },
-                  ]}
+                  options={CLASS_TYPE_OPTIONS}
                   value={classType}
                   onValueChange={(val) => val && setClassType(val)}
                   placeholder="Chọn loại lớp"

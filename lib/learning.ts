@@ -1,7 +1,13 @@
 import { z } from 'zod';
 
-export const PROGRAMS = { basic: 'Cơ bản', advanced: 'Nâng cao', voi: 'Ôn thi VOI' } as const;
-export const programSchema = z.enum(['basic', 'advanced', 'voi']);
+export const PROGRAMS = { basic: 'Cơ bản', advanced: 'Nâng cao', voi: 'HSGQG', custom: 'Luyện thi · Tùy chỉnh' } as const;
+export const CLASS_TYPE_OPTIONS = [
+  { value: 'Lớp Cơ bản', label: 'Lớp Cơ bản' },
+  { value: 'Lớp Nâng cao', label: 'Lớp Nâng cao' },
+  { value: 'Lớp HSGQG', label: 'Lớp HSGQG' },
+  { value: 'Lớp Luyện thi', label: 'Lớp Luyện thi' },
+];
+export const programSchema = z.enum(['basic', 'advanced', 'voi', 'custom']);
 export const monthSchema = z.string().regex(/^20\d{2}-(0[1-9]|1[0-2])$/);
 const text = (max = 2000) => z.string().trim().max(max);
 export const lessonSchema = z.object({ range: text(30), title: text(200).min(1), description: text(), source: text(300) }).strict();
@@ -41,7 +47,13 @@ export interface LearningWorkspace {
   records: LearningRecord[]; students: { student_id: string; name: string }[];
   sessions: { session_id: string; date: string; status: string }[]; queue: MonthlyRow[];
 }
-export function defaultProgram(classType: string): 'basic' | 'advanced' | null {
-  const normalized = classType.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  return normalized.includes('co ban') ? 'basic' : normalized.includes('nang cao') ? 'advanced' : null;
+export function defaultProgram(classType: string): LearningBody['program'] {
+  const normalized = classType.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/\s+/g, ' ').replace(/^lop /, '');
+  switch (normalized) {
+    case 'co ban': return 'basic';
+    case 'nang cao': return 'advanced';
+    case 'hsgqg': case 'on thi voi': return 'voi';
+    case 'luyen thi': return 'custom';
+    default: return null;
+  }
 }

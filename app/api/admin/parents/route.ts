@@ -27,7 +27,7 @@ export async function GET(request: Request) {
   let search = supabase.from('parent_accounts')
     .select('parent_id, display_name, phone, active, parent_student_links(student_id, students(name))', { count: 'exact' })
     .order('display_name').order('parent_id').range(page * 25, page * 25 + 24);
-  if (query) search = search.ilike(/^[+\d\s]+$/.test(query) ? 'phone' : 'display_name', `%${/^[+\d\s]+$/.test(query) ? query.replace(/\s/g, '').replace(/^0/, '+84') : escaped}%`);
+  if (query) search = search.ilike(/^[+\d\s]+$/.test(query) ? 'phone' : 'display_name', `%${/^[+\d\s]+$/.test(query) ? query.replace(/\s/g, '').replace(/^(?:\+84|0084)/, '0') : escaped}%`);
   const { data, error, count } = await search;
   return error ? response({ error: 'Chưa tải được tài khoản phụ huynh. Kiểm tra migration 20260906_03 đã được áp dụng.' }, 503)
     : response({ parents: data, total: count || 0 });
