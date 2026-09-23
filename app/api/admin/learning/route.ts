@@ -5,8 +5,7 @@ import { templateSchema } from '@/lib/learning';
 const settings=z.object({action:z.literal('settings'),revision:z.number().int(),contact_label:z.string().trim().max(100),contact_url:z.union([z.literal(''),z.url().refine(u=>u.startsWith('https://'))]),admin_emails:z.array(z.email()).max(20),email_enabled:z.boolean()}).strict();
 const schema=z.discriminatedUnion('action',[
  settings,z.object({action:z.literal('template'),template:templateSchema}).strict(),
- z.object({action:z.literal('default'),template_id:z.string().uuid()}).strict(),
- z.object({action:z.literal('profile'),tutor_id:z.string().uuid(),introduction:z.string().trim().max(2000)}).strict()
+ z.object({action:z.literal('default'),template_id:z.string().uuid()}).strict()
 ]);
 export async function GET(){
  const session=await businessSession();if(session.response)return session.response;
@@ -17,16 +16,24 @@ export async function GET(){
  session.supabase.from('tutors').select('tutor_id,name').not('is_deleted','is',true).order('name'),
  session.supabase.from('tutor_public_profiles').select('tutor_id,introduction'),
  session.supabase.from('class_current_state').select('class_id,name,class_type').order('name'),
- session.supabase.from('review_email_outbox').select('outbox_id,month,kind,recipient,status,attempts,error_code,accepted_at').order('created_at',{ascending:false}).limit(100)
+ session.supabase.from('review_email_outbox').select('outbox_id,month,kind,recipient,status,attempts,error_code,accepted_at,next_attempt_at,email_reconciliations(outcome,note,created_at)').order('created_at',{ascending:false}).limit(100)
  ]);
+ // Curriculum rollout is independent of the optional email-operations migration.
+ let emailOperationsReady=true;
+ if(results[6].error && ['PGRST200','PGRST204','PGRST205','42703','42P01'].includes(results[6].error.code)){
+  emailOperationsReady=false;
+  const legacy=await session.supabase.from('review_email_outbox').select('outbox_id,month,kind,recipient,status,attempts,error_code').order('created_at',{ascending:false}).limit(100);
+  if(legacy.error)return businessError(legacy.error);
+  results[6]={...legacy,data:legacy.data.map(row=>({...row,accepted_at:null,next_attempt_at:null,email_reconciliations:[]}))};
+ }
  const error=results.find(r=>r.error)?.error;if(error)return businessError(error);
- return NextResponse.json({templates:results[0].data,defaults:results[1].data,settings:results[2].data,tutors:results[3].data,profiles:results[4].data,classes:results[5].data,emails:results[6].data,emailConfigured:!!(process.env.RESEND_API_KEY && process.env.CSAT_EMAIL_FROM && process.env.APP_ORIGIN && process.env.CRON_SECRET)},{headers:{'Cache-Control':'private, no-store'}});
+ return NextResponse.json({templates:results[0].data,defaults:results[1].data,settings:results[2].data,tutors:results[3].data,profiles:results[4].data,classes:results[5].data,emails:results[6].data,emailOperationsReady,emailConfigured:!!(process.env.RESEND_API_KEY && process.env.CSAT_EMAIL_FROM && process.env.APP_ORIGIN && process.env.CSAT_EMAIL_REPLY_TO && process.env.CRON_SECRET)},{headers:{'Cache-Control':'private, no-store'}});
 }
 export async function POST(request:Request){
  const session=await businessSession(true,request);if(session.response)return session.response;
  const parsed=schema.safeParse(await request.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:parsed.error.issues[0].message},{status:422});
  const v=parsed.data;
- if(v.action==='settings' && v.email_enabled && (!v.admin_emails.length || !process.env.RESEND_API_KEY || !process.env.CSAT_EMAIL_FROM || !process.env.APP_ORIGIN || !process.env.CRON_SECRET))
+ if(v.action==='settings' && v.email_enabled && (!v.admin_emails.length || !process.env.RESEND_API_KEY || !process.env.CSAT_EMAIL_FROM || !process.env.APP_ORIGIN || !process.env.CSAT_EMAIL_REPLY_TO || !process.env.CRON_SECRET))
   return NextResponse.json({error:'Cần email admin và cấu hình gửi mail trên Vercel trước khi kích hoạt.'},{status:422});
  const result=v.action==='template'?await session.supabase.rpc('admin_create_learning_template',{p_program:v.template.program,p_title:v.template.title,p_source:v.template.source,p_stages:v.template.stages}):await session.supabase.rpc('admin_learning_settings',{p_action:v.action,p_data:v});
  return result.error?businessError(result.error):NextResponse.json({ok:true,data:result.data});

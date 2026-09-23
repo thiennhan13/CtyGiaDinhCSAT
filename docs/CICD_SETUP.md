@@ -1,3 +1,5 @@
+> Cập nhật 23/09/2026: cấu hình hiện hành và chuỗi migration đến 22 xem [SETUP_VERCEL_SUPABASE.md](SETUP_VERCEL_SUPABASE.md); việc còn mở trước khi bật email/API xem [FUTURE_INTEGRATIONS.md](FUTURE_INTEGRATIONS.md). Tài liệu bên dưới giữ bối cảnh của đợt cũ, không thay thế checklist hiện hành.
+
 # CI/CD Setup Guide — CSAT Tutor Manager
 
 > Hướng dẫn kết nối **GitHub Actions CI** + **Vercel CD** để tự động hoá quy trình kiểm tra và triển khai.

@@ -69,3 +69,6 @@ scratch/
 database/tests/.runtime/
 .gemini/
 .agents/
+
+# Private design handoff; never commit prototypes.
+/docs/prototypes/

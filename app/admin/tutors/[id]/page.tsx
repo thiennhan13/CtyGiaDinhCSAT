@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, BookOpen, DollarSign, Calendar, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatVND } from '@/lib/format';
+import { TutorProfileEditor } from '@/components/tutors/TutorProfileEditor';
 
 export default function AdminTutorDetailPage() {
   const params = useParams();
@@ -82,6 +83,7 @@ export default function AdminTutorDetailPage() {
 
   return (
     <div className="space-y-6">
+      <TutorProfileEditor key={tutorId} tutorId={tutorId} />
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" onClick={() => router.push('/admin/tutors')}>

@@ -1,0 +1,18 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Suspense } from 'react';
+import { notFound } from 'next/navigation';
+import { PublicShell } from '@/components/marketing/PublicShell';
+import { CourseConsultLink } from '@/components/marketing/LearningExplorer';
+import { programs, publicStages, type ProgramSlug } from '@/lib/public-learning';
+export function generateStaticParams(){return [{program:'co-ban'},{program:'nang-cao'},{program:'hsgqg'}];}
+export const dynamicParams=false;
+export async function generateMetadata({params}:{params:Promise<{program:string}>}):Promise<Metadata>{const {program}=await params;const course=programs[program as ProgramSlug];return {title:`${course?`Chương trình ${course.name}`:'Định hướng HSG Quốc gia'} — CSAT Tutor`,description:course?.summary||'Trao đổi cùng CSAT về mục tiêu và nền tảng để định hướng học HSG Quốc gia Tin học.',alternates:{canonical:`https://portal.csatoj.vn/lo-trinh/${program}`}};}
+export default async function CoursePage({params}:{params:Promise<{program:string}>}){
+ const {program}=await params;if(!Object.hasOwn(programs,program)&&program!=='hsgqg')notFound();
+ const course=programs[program as ProgramSlug];
+ return <PublicShell><header className="public-wrap public-page-intro"><nav className="public-breadcrumb" aria-label="Đường dẫn"><Link href="/">Giới thiệu</Link><span>/</span><Link href="/lo-trinh">Lộ trình học tập</Link><span>/</span><span>{course?.name||'HSG Quốc gia'}</span></nav><p className="public-kicker">{course?course.eyebrow:'Định hướng học tập'}</p><h1>{course?<>Chương trình <span>{course.name}.</span></>:<>Hướng tới<br/><span>HSG Quốc gia Tin học.</span></>}</h1><p className="public-lead">{course?.summary||'Bắt đầu bằng việc hiểu nền tảng và mục tiêu của bạn.'}</p>
+ {course?<div className="public-course-intro"><div><h3>Phù hợp với ai?</h3><p>{course.audience}</p></div><div><h3>Trước khi bắt đầu</h3><p>{course.prerequisite}</p></div></div>:<div className="public-course-intro"><div><h3>Trao đổi từ quá trình học thực tế</h3><p>Chia sẻ những nội dung đã học, kinh nghiệm luyện bài và mục tiêu của bạn. CSAT sẽ trao đổi để xác định hướng học và phần cần củng cố.</p></div><div><h3>Nội dung đang được hoàn thiện</h3><p>Chương trình chi tiết cho định hướng HSG Quốc gia sẽ được bổ sung sau. Bạn có thể gửi thông tin để được tư vấn riêng.</p></div></div>}</header>
+ {course&&<section className="public-wrap public-section"><div className="public-section-heading"><p className="public-kicker">Nội dung học tập</p><h2>Các chặng phát triển kiến thức.</h2><p>Mỗi chặng tạo nền cho bước tiếp theo. Bài luyện tập và phần cần củng cố được trao đổi theo quá trình học.</p></div><div className="public-stages">{publicStages(program as ProgramSlug).map((stage,i)=><article className="public-stage" key={stage.title}><div className="public-stage-number">0{i+1}<span>Chặng {i+1}</span></div><div><h3>{stage.title}</h3><p>{stage.description}</p><details><summary>Xem các chủ đề</summary><ul className="public-lessons">{stage.lessons.map(lesson=><li key={lesson.range}><span>{lesson.range}</span><strong>{lesson.title}</strong></li>)}</ul></details></div></article>)}</div></section>}
+ <section className="public-wrap public-section"><div className="public-cta"><div><p className="public-kicker">Cùng xác định bước tiếp theo</p><h2>Học từ nền tảng.<br/>Tiến theo mục tiêu.</h2><p>{course?.next||'Lộ trình phù hợp cần dựa trên việc học thực tế. Hãy để CSAT hiểu hơn về mục tiêu HSG Quốc gia của bạn.'}</p></div><Suspense fallback={<Link href="/lo-trinh#tu-van" className="public-button">Tư vấn học tập</Link>}><CourseConsultLink program={program}/></Suspense></div></section></PublicShell>;
+}

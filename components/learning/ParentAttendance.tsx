@@ -1,0 +1,18 @@
+'use client';
+import { useState } from 'react';
+import type { ParentLearningData } from '@/lib/parent-learning';
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
+type Session=ParentLearningData['attendance'][number];
+const status=(s:Session)=>s.session_status==='cancelled'?'Buổi đã hủy':s.status==='attended'?'Có mặt':s.status==='absent'?'Vắng':'Chưa có điểm danh';
+const money=(amount:number|null|undefined)=>amount==null?'Chưa đủ dữ liệu':new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND',maximumFractionDigits:0}).format(amount);
+function SessionFee({session}:{session:Session}){
+ return <div className="rounded-lg border p-4"><p><strong>Học phí buổi học: </strong>{money(session.tuition_amount)}</p><p className="mt-2 text-xs text-muted-foreground">{session.session_status==='cancelled'?'Buổi đã hủy; không đưa vào tạm tính.':session.billing_period===undefined?'Trạng thái chốt chưa cập nhật.':session.billing_period?'Đã chốt · '+session.billing_period:'Chưa chốt · theo dữ liệu buổi học đã ghi nhận.'}{session.fee_adjusted?' Đã cập nhật theo bản điều chỉnh được ghi nhận.':''}</p></div>;
+}
+export function ParentAttendance({sessions}:{sessions:Session[]}){
+ const [selected,setSelected]=useState<Session|null>(null);
+ const attended=sessions.filter(s=>s.session_status!=='cancelled'&&s.status==='attended').length;
+ const absent=sessions.filter(s=>s.session_status!=='cancelled'&&s.status==='absent').length;
+ return <><div className="parent-attendance-stats"><span><strong>{sessions.length}</strong> Buổi theo lịch</span><span><strong>{attended}</strong> Có mặt</span><span><strong>{absent}</strong> Vắng</span></div>{sessions.length?<div className="overflow-x-auto"><table className="parent-attendance-table"><thead><tr><th>Ngày / Giờ</th><th>Lớp & nội dung</th><th>Điểm danh</th><th><span className="sr-only">Chi tiết buổi học</span></th></tr></thead><tbody>{sessions.map(s=><tr key={s.session_id}><td><strong>{s.date.split('-').reverse().join('/')}</strong><span>{s.start_time.slice(0,5)}–{s.end_time.slice(0,5)}</span></td><td><strong>{s.class_name}</strong><span>{s.lesson?.title||'Nội dung chưa công bố'}</span><div className="hidden print:block"><p>{s.lesson?.content}</p><SessionFee session={s}/>{s.lesson?.continuation&&<p>Học tiếp: {s.lesson.continuation}</p>}</div></td><td><span className="parent-status">{status(s)}</span></td><td className="print:hidden"><button type="button" className="min-h-11 text-sm font-semibold underline" onClick={()=>setSelected(s)} aria-label={'Xem buổi '+s.date+' · '+s.class_name}>Chi tiết</button></td></tr>)}</tbody></table></div>:<p className="text-sm text-muted-foreground">Chưa có buổi học được ghi nhận cho học sinh trong tháng này.</p>}
+ <Dialog open={!!selected} onOpenChange={open=>{if(!open)setSelected(null);}}><DialogContent showCloseButton={false} className="parent-session-dialog max-h-[85vh] overflow-y-auto p-6 sm:max-w-xl"><DialogTitle className="pr-10">{selected?.lesson?.title||'Thông tin buổi học'}</DialogTitle><DialogClose aria-label="Đóng chi tiết buổi học" className="absolute right-2 top-2 grid min-h-11 min-w-11 place-items-center rounded-lg text-2xl">×</DialogClose><DialogDescription>{selected?.class_name} · {selected?.date} · {selected?status(selected):''}</DialogDescription><div className="space-y-4 whitespace-pre-wrap text-sm leading-7">{selected&&<p><strong>Giờ học: </strong>{selected.start_time.slice(0,5)}–{selected.end_time.slice(0,5)}</p>}<p>{selected?.lesson?.content||'Gia sư chưa công bố nội dung buổi học.'}</p>{selected?.lesson?.continuation&&<p><strong>Học tiếp: </strong>{selected.lesson.continuation}</p>}{selected&&<SessionFee session={selected}/>}</div></DialogContent></Dialog>
+ </>;
+}

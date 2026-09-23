@@ -1,20 +1,24 @@
+'use client';
+import { useState } from 'react';
 import type { LearningBody, LearningTemplate } from '@/lib/learning';
 import { PROGRAMS } from '@/lib/learning';
+import { effectiveStages, isStructuredCurriculum } from '@/lib/curriculum';
 import { getReviewTag } from '@/lib/student-reviews';
-export function Roadmap({ body, template }: { body: LearningBody; template?: LearningTemplate | null }) {
-  return <div className="space-y-5">
-    <div className="flex flex-wrap gap-2 text-xs font-semibold"><span className="rounded-full bg-primary/10 px-3 py-2 text-primary">{body.program ? PROGRAMS[body.program] : 'Chưa xác nhận chương trình'}</span>{body.format && <span className="rounded-full bg-secondary px-3 py-2">{body.format === 'individual' ? 'Học 1–1' : 'Học nhóm'}</span>}</div>
-    {body.goal && <div><h3 className="font-bold">Mục tiêu đồng hành</h3><p className="mt-2 whitespace-pre-wrap text-sm leading-7">{body.goal}</p></div>}
-    {body.focus_tags.length > 0 && <div className="flex flex-wrap gap-2">{body.focus_tags.map(id => <span key={id} className="rounded-lg border border-primary/25 px-3 py-2 text-xs">{getReviewTag(id)?.label || id}</span>)}</div>}
-    {body.next_step && <p className="whitespace-pre-wrap rounded-xl bg-accent p-4 text-sm leading-7"><strong>Bước tiếp theo: </strong>{body.next_step}</p>}
-    {template ? <>
-      <p className="text-xs text-muted-foreground">{template.title} · Phiên bản {template.version}. Khung buổi là kế hoạch tham chiếu; khả năng vận dụng được ghi nhận trong nhận xét tháng.</p>
-      <ol className="space-y-4">{template.stages.map((stage, index) => <li key={index} className={'rounded-xl border p-4 sm:p-5 ' + (body.stage_index === index ? 'border-primary bg-primary/5' : 'border-foreground/15')}>
-        <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-foreground px-3 py-1 text-xs font-bold text-background">Chặng {index + 1}</span><span className="text-xs text-muted-foreground">Buổi {stage.range}</span>{body.stage_index === index && <span className="text-xs font-bold text-primary">Trọng tâm hiện tại</span>}</div>
-        <h3 className="mt-3 text-lg font-extrabold">{stage.title}</h3><p className="mt-2 text-sm leading-7">{stage.description}</p>
-        <ul className="my-3 list-disc space-y-1 pl-5 text-sm leading-6">{stage.outcomes.map((outcome,i) => <li key={i}>{outcome}</li>)}</ul>
-        <div className="space-y-2">{stage.lessons.map((lesson,i) => <details key={i} className="rounded-lg border border-foreground/10 bg-card p-3 print:break-inside-avoid"><summary className="cursor-pointer text-sm font-semibold">Buổi {lesson.range} · {lesson.title}</summary><div className="mt-3 space-y-2 text-sm leading-7"><p>{lesson.description}</p><p className="text-xs text-muted-foreground">{lesson.source}</p></div></details>)}</div>
-      </li>)}</ol><p className="text-xs leading-6 text-muted-foreground">Nguồn: {template.source}</p>
-    </> : <p className="rounded-xl border border-dashed p-5 text-sm">{body.program === 'voi' ? 'Khung HSGQG đang chờ giáo án được trung tâm xác nhận. Mục tiêu và bước chuẩn bị riêng sẽ được gia sư cập nhật.' : body.program === 'custom' ? 'Lộ trình luyện thi được điều chỉnh theo kỳ thi, mục tiêu và nội dung cần củng cố. Gia sư sẽ cập nhật nội dung phù hợp với lớp.' : 'Gia sư chưa công bố phiên bản giáo án cho lớp.'}</p>}
-  </div>;
+export function Roadmap({body,template}:{body:LearningBody;template?:LearningTemplate|null}){
+ const stages=effectiveStages(template,body);
+ const current=stages.find(s=>isStructuredCurriculum(template)?s.id===body.curriculum?.current_stage_id:s.originalIndex===body.stage_index);
+ const [selected,setSelected]=useState<string|null>(null);
+ const stage=stages.find(s=>(s.id??String(s.originalIndex))===selected)??current??stages[0];
+ return <div className="space-y-5">
+  <div className="flex flex-wrap gap-2 text-xs font-semibold"><span className="rounded-full border px-3 py-2">{body.program?PROGRAMS[body.program]:'Chưa xác nhận chương trình'}</span>{body.format&&<span className="rounded-full border px-3 py-2">{body.format==='individual'?'Học 1–1':'Học nhóm'}</span>}{body.program==='basic'&&isStructuredCurriculum(template)&&<span className="rounded-full border px-3 py-2">Tầng {(body.curriculum?.parts??['A','B']).join(' + ')}</span>}</div>
+  {template?<>
+   <p className="text-xs leading-6 text-muted-foreground">Khung nội dung định hướng việc học, không thể hiện học sinh đã thành thạo. {current?'Gia sư đang ghi nhận trọng tâm: '+current.title+'.':'Chặng đang tập trung chưa được xác nhận.'}</p>
+   <div className="roadmap-stage-nav grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label="Chọn chặng để xem nội dung">{stages.map((s,i)=><button type="button" key={s.id??s.originalIndex} aria-pressed={stage===s} onClick={()=>setSelected(s.id??String(s.originalIndex))} className={'roadmap-stage min-h-24 rounded-xl border p-3 text-left '+(stage===s?'bg-primary text-primary-foreground':'bg-card')}><span className="mb-2 block font-mono text-xs">CHẶNG {String(i+1).padStart(2,'0')}{s===current?' · ĐANG TẬP TRUNG':''}</span><span className="text-sm font-bold">{s.title}</span></button>)}</div>
+   <div className="roadmap-detail grid gap-5 lg:grid-cols-[1fr_260px]">
+    <div className="min-w-0 rounded-xl border p-5">{stage?<><p className="mb-2 text-xs text-muted-foreground">Đang xem nội dung · không phải trạng thái hoàn thành</p><h3 className="text-xl font-extrabold">{stage.title}</h3><p className="my-3 text-sm leading-7">{stage.description}</p><div className="space-y-2">{stage.lessons.map((l,i)=><details key={l.code??i} className="rounded-lg border bg-card px-3"><summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">{l.code?l.code+' · ':''}{l.title}</summary><div className="pb-4 text-sm leading-7">{l.description||'Nội dung luyện tập cụ thể được gia sư cập nhật theo buổi học.'}</div></details>)}</div></>:<p className="text-sm">Chưa có chủ đề trong cấu hình đang xem.</p>}</div>
+    <aside className="roadmap-focus space-y-4 rounded-xl border bg-accent p-5"><h3 className="font-bold">Trọng tâm đồng hành</h3><p className="whitespace-pre-wrap text-sm leading-7">{body.goal||'Gia sư sẽ bổ sung mục tiêu sau khi trao đổi và ghi nhận quá trình học.'}</p>{body.focus_tags.length>0&&<div className="flex flex-wrap gap-2">{body.focus_tags.map(id=><span key={id} className="rounded-lg border bg-card p-2 text-xs">{getReviewTag(id)?.label||id}</span>)}</div>}{body.next_step&&<p className="whitespace-pre-wrap text-sm leading-7"><strong>Bước tiếp theo: </strong>{body.next_step}</p>}</aside>
+   </div>
+   <details className="roadmap-all rounded-xl border p-4"><summary className="min-h-11 cursor-pointer py-3 text-sm font-bold">Xem toàn bộ nội dung của lớp</summary><div className="space-y-5 pt-3">{stages.map(s=><section key={s.id??s.originalIndex}><h3 className="font-bold">{s.title}</h3><ul className="mt-2 space-y-2 text-sm leading-7">{s.lessons.map((l,i)=><li key={l.code??i}><strong>{l.code?l.code+' · ':''}{l.title}</strong>{l.description&&<p>{l.description}</p>}</li>)}</ul></section>)}</div></details>
+  </>:<div className="space-y-4 rounded-xl border border-dashed p-5"><p className="text-sm leading-7">{body.program==='voi'?'Khung HSGQG chờ giáo án được trung tâm xác nhận.':body.program==='custom'?'Lộ trình luyện thi được điều chỉnh theo kỳ thi và mục tiêu của lớp.':'Gia sư chưa công bố phiên bản giáo án cho lớp.'}</p>{body.goal&&<p className="text-sm leading-7">{body.goal}</p>}<div className="flex flex-wrap gap-2">{body.focus_tags.map(id=><span key={id} className="rounded-lg border p-2 text-xs">{getReviewTag(id)?.label||id}</span>)}</div>{body.next_step&&<p className="text-sm leading-7">{body.next_step}</p>}</div>}
+ </div>;
 }

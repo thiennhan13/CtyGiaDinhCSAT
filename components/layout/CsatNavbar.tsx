@@ -29,7 +29,7 @@ interface NavItem {
 // ── Admin nav items ─────────────────────────────────────────────
 const adminNavItems: NavItem[] = [
   { href: '/admin/dashboard',   label: 'Trang chủ',      icon: Home,          iconColor: '#38a9f0', activeBg: 'rgba(56,169,240,0.12)',  activeText: '#1272b8' },
-  { href: '/admin/students',    label: 'Học sinh',        icon: Users,         iconColor: '#7d2fc4', activeBg: 'rgba(125,47,196,0.12)',  activeText: '#6f29ae', children: [{ href: '/admin/parents', label: 'Tra cứu phụ huynh' }, { href: '/admin/learning', label: 'Chương trình & nhận xét' }] },
+  { href: '/admin/students',    label: 'Học sinh',        icon: Users,         iconColor: '#7d2fc4', activeBg: 'rgba(125,47,196,0.12)',  activeText: '#6f29ae', children: [{ href: '/admin/parents', label: 'Tra cứu phụ huynh' }, { href: '/admin/consultations', label: 'Yêu cầu tư vấn' }, { href: '/admin/learning', label: 'Chương trình & nhận xét' }] },
   { href: '/admin/tutors',      label: 'Gia sư',         icon: GraduationCap, iconColor: '#108a51', activeBg: 'rgba(16,138,81,0.12)',   activeText: '#0e7a47',
     children: [
       { href: '/admin/tutors-tree', label: 'Sơ đồ Gia sư' },
@@ -45,14 +45,17 @@ const tutorNavItems: NavItem[] = [
   { href: '/tutor/classes',   label: 'Lớp giảng dạy',  icon: BookOpen,      iconColor: '#2b50e0', activeBg: 'rgba(43,80,224,0.12)',   activeText: '#2b50e0' },
   { href: '/tutor/reviews', label: 'Nhận xét tháng', icon: Users, iconColor: '#7d2fc4', activeBg: 'rgba(125,47,196,0.12)', activeText: '#6f29ae' },
   { href: '/tutor/salary',    label: 'Bảng Lương',      icon: DollarSign,    iconColor: '#108a51', activeBg: 'rgba(16,138,81,0.12)',   activeText: '#0e7a47' },
+  { href: '/tutor/profile', label: 'Hồ sơ của tôi', icon: GraduationCap, iconColor: '#7d2fc4', activeBg: 'rgba(125,47,196,0.12)', activeText: '#6f29ae' },
 ];
 
 // ── Guest/Landing nav items ─────────────────────────────────────
 const guestNavItems: NavItem[] = [
-  { href: '/login',         label: 'Phụ huynh',     icon: Users,         iconColor: '#7d2fc4', activeBg: 'rgba(125,47,196,0.12)',  activeText: '#6f29ae' },
-  { href: '/tutor',         label: 'Gia sư',        icon: GraduationCap, iconColor: '#108a51', activeBg: 'rgba(16,138,81,0.12)',   activeText: '#0e7a47' },
-  { href: 'https://csatoj.vn/awards/', label: 'Vinh danh', icon: Trophy, iconColor: '#f59e0b', activeBg: 'rgba(245,158,11,0.12)', activeText: '#b45309' },
-  { href: 'https://csatoj.vn/users/',  label: 'Bảng xếp hạng', icon: Trophy, iconColor: '#38a9f0', activeBg: 'rgba(56,169,240,0.12)', activeText: '#1272b8' },
+ { href: '/', label: 'Giới thiệu', icon: Home, iconColor: '#2b50e0', activeBg: '', activeText: '' },
+ { href: '/lo-trinh', label: 'Lộ trình học tập', icon: BookOpen, iconColor: '#2b50e0', activeBg: '', activeText: '' },
+ { href: 'https://csatoj.vn', label: 'CSATOJ', icon: Trophy, iconColor: '#b45309', activeBg: '', activeText: '' },
+ { href: '/lo-trinh#tu-van', label: 'Tư vấn', icon: Info, iconColor: '#108a51', activeBg: '', activeText: '' },
+ { href: '/login', label: 'Phụ huynh', icon: Users, iconColor: '#7d2fc4', activeBg: '', activeText: '' },
+ { href: '/tutor', label: 'Gia sư', icon: GraduationCap, iconColor: '#108a51', activeBg: '', activeText: '' },
 ];
 
 // ── Props ───────────────────────────────────────────────────────
@@ -129,6 +132,7 @@ export function CsatNavbar({ variant, user }: CsatNavbarProps) {
   return (
     <nav
       ref={navRef}
+      onKeyDown={e => { if(e.key === "Escape") { setMobileOpen(false); navRef.current?.querySelector<HTMLButtonElement>(".csat-navicon")?.focus(); } }}
       className="fixed top-2.5 left-3 right-3 pointer-events-none"
       style={{ zIndex: 500 }}
     >
@@ -142,6 +146,8 @@ export function CsatNavbar({ variant, user }: CsatNavbarProps) {
           onClick={() => setMobileOpen(!mobileOpen)}
           className="csat-navicon text-foreground p-2 bg-transparent border-none cursor-pointer transition-colors rounded-full"
           aria-label={mobileOpen ? 'Đóng menu' : 'Mở menu'}
+          aria-expanded={mobileOpen}
+          aria-controls="csat-mobile-navigation"
           style={{ display: 'none' }}
         >
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -170,13 +176,16 @@ export function CsatNavbar({ variant, user }: CsatNavbarProps) {
           {navItems.map((item) => {
             const Icon = item.icon;
             const isExternal = item.href.startsWith('http');
-            const isActive = !isExternal && pathname.startsWith(item.href);
+            const isActive = !isExternal && (item.href === '/' ? pathname === '/' : pathname.startsWith(item.href));
             const hasSubmenu = item.children && item.children.length > 0;
 
             return (
               <li
                 key={item.href}
                 className="block relative"
+                onFocus={() => hasSubmenu && setOpenSubmenu(item.href)}
+                onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setOpenSubmenu(null); }}
+                onKeyDown={e => { if(e.key === "Escape") { setOpenSubmenu(null); e.stopPropagation(); } }}
                 onMouseEnter={() => hasSubmenu && setOpenSubmenu(item.href)}
                 onMouseLeave={() => hasSubmenu && setOpenSubmenu(null)}
               >
@@ -274,12 +283,13 @@ export function CsatNavbar({ variant, user }: CsatNavbarProps) {
       {/* ── Mobile dropdown menu ── */}
       {mobileOpen && (
         <ul
+          id="csat-mobile-navigation"
           className="csat-mobile-menu pointer-events-auto fixed top-16 left-2 w-60 bg-card border border-border rounded-2xl shadow-xl p-2 m-0 list-none z-510 animate-fade-in"
         >
           {navItems.map((item) => {
             const Icon = item.icon;
             const isExternal = item.href.startsWith('http');
-            const isActive = !isExternal && pathname.startsWith(item.href);
+            const isActive = !isExternal && (item.href === '/' ? pathname === '/' : pathname.startsWith(item.href));
 
             return (
               <li key={item.href}>

@@ -1,253 +1,31 @@
-import Image from 'next/image';
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { CsatNavbar } from '@/components/layout/CsatNavbar';
-import { CsatBackground } from '@/components/CsatBackground';
-import { ArrowRight, Trophy, BookOpen, GraduationCap, Award, Target, Zap, Users, ExternalLink, Facebook } from 'lucide-react';
-
+import { ArrowRight, ArrowUpRight, Braces, Search, Route, Bug, BookOpen, Monitor, Users } from 'lucide-react';
+import { PublicShell, ConsultationCTA } from '@/components/marketing/PublicShell';
+import { ProgramCards } from '@/components/marketing/ProgramCards';
+export const metadata: Metadata = { title: 'CSAT Tutor — Học C++, thuật toán và lập trình thi đấu', description: 'Khám phá cách học C++ và thuật toán tại CSAT: hai lộ trình Cơ bản, Nâng cao, luyện tập trên CSATOJ và sự đồng hành của gia sư, phụ huynh.', alternates: { canonical: 'https://portal.csatoj.vn' } };
+const benefits = [
+  [Search, 'Đọc sâu một bài toán', 'Xác định dữ liệu, yêu cầu và ràng buộc. Chia một vấn đề thành những phần có thể giải quyết.'],
+  [Route, 'Chọn cách giải có lý do', 'So sánh các phương án, giải thích tính đúng và cân nhắc thời gian, bộ nhớ trước khi viết mã.'],
+  [Bug, 'Học từ lần thử chưa đúng', 'Tự tạo bộ kiểm thử, tìm trường hợp bị bỏ sót và sửa lỗi dựa trên kết quả cụ thể.'],
+  [BookOpen, 'Từng bước tự học', 'Đọc lại lời giải, luyện bài liên quan và ghi nhận điều cần cải thiện cho lần tiếp theo.'],
+] as const;
 export default function LandingPage() {
-  return (
-    <div className="relative min-h-screen overflow-hidden">
-      <CsatBackground />
-      <CsatNavbar variant="guest" />
-
-      {/* ════════════════════════════════════════════════════════
-          SECTION 1: HERO — Thông điệp chính
-          ════════════════════════════════════════════════════════ */}
-      <section
-        className="flex flex-col lg:grid lg:grid-cols-2 items-center justify-center min-h-screen"
-        style={{
-          position: 'relative',
-          zIndex: 10,
-          maxWidth: 1440,
-          margin: '0 auto',
-          padding: '100px 24px 60px',
-          gap: 'clamp(40px, 6vw, 80px)',
-        }}
-      >
-        {/* LEFT: Hero text */}
-        <div style={{ flex: '1 1 0', minWidth: 0, width: '100%' }} className="flex flex-col gap-10">
-          <div className="animate-fade-in">
-            {/* Badges */}
-            <div className="flex gap-2 flex-wrap mb-5">
-              <div className="inline-flex items-center gap-1.5 bg-primary/10 border border-primary/20 text-primary text-xs font-bold px-3 py-1.5 rounded-full tracking-wide">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span>CSAT Tutor</span>
-              </div>
-              <div className="inline-flex items-center gap-1.5 bg-csat-lime/20 border border-csat-lime/40 text-foreground text-xs font-bold px-3 py-1.5 rounded-full tracking-wide">
-                <span>✦</span><span>C++ · Competitive Programming</span>
-              </div>
-            </div>
-
-            <h1 className="font-heading font-black text-[clamp(2rem,4.2vw,3.36em)] text-foreground leading-[1.12] tracking-[-0.015em] mb-4">
-              Học sinh giỏi Quốc gia Tin học{' '}
-              <span className="text-primary">chưa bao giờ</span>{' '}
-              là một hành trình dễ dàng.
-            </h1>
-
-            <p className="text-base md:text-lg text-muted-foreground leading-relaxed mb-6 max-w-[520px]">
-              Đó là cuộc đua của tư duy, của sự kiên trì và của hàng nghìn giờ luyện tập phía sau những dòng code. Nhưng một <strong className="text-foreground">lộ trình đúng đắn</strong> có thể giúp bạn đi nhanh hơn, đi xa hơn.
-            </p>
-
-            {/* CTA buttons */}
-            <div className="flex gap-3 flex-wrap">
-              <Link
-                href="/login"
-                className="csat-btn csat-btn--primary no-underline text-[0.9em]"
-              >
-                Cổng Phụ Huynh
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Link>
-              <a
-                href="https://csatoj.vn"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="csat-btn no-underline text-[0.9em] bg-card text-foreground border-2 border-foreground shadow-neo"
-              >
-                Truy cập CSATOJ.VN
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
-          </div>
-
-          {/* CSAT-Mark Hero Art Box */}
-          <div className="animate-slide-up relative max-w-[480px]">
-            <div
-              className="bg-card border-[3px] border-foreground rounded-2xl overflow-hidden -rotate-[1.5deg] transition-transform duration-200 hover:-rotate-[0.5deg] hover:scale-[1.01]"
-              style={{ boxShadow: '9px 9px 0 var(--shadow-color)' }}
-            >
-              <Image
-                src="/images/csat-mark.png"
-                alt="CSAT Online — Trust Me Bro. Tin Anh."
-                width={960}
-                height={480}
-                className="w-full h-auto block"
-                priority
-                unoptimized
-              />
-            </div>
-            <div
-              className="absolute -top-3.5 -right-3 bg-csat-lime text-foreground font-heading font-extrabold text-[1.23em] px-[18px] py-2 rounded-xl border-[3px] border-foreground rotate-[2.5deg] uppercase tracking-wide whitespace-nowrap z-10"
-              style={{ boxShadow: '4px 4px 0 var(--shadow-color)' }}
-            >
-              TUYỂN SINH 2026
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT: Thành tích Đội ngũ + CTA */}
-        <div className="animate-slide-up w-full max-w-[520px] shrink-0 mx-auto space-y-6">
-          {/* Giới thiệu Đội ngũ Card */}
-          <div className="csat-card bg-card p-7 relative z-10">
-            <div className="flex items-center gap-2 mb-1">
-              <GraduationCap className="w-5 h-5 text-primary" />
-              <h2 className="font-heading font-black text-[1.35rem] text-foreground tracking-tight">
-                Gặp gỡ Đội ngũ Gia sư
-              </h2>
-            </div>
-            <p className="text-sm text-muted-foreground leading-relaxed mb-5">
-              Đằng sau mỗi buổi học chất lượng là những người thầy, người anh đã từng trải qua chính hành trình mà các bạn học sinh đang hướng tới hôm nay.
-            </p>
-
-            {/* Stats thành tích */}
-            <div className="grid grid-cols-3 gap-3 mb-5">
-              <div className="bg-amber-500/10 border-2 border-foreground rounded-xl p-4 text-center shadow-neo-hover">
-                <Award className="w-6 h-6 text-amber-500 mx-auto mb-1.5" />
-                <div className="font-heading font-black text-2xl text-foreground">1</div>
-                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">Giải Nhất QG</div>
-              </div>
-              <div className="bg-slate-400/10 border-2 border-foreground rounded-xl p-4 text-center shadow-neo-hover">
-                <Trophy className="w-6 h-6 text-slate-500 mx-auto mb-1.5" />
-                <div className="font-heading font-black text-2xl text-foreground">8</div>
-                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">Giải Nhì QG</div>
-              </div>
-              <div className="bg-amber-700/10 border-2 border-foreground rounded-xl p-4 text-center shadow-neo-hover">
-                <Trophy className="w-6 h-6 text-amber-700 mx-auto mb-1.5" />
-                <div className="font-heading font-black text-2xl text-foreground">1</div>
-                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">Giải Ba QG</div>
-              </div>
-            </div>
-
-            <p className="text-[13px] text-muted-foreground leading-relaxed">
-              Các anh đã từng là những học sinh chuyên Tin. Và hôm nay, họ sẵn sàng <strong className="text-foreground">đồng hành để giúp thế hệ tiếp theo tiến xa hơn</strong> 🚀
-            </p>
-          </div>
-
-          {/* Quick Nav Card */}
-          <div className="csat-card bg-card p-5 relative z-10">
-            <h3 className="text-[0.85rem] font-bold uppercase tracking-wider mb-3">Dành cho Phụ Huynh & Gia Sư</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <Link href="/login" className="flex items-center justify-center gap-2 py-2.5 border border-border rounded-lg text-sm font-semibold hover:bg-accent transition-colors no-underline text-foreground">
-                <Users className="w-4 h-4 text-primary" />
-                Phụ huynh
-              </Link>
-              <Link href="/tutor" className="flex items-center justify-center gap-2 py-2.5 border border-border rounded-lg text-sm font-semibold hover:bg-accent transition-colors no-underline text-foreground">
-                <GraduationCap className="w-4 h-4 text-green-500" />
-                Gia sư
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════════════
-          SECTION 2: LỘ TRÌNH & 3 GIÁ TRỊ CỐT LÕI
-          ════════════════════════════════════════════════════════ */}
-      <section
-        className="relative z-10"
-        style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 80px' }}
-      >
-        <div className="text-center mb-10 animate-fade-in">
-          <div className="inline-flex items-center gap-1.5 bg-primary/10 border border-primary/20 text-primary text-xs font-bold px-3 py-1.5 rounded-full tracking-wide mb-4">
-            <Zap className="w-3.5 h-3.5" />
-            <span>Tại sao chọn CSAT?</span>
-          </div>
-          <h2 className="font-heading font-black text-[clamp(1.5rem,3vw,2.25rem)] text-foreground mb-3">
-            Lộ trình bài bản, trọng tâm đề thi
-          </h2>
-          <p className="text-muted-foreground max-w-[600px] mx-auto text-sm md:text-base leading-relaxed">
-            Từ kiến thức nền tảng về thuật toán, cấu trúc dữ liệu đến các chuyên đề chuyên sâu thường xuất hiện trong đề thi HSGQG — CSAT Tutor xây dựng chương trình học tập bài bản.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 animate-slide-up">
-          {/* Card 1: Lộ trình */}
-          <div className="csat-card bg-card p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-200">
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-primary"></div>
-            <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
-              <Target className="w-5 h-5 text-primary" />
-            </div>
-            <h3 className="font-heading font-bold text-base text-foreground mb-2">
-              Lộ trình rõ ràng
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Tiến thẳng đến trọng tâm đề thi, không lan man. Tiết kiệm thời gian quý báu cho học sinh.
-            </p>
-          </div>
-
-          {/* Card 2: Chữa bài */}
-          <div className="csat-card bg-card p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-200">
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-green-500"></div>
-            <div className="w-11 h-11 bg-green-500/10 rounded-xl flex items-center justify-center mb-4">
-              <BookOpen className="w-5 h-5 text-green-500" />
-            </div>
-            <h3 className="font-heading font-bold text-base text-foreground mb-2">
-              Chữa bài chi tiết
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Nhận xét cụ thể về bài làm, mức độ kiến thức và góp ý hoàn thiện — kể cả khi đã kết thúc buổi học.
-            </p>
-          </div>
-
-          {/* Card 3: Kho bài tập */}
-          <div className="csat-card bg-card p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-200">
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-amber-500"></div>
-            <div className="w-11 h-11 bg-amber-500/10 rounded-xl flex items-center justify-center mb-4">
-              <Zap className="w-5 h-5 text-amber-500" />
-            </div>
-            <h3 className="font-heading font-bold text-base text-foreground mb-2">
-              Kho bài tập CSATOJ
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Hệ thống chấm bài tự động, cập nhật liên tục, chọn lọc phù hợp. Luyện tập mọi lúc 24/7.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════════════
-          SECTION 3: FOOTER CTA
-          ════════════════════════════════════════════════════════ */}
-      <section
-        className="relative z-10"
-        style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 60px' }}
-      >
-        <div className="csat-card bg-card p-8 md:p-10 text-center animate-fade-in">
-          <h2 className="font-heading font-black text-xl md:text-2xl text-foreground mb-3">
-            Sẵn sàng bắt đầu hành trình?
-          </h2>
-          <p className="text-sm text-muted-foreground mb-6 max-w-[480px] mx-auto">
-            Với CSAT Tutor, mục tiêu không chỉ là giúp học sinh giải được bài toán, mà còn là xây dựng tư duy lập trình, khả năng tự học và sự tự tin.
-          </p>
-          <div className="flex gap-3 justify-center flex-wrap">
-            <Link
-              href="/login"
-              className="csat-btn csat-btn--primary no-underline text-[0.9em]"
-            >
-              Cổng Phụ Huynh
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </Link>
-            <a
-              href="https://facebook.com/csat.tutor"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="csat-btn no-underline text-[0.9em] bg-card text-foreground border-2 border-foreground shadow-neo"
-            >
-              <Facebook className="w-3.5 h-3.5" />
-              Liên hệ tư vấn
-            </a>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
+ return <PublicShell>
+  <section className="public-hero public-wrap"><div><p className="public-kicker"><span className="public-dot" /> CSAT Tutor · C++ & thuật toán</p><h1>Hiểu bài toán.<br /><span>Vững cách giải.</span></h1><p className="public-lead">Học lập trình từ cách nghĩ đến cách làm.</p><p className="public-intro">CSAT dạy C++ và thuật toán qua các bài toán lập trình: phân tích yêu cầu, xây dựng lời giải, viết chương trình và kiểm chứng kết quả.</p><div className="public-actions"><Link href="/lo-trinh" className="public-button">Khám phá lộ trình <ArrowRight size={20} /></Link><Link href="/lo-trinh#tu-van" className="public-button public-button-secondary">Tư vấn học tập</Link></div><p className="public-hero-note">Từ nền tảng đầu tiên đến định hướng luyện thi Tin học.</p></div>
+   <div className="public-hero-board" aria-label="Chu trình giải bài toán"><div className="public-board-head"><Braces size={28} /><span>MỖI BÀI TOÁN, MỘT BƯỚC TIẾN</span><span className="public-board-dots" aria-hidden="true">•••</span></div><div className="public-board-body"><div className="public-board-question">Điều gì khiến<br /><strong>lời giải này đúng?</strong></div><ol className="public-process">{['Hiểu đề & chia nhỏ vấn đề', 'Tìm cách giải & giải thích', 'Viết chương trình & kiểm tra', 'Nhìn lại & thử bài tiếp theo'].map((s, i) => <li key={s}><span>0{i + 1}</span>{s}</li>)}</ol><div className="public-board-label">Tư duy trước. Thực hành để hiểu sâu.</div></div></div>
+  </section>
+  <section className="public-section public-wrap" id="phu-hop"><div className="public-section-heading"><p className="public-kicker">Bạn đang ở đâu?</p><h2>Một điểm bắt đầu phù hợp<br />cho mỗi mục tiêu.</h2></div><div className="public-audiences">{[
+   ['Mới làm quen lập trình', 'Học cách diễn đạt một ý tưởng bằng C++, từ nhập dữ liệu đến chương trình có điều kiện và vòng lặp.'],
+   ['Đã học, muốn vững hơn', 'Kết nối kiến thức còn rời rạc, luyện cách chọn thuật toán và tự kiểm tra bài làm.'],
+   ['Có mục tiêu thi Tin học', 'Xác định kiến thức cần củng cố, từ HSG THCS, Chuyên Tin đến HSG tỉnh THPT; trao đổi riêng với mục tiêu HSG Quốc gia.'],
+  ].map(([title, body], i) => <article key={title}><span className="public-small-number">0{i + 1}</span><h3>{title}</h3><p>{body}</p></article>)}</div><p className="public-section-note">Bạn là sinh viên hoặc chưa xác định mục tiêu? <Link href="/lo-trinh#tu-van">Trao đổi với CSAT để được tư vấn riêng.</Link></p></section>
+  <section className="public-benefits"><div className="public-wrap public-section"><div className="public-section-heading"><p className="public-kicker">Vì sao học lập trình thi đấu?</p><h2>Luyện giải bài.<br />Rèn cách suy nghĩ.</h2><p>Lập trình thi đấu đặt người học trước những bài toán có yêu cầu và giới hạn rõ ràng. Mỗi lời giải là cơ hội tập phân tích, lập luận và kiểm chứng — những thói quen hữu ích khi tiếp tục học Tin học và kỹ thuật.</p></div><div className="public-benefit-grid">{benefits.map(([Icon, title, body]) => <article key={title}><Icon size={28} aria-hidden="true" /><h3>{title}</h3><p>{body}</p></article>)}</div></div></section>
+  <section className="public-section public-wrap"><div className="public-section-heading public-heading-row"><div><p className="public-kicker">Hai lộ trình làm nền móng</p><h2>Học có trình tự.<br />Tiến bước có cơ sở.</h2></div><Link className="public-text-link" href="/lo-trinh">Tìm hướng học của bạn <ArrowRight size={18} /></Link></div><ProgramCards /></section>
+  <section className="public-section public-wrap public-method"><div><p className="public-kicker">Cách học tại CSAT</p><h2>Từ buổi học<br />đến lần tự giải.</h2><p>Gia sư giúp làm rõ kiến thức và cách tiếp cận. Học sinh thực hành, trao đổi phần còn vướng và thử lại để hiểu lời giải bằng chính mình.</p><a href="https://csatoj.vn" target="_blank" rel="noopener noreferrer" className="public-text-link">Khám phá CSATOJ <ArrowUpRight size={18} /></a></div><ol className="public-method-steps">{[
+   ['Học cùng gia sư', 'Làm rõ ý tưởng, thử ví dụ và phân tích cách giải.'], ['Thực hành trên CSATOJ', 'Luyện các bài toán, nộp chương trình và xem kết quả chấm tự động.'], ['Nhận xét và sửa bài', 'Trao đổi lỗi, kiểm tra trường hợp còn thiếu và điều chỉnh lời giải.'], ['Xác định bước tiếp theo', 'Cùng nhìn lại nội dung đã học và phần cần luyện thêm.'],
+  ].map(([title, body], i) => <li key={title}><span>0{i + 1}</span><div><h3>{title}</h3><p>{body}</p></div></li>)}</ol></section>
+  <section className="public-wrap public-section"><div className="public-parent-panel"><div><p className="public-kicker">Phụ huynh cùng đồng hành</p><h2>Hiểu con đang học gì.<br />Biết cách hỗ trợ con.</h2><p>Cổng phụ huynh kết nối thông tin buổi học, điểm danh, lộ trình, nhận xét đã công bố và học phí. Phụ huynh có thêm cơ sở để trao đổi với gia sư và cùng con duy trì việc học.</p><Link className="public-text-link" href="/login">Vào cổng phụ huynh <ArrowRight size={18} /></Link></div><div className="public-ecosystem">{([[Monitor, 'CSATOJ', 'Thực hành · Nộp bài · Chấm tự động'], [BookOpen, 'Gia sư', 'Hướng dẫn · Nhận xét · Định hướng'], [Users, 'Phụ huynh', 'Theo dõi · Trao đổi · Đồng hành']] as const).map(([Icon, title, text]) => <div key={title}><Icon size={24} aria-hidden="true" /><div><strong>{title}</strong><p>{text}</p></div></div>)}</div></div></section>
+  <ConsultationCTA />
+ </PublicShell>;
 }

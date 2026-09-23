@@ -10,11 +10,21 @@ export const CLASS_TYPE_OPTIONS = [
 export const programSchema = z.enum(['basic', 'advanced', 'voi', 'custom']);
 export const monthSchema = z.string().regex(/^20\d{2}-(0[1-9]|1[0-2])$/);
 const text = (max = 2000) => z.string().trim().max(max);
-export const lessonSchema = z.object({ range: text(30), title: text(200).min(1), description: text(), source: text(300) }).strict();
-export const stageSchema = z.object({ title: text(200).min(1), range: text(30), description: text(), outcomes: z.array(text(500)).max(12), lessons: z.array(lessonSchema).max(60) }).strict();
-export const templateSchema = z.object({ program: programSchema, title: text(200).min(1), source: text(1000).min(1), stages: z.array(stageSchema).min(1).max(30) }).strict();
+export const lessonSchema = z.object({ code: z.string().regex(/^[A-D][0-9]{2}$/).optional(), range: text(30), title: text(200).min(1), description: text(), source: text(300) }).strict();
+export const stageSchema = z.object({ id: z.string().regex(/^[a-z0-9-]{1,64}$/).optional(), part: z.enum(['A','B','CD']).optional(), title: text(200).min(1), range: text(30), description: text(), outcomes: z.array(text(500)).max(12), lessons: z.array(lessonSchema).max(60) }).strict();
+export const templateSchema = z.object({ program: programSchema, title: text(200).min(1), source: text(1000).min(1), stages: z.array(stageSchema).min(1).max(30) }).strict().superRefine((t,ctx)=>{
+ const keyed=t.stages.some(s=>s.id || s.part || s.lessons.some(l=>l.code));
+ if(!keyed)return;
+ const ids=new Set<string>(),codes=new Set<string>();
+ for(const s of t.stages){
+  if(!s.id || !s.part || ids.has(s.id) || !s.lessons.length || (t.program==='basic'?!['A','B'].includes(s.part):t.program==='advanced'?s.part!=='CD':true))ctx.addIssue({code:'custom',message:'Mỗi chặng cần mã duy nhất và tầng kiến thức đúng chương trình.'});
+  if(s.id)ids.add(s.id);
+  for(const l of s.lessons){if(!l.code || codes.has(l.code) || (s.part==='CD'?!['C','D'].includes(l.code[0]):l.code[0]!==s.part))ctx.addIssue({code:'custom',message:'Mỗi chủ đề cần mã duy nhất thuộc đúng tầng kiến thức.'});if(l.code)codes.add(l.code);}
+ }
+});
 export type LearningTemplate = z.infer<typeof templateSchema> & { template_id: string; version: number };
 export const learningBodySchema = z.object({
+  curriculum: z.object({ parts: z.array(z.enum(['A','B'])).min(1).max(2), excluded_stage_ids: z.array(z.string().max(64)).max(30), excluded_topic_codes: z.array(z.string().regex(/^[A-D][0-9]{2}$/)).max(100), current_stage_id: z.string().max(64).nullable() }).strict().optional(),
   goal: text(), focus_tags: z.array(z.string().max(64)).max(16),
   next_step: text(), stage_index: z.number().int().min(0).max(29).nullable(),
   title: text(200), content: text(5000), continuation: text(),

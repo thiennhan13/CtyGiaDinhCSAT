@@ -8,8 +8,8 @@ export async function GET(request:Request){
  const received=Buffer.from(request.headers.get('authorization') || '');
  const expected=Buffer.from('Bearer '+(secret || ''));
  if(!secret || received.length!==expected.length || !timingSafeEqual(received,expected))
-  return NextResponse.json({error:'Không có quyền truy cập.'},{status:401});
- if(process.env.VERCEL_ENV!=='production')return NextResponse.json({skipped:'production_only'});
+  return NextResponse.json({error:'Không có quyền truy cập.'},{status:401,headers:{'Cache-Control':'no-store'}});
+ if(process.env.VERCEL_ENV!=='production')return NextResponse.json({skipped:'production_only'},{headers:{'Cache-Control':'no-store'}});
  try{return NextResponse.json(await processReviewEmails(true),{headers:{'Cache-Control':'no-store'}});}
- catch{return NextResponse.json({error:'Chưa xử lý được email. Kiểm tra cấu hình và nhật ký.'},{status:503});}
+ catch{return NextResponse.json({error:'Chưa xử lý được email. Kiểm tra cấu hình và nhật ký.'},{status:503,headers:{'Cache-Control':'no-store'}});}
 }

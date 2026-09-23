@@ -9,6 +9,8 @@ import { useConfirm } from '@/components/ui/use-dialog';
 import { defaultProgram, emptyLearningBody, PROGRAMS, type LearningBody, type LearningWorkspace as Workspace, type LearningRecord } from '@/lib/learning';
 import { REVIEW_TAGS } from '@/lib/student-reviews';
 import { getVietnamMonthRange } from '@/lib/calendar';
+import { CurriculumEditor } from './CurriculumEditor';
+import { curriculumError, effectiveStages, isStructuredCurriculum } from '@/lib/curriculum';
 import { Roadmap } from './Roadmap';
 import { AdminClassReviews } from './AdminClassReviews';
 const control = 'min-h-11 w-full rounded-lg border bg-background px-3 py-2 text-sm';
@@ -56,8 +58,12 @@ export function LearningWorkspace({ admin = false, initialMonth }: { admin?: boo
  const kind = target.split(':')[0] as LearningRecord['kind'];
  const subject = target.split(':')[1] || null;
  const template = data?.templates.find(t=>t.template_id===body.template_id);
+ const classBody=data?.records.find(r=>r.kind==='class')?.draft;
+ const sessionTopics=classBody?effectiveStages(data?.templates.find(t=>t.template_id===classBody.template_id),classBody).flatMap(s=>s.lessons):[];
  async function save(publish:boolean) {
   if(busy || !data)return;
+  const issue=kind==='class'?curriculumError(template,body,publish):null;
+  if(issue){setError(issue);return;}
   if(publish && !await confirm({title:'Công bố cho phụ huynh',description:'Nội dung đang xem trước sẽ thay thế bản công bố hiện tại. Lịch sử các lần lưu vẫn được giữ.',confirmText:'Công bố',cancelText:'Xem lại'}))return;
   setBusy(true);setError('');setNotice('');
   try {
@@ -81,11 +87,12 @@ export function LearningWorkspace({ admin = false, initialMonth }: { admin?: boo
   <div className="grid items-start gap-6 lg:grid-cols-2">
    <fieldset disabled={busy} className="min-w-0 space-y-5 rounded-2xl border bg-card p-5"><legend className="sr-only">Soạn nội dung</legend>
     {kind==='class' && <>
-      <label className="block space-y-2 text-sm font-medium">Chương trình<select className={control} value={body.program||''} onChange={e=>{const program=e.target.value as LearningBody['program'];update({program,template_id:data.defaults.find(d=>d.program===program)?.template_id||null,stage_index:null});}}><option value="">Chưa xác nhận</option>{Object.entries(PROGRAMS).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
+      <label className="block space-y-2 text-sm font-medium">Chương trình<select className={control} value={body.program||''} onChange={e=>{const program=e.target.value as LearningBody['program'];update({program,template_id:data.defaults.find(d=>d.program===program)?.template_id||null,stage_index:null,curriculum:undefined});}}><option value="">Chưa xác nhận</option>{Object.entries(PROGRAMS).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
       <label className="block space-y-2 text-sm font-medium">Hình thức học<select className={control} value={body.format||''} onChange={e=>update({format:e.target.value as LearningBody['format']})}><option value="">Chọn hình thức</option><option value="group">Học nhóm</option><option value="individual">Học 1–1</option></select></label>
-      <label className="block space-y-2 text-sm font-medium">Phiên bản giáo án<select className={control} value={body.template_id||''} onChange={e=>update({template_id:e.target.value||null,stage_index:null})}><option value="">Chưa có phiên bản</option>{data.templates.filter(t=>t.program===body.program).map(t=><option key={t.template_id} value={t.template_id}>{t.title} · v{t.version}</option>)}</select></label>
+      <label className="block space-y-2 text-sm font-medium">Phiên bản giáo án<select className={control} value={body.template_id||''} onChange={e=>update({template_id:e.target.value||null,stage_index:null,curriculum:undefined})}><option value="">Chưa có phiên bản</option>{data.templates.filter(t=>t.program===body.program).map(t=><option key={t.template_id} value={t.template_id}>{t.title} · v{t.version}</option>)}</select></label>
       <p className="text-xs leading-6 text-muted-foreground">Đổi template chỉ áp dụng khi bạn lưu. Lớp khác tiếp tục dùng phiên bản đã chọn.</p>
-      <label className="block space-y-2 text-sm font-medium">Chặng đang tập trung<select className={control} value={body.stage_index ?? ''} onChange={e=>update({stage_index:e.target.value===''?null:Number(e.target.value)})}><option value="">Chưa ghi nhận</option>{template?.stages.map((s,i)=><option key={i} value={i}>{i+1}. {s.title}</option>)}</select></label>
+      {template && isStructuredCurriculum(template) ? <CurriculumEditor body={body} template={template} onChange={update}/> : <label className="block space-y-2 text-sm font-medium">Chặng đang tập trung<select className={control} value={body.stage_index ?? ''} onChange={e=>update({stage_index:e.target.value===''?null:Number(e.target.value)})}><option value="">Chưa ghi nhận</option>{template?.stages.map((s,i)=><option key={i} value={i}>{i+1}. {s.title}</option>)}</select></label>}
+
     </>}
     {kind!=='session' ? <>
       <label className="block space-y-2 text-sm font-medium">Mục tiêu học tập<Textarea value={body.goal} maxLength={2000} onChange={e=>update({goal:e.target.value})} placeholder="Mục tiêu đã trao đổi và căn cứ lựa chọn…" /></label>
@@ -94,7 +101,7 @@ export function LearningWorkspace({ admin = false, initialMonth }: { admin?: boo
       <label className="block space-y-2 text-sm font-medium">Bước rèn luyện tiếp theo<Textarea maxLength={2000} value={body.next_step} onChange={e=>update({next_step:e.target.value})}/></label>
       <p className="text-xs text-muted-foreground">Trọng tâm là nội dung cần luyện; không phải kết luận học sinh đã thành thạo.</p>
     </> : <>
-      <label className="block space-y-2 text-sm font-medium">Chọn nội dung từ khung lớp<select className={control} value="" onChange={e=>{const t=data.records.find(r=>r.kind==='class');const tId=t?.draft.template_id;const selected=data.templates.find(x=>x.template_id===tId)?.stages.flatMap(s=>s.lessons)[Number(e.target.value)];if(selected)update({title:selected.title,content:selected.description});}}><option value="">Chọn để điền nội dung, sau đó điều chỉnh</option>{data.templates.find(t=>t.template_id===data.records.find(r=>r.kind==='class')?.draft.template_id)?.stages.flatMap(s=>s.lessons).map((l,i)=><option key={i} value={i}>Buổi {l.range} · {l.title}</option>)}</select></label>
+      <label className="block space-y-2 text-sm font-medium">Chọn nội dung từ khung lớp<select className={control} value="" onChange={e=>{if(e.target.value==='')return;const selected=sessionTopics[Number(e.target.value)];if(selected)update({title:selected.title,content:selected.description});}}><option value="">Chọn để điền nội dung, sau đó điều chỉnh</option>{sessionTopics.map((l,i)=><option key={l.code||i} value={i}>{l.code || l.range} · {l.title}</option>)}</select></label>
       <label className="block space-y-2 text-sm font-medium">Tên nội dung<Input maxLength={200} value={body.title} onChange={e=>update({title:e.target.value})}/></label>
       <label className="block space-y-2 text-sm font-medium">Nội dung học và luyện tập<Textarea className="min-h-40" maxLength={5000} value={body.content} onChange={e=>update({content:e.target.value})}/></label>
       <label className="block space-y-2 text-sm font-medium">Nội dung cần tiếp tục<Textarea maxLength={2000} value={body.continuation} onChange={e=>update({continuation:e.target.value})}/></label>

@@ -73,6 +73,55 @@ test('PostgreSQL 17: concurrent accounting, learning drafts and email leases; ba
   const claims=await Promise.all([value(a,"select review_email_work('claim')"),value(b,"select review_email_work('claim')")]);
   assert.equal(claims.filter(Boolean).length,1);
 
+  // Consultation submission and claim locks must work across actual connections.
+  await a.exec('reset role');
+  await a.exec(fs.readFileSync(path.join(__dirname,'../migrations/20260913_18_consultations.sql'),'utf8'));
+  for(const worker of [a,b])await worker.exec('set role service_role');
+  const consultationId=randomUUID();
+  const consultationData={role:'parent',name:'Synthetic Parent',phone:'0912345678',email:'',level:'thcs',goal:'specialist',program:'co-ban',school_year:'8',message:'Native concurrency test',consent:true};
+  const submitSQL='select submit_consultation($1,$2,$3,$4)';
+  const consultationArgs=[consultationId,JSON.stringify(consultationData),'a'.repeat(64),JSON.stringify({to:['csattutor@gmail.com'],subject:'Test only',text:'Synthetic'})];
+  const saved=await Promise.all([value(a,submitSQL,consultationArgs),value(b,submitSQL,consultationArgs)]);
+  assert.equal(saved[0],saved[1]);
+  const mailClaims=await Promise.all([value(a,'select claim_consultation_email($1,$2)',[consultationId,'test@example.test']),value(b,'select claim_consultation_email($1,$2)',[consultationId,'test@example.test'])]);
+  assert.equal(mailClaims.filter(Boolean).length,1);
+  await value(a,submitSQL,[randomUUID(),...consultationArgs.slice(1)]);
+  const limited=await Promise.allSettled([value(a,submitSQL,[randomUUID(),...consultationArgs.slice(1)]),value(b,submitSQL,[randomUUID(),...consultationArgs.slice(1)])]);
+  assert.equal(limited.filter(r=>r.status==='fulfilled').length,1);
+  assert.equal(limited.find(r=>r.status==='rejected').reason.code,'P0429');
+
+  // Complete the real PostgreSQL chain before exercising the final email worker.
+  await a.exec('reset role');
+  for(const file of ['20260911_16_parent_domestic_phones.sql','20260911_17_class_program_defaults.sql'])
+   await a.exec(fs.readFileSync(path.join(__dirname,'../migrations',file),'utf8'));
+  // New rollout: concurrent prepare creates one run; concurrent claims retain one lease.
+  await a.exec('reset role');
+  await a.exec(fs.readFileSync(path.join(__dirname,'../migrations/20260914_19_email_operations.sql'),'utf8'));
+  for(const file of ['20260922_20_curriculum_frameworks.sql','20260922_21_parent_email_completion.sql','20260923_22_tutor_profiles.sql'])
+   await a.exec(fs.readFileSync(path.join(__dirname,'../migrations',file),'utf8'));
+  for(const file of ['20260914_email_operations.sql','20260922_curriculum_frameworks.sql','20260922_parent_email_completion.sql','20260923_tutor_profiles.sql'])
+   await a.exec(fs.readFileSync(path.join(__dirname,'../verification',file),'utf8'));
+  let emailDef=await value(a,"select pg_get_functiondef('review_email_work(text,jsonb)'::regprocedure)");
+  emailDef=emailDef.replace("local_now timestamp:=now() AT TIME ZONE 'Asia/Ho_Chi_Minh'","local_now timestamp:='2026-06-28 08:00'::timestamp");
+  await a.exec(emailDef);await a.exec("update tutors set email='tutor@example.test'");
+  for(const worker of [a,b])await worker.exec('set role service_role');
+  const prepareArgs=['prepare',JSON.stringify({origin:'https://portal.example.test',sender:'CSAT <test@example.test>',reply_to:'csattutor@gmail.com'})];
+  const prepared=await Promise.all([value(a,'select review_email_work($1,$2)',prepareArgs),value(b,'select review_email_work($1,$2)',prepareArgs)]);
+  assert.equal(prepared.filter(x=>x.prepared).length,1);assert.equal(prepared.filter(x=>x.existing).length,1);
+  const newClaims=await Promise.all([value(a,"select review_email_work('claim')"),value(b,"select review_email_work('claim')")]);
+  assert.equal(newClaims.filter(Boolean).length,1);
+  assert.equal(newClaims.find(Boolean).month,'2026-06');
+
+  // Admin and tutor must not silently overwrite the same profile revision.
+  await as(a);await as(b,'tutor');
+  const profileSQL='select save_tutor_profile($1,$2,$3)';
+  const profileBody=JSON.stringify({introduction:'Synthetic concurrent profile',major:'',university:'',achievements:'',avatar_action:'keep'});
+  const profileWrites=await Promise.allSettled([value(a,profileSQL,[id(20),0,profileBody]),value(b,profileSQL,[id(20),0,profileBody])]);
+  assert.equal(profileWrites.filter(r=>r.status==='fulfilled').length,1);
+  assert.equal(profileWrites.filter(r=>r.status==='rejected')[0].reason.code,'40001');
+  await a.exec('reset role');
+  assert.equal(await value(a,'select revision from tutor_public_profiles where tutor_id=$1',[id(20)]),1);
+
   // Cold physical backup: copy only after a clean shutdown, then restore to a separate data directory.
   await Promise.all(clients.splice(0).map(c=>c.end()));
   await pg.stop();started=false;
@@ -81,6 +130,7 @@ test('PostgreSQL 17: concurrent accounting, learning drafts and email leases; ba
   execFileSync(path.join(binDir,'pg_ctl.exe'),['-D',restoredDir,'-l',path.join(runtime,'restore.log'),'-o','-h 127.0.0.1 -p '+config.port,'-w','-t','30','start'],{windowsHide:true,stdio:'ignore',timeout:40000});
   activeDataDir=restoredDir;started=true;
   const restored=await connect();
+  assert.equal(await value(restored,"select count(*)::int from csat_internal.schema_migrations where version in ('20260913_18','20260914_19','20260922_20','20260922_21','20260923_22')"),5);
   assert.equal(await value(restored,'select count(*)::int from public.billing_items'),3);
   assert.equal(await value(restored,'select count(*)::int from public.payment_events'),1);
   assert.equal(await value(restored,'select amount from payments where payment_id=$1',[id(60)]),'100000.00');

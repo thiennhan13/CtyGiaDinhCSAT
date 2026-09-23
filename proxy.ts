@@ -4,6 +4,9 @@ import { authRedirect } from '@/lib/auth-routing'
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
+  if (path === '/' || path === '/lo-trinh' || /^\/lo-trinh\/(co-ban|nang-cao|hsgqg)$/.test(path) || path === '/sitemap.xml' || path === '/robots.txt' || path === '/api/consultations' || path === '/api/cron/monthly-reviews') {
+    return NextResponse.next({ request })
+  }
   if (path === '/login' || path === '/parents' || path.startsWith('/parents/') || path.startsWith('/api/parents/')) {
     const response = NextResponse.next({ request })
     response.headers.set('Cache-Control', 'private, no-store')

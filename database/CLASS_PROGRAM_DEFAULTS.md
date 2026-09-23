@@ -1,3 +1,5 @@
+> Cập nhật 22/09/2026: tài liệu dưới đây ghi nhận phiên bản trước. Khung mới theo `docs/CHUONG_TRINH_DAO_TAO.md`, migration 20; chưa áp dụng production.
+
 # Loại lớp và chương trình mặc định
 
 Migration `20260911_17_class_program_defaults.sql` đã áp dụng trên Supabase ngày 11/09/2026. Không chạy lại trên database này.
