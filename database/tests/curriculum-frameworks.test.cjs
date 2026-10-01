@@ -22,6 +22,7 @@ test('new catalog migration updates every class state, preserves drafts/history/
  for(const t of Object.keys(before).filter(x=>x!=='learning_history'))assert.deepEqual(await value(db,"select coalesce(jsonb_agg(to_jsonb(t) order by to_jsonb(t)::text),'[]'::jsonb) from "+t+' t'),before[t]);
  assert.deepEqual(await value(db,'select jsonb_agg(to_jsonb(t) order by to_jsonb(t)::text) from learning_history t where record_id=$1 and revision<=3',[r.record_id]),before.learning_history);
  const templates=(await db.query('select * from learning_templates where version=2 order by program')).rows;
+ for(const seed of require('../../lib/learning-curriculum-20260922.json'))assert.deepEqual(templates.find(t=>t.program===seed.program).stages,seed.stages);
  assert.equal(templates.length,2);assert.equal(templates.find(t=>t.program==='basic').stages.flatMap(s=>s.lessons).length,24);assert.equal(templates.find(t=>t.program==='advanced').stages.flatMap(s=>s.lessons).length,19);
  await assert.rejects(()=>db.exec(migration),/already applied/);await db.exec('rollback');
  assert.equal(await value(db,'select count(*)::int from csat_internal.curriculum_migration_snapshots'),4);
@@ -69,4 +70,61 @@ test('canonical catalog and effective class contents retain topic order, restore
  const invalid=structuredClone(seeds[0]);invalid.stages[1].id=invalid.stages[0].id;assert.equal(templateSchema.safeParse(invalid).success,false);
  const duplicate=structuredClone(seeds[0]);duplicate.stages[0].lessons[1].code='A01';assert.equal(templateSchema.safeParse(duplicate).success,false);
  assert.equal(templateSchema.safeParse(require('../../lib/learning-template-seeds.json')[0]).success,true);
+});
+
+
+test('classes created after curriculum refresh publish full AB or CD and retries preserve later selections',async()=>{
+ const db=await ready();try{
+ await db.exec(migration);await as(db);
+ const today=await value(db,"select (now() at time zone 'Asia/Ho_Chi_Minh')::date::text");
+ const seeds=require('../../lib/learning-curriculum-20260922.json');
+ for(const [class_type,program] of [['Lớp Cơ bản','basic'],['Lớp Nâng cao','advanced']]){
+  const input={name:'Synthetic curriculum default',class_type,tutor_id:id(20),csat_fee_per_session:0,start_date:today,end_date:today,students:[],sessions:[],teaching_format:'group'};
+  const key=randomUUID(),create=()=>value(db,'select create_class_with_learning($1,$2)',[JSON.stringify(input),key]);
+  const created=await create();
+  let workspace=await value(db,'select learning_workspace($1,$2)',[created.class_id,today.slice(0,7)]);
+  const r=workspace.records.find(r=>r.kind==='class');
+  const template=workspace.templates.find(t=>t.template_id===r.published.template_id);
+  assert.equal(r.published.program,program);
+  assert.equal(r.published.stage_index,null);
+  assert.deepEqual(r.published.curriculum??config(),config());
+  assert.deepEqual(template.stages,seeds.find(s=>s.program===program).stages);
+  const selected={...config(),...(program==='basic'?{parts:['B']}:{excluded_topic_codes:['D07']}),current_stage_id:program==='basic'?'basic-b-1':'advanced-1'};
+  const edited=await save(db,created.class_id,{...r.draft,curriculum:selected},r.revision,true);
+  await create();
+  workspace=await value(db,'select learning_workspace($1,$2)',[created.class_id,today.slice(0,7)]);
+  assert.deepEqual(workspace.records.find(r=>r.kind==='class'),edited);
+ }
+ }finally{await db.close();}
+});
+
+test('phone fallback copies only valid missing contacts, creates scoped links, audits and is idempotent',async()=>{
+ const db=await ready();try{
+ const repair=fs.readFileSync(path.join(__dirname,'../maintenance/20260923_student_phone_fallback.sql'),'utf8');
+ await db.query("update students set parent_number=null,student_contact='+84 912 345 678',parent_name='Synthetic parent' where student_id=$1",[id(10)]);
+ await db.query("update students set parent_number='',student_contact='https://example.test/contact',parent_name='Synthetic other' where student_id=$1",[id(11)]);
+ for(const [n,parent,contact,deleted] of [[81,'0987654321','0911111111',false],[82,null,'0922222222',true]])await db.query('insert into students(student_id,name,parent_number,student_contact,parent_name,is_deleted) values($1,$2,$3,$4,$5,$6)',[id(n),'Synthetic student',parent,contact,'Synthetic parent',deleted]);
+ const before=(await db.query('select to_jsonb(s) row from students s order by student_id')).rows.map(x=>x.row);
+ await db.exec(repair);
+ const after=(await db.query('select to_jsonb(s) row from students s order by student_id')).rows.map(x=>x.row);
+ assert.deepEqual(after,before.map(s=>s.student_id===id(10)?{...s,parent_number:'0912345678'}:s));
+ const accounts=(await db.query('select * from parent_accounts')).rows;
+ assert.equal(accounts.length,1);assert.equal(accounts[0].phone,'0912345678');assert.equal(accounts[0].display_name,'Synthetic parent');
+ assert.deepEqual((await db.query('select student_id from parent_student_links')).rows,[{student_id:id(10)}]);
+ assert.equal(await value(db,"select count(*)::int from business_audit_events where actor_role='authorized_phone_fallback'"),3);
+ await db.exec(repair);
+ assert.equal(await value(db,'select count(*)::int from parent_accounts'),1);
+ assert.equal(await value(db,"select count(*)::int from business_audit_events where actor_role='authorized_phone_fallback'"),3);
+ }finally{await db.close();}
+});
+
+test('phone fallback refuses existing-account collisions without partial changes',async()=>{
+ const db=await ready();try{
+ const repair=fs.readFileSync(path.join(__dirname,'../maintenance/20260923_student_phone_fallback.sql'),'utf8');
+ await db.query("update students set parent_number=null,student_contact='0912345678',parent_name='Synthetic parent' where student_id=$1",[id(10)]);
+ await db.query("insert into parent_accounts(display_name,phone) values('Existing owner','0912345678')");
+ await assert.rejects(()=>db.exec(repair),{code:'22023'});await db.exec('rollback');
+ assert.equal(await value(db,'select parent_number from students where student_id=$1',[id(10)]),null);
+ assert.equal(await value(db,'select count(*)::int from parent_student_links'),0);
+ }finally{await db.close();}
 });

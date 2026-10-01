@@ -1,3 +1,5 @@
+> Hồ sơ lịch sử, không phải hướng dẫn chạy lại trên production. Đọc [trạng thái hiện hành](../docs/PROJECT_STATUS.md) và [quy trình database](README.md) trước khi thao tác.
+
 # Cập nhật tra cứu phụ huynh bằng số điện thoại — 06/09/2026
 
 Theo phương án đã duyệt: phụ huynh nhập **số điện thoại đầy đủ**, không mật khẩu, không OTP. Supabase vẫn lưu dữ liệu; phụ huynh không còn dùng Supabase Auth. Admin/gia sư tiếp tục đăng nhập như trước.

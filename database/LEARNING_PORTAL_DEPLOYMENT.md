@@ -1,3 +1,5 @@
+> Hồ sơ lịch sử, không phải hướng dẫn chạy lại trên production. Đọc [trạng thái hiện hành](../docs/PROJECT_STATUS.md) và [quy trình database](README.md) trước khi thao tác.
+
 # Triển khai cổng phụ huynh và nhận xét tháng — 10/09/2026
 
 Gói mã đã triển khai trong workspace. Chưa áp dụng lên Supabase thật, chưa commit/push hoặc deploy. Không chạy lại gói nâng cấp kế toán cũ.

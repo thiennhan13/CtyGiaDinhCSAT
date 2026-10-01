@@ -1,3 +1,5 @@
+> Hồ sơ lịch sử, không phải hướng dẫn chạy lại trên production. Đọc [trạng thái hiện hành](../docs/PROJECT_STATUS.md) và [quy trình database](README.md) trước khi thao tác.
+
 # Cập nhật phân quyền CSAT — 05/09/2026
 
 **Chủ hệ thống tự chạy SQL trên Supabase. Agent không chạy migration trên database thật.** Đẩy code lên GitHub/Vercel không tự cập nhật database; các bảo vệ ở RPC/RLS chỉ có hiệu lực sau khi chạy file migration bên dưới.

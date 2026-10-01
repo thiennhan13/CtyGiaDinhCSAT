@@ -6,7 +6,7 @@
 
 Đã triển khai mã nguồn local; chưa áp dụng migration production, chưa deploy, chưa gửi thư thật. API CSATOJ để lại ngoài phạm vi. Prototype và Excel nguồn không đưa lên Git.
 
-Kiểm tra production chỉ đọc ngày 22/09/2026 qua TLS xác minh bằng CA Supabase: schema đến 17; 25 lộ trình lớp đã công bố, không có bản nháp khác bản công bố; Cơ bản 12 lớp, Nâng cao 13, Luyện thi 4; 49 liên kết phụ huynh/học sinh; 146 bản ghi học phí. Chưa có nhận xét hoặc job email; email tháng tắt và chưa cấu hình người nhận admin. Đây là snapshot kiểm tra, cần chạy lại trước phát hành.
+Khảo sát chỉ đọc ngày 22/09 ghi nhận schema đến 17, email tháng tắt và các mở rộng chưa phát hành. Số lượng hồ sơ/lớp/học phí được giữ trong biên bản nội bộ; trạng thái sau đó xem [PROJECT_STATUS](PROJECT_STATUS.md).
 
 ## Các thay đổi bổ sung
 

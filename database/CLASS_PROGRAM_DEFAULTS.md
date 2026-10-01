@@ -1,4 +1,4 @@
-> Cập nhật 22/09/2026: tài liệu dưới đây ghi nhận phiên bản trước. Khung mới theo `docs/CHUONG_TRINH_DAO_TAO.md`, migration 20; chưa áp dụng production.
+> Cập nhật 24/09/2026: mặc định đã duyệt là **Cơ bản A+B (24 chủ đề)** và **Nâng cao C+D (19 chủ đề)**, không ấn định 30/35 buổi. Migration 20 đã áp dụng production: các lớp Cơ bản và Nâng cao đã dùng đầy đủ khung mới; đã kiểm chứng dữ liệu và cổng phụ huynh. Xem [phạm vi áp dụng và kết quả kiểm tra](../docs/CLASS_CURRICULUM_ROLLOUT_20260923.md). Phần dưới lưu lịch sử của migration 17, không phải mặc định mới.
 
 # Loại lớp và chương trình mặc định
 
@@ -13,11 +13,11 @@ Migration `20260911_17_class_program_defaults.sql` đã áp dụng trên Supabas
 
 ## Kết quả trên dữ liệu hiện có
 
-- 12/12 lớp Cơ bản và 13/13 lớp Nâng cao có khung được công bố.
-- Tạo thêm 24 bản ghi khung lớp, gồm cả lớp đã ngừng hoạt động/lưu trữ theo yêu cầu áp dụng cho tất cả lớp.
+- Các lớp Cơ bản và Nâng cao có khung được công bố trong đợt này.
+- Tạo thêm bản ghi khung lớp, gồm cả lớp đã ngừng hoạt động/lưu trữ theo yêu cầu áp dụng cho tất cả lớp.
 - Giữ nguyên toàn bộ bản nháp, bản công bố, chặng đang học và lịch sử của lớp đã có lộ trình.
-- 4 lớp Luyện thi giữ nguyên dữ liệu; chưa công bố giáo án tùy chỉnh chưa được xác nhận.
-- Không thay đổi dữ liệu của 33 bảng còn lại, gồm lớp, học sinh, học phí, điểm danh, chốt sổ và tài khoản phụ huynh. Quyền gọi các RPC hiện hữu giữ nguyên.
+- Các lớp Luyện thi giữ nguyên dữ liệu; chưa công bố giáo án tùy chỉnh chưa được xác nhận.
+- Không thay đổi dữ liệu của các bảng ngoài phạm vi, gồm lớp, học sinh, học phí, điểm danh, chốt sổ và tài khoản phụ huynh. Quyền gọi các RPC hiện hữu giữ nguyên.
 
 Các khung bổ sung là chương trình tham chiếu, không phải xác nhận học sinh đã học xong hay đạt năng lực. Chặng hiện tại và hình thức học để trống do chưa có dữ liệu xác nhận. Gia sư chọn hình thức thực tế khi công bố các điều chỉnh tiếp theo.
 

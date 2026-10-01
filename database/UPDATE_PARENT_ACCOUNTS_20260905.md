@@ -1,3 +1,5 @@
+> Hồ sơ lịch sử, không phải hướng dẫn chạy lại trên production. Đọc [trạng thái hiện hành](../docs/PROJECT_STATUS.md) và [quy trình database](README.md) trước khi thao tác.
+
 > **Phương án cũ đã được thay thế ngày 06/09/2026.** Không tiếp tục hướng dẫn mật khẩu/Phone Auth bên dưới cho phiên bản hiện tại. Nếu đã chạy migration02, chuyển sang [hướng dẫn nâng cấp tra cứu bằng số điện thoại](UPDATE_PARENT_PHONE_LOOKUP_20260906.md); hồ sơ và liên kết cũ được giữ lại. Nội dung bên dưới chỉ lưu để đối chiếu lịch sử.
 
 # Cập nhật tài khoản phụ huynh — migration 20260905_02

@@ -1,3 +1,5 @@
+> Tài liệu lịch sử của đợt 05–10. Trạng thái production đã thay đổi: đọc [PROJECT_STATUS.md](../docs/PROJECT_STATUS.md) và [database/README.md](README.md) trước khi thao tác; các câu “chưa áp dụng” bên dưới là trạng thái ở thời điểm viết.
+
 # Nâng cấp database và backend quản lý CSAT
 
 Trạng thái: đã chuẩn bị ở mã nguồn, **chưa áp dụng lên Supabase production**. Phạm vi là quản lý lớp, lịch, điểm danh, học phí và lương; không chỉnh nội dung chương trình đào tạo.
@@ -48,19 +50,9 @@ Các cột hiện có trên `classes` và `class_students` được giữ để 
 
 Một khóa transaction chung tuần tự hóa các thao tác quản lý/tài chính ở quy mô hiện tại. Khi tải ghi tăng đáng kể, cần đo thời gian chờ khóa trước khi chia khóa theo lớp/kỳ. Chưa xóa các index nghi trùng vì cần đo trên workload thực tế.
 
-## Dấu hiệu đã phát hiện trong lần kiểm tra 08/09/2026
+## Đối soát lịch sử — tài liệu nội bộ
 
-Các số liệu dưới đây là ảnh chụp tại lần kiểm tra, cần chạy truy vấn đối soát lại trước triển khai.
-
-- 10 nhóm lịch trùng, 55 dòng dư; có 2 dòng dư đã tính phí.
-- 19 buổi hoàn thành có giờ không hợp lệ; 18 buổi đã chốt.
-- 101 lịch dự kiến trong 4 lớp lưu trữ; còn 7 lượt tham gia đang hoạt động.
-- 71 buổi ngoài thời hạn lớp.
-- 5 chứng từ đã thu mất liên kết lớp/học sinh; 3 chứng từ đã thu lệch so với điểm danh hiện còn.
-- Có lượt đã chốt với học phí 119.000 đồng chưa tìm được chứng từ tương ứng.
-- Một gia sư cũ có 8 buổi đã chốt bị che khi quyền xem phụ thuộc người phụ trách lớp hiện tại.
-
-Số liệu hiện còn không đủ để khẳng định ai hoặc thao tác nào gây ra từng sai lệch. Truy vấn `verification/accounting_reconciliation.sql` xuất định danh cần đối chiếu; việc sửa từng trường hợp cần chứng cứ và quyết định riêng.
+Chi tiết số liệu, sai lệch tài chính và kết quả đối soát của từng đợt không đưa vào GitHub. Người quản trị giữ biên bản riêng theo [SECURITY.md](../SECURITY.md). Truy vấn `verification/accounting_reconciliation.sql` có thể trả định danh; không đính output thật vào PR/CI.
 
 ## Thứ tự triển khai để duyệt
 

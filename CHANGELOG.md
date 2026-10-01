@@ -7,6 +7,18 @@ Format theo [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Bàn giao nhóm — 01/10/2026 (working tree, chưa phát hành)
+
+- README, AGENTS, workflow nhóm, bản đồ hệ thống/database và backlog phân biệt local/production.
+- Guard đường dẫn/secret/liên kết Markdown, kiểm tra index staged và mẫu PR; CI đọc quyền tối thiểu, Node 24, PostgreSQL Windows riêng, không có secret production.
+- Thay hướng dẫn CI/Billing lỗi thời; tách số liệu đối soát vào gói nội bộ bị ignore. Không xóa lịch sử Git hoặc thay dữ liệu production.
+- Bỏ lệnh `next clean` không thuộc workflow Next.js hiện tại và 5 `.gitkeep` rỗng; chưa thay dependency ứng dụng.
+
+### Ghi chép Unreleased trước đợt bàn giao
+
+Các mục bên dưới được giữ làm bối cảnh cũ, không phải bằng chứng triển khai hiện tại. Xem `docs/PROJECT_STATUS.md`.
+
+
 ### Added
 - `Combobox` component (`components/ui/combobox.tsx`) — dropdown tìm kiếm được, thay thế `<Select>` khi danh sách dài.
 - `useConfirm` & `useAlert` hooks (`components/ui/use-dialog.tsx`) — thay thế `window.alert()` / `window.confirm()` bằng Dialog đẹp của shadcn/ui.

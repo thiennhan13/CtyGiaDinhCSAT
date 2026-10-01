@@ -1,90 +1,89 @@
-# CSAT Tutor Portal
+# CSAT Portal
 
-![Next.js](https://img.shields.io/badge/Next.js_16-black?style=flat-square&logo=next.js)
-![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
-![Status](https://img.shields.io/badge/trạng_thái-nội_bộ-orange?style=flat-square)
+CSAT Portal giúp trung tâm, gia sư và phụ huynh cùng theo dõi việc học của học sinh — từ lớp học, buổi học và nhận xét đến lộ trình và học phí.
 
-Hệ thống quản lý nội bộ của nhóm gia sư CSAT. Dùng để điểm danh tay từng buổi học và tổng kết hóa đơn / bảng lương hàng tháng.
+**Website:** [portal.csatoj.vn](https://portal.csatoj.vn)
 
----
+**Công nghệ:** Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · Supabase · Vercel
 
-## Stack sử dụng
+## Portal phục vụ ai?
 
-| Lớp | Công nghệ |
+- **Admin:** quản lý học sinh, gia sư, lớp học, học phí và chốt sổ.
+- **Gia sư:** theo dõi lớp, điểm danh, cập nhật lộ trình, nhận xét tháng và hồ sơ cá nhân.
+- **Phụ huynh:** xem nhận xét, nội dung học, định hướng phát triển, gia sư và học phí của con.
+
+Website công khai giới thiệu CSAT, các chương trình học và tiếp nhận nhu cầu tư vấn. Chương trình **Cơ bản mặc định gồm A+B**, **Nâng cao gồm C+D**; nội dung chi tiết nằm trong [chương trình đào tạo](docs/CHUONG_TRINH_DAO_TAO.md).
+
+## Tình trạng hiện tại
+
+Phần quản lý cốt lõi đã được xây dựng và đưa vào sử dụng. Hệ thống **chưa hoàn tất toàn bộ việc triển khai và nghiệm thu**, nhất là xác thực phụ huynh, hồ sơ gia sư và email.
+
+Đối chiếu Supabase chỉ đọc ngày **01/10/2026**:
+
+| Hạng mục | Trạng thái |
 |---|---|
-| **Framework** | Next.js 16 (App Router), React 19, TypeScript |
-| **Giao diện** | Tailwind CSS v4, shadcn/ui, lucide-react |
-| **Database & Auth** | Supabase (PostgreSQL + RLS + Auth) |
-| **Export** | SheetJS (`xlsx`) — xuất bảng lương & hóa đơn Excel |
+| Quản lý lớp, điểm danh, học phí và chốt sổ | Đã có nền tảng nghiệp vụ, phân quyền và lịch sử thay đổi |
+| Chương trình A+B / C+D | Migration 20 đã áp dụng; giữ riêng bản nháp và bản công bố |
+| Cổng phụ huynh, hồ sơ và avatar gia sư | Đã có mã; production còn thiếu schema cho phí từng buổi và hồ sơ mở rộng, chưa có bucket avatar |
+| Form tư vấn và email nhắc tháng | Đã có mã; chưa đủ schema/cấu hình để vận hành, email tháng đang tắt |
+| CSATOJ | Chưa tích hợp API; số bài và ranking đang chờ kết nối |
 
----
+Production còn thiếu migration **18, 19, 21, 22**. Hai việc bảo mật cần ưu tiên là xác minh người tra cứu phụ huynh và thay mật khẩu khởi tạo gia sư đang dùng số điện thoại. Xem [tiến độ và việc cần làm](docs/PROJECT_STATUS.md) để biết điều kiện hoàn tất từng phần.
 
-## Tính năng chính
+## Bắt đầu phát triển
 
-### Gia sư
-- Đăng nhập bằng **email**, mật khẩu mặc định là **số điện thoại**.
-- Xem lịch dạy, bấm vào từng buổi để **điểm danh** (có mặt / vắng mặt + ghi chú).
-- Xem **bảng lương** theo từng kỳ, có thể mở rộng xem chi tiết từng buổi.
+Chuẩn bị **Node.js 24.x**, npm, Git và một project Supabase thử riêng.
 
-### Phụ huynh
+```sh
+npm ci
+npm ci --prefix database/tests
+```
 
-- Tra cứu trực tiếp bằng **số điện thoại đã đăng ký**, không mật khẩu/OTP; không cần Phone Auth hoặc nhà cung cấp SMS.
-- Số điện thoại là khóa tra cứu, không xác minh danh tính: ai biết số đã đăng ký đều có thể xem học sinh được liên kết.
-- Admin quản lý số điện thoại, liên kết học sinh và khóa quyền tra cứu tại `/admin/parents`.
-- Hồ sơ/liên kết từ bản mật khẩu được giữ lại. Phiên tra cứu có hạn dùng 12 giờ; không ảnh hưởng phiên đăng nhập admin/gia sư.
-- Database đã chạy migration02: áp dụng **migration03** theo [hướng dẫn nâng cấp và phạm vi ảnh hưởng](database/UPDATE_PARENT_PHONE_LOOKUP_20260906.md). Không chạy lại master schema hoặc migration02 trên database hiện tại.
+Sao chép `.env.example` thành `.env.local` nếu chưa có, rồi điền cấu hình môi trường thử. Làm theo [hướng dẫn database](database/README.md) để khởi tạo schema phù hợp.
 
-### Admin
-- **Học sinh & Gia sư:** Thêm, sửa hồ sơ; cấp tài khoản gia sư (mật khẩu = SĐT).
-- **Lớp học:** Tạo lớp, gán học sinh, thiết lập lịch cố định hàng tuần.
-- **Kế toán & Chốt sổ:**
-  - *Dự kiến* — kiểm tra số liệu trước khi phát hành hóa đơn.
-  - *Lịch sử* — xem các kỳ đã chốt, đánh dấu đã thu, hủy chốt sổ khi cần.
-  - Xuất Excel: hóa đơn học sinh + bảng lương chi tiết (mỗi gia sư một sheet).
-- **Thông báo:** Tạo banner gửi lên dashboard của gia sư.
-
----
-
-## Kiến trúc & ghi chú kỹ thuật
-
-**Snapshot:** Khi điểm danh, hệ thống chốt cứng học phí (`tuition_fee_snapshot`), phí trung tâm (`csat_fee_snapshot`) và gia sư dạy (`tutor_id_snapshot`) ngay tại thời điểm đó. Mọi thay đổi sau này đều không làm lệch số liệu cũ.
-
-**RPC thay vì raw SQL từ client:** Các thao tác phức tạp (tạo lớp, điểm danh, chốt sổ, rollback) đều chạy qua hàm PostgreSQL `SECURITY DEFINER`. Đảm bảo ACID và tránh race condition khi nhiều người thao tác cùng lúc.
-
-**Chốt sổ thông minh:** API generate đánh dấu `billing_period` cho *tất cả* buổi học trong khoảng ngày (kể cả buổi không ai đi học), tránh bị kẹt lại trong kỳ tiếp theo.
-
-**Rollback từng phần:** Chỉ xóa hóa đơn `unpaid`; hóa đơn `paid` được giữ nguyên.
-
----
-
-## Chạy local
-
-```bash
-# 1. Clone về
-git clone <url>
-cd CtyGiaDinhCSAT
-
-# 2. Điền biến môi trường
-cp .env.example .env
-# Sửa NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
-
-# 3. Cài thư viện
-npm install
-
-# 4. Khởi động
+```sh
 npm run dev
 ```
 
-Truy cập [http://localhost:3000](http://localhost:3000).
+Mở [localhost:3000](http://localhost:3000). Nếu chỉ sửa trang giới thiệu, chạy `node scripts/preview-public-site.cjs` và mở [127.0.0.1:3100](http://127.0.0.1:3100); chế độ này dùng cấu hình giả, không cần kết nối database thật.
 
----
+## Cấu trúc dự án
 
-## Database
-
-Toàn bộ schema (bảng, enum, index, RLS, RPC) nằm trong một file duy nhất:
+```text
+app/          Trang, layout và API theo vai trò
+components/   Thành phần giao diện
+features/     Các module quản lý theo nghiệp vụ
+lib/          Xác thực, validation, dữ liệu học tập và tích hợp
+database/     Migration, SQL kiểm chứng và kiểm thử database/API
+scripts/      Công cụ kiểm tra, preview và vận hành
+types/        Kiểu dữ liệu dùng trong ứng dụng
+docs/         Tài liệu nghiệp vụ, kỹ thuật và triển khai
+.github/      CI và mẫu pull request
 ```
-database/CSAT_master_schema.sql
+
+Đọc [kiến trúc hệ thống](docs/ARCHITECTURE.md) để hiểu luồng dữ liệu, quyền truy cập và trách nhiệm của từng phần.
+
+## Kiểm thử và đóng góp
+
+```sh
+npm run check:repo
+npm run test:repo
+npm run test:db
+npm run typecheck
+npm run lint
+npm run build
 ```
-Chỉ chạy master schema trên **database trống**. Với database đã có dữ liệu, dùng các file migration riêng trong `database/migrations/` theo đúng thứ tự và hướng dẫn cập nhật tương ứng. Đã áp dụng bản phụ huynh ngày 05/09 thì chỉ chạy tiếp `20260906_03_parent_phone_lookup.sql`.
+
+Dùng cấu hình thử khi build. Bộ kiểm thử PostgreSQL native chạy trên Windows; CI có job riêng cho phần này. Quy trình làm việc và gửi PR nằm trong [CONTRIBUTING.md](CONTRIBUTING.md); hướng dẫn cho Codex nằm trong [AGENTS.md](AGENTS.md).
+
+## Hướng phát triển
+
+Ưu tiên tăng cường xác thực, đồng bộ database với ứng dụng và nghiệm thu cổng phụ huynh. Tiếp theo là hoàn thiện email tư vấn, nhắc nhận xét tháng; tích hợp CSATOJ khi có API. HSGQG là hướng mở rộng cần duyệt nội dung, chưa phải giáo trình chính thức.
+
+Mọi thay đổi cần giữ lịch sử học tập và tài chính. Admin chốt sổ thủ công; cron chỉ nhắc việc, không tự công bố nhận xét hoặc chốt sổ.
+
+## Tài liệu liên quan
+
+- [Cài đặt Vercel và Supabase](docs/SETUP_VERCEL_SUPABASE.md) · [CI và phát hành](docs/CICD_SETUP.md)
+- [Bảo mật và tài liệu nội bộ](SECURITY.md) — quy định về secret, dữ liệu thật, prototype và tệp nguồn ngoài Git.
+- [Danh mục tài liệu](docs/README.md) — tra cứu hướng dẫn chuyên sâu và các mốc lịch sử.

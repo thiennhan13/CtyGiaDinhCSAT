@@ -1,8 +1,10 @@
 # Thiết lập Vercel–Supabase và phát hành CSAT Portal
 
-Đối chiếu mã nguồn ngày 23/09/2026. Đây là hướng dẫn thực hiện, không phải xác nhận các bước đã được áp dụng trên production. Lần này chỉ cập nhật tài liệu; không đăng nhập dashboard, thay cấu hình, chạy migration, tạo bucket, deploy hoặc gửi thư.
+Bổ sung bàn giao ngày 01/10/2026; cấu hình đối chiếu từ mã và tài liệu trước đó. Đây là hướng dẫn thực hiện, không phải xác nhận các bước đã được áp dụng trên production. Lần này chỉ cập nhật tài liệu; không đăng nhập dashboard, thay cấu hình, chạy migration, tạo bucket, deploy hoặc gửi thư.
 
 Dùng tài liệu này làm đầu mối cấu hình cho bản kết hợp đến migration 22. Các tài liệu phát hành trước giữ vai trò lịch sử; không dùng riêng chuỗi migration 18–19 hoặc 18–21 cho bản ứng dụng mới. Danh sách việc sau này: [FUTURE_INTEGRATIONS.md](FUTURE_INTEGRATIONS.md).
+
+> Cập nhật production 24/09/2026: đã áp dụng riêng migration 20 và bổ sung 2 liên hệ/tra cứu phụ huynh. Migration 18, 19, 21, 22 vẫn còn thiếu. [Biên bản kiểm chứng](CLASS_CURRICULUM_ROLLOUT_20260923.md). Không chạy lại migration 20 và không suy ra các số migration nhỏ hơn đều đã có.
 
 ## 1. Chọn trạng thái phát hành lúc chưa có email/API
 
@@ -24,7 +26,7 @@ Mặc định phát hành ban đầu: `CONSULTATIONS_ENABLED=false`, `CONSULTATI
 
 1. Mở đúng project phục vụ `portal.csatoj.vn`; kiểm tra repository, Production Branch và Root Directory. Không tạo project thứ hai nếu project hiện tại đã đúng.
 2. Framework: **Next.js**; Root Directory là thư mục chứa `package.json` (repository này ở gốc); Install Command `npm ci`; Build Command `npm run build`; giữ Output Directory mặc định của Next.js, không cấu hình static export.
-3. Chọn rõ phiên bản Node đã kiểm thử trên môi trường thử. CI hiện còn Node 20, `package.json` chưa khóa engines; đề xuất chuẩn hóa CI/local/Vercel cùng Node 22.x trong một thay đổi có kiểm thử trước phát hành. Không coi đây là thay đổi đã thực hiện. [Phiên bản Node trên Vercel](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions).
+3. Workflow nhóm dùng Node 24.x (`.nvmrc`, engines và CI). Kiểm tra bản cuối trên runtime này rồi đồng bộ Vercel khi phát hành được phép; đợt tài liệu không đổi dashboard Vercel. Node 20 đã hết hỗ trợ; không giữ môi trường mới ở Node 20. [Node release schedule](https://github.com/nodejs/Release), [Node trên Vercel](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions).
 4. Settings → Domains: xác nhận `portal.csatoj.vn` hợp lệ và HTTPS hoạt động. Giữ DNS website hiện có nếu đang đúng; bản ghi gửi email sẽ cấu hình riêng.
 5. Kiểm tra giới hạn Functions đáp ứng route cron `maxDuration=60` và form tư vấn `maxDuration=30`; giữ Node.js runtime cho xử lý avatar bằng sharp. Không cần volume/ổ đĩa bền vững, SMTP server hay biến đổi ảnh Supabase.
 6. Chọn gói phù hợp hoạt động trung tâm. Hobby dành cho sử dụng cá nhân phi thương mại; không lấy việc lịch cron chạy được làm bằng chứng gói phù hợp. [Điều kiện Hobby](https://vercel.com/docs/plans/hobby).
@@ -68,7 +70,7 @@ Trong SQL Editor đúng project, kiểm tra chỉ đọc:
 SELECT version FROM csat_internal.schema_migrations ORDER BY version;
 ```
 
-Snapshot production trước đây ghi nhận đến 17; **chưa kiểm tra lại production trong lần tổng hợp này**. Nếu kết quả khác, dựa vào kết quả thực. Nếu chưa có registry hoặc thiếu migration nền, dừng đối chiếu quy trình khởi tạo; không chạy ngẫu nhiên migration 18 trở đi.
+Lần kiểm chứng gần nhất ngày 24/09 ghi nhận 05–17 và 20; 18/19/21/22 còn thiếu. **Ngày 01/10 chỉ cập nhật tài liệu, chưa kiểm tra lại production**. Nếu kết quả khác, dựa vào kết quả thực. Nếu chưa có registry hoặc thiếu migration nền, dừng đối chiếu quy trình khởi tạo; không chạy ngẫu nhiên migration 18 trở đi.
 
 Tạo backup có thể phục hồi và lưu số lượng tổng hợp các dữ liệu liên quan trước khi chạy SQL. Backup database không chứa byte ảnh trong Storage; cần sao lưu tệp riêng sau khi dùng avatar. Không mặc định mọi gói đều có backup/PITR giống nhau. [Supabase backups](https://supabase.com/docs/guides/platform/backups).
 
@@ -80,7 +82,7 @@ Chỉ chạy các file còn thiếu, từng file và kiểm chứng ngay sau đ�
 |---|---|---|
 | 18 | `20260913_18_consultations.sql` | `20260913_consultations.sql` |
 | 19 | `20260914_19_email_operations.sql` | `20260914_email_operations.sql` |
-| 20 | `20260922_20_curriculum_frameworks.sql` | `20260922_curriculum_frameworks.sql` |
+| 20 (đã ghi nhận áp dụng 24/09; không chạy lại) | `20260922_20_curriculum_frameworks.sql` | `20260922_curriculum_frameworks.sql` |
 | 21 | `20260922_21_parent_email_completion.sql` | `20260922_parent_email_completion.sql` |
 | 22 | `20260923_22_tutor_profiles.sql` | `20260923_tutor_profiles.sql` |
 
@@ -124,6 +126,8 @@ Nghiệm thu: tải/thay/gỡ ảnh qua form gia sư và admin; kiểm tra phụ
 Repository đã có `/api/cron/monthly-reviews`, lịch `0 1 28 * *` (UTC), tức 08:00 ngày 28 Việt Nam. Vercel tự đăng ký theo `vercel.json` trên deployment production; không tạo thêm lịch tương tự ở Supabase.
 
 - Giữ email tháng tắt tại `/admin/learning` (`parent_portal_settings.email_enabled=false`). Có thể điền sẵn người nhận admin `csattutor@gmail.com` nhưng chưa bật checkbox.
+
+
 - Nếu giữ cron enabled: đặt CRON_SECRET và áp dụng schema đầy đủ; luồng trả trạng thái disabled trước kiểm tra Resend khi công tắc DB tắt. Nếu chưa muốn lịch gọi, Disable Cron Jobs trong Vercel và ghi lại cần bật sau.
 - Thiếu CRON_SECRET trả 401; có secret nhưng thiếu RPC/schema có thể trả 503. Đây là lỗi cấu hình cron, không phải yêu cầu phải có Gmail API.
 - Không bấm Run để thử email toàn hệ thống. Sau này dùng công cụ thư mẫu riêng.

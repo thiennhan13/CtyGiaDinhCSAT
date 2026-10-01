@@ -1,6 +1,6 @@
 # ==========================================
 # CSAT Tutor Portal - Professional .gitignore
-# Next.js 15 / TypeScript / Supabase / Vercel
+# Next.js / TypeScript / Supabase / Vercel
 # ==========================================
 
 # 1. Dependencies
@@ -72,3 +72,36 @@ database/tests/.runtime/
 
 # Private design handoff; never commit prototypes.
 /docs/prototypes/
+
+# Handoff privacy boundary (also enforced for tracked files by check:repo)
+.env*
+!.env.example
+/internal/
+/docs/internal/
+/private-data/
+/backups/
+/exports/
+/artifacts/
+/test-results/
+/playwright-report/
+.codex/
+.aws/
+.ssh/
+*.dump
+*.backup
+*.sql.gz
+*.sql.zip
+*.xlsx
+*.xls
+*.csv
+*.docx
+*.pdf
+*.zip
+*.7z
+*.tar
+*.tgz
+*.gz
+*.pem
+*.key
+*.p12
+*.pfx

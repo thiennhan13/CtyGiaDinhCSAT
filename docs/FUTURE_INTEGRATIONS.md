@@ -1,6 +1,6 @@
 # Công việc khi có email tên miền và API
 
-Cập nhật 23/09/2026. Đây là backlog và điều kiện bật tính năng, chưa phải thay đổi đã triển khai. Setup hiện tại: [SETUP_VERCEL_SUPABASE.md](SETUP_VERCEL_SUPABASE.md).
+Nội dung tích hợp cập nhật 23/09/2026; bổ sung trạng thái runtime 01/10/2026. Đây là backlog và điều kiện bật tính năng, chưa phải thay đổi đã triển khai. Setup hiện tại: [SETUP_VERCEL_SUPABASE.md](SETUP_VERCEL_SUPABASE.md).
 
 ## 1. Phân biệt các tích hợp
 
@@ -97,11 +97,13 @@ Có API key mới chỉ hoàn thành điều kiện đầu vào; tính năng c�
 
 ## 6. Bảng theo dõi để lần sau tiếp tục đúng chỗ
 
+Trạng thái toàn hệ thống và kết quả DB sau 23/09 xem [PROJECT_STATUS](PROJECT_STATUS.md).
+
 | Mã | Việc | Trạng thái 23/09/2026 | Điều kiện hoàn thành |
 |---|---|---|---|
 | SETUP-01 | Đối chiếu schema/dashboard thực và chuẩn bị backup | Chưa làm trong lần này | Ghi migration thực, đúng project, backup phục hồi được |
 | SETUP-02 | Nghiệm thu Storage Supabase thật | Còn chờ môi trường thử/quyền | Upload/thay/gỡ/quyền và cleanup đạt |
-| SETUP-03 | Chuẩn hóa Node CI/local/Vercel | Đề xuất, chưa sửa | Cùng phiên bản hỗ trợ, kiểm thử lại đạt |
+| SETUP-03 | Chuẩn hóa Node CI/local/Vercel | Repo/CI chuyển Node 24 ngày 01/10; Vercel chưa đổi | CI/Preview thực đạt, chủ hệ thống đồng bộ runtime khi phát hành |
 | MAIL-01 | Hạn xử lý tổng hợp admin | Chưa sửa | Regression đợt cũ/tổng hợp mới đạt |
 | MAIL-02 | Khoảng cách retry sau gián đoạn | Chưa sửa | Không thử lại trước 5 phút, concurrency đạt |
 | MAIL-03 | Resend, DNS, API key | Chưa có theo thông tin trung tâm | Domain verified, cấu hình Production đầy đủ |

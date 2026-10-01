@@ -1,3 +1,5 @@
+> Hồ sơ lịch sử, không phải hướng dẫn chạy lại trên production. Đọc [trạng thái hiện hành](../docs/PROJECT_STATUS.md) và [quy trình database](README.md) trước khi thao tác.
+
 # Tích hợp nhận xét học sinh dành cho gia sư
 
 ## Phạm vi đã thực hiện

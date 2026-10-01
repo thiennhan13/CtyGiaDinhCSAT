@@ -2,6 +2,8 @@
 
 Bản tiếp nhận: 22/09/2026. Nguồn: `Danh sách kiến thức (1).xlsx` do trung tâm cung cấp. Danh mục máy đọc: `lib/learning-curriculum-20260922.json`.
 
+> Xác nhận 23/09/2026: các lớp hiện có mặc định Cơ bản toàn bộ A+B; Nâng cao toàn bộ C+D. [Kết quả đối chiếu và kế hoạch áp dụng](CLASS_CURRICULUM_ROLLOUT_20260923.md). Migration 20 đã áp dụng production lúc 00:49 ngày 24/09/2026; các lớp thuộc hai chương trình đã nhận khung mới.
+
 ## Phạm vi đã xác nhận
 
 - Cơ bản gồm tầng A (9 chủ đề) và B (15 chủ đề). Mỗi lớp chọn A, B hoặc A+B; mặc định A+B. Chọn B không có nghĩa học sinh đã thành thạo A.

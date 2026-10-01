@@ -1,8 +1,10 @@
+> Hồ sơ lịch sử 22/09; migration 20 đã áp dụng sau đó. Trạng thái hiện hành đọc [PROJECT_STATUS](PROJECT_STATUS.md).
+
 # Cổng phụ huynh và khung kiến thức — 22/09/2026
 
 ## Trạng thái
 
-Đã triển khai trong workspace; chưa commit/push, chưa chạy migration production và chưa triển khai Vercel. Không gửi email thật. Production được kiểm tra chỉ đọc ở bước khảo sát: migration 17, 12 lớp Cơ bản và 13 lớp Nâng cao có lộ trình; 4 lớp Luyện thi không nằm trong chuyển đổi.
+Đã triển khai trong workspace; chưa commit/push, chưa chạy migration production và chưa triển khai Vercel. Không gửi email thật. Production được kiểm tra chỉ đọc ở bước khảo sát cũ: migration 17; các lớp Cơ bản/Nâng cao có lộ trình; Luyện thi nằm ngoài chuyển đổi. Số liệu vận hành giữ trong gói nội bộ.
 
 ## Nội dung thay đổi
 
