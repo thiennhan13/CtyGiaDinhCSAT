@@ -32,6 +32,8 @@ Spacing theo nhịp 4/8 px. Chữ thường tương phản ≥4,5:1; chữ lớn
 
 ## Bố cục và hành vi
 
+Vận dụng nhiều phương pháp từ `ui-ux-pro-max` theo mục đích từng phần: phân cấp thị giác và khoảng trắng, so le/editorial, bento, sơ đồ mạch/cây, timeline, ảnh phối chữ và reveal có định hướng. Không bắt buộc mỗi phần có một tiêu đề lớn, đoạn dẫn rồi hàng thẻ giống nhau. Với phần dẫn bằng art hoặc sơ đồ, dùng tên truy cập cho section và tiêu đề con đúng nghĩa; bỏ chữ lặp không cần thiết, không bỏ thông tin cần hiểu hoặc khả năng điều hướng bàn phím. Chọn bố cục theo nội dung và hành động người đọc cần thực hiện, giữ token/nhận diện đã duyệt; gợi ý font/màu hoặc stack từ skill chỉ là tham khảo, không tự thay cấu hình CSAT. Khi skill local không có, tài liệu này là quy tắc dùng chung của nhóm.
+
 Trang chủ: hero CSAT → giá trị học và bóng đèn → đội ngũ ba gia sư → CSATOJ/tài liệu → khóa học → sáu bước buổi học → phụ huynh → tư vấn. Đây là thứ tự được cập nhật ngày 04/10; thay thế vị trí đội ngũ sau CSATOJ ở bản duyệt trước. Dùng chung PublicNavigation tại trang đăng nhập gia sư/phụ huynh và trong ParentShell; giữ sidebar nội dung, nút in và đóng tra cứu. Khung desktop công khai tối đa 1.408 px, tăng 10% từ 1.280 px, co theo viewport.
 
 Trang lộ trình: hero rõ → chọn điểm bắt đầu → khám phá A/B/C → E/K → tư vấn. Nền chia theo section kem/lime/xanh; giữ nhịp nhận diện nhưng không để lớp nền xám phủ toàn trang. Bản đồ không phải đánh giá đầu vào hoặc cơ chế tự chuyển chặng.
@@ -46,7 +48,7 @@ Prototype/manifest/ảnh QA lưu nội bộ ngoài Git. Khi tích hợp ứng d�
 
 ### Hình khối và form — 05/10/2026
 
-Ảnh A+B và ảnh minh họa CSATOJ cắt chéo góc; poster gia sư giữ đầy đủ thành tích. Navbar, form và cửa sổ code giảm bo góc. Hero lộ trình đặt bốn ảnh sau chữ, blur Gaussian cố định nhẹ và lớp nền chuyển sắc bảo vệ chữ; ảnh PreVOI dùng comp-program.webp từ nguồn trung tâm. Dropdown dùng PublicSelect trên Base UI có bàn phím/typeahead, Escape trả focus, bảng chọn riêng hai theme; vẫn chỉ frontend. Lớp C hiển thị sáu nhóm kiến thức thành ba hàng, hai cột, icon bên trái.
+Ảnh A+B và ảnh minh họa CSATOJ cắt chéo góc; poster gia sư giữ đầy đủ thành tích. Navbar, form và cửa sổ code giảm bo góc. Hero lộ trình đặt bốn ảnh sau chữ, blur Gaussian cố định nhẹ và lớp nền chuyển sắc bảo vệ chữ; ảnh Chủ lực dùng comp-program.webp từ nguồn trung tâm. Dropdown dùng PublicSelect trên Base UI có bàn phím/typeahead, Escape trả focus, bảng chọn riêng hai theme; vẫn chỉ frontend. Lớp C hiển thị sáu nhóm kiến thức thành ba hàng, hai cột, icon bên trái.
 ## Tinh chỉnh hero giới thiệu — 05/10/2026
 
 Ảnh gia sư được phóng thêm 10% trong lớp cắt theo khung, transform-origin ở giữa phía trên; không tăng khung hoặc thay khoảng cách menu. Orbit có vòng tròn đồng tâm phía trong. C++ trắng; icon/pixel đổi hướng, nhịp và màu khi hover, reduced motion giữ yên. Watermark KVANT ở light giảm opacity 0,12 → 0,085; dark tăng nhẹ 0,16 → 0,18. Dots có token riêng, không thay màu viền hoặc chữ nội dung.

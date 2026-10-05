@@ -1,0 +1,94 @@
+.csat-public .home-why { position: relative; isolation: isolate; background: var(--paper); border-block: 1px solid var(--line); }
+.csat-public .why-background { position: absolute; inset: 0; overflow: hidden; z-index: -1; pointer-events: none; }
+.csat-public .why-background i { position: absolute; width: 65%; height: 70%; border-radius: 50%; filter: blur(46px); opacity: .7; }
+.csat-public .why-background i:nth-child(1) { left: -20%; top: 5%; background: radial-gradient(ellipse, color-mix(in srgb, var(--lime) 26%, transparent), transparent 68%); }
+.csat-public .why-background i:nth-child(2) { left: 22%; bottom: -18%; background: radial-gradient(ellipse, color-mix(in srgb, var(--color-blue) 18%, transparent), transparent 70%); }
+.csat-public .why-background i:nth-child(3) { right: -20%; top: 16%; background: radial-gradient(ellipse, color-mix(in srgb, var(--orange) 20%, transparent), transparent 70%); }
+.csat-public .why-tree { position: relative; isolation: isolate; }
+.csat-public .why-root { position: relative; z-index: 1; width: min(530px, 100%); margin-inline: auto; background: var(--color-ink); color: var(--color-paper); border: 1px solid var(--color-ink); box-shadow: 6px 6px 0 color-mix(in srgb, var(--blue) 22%, transparent); }
+.csat-public .why-terminal-bar { display: flex; align-items: center; gap: 16px; border-bottom: 1px solid #ffffff30; padding: 12px 18px; }
+.csat-public .why-terminal-bar > span { display: flex; gap: 6px; }
+.csat-public .why-terminal-bar i { width: 7px; height: 7px; background: var(--lime); }
+.csat-public .why-terminal-bar i:nth-child(2) { background: var(--orange); }
+.csat-public .why-terminal-bar i:nth-child(3) { background: var(--color-blue); }
+.csat-public .why-terminal-bar small { font-size: 10px; letter-spacing: .08em; }
+.csat-public .why-terminal-bar > svg { width: 18px; height: 18px; margin-left: auto; color: var(--lime); }
+.csat-public .why-root-body { display: flex; align-items: center; gap: 24px; padding: 28px; }
+.csat-public .why-root-symbol > svg { width: 68px; height: 68px; color: var(--lime); transition: transform 240ms var(--ease); }
+.csat-public .why-root:hover .why-root-symbol > svg { transform: translateY(-3px) rotate(-4deg); }
+.csat-public .why-root-body strong { font-size: 34px; letter-spacing: -.04em; }
+.csat-public .why-root-code { display: block; font-size: 12px; margin-top: 16px; letter-spacing: .04em; }
+.csat-public .why-root-code b { font-weight: 500; color: var(--lime); }
+.csat-public .why-root-code b:nth-child(2) { color: #b1c1ff; }
+.csat-public .why-root-code b:nth-child(3) { color: var(--orange); }
+.csat-public .why-root-port { position: absolute; width: 12px; height: 12px; bottom: -6px; left: calc(50% - 6px); background: var(--lime); border: 2px solid var(--color-ink); }
+.csat-public .why-wires { position: relative; z-index: -1; height: 88px; pointer-events: none; }
+.csat-public .why-wires svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.csat-public .why-wires path { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.csat-public .why-wire-practice { stroke: var(--blue); }
+.csat-public .why-wire-community { stroke: #899400; }
+.csat-public .why-wire-mentors { stroke: var(--orange); }
+.csat-public .why-wires rect { fill: var(--ink); }
+.csat-public .why-wires .why-wire-junction { fill: var(--lime); stroke: var(--ink); stroke-width: 1; }
+.csat-public .why-branches { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.csat-public .why-branch { --branch-color: var(--blue); position: relative; isolation: isolate; min-width: 0; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--branch-color); }
+.csat-public .why-branch-heading::after { content: ''; position: absolute; right: 0; top: 0; width: 18px; height: 18px; background: linear-gradient(45deg, transparent 48%, var(--branch-color) 49%); pointer-events: none; }
+.csat-public .why-community { --branch-color: #899400; }
+.csat-public .why-mentors { --branch-color: var(--orange); }
+.csat-public .why-branch-terminal { display: flex; justify-content: space-between; gap: 12px; padding: 11px 24px; font-size: 10px; letter-spacing: .06em; border-bottom: 1px solid var(--line); color: var(--muted); }
+.csat-public .why-branch-heading { display: flex; align-items: center; gap: 18px; padding: 28px 24px 0; }
+.csat-public .why-branch-heading > div { min-width: 0; }
+.csat-public .why-branch-icon { position: relative; display: grid; place-items: center; flex: 0 0 66px; height: 70px; color: var(--branch-color); background: var(--paper); border: 1px solid var(--line); }
+.csat-public .why-branch-icon > svg { width: 52px; height: 52px; transition: transform 260ms var(--ease); }
+.csat-public .why-branch-icon i { width: 9px; height: 9px; position: absolute; right: -5px; bottom: -5px; background: var(--branch-color); transition: transform 260ms var(--ease); }
+.csat-public .why-branch-number { display: block; font: 500 10px/1.4 var(--font-nav); letter-spacing: .08em; color: var(--branch-color); margin-bottom: 6px; }
+.csat-public .home-page .why-branch h3 { font: 600 clamp(22px, 1.7vw, 26px)/1.22 var(--font-nav); text-transform: none; letter-spacing: -.015em; text-wrap: pretty; }
+.csat-public .why-branch ul { list-style: none; padding: 0 24px; margin: 24px 0 28px; display: grid; gap: 16px; }
+.csat-public .why-branch li { position: relative; padding-left: 16px; color: var(--muted); font-size: 14px; line-height: 1.65; }
+.csat-public .why-branch li::before { content: ''; position: absolute; top: .7em; left: 0; width: 5px; height: 5px; background: var(--branch-color); }
+.csat-public .why-branch li strong { color: var(--ink); font-weight: 650; }
+.csat-public .why-branch-code { display: flex; gap: 10px; align-items: center; margin-top: auto; padding: 14px 24px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--line); }
+.csat-public .why-branch-code > span { color: var(--branch-color); font-size: 18px; }
+.csat-public .why-branch-watermark { position: absolute; right: 12px; bottom: 60px; width: 140px; height: 140px; color: var(--branch-color); opacity: .07; transform: rotate(-8deg); pointer-events: none; z-index: -1; }
+.csat-public .why-branch-watermark svg { display: block; width: 100%; height: 100%; }
+.dark .csat-public .why-branch-watermark { opacity: .1; }
+@supports (backdrop-filter: blur(8px)) { .csat-public .why-branch { background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(8px); } }
+@media (hover: hover) and (pointer: fine) {
+  .csat-public .why-practice:hover .why-branch-icon svg { transform: translateY(-4px); }
+  .csat-public .why-community:hover .why-branch-icon svg { transform: rotate(-8deg) scale(1.06); }
+  .csat-public .why-mentors:hover .why-branch-icon svg { transform: translateX(4px) rotate(4deg); }
+  .csat-public .why-branch:hover .why-branch-icon i { transform: translate(3px, -4px); }
+}
+.dark .csat-public .why-community { --branch-color: var(--lime); }
+.dark .csat-public .why-wire-community { stroke: var(--lime); }
+@media (max-width: 900px) {
+  .csat-public .why-tree { padding-left: 26px; }
+  .csat-public .why-root { margin-left: 0; }
+  .csat-public .why-root-port { left: -6px; bottom: 24px; }
+  .csat-public .why-root::after { content: ''; position: absolute; left: -20px; bottom: 29px; width: 19px; height: 1px; background: var(--blue); }
+  .csat-public .why-wires { display: none; }
+  .csat-public .why-branches { position: relative; grid-template-columns: 1fr; gap: 22px; margin-top: 32px; }
+  .csat-public .why-branches::before { content: ''; position: absolute; z-index: -1; top: -60px; left: -20px; width: 1px; height: 60px; background: var(--blue); }
+  .csat-public .why-branch::before { content: ''; position: absolute; z-index: -1; left: -20px; top: -23px; bottom: -23px; width: 1px; background: var(--blue); }
+  .csat-public .why-branch:last-child::before { bottom: auto; height: 55px; }
+  .csat-public .why-branch::after { content: ''; position: absolute; z-index: -1; left: -20px; width: 19px; height: 1px; top: 32px; background: var(--branch-color); }
+  .csat-public .why-branch-heading { padding-top: 24px; }
+}
+@media (max-width: 600px) {
+  .csat-public .why-background i { width: 100%; filter: blur(28px); }
+  .csat-public .why-root-body { gap: 14px; padding: 22px 18px; }
+  .csat-public .why-root-symbol > svg { width: 42px; height: 42px; }
+  .csat-public .why-root-body strong { font-size: 25px; }
+  .csat-public .why-root-code { font-size: 10px; letter-spacing: 0; }
+  .csat-public .why-terminal-bar { padding-inline: 14px; gap: 10px; }
+  .csat-public .why-terminal-bar small { font-size: 8px; }
+  .csat-public .why-branch-terminal { padding-inline: 20px; }
+  .csat-public .why-branch-heading { padding-inline: 20px; }
+  .csat-public .why-branch ul { padding-inline: 20px; }
+  .csat-public .why-branch-heading { gap: 14px; }
+  .csat-public .home-page .why-branch h3 { font-size: 23px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .csat-public .why-root-symbol > svg, .csat-public .why-branch-icon > svg, .csat-public .why-branch-icon i { transition: none; }
+  .csat-public .why-root:hover .why-root-symbol > svg, .csat-public .why-branch:hover .why-branch-icon > svg, .csat-public .why-branch:hover .why-branch-icon i { transform: none; }
+}

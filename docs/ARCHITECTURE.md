@@ -4,7 +4,7 @@
 
 **UI 05/10/2026:** PublicHeader tái sử dụng PublicNavigation cho login, tutor entry và ParentShell; không đổi auth/RPC. PublicSelect dùng Base UI cho form frontend và bộ chọn hướng học; dữ liệu tư vấn vẫn chưa gửi. Font toàn ứng dụng thống nhất Archivo. Quy tắc tại [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
 
-**Giao diện công khai 04/10/2026:** tích hợp catalog A/B/C/E/K vào React/Next.js, các thành phần và ranh giới xem [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md). Chưa thay enum/validation/RPC hoặc dữ liệu lớp. A/B dùng khung Cơ bản; C dùng C+D; E là PreVOI chờ giáo trình; K tùy chọn cần bản sao có nguồn/version và quyền trước khi vận hành. Không dùng mã tuyển sinh để tự đổi chương trình hay hình thức học. Các hợp đồng tương lai nằm trong [catalog](PUBLIC_COURSE_CATALOG.md).
+**Giao diện công khai cập nhật 05/10/2026:** tích hợp catalog A/B/C/E/K vào React/Next.js, các thành phần và ranh giới xem [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md). Chưa thay enum/validation/RPC hoặc dữ liệu lớp. A/B dùng khung Cơ bản; C dùng C+D; E Chủ lực tuyển riêng từ C, tách PreVOI trong quản lý; K tùy chọn cần bản sao có nguồn/version và quyền trước khi vận hành. Không dùng mã tuyển sinh để tự đổi chương trình hay hình thức học. Các hợp đồng tương lai nằm trong [catalog](PUBLIC_COURSE_CATALOG.md).
 
 Đối chiếu mã tại `c4cf9f8` và thay đổi local ngày 01/10/2026. Đây là bản đồ triển khai; trạng thái production xem [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
@@ -23,7 +23,7 @@ flowchart LR
     V[Vercel cron ngày 28] --> N
 ```
 
-`proxy.ts` định tuyến và làm mới phiên; nó không thay thế quyền của API/database. Public pages là `/`, `/lo-trinh`, `/lo-trinh/[program]`, `/gia-su`, `/bai-dang`, `/bai-dang/[slug]`; admin `/admin`, gia sư `/tutor`, phụ huynh `/parents`. `/gia-su` giới thiệu đội ngũ, khác với kênh đăng nhập `/tutor`. `app/(auth)` là route group, không tạo tiền tố URL.
+`proxy.ts` định tuyến và làm mới phiên; nó không thay thế quyền của API/database. Public pages là `/`, `/lo-trinh`, `/lo-trinh/[program]`, `/gia-su`, `/bai-dang`, `/bai-dang/[slug]`, `/thanh-tich`, `/hoc-lieu-mien-phi`; admin `/admin`, gia sư `/tutor`, phụ huynh `/parents`. `/gia-su` giới thiệu đội ngũ, khác với kênh đăng nhập `/tutor`. `app/(auth)` là route group, không tạo tiền tố URL. `/login` là trang liên lạc chung, switch radio Phụ huynh/Gia sư; `/tutor` vẫn qua proxy kiểm tra phiên rồi chuyển người chưa đăng nhập tới `/login?role=tutor`. Hai form dùng lại handler xác thực và endpoint hiện hành, không gộp phiên/quyền. `/thanh-tich` là khung tĩnh, chưa có schema hoặc dữ liệu thành tích. `/hoc-lieu-mien-phi` dùng lại PracticeVideo và form tài liệu frontend đã tách khỏi trang chủ; không thêm API/database. Footer/dock lấy liên hệ công khai từ `lib/public-contact.ts`.
 
 ## Ranh giới quyền
 

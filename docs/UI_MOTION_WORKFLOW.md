@@ -19,7 +19,7 @@ Chuyển động dẫn mắt vào nội dung và phản hồi thao tác. Tiêu �
 |---|---|---|
 | M01 | Hero trang chủ: ảnh phóng thêm 10%, neo trên và cắt trong khung; hai vòng tròn đồng tâm; C++ trắng, icon/pixel hover theo hướng và nhịp khác nhau. Bảng tên/thành tích không bị che | Chữ và ảnh luôn hiện; reduce bỏ chuyển động hover |
 | M01b | Trang đội ngũ dùng chung hero; bài đăng dùng reveal lên lệch nhịp 90 ms, link điều hướng trực tiếp | No-JS/reduce đọc được, bàn phím mở bài |
-| M01c | Video writing tại Không gian luyện tập: lazy, muted/loop trong viewport, dừng khi tab ẩn; có nút dừng/phát | Poster khi no-JS/reduce/save-data/lỗi; reduce/save-data cho phép chủ động phát |
+| M01c | Video writing tại Không gian luyện tập ở `/hoc-lieu-mien-phi`: lazy, muted/loop trong viewport, dừng khi tab ẩn; có nút dừng/phát | Poster khi no-JS/reduce/save-data/lỗi; reduce/save-data cho phép chủ động phát |
 | M02 | Icon giá trị mở nội dung bằng hover, focus hoặc click | Nội dung đọc được không cần hover |
 | M03 | Bóng đèn: silhouette lime chuyển sang ảnh khi cuộn tới | Reduce/no-JS thấy ảnh hoàn chỉnh |
 | M04 | Ba thẻ gia sư xuất hiện lệch nhịp, hướng lên/phải, phản hồi viền/nhấc nhẹ | Mobile xếp dọc |
@@ -27,7 +27,7 @@ Chuyển động dẫn mắt vào nội dung và phản hồi thao tác. Tiêu �
 | M06 | Reveal lên/trái/phải cho chữ và khóa học; mảng màu chỉ ở ảnh. Quãng trượt 26–38 px, easing cubic-bezier(.16,1,.3,1) | Reduce bỏ overlay |
 | M07 | Hero lộ trình: bốn ảnh góc khuyết; icon hội tụ A/B/C, mở E/K | Mobile gọn, không cảnh cuộn rỗng |
 | M08 | Selector phản hồi lựa chọn, cập nhật kết quả sau nút bấm | Các lớp vẫn đọc được |
-| M09 | A+B, C, E/K: ảnh/đường nối tạo nhịp, nội dung cố định | Mobile một cột |
+| M09 | Năm phần A/B/C/E/K riêng: gradient tĩnh phía sau, reveal ảnh/chữ theo hướng đối xứng, nội dung cố định | Mobile một cột |
 | M10 | Glyph tối đa bảy grapheme cùng dòng, khoảng 420 ms; nhận vị trí mới mỗi 35 ms; đổi glyph mỗi 80 ms (lộ trình 88 ms, chậm thêm 10%) | Tắt touch, selection, reduce, tab ẩn, thiếu CSS Highlight API |
 | M11 | Click ba biến thể pixel ngắn, không chặn hành động | Reduce bỏ hoàn toàn |
 | M12 | Menu/dock: focus liên kết đầu, Escape trả focus, không mở chồng | Menu tĩnh khi no-JS |
@@ -69,3 +69,9 @@ Nguồn: [W3C về chuyển động do tương tác](https://www.w3.org/WAI/WCAG
 - **FLIP / shared-layout transition**: tham khảo cho cảnh icon ghép sơ đồ phức tạp hơn; hiện vẫn là cảnh rAF có sẵn.
 
 Tham khảo [Motion: scroll-triggered và scroll-linked animation](https://motion.dev/docs/react-scroll-animations), [GSAP: lỗi triển khai thường gặp](https://gsap.com/resources/mistakes/). Không thêm thư viện chỉ để thay vài transition, không sao chép nguyên template chưa kiểm tra license. Reveal chỉ ẩn phần ngoài viewport sau hydration, mở ngay khi focus/reduce; no-JS vẫn hiện nội dung. Các listener/observer/timer đều dọn khi unmount. Mục 04 không có glyph.
+
+Ngày 05/10: Không gian luyện tập đã tách sang trang Học liệu miễn phí, dùng hai Reveal trái/phải, cùng mốc kích hoạt và nhịp 820 ms. Art phụ huynh dùng rise, gradient không animate blur. Mỗi lớp có chapter riêng; không còn nhánh E/K gộp. Các fallback và cleanup của Reveal giữ nguyên.
+
+Hệ sinh thái CSAT dùng cây mạch điện/terminal theo lựa chọn tiếp ngày 05/10: art dẫn trực tiếp, không heading riêng; nút gốc và ba nhánh Reveal rise. Icon nhánh lần lượt nhấc, xoay/phóng nhẹ và dịch ngang; không thêm vòng animation tự chạy. Blob gradient và đường mạch là trang trí tĩnh, blur không animate; dây có stacking context sau nút/thẻ để không phủ nội dung khi reveal. Lời mời học liệu nằm trên nút liên hệ, là link tĩnh có nút ẩn, không timer hoặc thông báo live; reduced motion bỏ chuyển động icon. Dock/lời mời không render tại trang liên lạc. Chuyển trang học liệu dọn observer/video như luồng cũ.
+
+Menu lộ trình dùng disclosure native; không trì hoãn điều hướng. Chỉ chevron xoay 180 ms khi mở và giữ yên ở reduced motion. Hover trên desktop không thay focus; Escape đóng và trả focus về summary. Listener pointer ngoài component được dọn khi unmount; mobile bấm mở và no-JS dùng cơ chế details gốc. Bốn lý do học thi đấu thay nội dung cũ nhưng giữ nguyên hover/click/keyboard, panel transition và fallback của LearningValues.

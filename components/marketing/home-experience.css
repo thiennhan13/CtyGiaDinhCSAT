@@ -2923,7 +2923,12 @@
 .csat-public .home-page .practice-video-toggle { position: absolute; right: 16px; bottom: 16px; z-index: 1; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 4px; background: var(--glass-bg); color: var(--ink); }
 .csat-public .home-page .practice-video-toggle:focus-visible { outline-offset: -5px; }
 /* A larger Portal diagram: increase real layout dimensions rather than scaling overflow. */
-.csat-public .home-page .parent-map { height: 460px; }
+.csat-public .home-page .parent-map { height: 560px; }
+.csat-public .home-page .parent-map { isolation: isolate; }
+.csat-public .home-page .parent-map-blob { position: absolute; inset: 5% 3%; z-index: -1; pointer-events: none; border-radius: 35% 65% 45% 55%; background: radial-gradient(ellipse at 28% 30%, color-mix(in srgb, var(--lime) 50%, transparent), transparent 65%), radial-gradient(ellipse at 75% 65%, color-mix(in srgb, var(--blue) 24%, transparent), transparent 65%); filter: blur(22px); }
+.csat-public .home-page .parent-map-label { position: absolute; top: 0; left: 0; right: 0; text-align: center; color: var(--muted); font-size: 10px; letter-spacing: .08em; }
+.csat-public .home-page .parent-node small { display: block; font-size: 10px; color: var(--muted); font-weight: 400; margin-top: 4px; line-height: 1.35; }
+.csat-public .home-page .parent-map-footnote { position: absolute; bottom: 0; left: 0; right: 0; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.6; }
 .csat-public .home-page .parent-core { width: 216px; height: 236px; }
 .csat-public .home-page .parent-core-icon svg { width: 46px; height: 46px; }
 .csat-public .home-page .parent-core strong { font-size: 25px; }
@@ -2931,16 +2936,19 @@
 .csat-public .home-page .parent-node { font-size: 14px; padding: 18px 20px; gap: 12px; border-color: var(--ink); box-shadow: 4px 4px 0 var(--line); }
 .csat-public .home-page .parent-node svg { width: 29px; height: 29px; }
 .csat-public .home-page .parent-connectors { stroke-width: 1.5; opacity: .45; }
-@media (max-width: 1100px) { .csat-public .home-page .parent-map { width: min(600px,100%); height: 430px; } }
+.csat-public .home-page :is(.node-roadmap,.node-fees) { bottom: 64px; }
+.csat-public .home-page :is(.node-lessons,.node-roadmap) { left: 12px; }
+.csat-public .home-page :is(.node-reviews,.node-fees) { right: 12px; }
+@media (max-width: 1100px) { .csat-public .home-page .parent-map { width: min(600px,100%); height: 520px; } }
 @media (max-width: 680px) {
-  .csat-public .home-page .parent-map { height: 420px; }
+  .csat-public .home-page .parent-map { height: 520px; }
   .csat-public .home-page .parent-core { width: 174px; height: 198px; }
   .csat-public .home-page .parent-core strong { font-size: 21px; }
   .csat-public .home-page .parent-core-icon svg { width: 40px; height: 40px; }
-  .csat-public .home-page .parent-node { font-size: 11px; padding: 12px 10px; gap: 8px; max-width: 46%; }
+  .csat-public .home-page .parent-node { font-size: 11px; padding: 12px 10px; gap: 8px; max-width: 44%; }
   .csat-public .home-page .parent-node svg { width: 23px; height: 23px; }
-  .csat-public .home-page .node-lessons { top: 16px; }
-  .csat-public .home-page .node-reviews { top: 32px; }
-  .csat-public .home-page .node-roadmap { bottom: 32px; }
-  .csat-public .home-page .node-fees { bottom: 16px; }
+  .csat-public .home-page .node-lessons { top: 56px; }
+  .csat-public .home-page .node-reviews { top: 64px; }
+  .csat-public .home-page .node-roadmap { bottom: 64px; }
+  .csat-public .home-page .node-fees { bottom: 64px; }
 }

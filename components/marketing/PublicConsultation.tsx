@@ -8,7 +8,7 @@ import { parentPhoneSchema } from '@/lib/parents';
 const choices = {
   role: ['Phụ huynh', 'Học sinh', 'Sinh viên'],
   level: ['Trao đổi thêm', 'Tiểu học', 'THCS', 'THPT', 'Đại học'],
-  course: ['Cần tư vấn thêm', 'A — Nhập môn', 'B — Thi đấu cơ bản', 'C — Thi đấu nâng cao', 'E — PreVOI', 'K — Học riêng / tùy chọn'],
+  course: ['Cần tư vấn thêm', 'A — Nhập môn', 'B — Thi đấu cơ bản', 'C — Thi đấu nâng cao', 'E — Chủ lực', 'K — Học riêng / tùy chọn'],
   goal: ['Khám phá, cần tư vấn', 'Bắt đầu học lập trình', 'HSG THCS', 'Chuyên Tin', 'HSG tỉnh THPT', 'HSG Quốc gia'],
   background: ['Chưa rõ, muốn trao đổi', 'Chưa học lập trình', 'Đang làm quen cú pháp', 'Đã tự giải một số bài'],
 };

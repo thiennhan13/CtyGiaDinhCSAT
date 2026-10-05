@@ -20,12 +20,13 @@ export function CodeIcon({ name, className = '' }: {
 }) {
     return <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter" className={`code-icon ${className}`} aria-hidden="true" focusable="false">{(paths[name] || paths.terminal).map((d, i) => <path d={d} key={i}/>)}</svg>;
 }
-export function Reveal({ children, className = '', tone = 'blue', variant = 'wipe', delay = 0 }: {
+export function Reveal({ children, className = '', tone = 'blue', variant = 'wipe', delay = 0, id }: {
     children: ReactNode;
     className?: string;
     tone?: 'blue' | 'lime';
     variant?: 'wipe' | 'rise' | 'left' | 'right';
     delay?: number;
+    id?: string;
 }) {
     const ref = useRef<HTMLDivElement>(null);
     useEffect(() => {
@@ -57,7 +58,7 @@ export function Reveal({ children, className = '', tone = 'blue', variant = 'wip
         el.addEventListener('focusin', finish);
         return () => { observer.disconnect(); clearTimeout(timer); media.removeEventListener('change', change); el.removeEventListener('focusin', finish); };
     }, []);
-    return <div ref={ref} className={`public-reveal ${className}`} data-reveal={tone} data-reveal-variant={variant} style={{ '--reveal-delay': `${delay}ms` } as CSSProperties}>{children}</div>;
+    return <div id={id} ref={ref} className={`public-reveal ${className}`} data-reveal={tone} data-reveal-variant={variant} style={{ '--reveal-delay': `${delay}ms` } as CSSProperties}>{children}</div>;
 }
 /** Visual overlay only: original text, selection and accessible name stay intact. */
 export function GlyphHeading({ as: Tag = 'h2', children, className = '' }: {

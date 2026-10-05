@@ -175,3 +175,56 @@
 @media print{.csat-public .public-reveal.reveal-ready{opacity:1}.csat-public .public-reveal.reveal-play>*{visibility:visible}.csat-public .public-reveal.reveal-play::after{display:none}}
 
 @media(min-width:1281px) and (max-width:1500px){.csat-public .brand .brand-caption{display:none}}
+/* Footer gộp và lời mời học liệu phía trên nút liên hệ. */
+.csat-public .dock-materials-notice { position: absolute; right: 0; bottom: calc(100% + 14px); display: flex; width: 280px; max-width: calc(100vw - 32px); background: var(--surface); border: 1px solid var(--line); box-shadow: 5px 5px 0 color-mix(in srgb, var(--blue) 16%, transparent); }
+.csat-public .dock-materials-notice::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 3px; background: linear-gradient(var(--blue), var(--lime)); pointer-events: none; }
+.csat-public .dock-materials-notice::after { content: ''; position: absolute; right: 22px; bottom: -7px; width: 12px; height: 12px; background: var(--surface); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transform: rotate(45deg); pointer-events: none; }
+.csat-public .dock-materials-notice > a { display: flex; gap: 10px; align-items: center; flex: 1; min-width: 0; padding: 16px 28px 16px 14px; font: 500 14px/1.4 var(--font-nav); }
+.csat-public .dock-notice-icon { display: grid; place-items: center; flex: 0 0 42px; height: 48px; color: var(--color-white); background: var(--color-blue); clip-path: polygon(0 0, 75% 0, 100% 20%, 100% 100%, 0 100%); }
+.csat-public .dock-notice-icon svg { transition: transform 200ms var(--ease); }
+.csat-public .dock-materials-notice > a:hover .dock-notice-icon svg { transform: rotate(-12deg) translateY(-2px); }
+.csat-public .dock-materials-notice strong { display: inline-flex; align-items: center; gap: 5px; color: var(--blue); font: 600 16px/1.4 var(--font-nav); }
+.csat-public .dock-materials-notice > button { position: absolute; top: 0; right: 0; display: grid; place-items: center; width: 36px; height: 36px; border: 0; background: transparent; padding: 0; }
+.csat-public .site-footer { padding-top: 40px; }
+.csat-public .footer-top { display: grid; grid-template-columns: .85fr 1.35fr .85fr; gap: 40px; }
+.csat-public .footer-copy { max-width: 290px; }
+.csat-public .footer-nav { gap: 36px; margin-top: 0; }
+.csat-public .footer-contact { display: grid; gap: 6px; align-content: start; font-style: normal; font-size: 14px; min-width: 0; }
+.csat-public .footer-contact > strong { margin-bottom: 12px; }
+.csat-public .footer-contact a { display: flex; align-items: center; gap: 8px; min-height: 36px; width: fit-content; max-width: 100%; overflow-wrap: anywhere; }
+.csat-public .footer-contact a:hover { color: var(--blue); }
+.csat-public .footer-contact svg { color: var(--blue); flex-shrink: 0; }
+.csat-public .footer-socials { display: flex; flex-wrap: wrap; gap: 20px; }
+.csat-public .footer-bottom { margin-top: 28px; padding-top: 20px; }
+@supports (backdrop-filter: blur(8px)) { .csat-public .dock-materials-notice { background: color-mix(in srgb, var(--surface) 96%, transparent); backdrop-filter: blur(8px); } }
+@media (max-width: 1100px) {
+ .csat-public .footer-top { grid-template-columns: 1fr 1fr; gap: 28px 40px; }
+ .csat-public .footer-contact { grid-column: 1; }
+ .csat-public .footer-nav { grid-column: 2; grid-row: 1 / span 2; flex-wrap: wrap; }
+}
+@media (max-width: 600px) {
+ .csat-public .footer-top { grid-template-columns: 1fr; gap: 28px; }
+ .csat-public .footer-nav { grid-column: auto; grid-row: auto; gap: 28px; }
+ .csat-public .footer-copy { max-width: 350px; }
+ .csat-public .footer-contact { grid-column: auto; }
+ .csat-public .dock-materials-notice > a { padding: 18px 26px 18px 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .csat-public .dock-notice-icon svg { transition: none; }.csat-public .dock-materials-notice > a:hover .dock-notice-icon svg { transform: none; } }
+
+/* Disclosure gốc hoạt động bằng chuột, bàn phím và cả khi không JavaScript. */
+.csat-public .nav-roadmap { position: relative; flex-shrink: 0; }
+.csat-public .nav-roadmap > summary { display: flex; align-items: center; gap: 4px; list-style: none; cursor: pointer; min-height: 44px; padding: 12px 9px; border-radius: 8px; font: 500 15px/1.4 var(--font-nav); }
+.csat-public .nav-roadmap > summary::-webkit-details-marker { display: none; }
+.csat-public .nav-roadmap > summary:hover, .csat-public .nav-roadmap[open] > summary, .csat-public .nav-roadmap > summary[aria-current=page] { background: var(--soft); }
+.csat-public .nav-roadmap > summary svg { transition: transform 180ms var(--ease); }
+.csat-public .nav-roadmap[open] > summary svg { transform: rotate(180deg); }
+.csat-public .nav-roadmap-panel { position: absolute; top: 100%; left: 0; width: 278px; padding: 10px; background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--blue); box-shadow: 5px 5px 0 color-mix(in srgb, var(--blue) 14%, transparent), 0 12px 28px #0001; }
+.csat-public .nav-roadmap-panel > a { display: flex; align-items: center; gap: 12px; white-space: normal; border-radius: 2px; font-size: 14px; }
+.csat-public .nav-roadmap-panel > a:first-child { justify-content: space-between; font-weight: 650; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
+.csat-public .nav-course-code { display: grid; place-items: center; flex: 0 0 28px; height: 28px; background: var(--soft); color: var(--blue); font-weight: 650; }
+@media (max-width:1280px) {
+ .csat-public .nav-roadmap > summary { justify-content: space-between; padding: 12px; font-size: 16px; }
+ .csat-public .nav-roadmap-panel { position: static; width: auto; margin: 4px 0 8px 12px; box-shadow: none; border-top-width: 1px; border-left: 3px solid var(--blue); }
+ .csat-public .nav-roadmap-panel > a { font-size: 14px; }
+}
+@media (prefers-reduced-motion:reduce) { .csat-public .nav-roadmap > summary svg { transition: none; } }

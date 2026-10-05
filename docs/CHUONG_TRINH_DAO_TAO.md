@@ -4,17 +4,17 @@ Bản tiếp nhận: 22/09/2026. Nguồn: `Danh sách kiến thức (1).xlsx` do
 
 > Xác nhận 23/09/2026: các lớp hiện có mặc định Cơ bản toàn bộ A+B; Nâng cao toàn bộ C+D. [Kết quả đối chiếu và kế hoạch áp dụng](CLASS_CURRICULUM_ROLLOUT_20260923.md). Migration 20 đã áp dụng production lúc 00:49 ngày 24/09/2026; các lớp thuộc hai chương trình đã nhận khung mới.
 
-## Catalog công khai — cập nhật 04/10/2026
+## Catalog công khai — cập nhật 05/10/2026
 
 Theo xác nhận mới của trung tâm, website giới thiệu năm khóa **A, B, C, E, K**. [Catalog và thiết kế tích hợp](PUBLIC_COURSE_CATALOG.md) là nơi đối chiếu tên khóa, nguồn nội dung và hợp đồng dự kiến cho form. Đây là cập nhật nội dung website và thiết kế hệ thống; **chưa chuyển đổi lớp, template hoặc dữ liệu production**.
 
 - **A — Nhập môn:** giữ A01–A09, 9 chủ đề thuộc khung Cơ bản.
 - **B — Lập trình thi đấu cơ bản:** giữ B01–B15, 15 chủ đề thuộc khung Cơ bản. Cơ bản mặc định vẫn A+B, tổng cộng 24 chủ đề/7 chặng.
 - **C — Lập trình thi đấu nâng cao:** giữ toàn bộ C+D, 19 chủ đề/6 chặng. Không thay danh mục đang được dùng cho các lớp Nâng cao.
-- **E — PreVOI:** định hướng HSG Quốc gia; giáo trình riêng sẽ được trung tâm cung cấp sau. Tên và ý nghĩa mới thay cách giới thiệu E “Chủ lực” trong poster tuyển sinh trước đó. Chưa xác nhận lại sĩ số, thời lượng, học phí hay điều kiện đầu vào; không tự kế thừa các thông tin này.
+- **E — Chủ lực:** thi tuyển đầu vào riêng từ lớp C; học sinh cần kiến thức khó hơn, hướng đến thứ hạng cao tại HSG Tỉnh và tuyển sinh chuyên Tin. Sĩ số 3–4 học sinh, 2 giờ/buổi, lịch theo thành viên lớp. Chưa có danh mục giáo trình hoặc học phí được duyệt; không sao chép C+D làm giáo trình E.
 - **K — Kèm riêng:** học 1–1 hoặc nhóm đăng ký riêng, chọn/phối nội dung từ các chương trình theo nhu cầu. Thiết kế tương lai cần giữ nguồn, phiên bản và lịch sử của nội dung được lấy; không tự cập nhật đè khi chương trình nguồn thay đổi.
 
-Khóa tuyển sinh, chương trình kiến thức và hình thức học là các khái niệm khác nhau. E không làm đổi C+D thành giáo trình HSGQG; K tùy chỉnh không đồng nghĩa HSGQG. Các mốc vận hành dưới đây được giữ để đọc lịch sử, không phải lệnh cập nhật lại database.
+Khóa tuyển sinh, chương trình kiến thức và hình thức học là các khái niệm khác nhau. E không phải PreVOI. PreVOI giữ riêng trong quản lý lớp gia sư; yêu cầu tương lai chỉ gồm các lớp loại này cần được đặc tả trước khi thay enum/default hoặc chuyển lớp thật. E không làm đổi C+D thành giáo trình HSGQG; K tùy chỉnh không đồng nghĩa HSGQG. Các mốc vận hành dưới đây được giữ để đọc lịch sử, không phải lệnh cập nhật lại database.
 
 ## Phạm vi đã xác nhận
 

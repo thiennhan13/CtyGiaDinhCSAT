@@ -1,0 +1,25 @@
+.contact-entry-main{position:relative;z-index:10;display:grid;grid-template-columns:1.1fr 1fr;align-items:center;gap:clamp(32px,6vw,90px);max-width:1408px;margin:auto;padding:64px 32px 96px;min-height:calc(100svh - 90px)}
+.contact-eyebrow{font-weight:700;letter-spacing:.12em;font-size:12px;color:var(--muted-foreground);margin-bottom:22px}
+.contact-entry-copy h1{font-weight:900;font-size:clamp(42px,5.3vw,78px);line-height:1.05;letter-spacing:-.055em;color:var(--foreground)}
+.contact-entry-copy h1 span{color:var(--primary)}
+.contact-entry-copy>p:last-of-type{max-width:540px;margin-top:25px;font-size:17px;line-height:1.7;color:var(--muted-foreground)}
+.contact-entry-card{width:100%;max-width:520px;justify-self:center;padding:36px;background:var(--card);color:var(--card-foreground);border:2px solid var(--foreground);box-shadow:8px 8px 0 var(--foreground);border-radius:6px}
+.contact-card-mark{width:52px;height:52px;display:grid;place-items:center;background:var(--csat-lime);color:var(--foreground);border:1px solid var(--border);margin-bottom:20px}
+.contact-entry-card h2{font-size:26px;font-weight:850;letter-spacing:-.04em}
+.contact-role-switch{display:grid;grid-template-columns:1fr 1fr;padding:5px;gap:5px;border:1px solid var(--border);margin:24px 0;background:var(--secondary);border-radius:4px}
+.contact-role-switch label{position:relative;cursor:pointer;text-align:center;padding:12px 6px;font-weight:650;font-size:14px;transition:background 180ms,color 180ms}
+.contact-role-switch label.is-selected{background:var(--primary);color:var(--primary-foreground);box-shadow:2px 2px 0 var(--foreground)}
+.contact-role-switch input{position:absolute;opacity:0;width:1px;height:1px}
+.contact-role-switch label:focus-within{outline:2px solid var(--primary);outline-offset:3px}
+.contact-form-intro{color:var(--muted-foreground);font-size:14px;line-height:1.6;margin-bottom:20px}
+.contact-entry-help{margin-top:25px;padding-top:18px;border-top:1px solid var(--border);font-size:13px;color:var(--muted-foreground);line-height:1.7}
+.contact-entry-help a{color:var(--primary);font-weight:650;text-underline-offset:4px}
+.contact-entry-art{position:relative;max-width:450px;min-height:240px;margin-top:35px;display:grid;place-items:center;isolation:isolate}
+.contact-entry-art:before{content:'';position:absolute;inset:5% 15%;background:radial-gradient(ellipse,var(--csat-lime),transparent 70%);z-index:-1}
+.contact-entry-art>.code-icon{width:130px;height:130px;color:var(--primary);rotate:-8deg}
+.contact-entry-art>span{position:absolute;display:flex;align-items:center;gap:9px;padding:12px 18px;background:var(--card);border:1px solid var(--foreground);box-shadow:3px 3px 0 var(--foreground);font-size:13px;font-weight:650}
+.contact-entry-art>span:nth-of-type(1){left:0;top:15%;rotate:-5deg}.contact-entry-art>span:nth-of-type(2){right:0;top:25%;rotate:4deg}.contact-entry-art>span:nth-of-type(3){right:15%;bottom:0;rotate:-3deg}
+.contact-entry-art>span svg{width:22px;height:22px;color:var(--primary)}
+@media(max-width:900px){.contact-entry-main{grid-template-columns:1fr;max-width:700px;gap:32px;padding:36px 24px 64px}.contact-entry-copy h1{font-size:clamp(38px,8vw,64px)}.contact-entry-art{display:none}.contact-entry-card{max-width:none}}
+@media(max-width:400px){.contact-entry-card{padding:24px}.contact-entry-main{padding-inline:18px}.contact-role-switch label{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.contact-role-switch label{transition:none}}

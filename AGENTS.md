@@ -36,6 +36,7 @@
 ## Website công khai
 
 - Đọc `docs/PUBLIC_WEBSITE.md` khi sửa trang giới thiệu/lộ trình. Nguồn nội dung chuẩn là catalog và chương trình đào tạo; không dùng poster cũ thay quyết định mới đã duyệt.
+- Thiết kế vận dụng đa dạng phương pháp và quy tắc từ `ui-ux-pro-max` khi có skill: phân cấp thị giác, tương phản, khoảng trắng, bố cục so le/editorial, bento, sơ đồ, timeline và tương tác theo nội dung. Không ép mọi phần thành tiêu đề lớn → đoạn dẫn → hàng thẻ; có thể dùng art hoặc sơ đồ làm điểm dẫn, giữ cấu trúc ngữ nghĩa và tên truy cập phù hợp. Nhận diện, nội dung thật, khả năng đọc, bàn phím và reduced motion vẫn là ràng buộc; xem `docs/PUBLIC_UI_DESIGN_SYSTEM.md`. Không đổi font/màu đã duyệt theo gợi ý tự động của skill.
 - Chỉ dùng tài nguyên đã tối ưu và được chọn; ảnh/video gốc, prototype và ảnh QA ở kho nội bộ. Runtime không phụ thuộc `docs/prototypes` hoặc công cụ local của người viết.
 - Giữ CSS trong phạm vi trang công khai; effect phải dọn listener/observer/rAF khi đổi trang. Có trạng thái đọc được khi không JS hoặc giảm chuyển động; không khóa cuộn và không đổi văn bản thật để làm glyph.
 - Chức năng chưa bật dùng phương thức liên hệ đang hoạt động, không dựng form gửi giả. Hạn chế kỹ thuật và nội dung đang chờ ghi trong Markdown, không dùng chú thích demo trên website.

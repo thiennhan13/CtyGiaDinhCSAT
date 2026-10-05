@@ -1,6 +1,6 @@
 # Catalog khóa học công khai và thiết kế tích hợp
 
-Cập nhật **04/10/2026** theo xác nhận của trung tâm. Tài liệu này là nguồn thống nhất cho tên khóa, nội dung tuyển sinh và thiết kế dữ liệu tương lai. Nội dung A/B/C đọc từ [chương trình đào tạo đã duyệt](CHUONG_TRINH_DAO_TAO.md). Bản HTML là bản thử; các hợp đồng dự kiến bên dưới **chưa được triển khai vào API/RPC hoặc database production**.
+Cập nhật **05/10/2026** theo xác nhận của trung tâm. Tài liệu này là nguồn thống nhất cho tên khóa, nội dung tuyển sinh và thiết kế dữ liệu tương lai. Nội dung A/B/C đọc từ [chương trình đào tạo đã duyệt](CHUONG_TRINH_DAO_TAO.md). Giao diện đã tích hợp Next.js; các hợp đồng dự kiến bên dưới **chưa được triển khai vào API/RPC hoặc database production**.
 
 ## Năm khóa học trên website
 
@@ -9,10 +9,10 @@ Cập nhật **04/10/2026** theo xác nhận của trung tâm. Tài liệu này 
 | A | Nhập môn lập trình | A01–A09: 9 chủ đề/3 chặng; học sinh lớp 5–7 làm quen C++ | 99.000đ/buổi; 90 phút; 5–8 học sinh; lịch theo đợt tuyển sinh |
 | B | Lập trình thi đấu cơ bản | B01–B15: 15 chủ đề/4 chặng; học sinh lớp 7–9, định hướng HSG cấp Phường/Chuyên Tin theo poster | 99.000đ/buổi; 90 phút; 5–8 học sinh; trao đổi phạm vi luyện thi cụ thể |
 | C | Lập trình thi đấu nâng cao | C01–C12 và D01–D07: 19 chủ đề/6 chặng; học sinh lớp 7–9 hướng HSG tỉnh/Chuyên Tin theo poster | 109.000đ/buổi; 90 phút; 5–8 học sinh; trao đổi nền tảng trước khi chọn lớp |
-| E | PreVOI | Định hướng HSG Quốc gia; giáo trình riêng sẽ được trung tâm cung cấp sau | Tiếp nhận nhu cầu trao đổi; chưa công bố sĩ số, thời lượng, lịch, học phí hoặc điều kiện đầu vào |
+| E | Chủ lực | Thi tuyển đầu vào riêng từ lớp C; kiến thức khó hơn, hướng đến thứ hạng cao tại HSG Tỉnh và tuyển sinh chuyên Tin | 3–4 học sinh; 2 giờ/buổi; lịch theo thành viên lớp; học phí trao đổi cùng đội ngũ |
 | K | Kèm riêng | Học 1–1 hoặc nhóm đăng ký riêng; chọn/phối nội dung từ các chương trình theo nhu cầu | Nội dung, lịch, thời lượng và học phí trao đổi trước khi bắt đầu |
 
-**A+B là cách xem toàn bộ khung Cơ bản, không phải khóa tuyển sinh thứ sáu.** C vẫn dùng trọn C+D, không đổi thành giáo trình PreVOI. Tên E “Chủ lực”, yêu cầu tuyển từ C, sĩ số 3–4 và thời lượng 2 giờ trong poster cũ không được tiếp tục dùng cho PreVOI khi chưa được trung tâm xác nhận lại.
+**A+B là cách xem toàn bộ khung Cơ bản, không phải khóa tuyển sinh thứ sáu.** C vẫn dùng trọn C+D, không đổi thành giáo trình PreVOI. Quyết định 05/10 thay quyết định 04/10: E là Chủ lực theo ảnh trung tâm cung cấp, không phải PreVOI. Danh mục kiến thức và học phí E chưa được cung cấp; website không tạo giáo trình hoặc giá thay trung tâm.
 
 Thông tin trên hỗ trợ tìm hiểu, không kết luận năng lực từ tuổi hoặc cấp học. Giá tuyển sinh không cập nhật đơn giá lớp đang học, không dùng để tính lại học phí lịch sử. Khung kiến thức không ấn định số buổi hoặc cam kết kết quả thi.
 
@@ -30,7 +30,7 @@ Mapping thiết kế:
 
 - A/B lấy nội dung từ `basic`, chọn phần tương ứng. Cơ bản vận hành vẫn mặc định A+B.
 - C lấy nội dung `advanced` C+D hiện hành. Không tự sửa các lớp đang mang loại Nâng cao.
-- E định hướng PreVOI/HSGQG. `voi` là mã chương trình đã tồn tại, nhưng giáo trình E chưa có: **không tự gán E vào lớp `voi`, đổi default hoặc công bố template rỗng**.
+- E Chủ lực là khóa tuyển riêng từ C, độc lập với PreVOI. `voi` là mã quản lý hiện có, giữ nguyên ở phía gia sư. Không tự gán E vào `voi`, thay default hay chuyển lớp thật. Ý định quản lý PreVOI chỉ gồm các lớp loại này cần đợt đặc tả/mapping riêng có dữ liệu và quyền rõ ràng.
 - K là nhu cầu học riêng với chương trình tùy chỉnh; không đồng nghĩa HSGQG. Một lớp 1–1 giữ nguyên khung đã có vẫn có thể dùng `basic`/`advanced` cùng `individual`. Khi cần chọn/phối chương trình riêng, dùng thiết kế K bên dưới sau khi triển khai đầy đủ.
 
 Website có thể thay cách giới thiệu mà không thay loại lớp hoặc nội dung phụ huynh đang xem. Chuyển đổi lớp thật là nhiệm vụ riêng, cần đối chiếu dữ liệu, phạm vi được phép và kiểm chứng bảo toàn lịch sử.
@@ -43,7 +43,7 @@ Selector đã được tích hợp vào Next.js. Theo yêu cầu mới ngày 04/
 
 Ba đầu vào: cấp học, mục tiêu và nền tảng do người dùng tự mô tả. Nền tảng gồm chưa học; đang làm quen cú pháp; đã tự giải một số bài; chưa rõ/cần trao đổi. Đây không phải bài kiểm tra xếp lớp.
 
-- Mục tiêu HSG Quốc gia: giới thiệu **E — PreVOI**, mời trao đổi nền tảng, lịch học và học phí; không báo đủ điều kiện. Trạng thái chờ giáo trình ghi trong tài liệu, không đưa chú thích demo lên website.
+- Mục tiêu HSG Quốc gia: mời trao đổi riêng, không gợi ý E hoặc xác nhận đủ điều kiện. Các URL cũ `/lo-trinh/hsgqg`, `/lo-trinh/voi`, `/lo-trinh/prevoi` chuyển về tư vấn mục tiêu quốc gia, không coi là alias của E.
 - Đại học với mục tiêu khác: tư vấn riêng. Không dùng cấp học để khẳng định phải theo một khóa cụ thể.
 - Mới bắt đầu: ưu tiên tìm hiểu A; đang làm quen cú pháp: A/B; đã luyện bài: B/C; chưa rõ: xem các khóa và trao đổi.
 - Người đọc luôn được xem khóa khác. K có đường tư vấn riêng; selector không tự chẩn đoán người dùng cần 1–1.
@@ -62,7 +62,7 @@ Mở rộng luồng tư vấn hiện có cùng lúc ở validation, API, RPC, ad
 | `level` mở rộng | Bổ sung Tiểu học; giữ các giá trị THCS/THPT/Đại học/chưa rõ hiện có |
 | `goal` mở rộng | Bổ sung mục tiêu bắt đầu học lập trình nếu UI dùng lựa chọn này; giữ các mục tiêu thi và chưa rõ hiện có |
 
-`program` hiện tại là mã gợi ý công khai (`co-ban`, `nang-cao`, `hsgqg`, `consultation`), không phải enum chương trình database. Khi triển khai hợp đồng mở rộng, server cần tính/kiểm chứng lại từ catalog: A/B → `co-ban`; C → `nang-cao`; E → `hsgqg` theo nghĩa yêu cầu tư vấn; K → `consultation`. Mục tiêu người gửi vẫn được lưu độc lập. Nếu chưa chọn khóa, dùng gợi ý mục tiêu tương thích hiện tại. Không tin giá trị `program` do client tự gửi.
+`program` hiện tại là mã gợi ý công khai (`co-ban`, `nang-cao`, `hsgqg`, `consultation`), không phải enum chương trình database. Khi triển khai hợp đồng mở rộng, server cần tính/kiểm chứng lại từ catalog: A/B → `co-ban`; C → `nang-cao`; E → yêu cầu tư vấn Chủ lực (cần hợp đồng mới, không map vào `hsgqg`); K → `consultation`. Mục tiêu người gửi vẫn được lưu độc lập. Nếu chưa chọn khóa, dùng gợi ý mục tiêu tương thích hiện tại. Không tin giá trị `program` do client tự gửi.
 
 Luồng cũ cần tiếp tục hợp lệ; không sửa payload thư đã xếp hàng. Khi đổi hợp đồng, xem lại fingerprint/idempotency để cùng mã yêu cầu không ghi hai nội dung khác nhau. Form thật chỉ bật khi schema, cấu hình và admin tiếp nhận đã được kiểm chứng. Gửi email lỗi không làm mất yêu cầu đã lưu; thành công chỉ thông báo đã tiếp nhận, không nói tài liệu đã gửi hoặc tài khoản CSATOJ đã được tạo.
 
@@ -93,7 +93,8 @@ Câu giới thiệu chung không ghi đè hồ sơ từng gia sư. Mặc định
 | Danh sách kiến thức, tiếp nhận 22/09/2026 | A01–A09, B01–B15, C01–C12, D01–D07; giữ 24+19 chủ đề |
 | Xác nhận 23/09, mốc áp dụng 24/09/2026 | Cơ bản mặc định A+B, Nâng cao C+D; chỉ là mốc lịch sử đã ghi nhận, không phải lần đọc production mới |
 | Poster tuyển sinh được cung cấp 03/10/2026 | Tên, giá, đối tượng và hình thức A/B/C; tham chiếu lịch sử cho E/K |
-| Xác nhận trực tiếp ngày 04/10/2026 | E là PreVOI hướng HSGQG, giáo trình bổ sung sau; K tùy chỉnh theo nhu cầu; giới thiệu đội ngũ chuyên Phan; chưa chuyển lớp thật |
+| Xác nhận ngày 04/10, được thay ngày 05/10/2026 | Quyết định cũ E PreVOI đã hết hiệu lực; K tùy chỉnh và đội ngũ chuyên Phan vẫn giữ |
+| Ảnh và xác nhận trực tiếp ngày 05/10/2026 | E Chủ lực: tuyển riêng từ C, HSG Tỉnh/tuyển sinh chuyên Tin, 3–4 học sinh, 2 giờ/buổi; lịch theo thành viên lớp; PreVOI giữ riêng trong quản lý |
 | Poster Trần Hải Đăng được cung cấp và cho phép sử dụng | Thủ khoa khóa 52; Giải Nhất HSGQG 2025–2026, hạng 3 toàn quốc; Giải Nhì và Giải Ba HSGQG 2023–2025 |
 
 Thành tích Hải Đăng chỉ gắn với cá nhân này. Không diễn giải “Thủ khoa khóa 52” thành một kỳ thi cụ thể, không suy rộng thành thành tích toàn trung tâm hoặc cam kết kết quả cho học viên. Thành tích học viên chờ nguồn được cung cấp.
@@ -103,7 +104,7 @@ Poster và tài liệu nguồn nội bộ không đưa vào Git. Ảnh/asset cô
 ## Kiểm chứng hiện tại và khi mở rộng
 
 - Catalog có đúng năm mã; A+B chỉ là cách xem; đủ 9/15/19 chủ đề từ nguồn, không sao chép C+D thành PreVOI.
-- Mọi đường dẫn E và mục tiêu quốc gia đều dùng tên PreVOI và lời mời trao đổi; không giữ lại điều kiện/sĩ số/thời lượng E cũ. Trạng thái giáo trình nằm trong tài liệu.
+- E dùng tên Chủ lực và điều kiện/sĩ số/thời lượng mới được duyệt; mục tiêu quốc gia không gắn E. Giáo trình và học phí chưa duyệt nằm trong tài liệu, không bịa nội dung lên website.
 - No-JS vẫn đọc được E/K và liên hệ qua Zalo/Facebook; form chỉ xuất hiện khi đã bật tiếp nhận. Query không nhận/lan truyền dữ liệu tự do.
 - Intake kiểm tra dữ liệu cũ/mới, khóa–phạm vi không khớp, thiếu cờ bật, gửi trùng và email lỗi sau khi lưu thành công.
 - K kiểm tra quyền, source/version, trùng chủ đề, chỉnh đồng thời, nháp/công bố và nguồn đổi phiên bản không làm thay nội dung lớp đã công bố.

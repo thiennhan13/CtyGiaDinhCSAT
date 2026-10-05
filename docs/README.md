@@ -9,7 +9,7 @@
 | [PROJECT_STATUS](PROJECT_STATUS.md) | Mã so với production, ngày kiểm tra, backlog và tiêu chí hoàn tất |
 | [ARCHITECTURE](ARCHITECTURE.md) | Luồng dữ liệu, quyền, bảng/RPC, vị trí mã và công cụ |
 | [CHUONG_TRINH_DAO_TAO](CHUONG_TRINH_DAO_TAO.md) | Nội dung đã được duyệt và cách phân bố A/B/C/D |
-| [PUBLIC_COURSE_CATALOG](PUBLIC_COURSE_CATALOG.md) | Hệ 5 lớp A/B/C/E/K, E PreVOI chờ giáo trình, K tùy chọn và hợp đồng hệ thống tương lai |
+| [PUBLIC_COURSE_CATALOG](PUBLIC_COURSE_CATALOG.md) | Hệ 5 lớp A/B/C/E/K, E Chủ lực tuyển từ C, K tùy chọn và hợp đồng hệ thống tương lai |
 | [PUBLIC_UI_DESIGN_SYSTEM](PUBLIC_UI_DESIGN_SYSTEM.md) | Nhận diện công khai, font/logo/ảnh/token và ranh giới UI; đọc trước khi sửa thiết kế |
 | [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md) | Mã Next.js, tài nguyên, form thực, kiểm thử và phát hành trang công khai |
 | [PUBLIC_POSTS](PUBLIC_POSTS.md) | Trang đội ngũ, bài viết frontend, nơi sửa và ranh giới lần nối database sau |
