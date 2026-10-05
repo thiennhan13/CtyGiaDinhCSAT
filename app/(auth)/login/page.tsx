@@ -10,7 +10,7 @@ import {
   ExternalLink, Facebook,
 } from 'lucide-react';
 import { CsatBackground } from '@/components/CsatBackground';
-import { CsatNavbar } from '@/components/layout/CsatNavbar';
+import { PublicHeader } from '@/components/marketing/PublicHeader';
 import { cn } from '@/lib/utils';
 import { normalizeParentPhone } from '@/lib/parents';
 
@@ -151,7 +151,7 @@ export default function LoginPage() {
       <CsatBackground />
 
       {/* ── Floating Pill Navbar ── */}
-      <CsatNavbar variant="guest" />
+      <PublicHeader />
 
       {/* ── MAIN: 2 cột ── */}
       <main

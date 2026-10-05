@@ -4,7 +4,7 @@ import { authRedirect } from '@/lib/auth-routing'
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
-  if (path === '/' || path === '/lo-trinh' || /^\/lo-trinh\/(co-ban|nang-cao|hsgqg)$/.test(path) || path === '/sitemap.xml' || path === '/robots.txt' || path === '/api/consultations' || path === '/api/cron/monthly-reviews') {
+  if (path === '/' || path === '/gia-su' || path === '/bai-dang' || /^\/bai-dang\/[a-z0-9-]+$/.test(path) || path === '/lo-trinh' || /^\/lo-trinh\/(a|b|c|e|k|co-ban|nang-cao|hsgqg|custom)$/.test(path) || path === '/sitemap.xml' || path === '/robots.txt' || path === '/api/consultations' || path === '/api/consultations/status' || path === '/api/cron/monthly-reviews') {
     return NextResponse.next({ request })
   }
   if (path === '/login' || path === '/parents' || path.startsWith('/parents/') || path.startsWith('/api/parents/')) {
@@ -53,6 +53,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|icon/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|icon/|fonts/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|woff2|mp4|webm)$).*)',
   ],
 }

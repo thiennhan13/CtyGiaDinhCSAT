@@ -27,3 +27,12 @@
 @media print{.parent-development-path>li{break-inside:avoid;background:white!important}.parent-development-program{break-inside:auto}}
 
 .parent-session-dialog{--border:#d6d6ca;--muted-foreground:#66665e;background:#fffefa;border:1.5px solid #191917;box-shadow:3px 3px 0 #191917}.dark .parent-session-dialog{--border:#4c5147;--muted-foreground:#bfc2b5;background:#222520;color:#f4f3eb;border-color:#4c5147}.parent-session-dialog button:focus-visible{outline:3px solid #2b50e0;outline-offset:2px}@media(prefers-reduced-motion:reduce){.parent-session-dialog{animation:none!important;transition:none!important}}
+/* Shared public navigation; preserve the private report and its account actions. */
+.parent-portal .public-header-only{margin-top:-16px}
+.parent-portal .public-header-only .wrap{width:100%;max-width:1470px}
+.parent-session-toolbar{max-width:1470px;margin:6px auto 0;display:flex;align-items:center;gap:18px;padding:8px 4px;border-bottom:1px solid var(--border)}
+.parent-shell{max-width:1470px}
+.parent-shell-simple{max-width:680px}
+.parent-portal .public-header-only a{color:var(--ink)}
+.parent-portal .public-header-only .nav-oj{color:#191917}
+@media(max-width:767px){.parent-portal .public-header-only{margin-top:-12px}.parent-session-toolbar{gap:10px;flex-wrap:wrap}.parent-session-toolbar .parent-topbar-label{max-width:none}.parent-session-toolbar .parent-topbar-actions{flex-wrap:wrap}}

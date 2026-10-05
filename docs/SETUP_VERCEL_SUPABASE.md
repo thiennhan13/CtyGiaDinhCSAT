@@ -1,5 +1,13 @@
 # Thiết lập Vercel–Supabase và phát hành CSAT Portal
 
+## Bản giao diện công khai — 04/10/2026
+
+Trang chủ/lộ trình/catalog mới dùng Next.js trực tiếp, không cần migration mới hoặc Resend. Theo yêu cầu cập nhật, hai form chỉ chạy frontend: nhập, xem lại và sao chép để nhắn Zalo/Facebook; chưa gọi API hoặc lưu dữ liệu. Giữ `CONSULTATIONS_ENABLED=false` và `CONSULTATIONS_EMAIL_ENABLED=false`. Lần nối sau cần adapter/validation/consent và QA, không chỉ bật biến môi trường. Tài nguyên, trạng thái chưa tích hợp và QA xem [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
+
+Phát hành qua project Vercel hiện phục vụ `portal.csatoj.vn`. Trước deploy xác minh đúng project/domain, giữ nguyên các biến nghiệp vụ và không tạo project thứ hai. Nếu dùng CLI: đăng nhập tại máy, `vercel link` tới project hiện có rồi `vercel deploy --prod` sau khi kiểm thử bản cuối. Không đưa token vào chat hoặc lệnh được lưu trong tài liệu. `.vercelignore` loại tài nguyên nguồn lớn và tài liệu nội bộ. [Tham khảo Vercel CLI](https://vercel.com/docs/cli/deploy).
+
+Sau deploy: kiểm tra `/`, `/lo-trinh`, các lớp A/B/C/E/K và liên kết đăng nhập; xác nhận menu/theme/ảnh/font và CTA tư vấn hoạt động. Ghi URL deployment, thời điểm và kết quả vào PROJECT_STATUS. Nếu lỗi giao diện, rollback deployment trước trên Vercel; không khôi phục hoặc sửa database để xử lý lỗi CSS.
+
 Bổ sung bàn giao ngày 01/10/2026; cấu hình đối chiếu từ mã và tài liệu trước đó. Đây là hướng dẫn thực hiện, không phải xác nhận các bước đã được áp dụng trên production. Lần này chỉ cập nhật tài liệu; không đăng nhập dashboard, thay cấu hình, chạy migration, tạo bucket, deploy hoặc gửi thư.
 
 Dùng tài liệu này làm đầu mối cấu hình cho bản kết hợp đến migration 22. Các tài liệu phát hành trước giữ vai trò lịch sử; không dùng riêng chuỗi migration 18–19 hoặc 18–21 cho bản ứng dụng mới. Danh sách việc sau này: [FUTURE_INTEGRATIONS.md](FUTURE_INTEGRATIONS.md).
@@ -20,7 +28,7 @@ Dùng tài liệu này làm đầu mối cấu hình cho bản kết hợp đế
 
 Thiếu Resend không làm hỏng build hay các tính năng không gửi thư khi giữ công tắc tắt. Thiếu schema hoặc Supabase key lại ảnh hưởng các chức năng dùng database. Thiếu bucket khiến thao tác tải ảnh thất bại; lưu hồ sơ chữ không cần bucket.
 
-Mặc định phát hành ban đầu: `CONSULTATIONS_ENABLED=false`, `CONSULTATIONS_EMAIL_ENABLED=false`, email tháng tắt trong admin. Form vẫn có thể xuất hiện nhưng khi gửi sẽ báo đang được chuẩn bị, không lưu yêu cầu. Nếu muốn nhận tư vấn ngay: sau kiểm thử, bật riêng `CONSULTATIONS_ENABLED=true`; email giữ tắt và nhân sự kiểm tra `/admin/consultations` đầu/cuối ngày.
+Mặc định phát hành ban đầu: `CONSULTATIONS_ENABLED=false`, `CONSULTATIONS_EMAIL_ENABLED=false`, email tháng tắt trong admin. Form frontend hiện không gửi; có bước kiểm tra/sao chép và liên kết Zalo/Facebook. Muốn tiếp nhận tự động cần nối form với API, kiểm thử rồi bật riêng `CONSULTATIONS_ENABLED=true`; email giữ tắt và nhân sự kiểm tra `/admin/consultations` đầu/cuối ngày.
 
 ## 2. Vercel — cấu hình project
 

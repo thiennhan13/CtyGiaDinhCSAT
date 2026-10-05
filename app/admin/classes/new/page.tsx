@@ -60,7 +60,6 @@ export default function NewClassPage() {
       setLoading(false);
     }
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleStudentToggle = (student: any) => {

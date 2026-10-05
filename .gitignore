@@ -105,3 +105,22 @@ database/tests/.runtime/
 *.key
 *.p12
 *.pfx
+
+# Original media pending editorial selection; publish optimized derivatives in images/site.
+/public/videos/
+/public/images/3D/
+/public/images/tutors/
+/public/images/3d-code.svg
+/public/images/devpad.svg
+/public/images/light-bulb.svg
+/public/images/basic-class.jpg
+/public/images/books.jpg
+/public/images/code.jpg
+/public/images/code2.jpg
+/public/images/code4.jpg
+/public/images/code-building.jpg
+/public/images/git.jpg
+/public/images/haidang.png
+/public/images/csatkeyboard.png
+
+/public/images/comp-program.jpg

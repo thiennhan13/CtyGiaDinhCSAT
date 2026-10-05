@@ -8,7 +8,7 @@ import { LogIn, GraduationCap, Users, AlertCircle, Eye, EyeOff, BookOpen, Trophy
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { CsatBackground } from '@/components/CsatBackground';
-import { CsatNavbar } from '@/components/layout/CsatNavbar';
+import { PublicHeader } from '@/components/marketing/PublicHeader';
 import { cn } from '@/lib/utils';
 
 
@@ -186,7 +186,7 @@ export default function TutorLoginPage() {
       <CsatBackground />
 
       {/* ── Floating Pill Navbar ── */}
-      <CsatNavbar variant="guest" />
+      <PublicHeader />
 
       {/* ── MAIN: 2 cột ── */}
       <main

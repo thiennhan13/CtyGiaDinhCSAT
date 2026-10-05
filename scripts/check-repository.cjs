@@ -1,11 +1,13 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const { createHash } = require('node:crypto');
 const { execFileSync } = require('node:child_process');
 
 // Report locations and rule names only. Never echo matched values or Git stderr.
 function pathRule(file) {
   const p = file.replaceAll('\\', '/');
-  if (/(^|\/)(?:internal|private-data|backups|exports|artifacts|scratch|prototypes|node_modules|\.next|\.vercel|\.agents|\.codex|\.aws|\.ssh|test-results|playwright-report)(\/|$)/i.test(p)) return 'private-or-generated-path';
+  if (/(^|\/)(?:internal|private-data|backups|exports|artifacts|scratch|prototypes|node_modules|\.next|\.vercel|\.agents|\.codex|\.aws|\.ssh|\.idea|\.vscode|test-results|playwright-report)(\/|$)/i.test(p)) return 'private-or-generated-path';
+  if (/^public\/(?:videos\/|images\/(?:3D\/|tutors\/|(?:3d-code|devpad|light-bulb)\.svg$|(?:basic-class|books|code|code2|code4|code-building|git|comp-program)\.jpg$|(?:haidang|csatkeyboard)\.png$))/i.test(p)) return 'original-media-needs-selection';
   if (/(^|\/)\.env[^/]*$/i.test(p) && p !== '.env.example') return 'environment-file';
   if (/\.(?:env|dump|backup|xlsx?|csv|docx?|pdf|zip|7z|tar|tgz|gz|pem|key|p12|pfx|log|tsbuildinfo)$/i.test(p)) return 'private-export-or-key-file';
   return null;
@@ -59,7 +61,13 @@ function checkRepository(root, staged = false) {
     if (staged && /^120000 /.test(git('ls-files', '--stage', '--', file))) { findings.push({ file, line: 1, rule: 'symlink-needs-review' }); continue; }
     const buffer = staged ? execFileSync('git', ['show', ':' + file], { cwd: root, maxBuffer: 32 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }) : fs.readFileSync(path.join(root, file));
     if (buffer.includes(0)) {
-      if (!/^public\/(?:icon|images)\/[^]+\.(?:png|jpe?g|webp|ico|gif)$/i.test(file)) findings.push({ file, line: 1, rule: 'binary-needs-review' });
+      // Owner-approved writing derivative, reviewed 05/10/2026 (PUBLIC_WEBSITE).
+      // A changed file or another video must be reviewed again; no media-folder bypass.
+      const reviewedVideo = file === 'public/media/writing-960.webm'
+        && buffer.length <= 2 * 1024 * 1024
+        && buffer.subarray(0, 4).toString('hex') === '1a45dfa3'
+        && createHash('sha256').update(buffer).digest('hex') === '6ea8bf1707c8a54656faf72fe0dcffbfc582191bb7b129b93b3784f0a2b08ae7';
+      if (!reviewedVideo && !/^public\/(?:icon|images)\/[^]+\.(?:png|jpe?g|webp|ico|gif)$/i.test(file)) findings.push({ file, line: 1, rule: 'binary-needs-review' });
       continue;
     }
     const text = buffer.toString('utf8');

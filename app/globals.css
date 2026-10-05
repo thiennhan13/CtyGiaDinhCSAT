@@ -5,16 +5,16 @@
 /* ============================================================
    CSAT Tutor Portal — Design System v3
    Phong cách: csatoj.vn — Bold Editorial + Organic Cream
-   Font: Archivo (heading + body) · IBM Plex Mono (code)
+   Font: Archivo (heading, body, menu and labels)
    Palette: CSAT Cream #f2efe7 + Blue #2b50e0 + Lime #d9e64c
    ============================================================ */
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-heading: var(--font-archivo);
-  --font-sans:    var(--font-archivo);
-  --font-mono:    var(--font-ibm-plex-mono, "IBM Plex Mono", ui-monospace, monospace);
+  --font-heading: var(--font-archivo), "Archivo", "Segoe UI", "Lucida Grande", Arial, sans-serif;
+  --font-sans:    var(--font-archivo), "Archivo", "Segoe UI", "Lucida Grande", Arial, sans-serif;
+  --font-mono:    var(--font-sans);
 
   --radius-sm:  calc(var(--radius) * 0.5);
   --radius-md:  var(--radius);
@@ -127,7 +127,7 @@
   --csat-shadow:     0 1px 2px rgba(25,25,23,0.04), 0 8px 24px rgba(25,25,23,0.06);
   --csat-shadow-retro: 3px 3px 0 rgba(25,25,23,0.85);
   --shadow-color: rgba(25,25,23,0.85);
-  --csat-dot-color: rgba(25,25,23,0.08);
+  --csat-dot-color: rgba(25,25,23,0.055);
   --csat-watermark-stroke: rgba(25,25,23,0.07);
 }
 
@@ -183,7 +183,7 @@
   --csat-fg:     #f2efe7;
   --csat-fg-muted: #9b9490;
   --csat-fg-lighter: #7d786c;
-  --csat-dot-color: rgba(255,255,255,0.05);
+  --csat-dot-color: rgba(255,255,255,0.06);
   --csat-watermark-stroke: rgba(255,255,255,0.04);
 }
 
@@ -340,3 +340,5 @@
     .shimmer { animation: none !important; transition: none !important; }
   }
 }
+.kvant-watermark.csat-watermark{width:70vw;height:auto;max-width:none;opacity:.085}
+.dark .kvant-watermark.csat-watermark{filter:invert(1);opacity:.18}

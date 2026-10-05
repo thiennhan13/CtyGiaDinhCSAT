@@ -159,12 +159,10 @@ export default function TutorDashboard() {
 
   useEffect(() => {
     fetchSessionsForMonth(selectedDate);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [format(selectedDate, 'yyyy-MM')]);
 
   useEffect(() => {
     fetchAnnouncements();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

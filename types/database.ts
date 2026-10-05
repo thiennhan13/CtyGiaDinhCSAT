@@ -146,9 +146,3 @@ export type CreateStudentInput = Omit<Student, 'student_id' | 'created_at'>;
 
 /** Payload dùng khi cập nhật thông tin học sinh */
 export type UpdateStudentInput = Partial<Omit<Student, 'student_id' | 'created_at'>>;
-
-/** Payload dùng khi tạo mới gia sư */
-export type CreateTutorInput = Omit<Tutor, 'tutor_id' | 'created_at'>;
-
-/** Payload dùng khi cập nhật gia sư */
-export type UpdateTutorInput = Partial<Omit<Tutor, 'tutor_id' | 'created_at'>>;

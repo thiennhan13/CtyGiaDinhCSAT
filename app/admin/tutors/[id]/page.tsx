@@ -75,7 +75,6 @@ export default function AdminTutorDetailPage() {
       setLoading(false);
     }
     fetchAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tutorId]);
 
   if (loading) return <div className="p-8 text-muted-foreground">Đang tải dữ liệu gia sư...</div>;

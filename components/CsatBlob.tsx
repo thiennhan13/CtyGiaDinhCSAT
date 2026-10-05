@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 
 interface CsatBlobProps {
   variant?: 'login' | 'dashboard';
@@ -66,7 +67,7 @@ export function CsatBlob({ variant = 'login' }: CsatBlobProps) {
       />
 
       {/* Floating Icon 1 — CSAT Logo góc trái */}
-      <img
+      <Image width={96} height={96}
         src="/icon/favicon-96x96.png"
         alt=""
         style={{
@@ -82,7 +83,7 @@ export function CsatBlob({ variant = 'login' }: CsatBlobProps) {
       />
 
       {/* Floating Icon 2 — CSAT Logo nhỏ góc dưới */}
-      <img
+      <Image width={96} height={96}
         src="/icon/favicon-96x96.png"
         alt=""
         style={{

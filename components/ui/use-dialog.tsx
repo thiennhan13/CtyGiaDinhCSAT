@@ -85,7 +85,6 @@ export function useConfirm() {
         </DialogContent>
       </Dialog>
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, options]);
 
   return { confirm, ConfirmDialog };
@@ -165,7 +164,6 @@ export function useAlert() {
         </DialogContent>
       </Dialog>
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, options]);
 
   return { alert, AlertDialog };

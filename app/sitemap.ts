@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { publicPosts } from '@/lib/public-posts';
 export default function sitemap():MetadataRoute.Sitemap {
- return ['', '/lo-trinh', '/lo-trinh/co-ban', '/lo-trinh/nang-cao', '/lo-trinh/hsgqg'].map(path=>({url:`https://portal.csatoj.vn${path}`,changeFrequency:'monthly' as const,priority:path===''?1:0.8}));
+ return ['', '/gia-su', '/bai-dang', ...publicPosts.map(post => `/bai-dang/${post.slug}`), '/lo-trinh', '/lo-trinh/a', '/lo-trinh/b', '/lo-trinh/c', '/lo-trinh/e', '/lo-trinh/k', '/lo-trinh/co-ban'].map(path=>({url:`https://portal.csatoj.vn${path}`,changeFrequency:'monthly' as const,priority:path===''?1:0.8}));
 }

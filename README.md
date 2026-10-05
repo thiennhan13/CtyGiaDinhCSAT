@@ -14,6 +14,10 @@ CSAT Portal giúp trung tâm, gia sư và phụ huynh cùng theo dõi việc h�
 
 Website công khai giới thiệu CSAT, các chương trình học và tiếp nhận nhu cầu tư vấn. Chương trình **Cơ bản mặc định gồm A+B**, **Nâng cao gồm C+D**; nội dung chi tiết nằm trong [chương trình đào tạo](docs/CHUONG_TRINH_DAO_TAO.md).
 
+Trang đội ngũ ở `/gia-su`; Góc học Tin ở `/bai-dang` có lưới và trang bài viết một ảnh. Nội dung hiện lấy từ mã frontend; hệ thống đăng bài sẽ được nối sau. Xem [hướng dẫn nội dung](docs/PUBLIC_POSTS.md) để biết nơi sửa và phạm vi hiện tại.
+
+Catalog công khai dùng **5 lớp A/B/C/E/K**: A và B thuộc nền Cơ bản; C dùng C+D; E là PreVOI hướng HSG Quốc gia, giáo trình bổ sung sau; K học riêng với nội dung tùy chọn. Giao diện này được tích hợp trong Next.js; không chuyển đổi các lớp đang vận hành. Đội ngũ CSAT gồm các gia sư cựu học sinh chuyên Tin THPT Chuyên Phan Bội Châu. Xem [catalog](docs/PUBLIC_COURSE_CATALOG.md) và [hướng dẫn website công khai](docs/PUBLIC_WEBSITE.md).
+
 ## Tình trạng hiện tại
 
 Phần quản lý cốt lõi đã được xây dựng và đưa vào sử dụng. Hệ thống **chưa hoàn tất toàn bộ việc triển khai và nghiệm thu**, nhất là xác thực phụ huynh, hồ sơ gia sư và email.

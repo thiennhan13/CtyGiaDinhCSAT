@@ -1,8 +1,14 @@
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
-import Link from 'next/link';
 import { PublicShell } from '@/components/marketing/PublicShell';
-import { ProgramCards } from '@/components/marketing/ProgramCards';
-import { LearningExplorer } from '@/components/marketing/LearningExplorer';
-export const metadata:Metadata={title:'Lộ trình học tập — CSAT Tutor',description:'Chọn hướng học C++ và thuật toán theo cấp học, mục tiêu. Khám phá chương trình Cơ bản, Nâng cao và trao đổi để cá nhân hóa lộ trình.',alternates:{canonical:'https://portal.csatoj.vn/lo-trinh'}};
-export default function LearningPage(){return <PublicShell><header className="public-wrap public-page-intro"><p className="public-kicker">Lộ trình học tập</p><h1>Mỗi mục tiêu,<br/><span>một hướng học phù hợp.</span></h1><p>Hai chương trình Cơ bản và Nâng cao là nền móng. Điểm bắt đầu và nội dung luyện tập cần gắn với điều bạn đã học, bài bạn đang làm và mục tiêu sắp tới.</p></header><Suspense fallback={<div className="public-wrap">Đang mở công cụ chọn lộ trình…</div>}><LearningExplorer mode="selector"/></Suspense><section className="public-wrap public-section"><div className="public-section-heading"><p className="public-kicker">Khám phá chương trình</p><h2>Từ kiến thức nền<br/>đến cách giải hiệu quả.</h2></div><ProgramCards/><p className="public-section-note">Hướng tới HSG Quốc gia? <Link href="/lo-trinh/hsgqg">Xem định hướng và tư vấn riêng.</Link></p></section><Suspense fallback={<div className="public-wrap" id="tu-van">Đang mở form tư vấn…</div>}><LearningExplorer mode="form"/></Suspense></PublicShell>;}
+import { RoadmapExperience } from '@/components/marketing/RoadmapExperience';
+import '@/components/marketing/roadmap-experience.css';
+
+export const metadata: Metadata = {
+  title: 'Lộ trình C++ và thuật toán — CSAT',
+  description: 'Khám phá lớp A, B, C, PreVOI và Kèm riêng. Tìm điểm bắt đầu theo nền tảng và mục tiêu, cùng đội ngũ gia sư chuyên Phan.',
+  alternates: { canonical: 'https://portal.csatoj.vn/lo-trinh' },
+};
+
+export default function LearningPage() {
+  return <PublicShell><RoadmapExperience /></PublicShell>;
+}

@@ -119,7 +119,6 @@ export default function ClassDetailPage() {
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classId]);
 
   async function handleAssignStudent(e: React.FormEvent) {

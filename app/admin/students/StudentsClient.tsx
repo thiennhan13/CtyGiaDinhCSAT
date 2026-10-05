@@ -216,7 +216,7 @@ export function StudentsClient({
       });
     }, 350);
     return () => clearTimeout(timer);
-  }, [localSearch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [localSearch]);
 
   const navigate = (updates: Record<string, string>) => {
     startTransition(() => {

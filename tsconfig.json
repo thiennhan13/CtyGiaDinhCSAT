@@ -37,6 +37,21 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "internal",
+    "docs/prototypes",
+    "scratch",
+    "private-data",
+    "backups",
+    "exports",
+    "artifacts",
+    "test-results",
+    "playwright-report",
+    ".agents",
+    ".codex",
+    ".aws",
+    ".ssh",
+    ".idea",
+    ".vscode"
   ]
 }
