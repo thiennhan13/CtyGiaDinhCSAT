@@ -4,6 +4,8 @@ Nội dung tích hợp cập nhật 23/09/2026; bổ sung trạng thái runtime 
 
 ## 1. Phân biệt các tích hợp
 
+**Bổ sung 05/10/2026 — form website:** hai form hiện chỉ ở frontend, hỗ trợ nhập, kiểm tra và sao chép để nhắn CSAT; chưa gọi API tư vấn. Khi kết nối: ánh xạ khóa/mục tiêu/nền tảng theo [catalog](PUBLIC_COURSE_CATALOG.md), thêm consent cho lưu dữ liệu, phục hồi idempotency/retry, kiểm chứng quyền/Origin/rate limit và chỉ báo tiếp nhận sau khi API xác nhận lưu. Giữ các cờ gửi tắt đến khi nghiệm thu. Không chỉ nhập key hoặc bật `CONSULTATIONS_ENABLED` rồi coi form đã nối; đọc [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
+
 | Thành phần | Vai trò | Trạng thái |
 |---|---|---|
 | Supabase URL + anon/service_role | Database, đăng nhập, API nội bộ, Storage | Cần ngay cho Portal; dùng đúng môi trường |

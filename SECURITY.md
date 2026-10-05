@@ -13,6 +13,8 @@ Mã ứng dụng; migration/SQL không chứa dữ liệu thật; fixture giả;
 
 Logo/ảnh website đã được phép có thể nằm trong `public/`. Avatar do gia sư upload nằm trong Storage; không sao chép vào repo. Nội dung nhạy cảm vẫn phải bảo vệ nếu repo đang private.
 
+Video writing được chủ trung tâm chỉ định ngày 05/10/2026 có bản tối ưu `public/media/writing-960.webm`. Guard chỉ cho đúng đường dẫn, header, giới hạn 2 MB và checksum của bản đã kiểm tra; thay bytes hoặc thêm video khác vẫn cần review. Nguồn 4K trong `public/videos/` tiếp tục ngoài Git/gói Vercel. Chi tiết hành vi tại [website công khai](docs/PUBLIC_WEBSITE.md).
+
 ## Phân loại gói bàn giao riêng
 
 | Gói | Nội dung | Cách chuyển cho nhóm |
@@ -23,6 +25,8 @@ Logo/ảnh website đã được phép có thể nằm trong `public/`. Avatar d
 | Secret | Key/connection/password/token | Kho quản lý secret riêng; không gộp vào zip bàn giao |
 
 Trong đợt 01/10 đã tạo thư mục `internal/20261001-handoff/` ngoài Git để giữ biên bản vận hành đầy đủ trước khi lược bản đưa lên GitHub. Backup thật tiếp tục ở vị trí nội bộ cũ, không nhân bản vào gói này. `.gitignore` chỉ ngăn commit vô ý, **không mã hóa và không kiểm soát người truy cập máy**. Chủ hệ thống cần đưa gói vào kho nội bộ được phân quyền; không dùng GitHub Releases/Actions artifacts làm kho nội bộ cho các tệp này.
+
+Ngày 05/10, prototype còn ở `docs/prototypes/`, font/ảnh/SVG không dùng và biên bản duyệt HTML được chuyển vào `internal/repository-cleanup-20261005/`. Gói có snapshot tiến độ cũ và danh mục checksum để đối chiếu. Đây là kho local ngoài Git, chưa phải kho chia sẻ đã phân quyền; nhóm cần chuyển riêng theo bảng trên. Không xóa migration/fixture hoặc rewrite lịch sử Git trong đợt dọn này.
 
 ## Kiểm tra trước khi chia sẻ
 

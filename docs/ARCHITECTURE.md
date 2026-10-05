@@ -1,8 +1,16 @@
 # Cấu trúc hệ thống CSAT Portal
 
+**Trang công khai 05/10:** `/gia-su` tái sử dụng `TutorShowcase` với trang chủ; `/bai-dang` và `/bai-dang/[slug]` lấy văn bản thuần từ `lib/public-posts.ts`, chưa có database đăng bài. `PracticeVideo` tải bản media tối ưu theo viewport và dọn observer/listener khi unmount. Chi tiết ở [PUBLIC_POSTS](PUBLIC_POSTS.md) và [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md); không đổi auth/RPC.
+
+**UI 05/10/2026:** PublicHeader tái sử dụng PublicNavigation cho login, tutor entry và ParentShell; không đổi auth/RPC. PublicSelect dùng Base UI cho form frontend và bộ chọn hướng học; dữ liệu tư vấn vẫn chưa gửi. Font toàn ứng dụng thống nhất Archivo. Quy tắc tại [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
+
+**Giao diện công khai 04/10/2026:** tích hợp catalog A/B/C/E/K vào React/Next.js, các thành phần và ranh giới xem [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md). Chưa thay enum/validation/RPC hoặc dữ liệu lớp. A/B dùng khung Cơ bản; C dùng C+D; E là PreVOI chờ giáo trình; K tùy chọn cần bản sao có nguồn/version và quyền trước khi vận hành. Không dùng mã tuyển sinh để tự đổi chương trình hay hình thức học. Các hợp đồng tương lai nằm trong [catalog](PUBLIC_COURSE_CATALOG.md).
+
 Đối chiếu mã tại `c4cf9f8` và thay đổi local ngày 01/10/2026. Đây là bản đồ triển khai; trạng thái production xem [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
 ## Luồng chính
+
+**Form website công khai, cập nhật 04/10:** nhập → validation phía trình duyệt → xem lại/chỉnh sửa → sao chép theo thao tác người dùng. Chưa gọi API tư vấn hoặc endpoint trạng thái; dữ liệu chỉ giữ trong trang. API/RPC tư vấn hiện có vẫn là backend độc lập cho lần kết nối sau, không tự kích hoạt theo form frontend mới.
 
 ```mermaid
 flowchart LR
@@ -15,7 +23,7 @@ flowchart LR
     V[Vercel cron ngày 28] --> N
 ```
 
-`proxy.ts` định tuyến và làm mới phiên; nó không thay thế quyền của API/database. Public pages là `/`, `/lo-trinh`, `/lo-trinh/[program]`; admin `/admin`, gia sư `/tutor`, phụ huynh `/parents`. `app/(auth)` là route group, không tạo tiền tố URL.
+`proxy.ts` định tuyến và làm mới phiên; nó không thay thế quyền của API/database. Public pages là `/`, `/lo-trinh`, `/lo-trinh/[program]`, `/gia-su`, `/bai-dang`, `/bai-dang/[slug]`; admin `/admin`, gia sư `/tutor`, phụ huynh `/parents`. `/gia-su` giới thiệu đội ngũ, khác với kênh đăng nhập `/tutor`. `app/(auth)` là route group, không tạo tiền tố URL.
 
 ## Ranh giới quyền
 
@@ -55,6 +63,8 @@ Tên đầy đủ, kiểu và chữ ký hàm phải đọc SQL hiện hành; `ty
 
 **Tư vấn/email:** form lưu request và outbox cùng transaction → thử gửi nếu cờ Production bật → lưu kết quả provider. Nhắc tháng gộp một thư/gia sư; admin xem hàng đợi, reconcile và xử lý ngoại lệ. Lịch trong `vercel.json` là `0 1 28 * *` UTC (08:00 Việt Nam). Mã có lease, retry, idempotency; MAIL-01/02 vẫn cần sửa trước bật. Không có scheduler retry riêng.
 
+Kho nội bộ, prototype và cấu hình công cụ local được loại khỏi TypeScript/lint lẫn gói Vercel CLI. Không import các tệp đó từ mã runtime. Tài nguyên phục vụ website chỉ giữ bản được chọn; nguồn thiết kế không phải dependency của build.
+
 ## Phân loại script
 
 | Nhóm | Đường dẫn | Tác động |
@@ -76,7 +86,7 @@ Cấu trúc hiện tại phù hợp với một ứng dụng Next.js phục vụ
 
 - `app/admin/classes/[id]/page.tsx` hơn 1.000 dòng, cùng giữ trạng thái form, truy vấn dữ liệu và nhiều nhóm giao diện. Nên tách danh sách học sinh, lịch/buổi học, thay đổi gia sư/đơn giá và lịch sử thành các phần có trách nhiệm rõ ràng.
 - Truy vấn và thao tác hiện nằm ở cả trang, `features/*` và `lib/*`. Với phần sửa mới, để trang điều phối, module nghiệp vụ quản lý query/action/validation, component nhận dữ liệu và xử lý tương tác. Không cần di chuyển đồng loạt chỉ để đổi cây thư mục.
-- `features/tutors/actions.ts` còn các helper tạo/xóa trực tiếp khác với API admin đang tạo Auth user và vô hiệu hóa mềm. Tìm kiếm tĩnh không thấy nơi import/gọi các helper này. Cần xác minh trước khi bỏ hoặc hợp nhất; chưa kết luận đây là luồng lỗi đang được người dùng gọi.
+- Ngày 05/10 đã bỏ `features/tutors/actions.ts` cùng kiểu input chỉ dùng ở đó sau khi xác minh không có import, re-export hoặc nơi gọi. Quản lý gia sư dùng `app/api/admin/tutors/route.ts` để tạo Auth user và vô hiệu hóa mềm; hồ sơ công khai dùng API profile riêng. Không tái tạo helper ghi/xóa trực tiếp song song với các luồng này.
 - Kiểu dữ liệu và validation cần nhất quán giữa UI/API/RPC; các trang lớn còn dùng `any`. Ưu tiên hợp đồng dữ liệu của luồng đang sửa, tránh thay kiểu hàng loạt khi chưa có kiểm thử.
 - CI và database test đã có cấu hình; browser QA còn phụ thuộc runtime máy tác giả. Hoàn thiện môi trường thử và runner dùng chung trước khi coi quy trình phát hành đã hoàn chỉnh.
 

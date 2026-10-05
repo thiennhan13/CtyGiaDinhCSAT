@@ -54,7 +54,6 @@ export default function TutorClassesPage() {
       setLoading(false);
     }
     fetchClasses();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

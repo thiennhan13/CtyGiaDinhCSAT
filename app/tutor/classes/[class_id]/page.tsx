@@ -111,7 +111,6 @@ export default function TutorClassDetailPage() {
 
   useEffect(() => {
     fetchClassDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classId]);
 
   const handleAddSession = async (e: React.FormEvent) => {

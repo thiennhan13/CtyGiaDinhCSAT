@@ -1,7 +1,7 @@
 import nextConfig from "eslint-config-next";
 
 /** @type {import('eslint').Linter.Config[]} */
-export default [
+const config = [
   // ── Ignore patterns ────────────────────────────────────────
   {
     ignores: [
@@ -12,6 +12,19 @@ export default [
       "node_modules/**",
       "docs/**",
       "scratch/**",
+      "internal/**",
+      "private-data/**",
+      "backups/**",
+      "exports/**",
+      "artifacts/**",
+      "test-results/**",
+      "playwright-report/**",
+      ".agents/**",
+      ".codex/**",
+      ".aws/**",
+      ".ssh/**",
+      ".idea/**",
+      ".vscode/**",
       "*.tsbuildinfo",
       "database/**",
       "public/**",
@@ -29,7 +42,7 @@ export default [
 
       // useEffect → setState là pattern chuẩn để load data lần đầu trong Client Components
       "react-hooks/set-state-in-effect": "off",
-      // Bỏ qua kiểm tra exhaustive-deps (đã có eslint-disable comment tại từng chỗ cần)
+      // Giữ chính sách exhaustive-deps hiện tại; việc bật lại cần một đợt rà soát hooks riêng.
       "react-hooks/exhaustive-deps": "off",
       // Bỏ qua rule về impure functions trong useState init (Date.now() cho key generation)
       "react-hooks/purity": "off",
@@ -39,9 +52,9 @@ export default [
       "react/react-in-jsx-scope": "off",
       // Bỏ qua comment-in-jsx detection (false-positive với long lines)
       "react/jsx-no-comment-textnodes": "off",
-      // Bỏ qua unused eslint-disable directive warnings
-      "no-unused-disable": "off",
     },
   },
 ];
 
+
+export default config;

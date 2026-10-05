@@ -120,7 +120,6 @@ export default function StudentDetailPage() {
       setLoading(false);
     }
     fetchStudentDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId]);
 
   async function handleMarkAsPaid(paymentId: string) {

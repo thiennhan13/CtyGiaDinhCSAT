@@ -1,31 +1,11 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import { ArrowRight, ArrowUpRight, Braces, Search, Route, Bug, BookOpen, Monitor, Users } from 'lucide-react';
-import { PublicShell, ConsultationCTA } from '@/components/marketing/PublicShell';
-import { ProgramCards } from '@/components/marketing/ProgramCards';
-export const metadata: Metadata = { title: 'CSAT Tutor — Học C++, thuật toán và lập trình thi đấu', description: 'Khám phá cách học C++ và thuật toán tại CSAT: hai lộ trình Cơ bản, Nâng cao, luyện tập trên CSATOJ và sự đồng hành của gia sư, phụ huynh.', alternates: { canonical: 'https://portal.csatoj.vn' } };
-const benefits = [
-  [Search, 'Đọc sâu một bài toán', 'Xác định dữ liệu, yêu cầu và ràng buộc. Chia một vấn đề thành những phần có thể giải quyết.'],
-  [Route, 'Chọn cách giải có lý do', 'So sánh các phương án, giải thích tính đúng và cân nhắc thời gian, bộ nhớ trước khi viết mã.'],
-  [Bug, 'Học từ lần thử chưa đúng', 'Tự tạo bộ kiểm thử, tìm trường hợp bị bỏ sót và sửa lỗi dựa trên kết quả cụ thể.'],
-  [BookOpen, 'Từng bước tự học', 'Đọc lại lời giải, luyện bài liên quan và ghi nhận điều cần cải thiện cho lần tiếp theo.'],
-] as const;
+import { PublicShell } from '@/components/marketing/PublicShell';
+import { HomeExperience } from '@/components/marketing/HomeExperience';
+export const metadata: Metadata = {
+    title: 'CSAT — Lập trình thi đấu & Tư duy thuật toán',
+    description: 'Học C++, lập trình thi đấu và tư duy thuật toán cùng gia sư chuyên Phan. Khám phá năm khóa A/B/C/E/K, cách học tại CSAT và luyện tập trên CSATOJ.',
+    alternates: { canonical: 'https://portal.csatoj.vn' },
+};
 export default function LandingPage() {
- return <PublicShell>
-  <section className="public-hero public-wrap"><div><p className="public-kicker"><span className="public-dot" /> CSAT Tutor · C++ & thuật toán</p><h1>Hiểu bài toán.<br /><span>Vững cách giải.</span></h1><p className="public-lead">Học lập trình từ cách nghĩ đến cách làm.</p><p className="public-intro">CSAT dạy C++ và thuật toán qua các bài toán lập trình: phân tích yêu cầu, xây dựng lời giải, viết chương trình và kiểm chứng kết quả.</p><div className="public-actions"><Link href="/lo-trinh" className="public-button">Khám phá lộ trình <ArrowRight size={20} /></Link><Link href="/lo-trinh#tu-van" className="public-button public-button-secondary">Tư vấn học tập</Link></div><p className="public-hero-note">Từ nền tảng đầu tiên đến định hướng luyện thi Tin học.</p></div>
-   <div className="public-hero-board" aria-label="Chu trình giải bài toán"><div className="public-board-head"><Braces size={28} /><span>MỖI BÀI TOÁN, MỘT BƯỚC TIẾN</span><span className="public-board-dots" aria-hidden="true">•••</span></div><div className="public-board-body"><div className="public-board-question">Điều gì khiến<br /><strong>lời giải này đúng?</strong></div><ol className="public-process">{['Hiểu đề & chia nhỏ vấn đề', 'Tìm cách giải & giải thích', 'Viết chương trình & kiểm tra', 'Nhìn lại & thử bài tiếp theo'].map((s, i) => <li key={s}><span>0{i + 1}</span>{s}</li>)}</ol><div className="public-board-label">Tư duy trước. Thực hành để hiểu sâu.</div></div></div>
-  </section>
-  <section className="public-section public-wrap" id="phu-hop"><div className="public-section-heading"><p className="public-kicker">Bạn đang ở đâu?</p><h2>Một điểm bắt đầu phù hợp<br />cho mỗi mục tiêu.</h2></div><div className="public-audiences">{[
-   ['Mới làm quen lập trình', 'Học cách diễn đạt một ý tưởng bằng C++, từ nhập dữ liệu đến chương trình có điều kiện và vòng lặp.'],
-   ['Đã học, muốn vững hơn', 'Kết nối kiến thức còn rời rạc, luyện cách chọn thuật toán và tự kiểm tra bài làm.'],
-   ['Có mục tiêu thi Tin học', 'Xác định kiến thức cần củng cố, từ HSG THCS, Chuyên Tin đến HSG tỉnh THPT; trao đổi riêng với mục tiêu HSG Quốc gia.'],
-  ].map(([title, body], i) => <article key={title}><span className="public-small-number">0{i + 1}</span><h3>{title}</h3><p>{body}</p></article>)}</div><p className="public-section-note">Bạn là sinh viên hoặc chưa xác định mục tiêu? <Link href="/lo-trinh#tu-van">Trao đổi với CSAT để được tư vấn riêng.</Link></p></section>
-  <section className="public-benefits"><div className="public-wrap public-section"><div className="public-section-heading"><p className="public-kicker">Vì sao học lập trình thi đấu?</p><h2>Luyện giải bài.<br />Rèn cách suy nghĩ.</h2><p>Lập trình thi đấu đặt người học trước những bài toán có yêu cầu và giới hạn rõ ràng. Mỗi lời giải là cơ hội tập phân tích, lập luận và kiểm chứng — những thói quen hữu ích khi tiếp tục học Tin học và kỹ thuật.</p></div><div className="public-benefit-grid">{benefits.map(([Icon, title, body]) => <article key={title}><Icon size={28} aria-hidden="true" /><h3>{title}</h3><p>{body}</p></article>)}</div></div></section>
-  <section className="public-section public-wrap"><div className="public-section-heading public-heading-row"><div><p className="public-kicker">Hai lộ trình làm nền móng</p><h2>Học có trình tự.<br />Tiến bước có cơ sở.</h2></div><Link className="public-text-link" href="/lo-trinh">Tìm hướng học của bạn <ArrowRight size={18} /></Link></div><ProgramCards /></section>
-  <section className="public-section public-wrap public-method"><div><p className="public-kicker">Cách học tại CSAT</p><h2>Từ buổi học<br />đến lần tự giải.</h2><p>Gia sư giúp làm rõ kiến thức và cách tiếp cận. Học sinh thực hành, trao đổi phần còn vướng và thử lại để hiểu lời giải bằng chính mình.</p><a href="https://csatoj.vn" target="_blank" rel="noopener noreferrer" className="public-text-link">Khám phá CSATOJ <ArrowUpRight size={18} /></a></div><ol className="public-method-steps">{[
-   ['Học cùng gia sư', 'Làm rõ ý tưởng, thử ví dụ và phân tích cách giải.'], ['Thực hành trên CSATOJ', 'Luyện các bài toán, nộp chương trình và xem kết quả chấm tự động.'], ['Nhận xét và sửa bài', 'Trao đổi lỗi, kiểm tra trường hợp còn thiếu và điều chỉnh lời giải.'], ['Xác định bước tiếp theo', 'Cùng nhìn lại nội dung đã học và phần cần luyện thêm.'],
-  ].map(([title, body], i) => <li key={title}><span>0{i + 1}</span><div><h3>{title}</h3><p>{body}</p></div></li>)}</ol></section>
-  <section className="public-wrap public-section"><div className="public-parent-panel"><div><p className="public-kicker">Phụ huynh cùng đồng hành</p><h2>Hiểu con đang học gì.<br />Biết cách hỗ trợ con.</h2><p>Cổng phụ huynh kết nối thông tin buổi học, điểm danh, lộ trình, nhận xét đã công bố và học phí. Phụ huynh có thêm cơ sở để trao đổi với gia sư và cùng con duy trì việc học.</p><Link className="public-text-link" href="/login">Vào cổng phụ huynh <ArrowRight size={18} /></Link></div><div className="public-ecosystem">{([[Monitor, 'CSATOJ', 'Thực hành · Nộp bài · Chấm tự động'], [BookOpen, 'Gia sư', 'Hướng dẫn · Nhận xét · Định hướng'], [Users, 'Phụ huynh', 'Theo dõi · Trao đổi · Đồng hành']] as const).map(([Icon, title, text]) => <div key={title}><Icon size={24} aria-hidden="true" /><div><strong>{title}</strong><p>{text}</p></div></div>)}</div></div></section>
-  <ConsultationCTA />
- </PublicShell>;
+    return <PublicShell><HomeExperience /></PublicShell>;
 }

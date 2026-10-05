@@ -39,7 +39,6 @@ export default function TutorSalaryPage() {
  }catch(error){setLoadError((error as Error).message);}finally{setLoading(false);}
 }
     init();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Load salary data for selected period
@@ -65,7 +64,6 @@ export default function TutorSalaryPage() {
 }
     loadSalary();
     return()=>{active=false;};
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPeriod, tutorInfo]);
 
   function exportExcel() {

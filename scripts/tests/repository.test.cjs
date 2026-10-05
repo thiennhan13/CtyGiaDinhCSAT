@@ -10,6 +10,11 @@ test('private paths stay blocked even if force-added; approved source stays allo
   for (const p of ['.env.production', 'folder/.env.example', 'internal/report.md', 'docs/prototypes/view.html', 'data/people.xlsx', 'backup.dump', '.codex/auth.json', 'report.csv', 'keys/private.pem']) assert.ok(pathRule(p), p);
   for (const p of ['.env.example', 'AGENTS.md', 'database/migrations/20260923_22_tutor_profiles.sql', 'database/tests/fixtures/schema-before-accounting.sql', 'public/images/csat-mark.png']) assert.equal(pathRule(p), null, p);
 });
+test('source media and local IDE state cannot enter Git; selected derivatives remain allowed', () => {
+  for (const file of ['public/videos/writing.mp4', 'public/images/tutors/poster.png', 'public/images/3D/orb.jpg', 'public/images/books.jpg', 'public/images/light-bulb.svg', '.idea/workspace.xml', '.vscode/settings.json']) assert.ok(pathRule(file), file);
+  for (const file of ['public/media/writing-960.webm', 'public/images/site/books.webp', 'public/icon/csat-logo-compact.svg']) assert.equal(pathRule(file), null, file);
+});
+
 test('secret detection returns locations without leaking the secret; no broad fixture bypass', () => {
   const secret = 'gh' + 'p_' + 'a'.repeat(36);
   const found = contentFindings('database/tests/example.cjs', '\nconst value="' + secret + '";');
@@ -43,6 +48,29 @@ test('staged guard reads the index, not a cleaned working copy', () => {
   } finally {
     const resolved = path.resolve(root), base = path.resolve(os.tmpdir()) + path.sep;
     assert.ok(resolved.startsWith(base) && path.basename(resolved).startsWith('csat-repo-guard-'));
+    fs.rmSync(resolved, { recursive: true, force: true });
+  }
+});
+
+test('approved video does not bypass review for changed bytes or other media', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'csat-media-guard-'));
+  const media = path.join(root, 'public', 'media');
+  const original = fs.readFileSync(path.join(__dirname, '../../public/media/writing-960.webm'));
+  const reviewed = path.join(media, 'writing-960.webm');
+  try {
+    execFileSync('git', ['init'], { cwd: root, stdio: 'pipe' });
+    fs.mkdirSync(media, { recursive: true });
+    fs.writeFileSync(reviewed, original);
+    assert.equal(checkRepository(root, false).findings.length, 0);
+    const changed = Buffer.from(original); changed[changed.length - 1] ^= 1;
+    fs.writeFileSync(reviewed, changed);
+    assert.equal(checkRepository(root, false).findings[0].rule, 'binary-needs-review');
+    fs.writeFileSync(reviewed, original);
+    fs.writeFileSync(path.join(media, 'unreviewed.webm'), original);
+    assert.ok(checkRepository(root, false).findings.some(f => f.file.endsWith('unreviewed.webm') && f.rule === 'binary-needs-review'));
+  } finally {
+    const resolved = path.resolve(root), base = path.resolve(os.tmpdir()) + path.sep;
+    assert.ok(resolved.startsWith(base) && path.basename(resolved).startsWith('csat-media-guard-'));
     fs.rmSync(resolved, { recursive: true, force: true });
   }
 });

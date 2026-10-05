@@ -33,6 +33,13 @@
 - CI xanh không thay cho staging/backup/kiểm tra runtime. Không tự push/merge/deploy chỉ vì kiểm thử đạt.
 - Cập nhật `docs/PROJECT_STATUS.md` khi tiến độ thay đổi, `docs/ARCHITECTURE.md` khi luồng/ranh giới đổi và tài liệu setup tương ứng. Ghi ngày, môi trường, bằng chứng, việc còn lại; không gọi "hoàn tất production" từ test local.
 
+## Website công khai
+
+- Đọc `docs/PUBLIC_WEBSITE.md` khi sửa trang giới thiệu/lộ trình. Nguồn nội dung chuẩn là catalog và chương trình đào tạo; không dùng poster cũ thay quyết định mới đã duyệt.
+- Chỉ dùng tài nguyên đã tối ưu và được chọn; ảnh/video gốc, prototype và ảnh QA ở kho nội bộ. Runtime không phụ thuộc `docs/prototypes` hoặc công cụ local của người viết.
+- Giữ CSS trong phạm vi trang công khai; effect phải dọn listener/observer/rAF khi đổi trang. Có trạng thái đọc được khi không JS hoặc giảm chuyển động; không khóa cuộn và không đổi văn bản thật để làm glyph.
+- Chức năng chưa bật dùng phương thức liên hệ đang hoạt động, không dựng form gửi giả. Hạn chế kỹ thuật và nội dung đang chờ ghi trong Markdown, không dùng chú thích demo trên website.
+
 ## Bàn giao
 
 Báo ngắn gọn: thay đổi và lý do, file chính, kiểm thử thực sự đã chạy, rủi ro/giới hạn, việc tiếp theo. Dùng tiếng Việt rõ ràng. Nhánh mới dùng `codex/<muc-tieu>` trừ khi nhóm chỉ định tên khác. Không tạo sub-agent nếu người dùng hoặc chỉ dẫn áp dụng chưa yêu cầu.

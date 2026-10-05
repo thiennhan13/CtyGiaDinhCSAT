@@ -1,3 +1,4 @@
+import Image from 'next/image';
 /**
  * CsatBackground — Background chính thức CSAT Portal (4-Layer Stacking Architecture)
  * 100% match csatoj.vn style.css:
@@ -45,21 +46,17 @@ export function CsatBackground() {
       />
 
       {/* ── Watermark "C+SAT" — text-stroke outline, csatoj.vn body::before ── */}
-      <div
-        className="csat-watermark fixed top-[2vh] left-[-3vw] rotate-[-5deg] whitespace-nowrap pointer-events-none"
-      >
-        C+SAT
-      </div>
+      <Image src="/icon/csat-watermark.svg" width={1103} height={344} alt="" className="csat-watermark kvant-watermark fixed top-[2vh] left-[-3vw] rotate-[-5deg] pointer-events-none" />
 
       {/* ── Floater 1 — left side, csatoj.vn exact ── */}
-      <img
+      <Image width={96} height={96}
         src="/icon/favicon-96x96.png"
         alt=""
         className="csat-floater fixed w-[52px] h-[52px] opacity-50 rounded-[14px] shadow-sm pointer-events-none rotate-[-8deg] left-[1.2vw] top-[38vh]"
       />
 
       {/* ── Floater 2 — right side, csatoj.vn exact ── */}
-      <img
+      <Image width={96} height={96}
         src="/icon/favicon-96x96.png"
         alt=""
         className="csat-floater fixed w-[52px] h-[52px] opacity-50 rounded-[14px] shadow-sm pointer-events-none rotate-[7deg] right-[1.1vw] top-[64vh]"
