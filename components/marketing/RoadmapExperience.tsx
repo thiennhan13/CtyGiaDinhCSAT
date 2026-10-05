@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react';
-import { ArrowDown, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { CodeIcon, GlyphHeading, Reveal } from './PublicMotion';
 import { PublicSelect } from './PublicSelect';
 import { PublicConsultation } from './PublicConsultation';
@@ -38,12 +38,17 @@ function recommendation(selection: Selection): { title: string; description: str
   return { title: 'Khám phá chương trình, tìm điểm bắt đầu.', description: 'Bạn chưa cần tự chọn lớp ngay. Hãy xem nội dung A, B và C, ghi lại điều muốn học rồi cùng CSAT trao đổi một hướng đi phù hợp.', choices: ['A', 'B', 'C'] };
 }
 
+// Deliberately scattered, fixed starts avoid hydration shifts and resize jumps.
 const assemblyIcons = [
-  { name: 'terminal', to: 'A', x: 8, y: 12, r: -12 }, { name: 'brackets', to: 'A', x: 24, y: 34, r: 8 },
-  { name: 'array', to: 'B', x: 42, y: 8, r: -6 }, { name: 'search', to: 'B', x: 59, y: 30, r: 12 },
-  { name: 'graph', to: 'C', x: 79, y: 12, r: 10 }, { name: 'branch', to: 'C', x: 93, y: 36, r: -9 },
-  { name: 'loop', to: 'A', x: 4, y: 65, r: 7 }, { name: 'brackets', to: 'B', x: 51, y: 65, r: -12 },
-  { name: 'array', to: 'C', x: 96, y: 69, r: 10 },
+  { name: 'terminal', x: 12, y: 28, r: -27, endX: 28, endY: 24 },
+  { name: 'brackets', x: 35, y: 14, r: 19, endX: 50, endY: 24 },
+  { name: 'array', x: 83, y: 19, r: -16, endX: 72, endY: 24 },
+  { name: 'search', x: 23, y: 64, r: 32, endX: 28, endY: 50 },
+  { name: 'graph', x: 61, y: 43, r: -23, endX: 50, endY: 50 },
+  { name: 'branch', x: 89, y: 56, r: 28, endX: 72, endY: 50 },
+  { name: 'loop', x: 11, y: 87, r: 14, endX: 28, endY: 76 },
+  { name: 'brackets', x: 47, y: 82, r: -34, endX: 50, endY: 76 },
+  { name: 'array', x: 76, y: 89, r: 21, endX: 72, endY: 76 },
 ];
 
 function RoadmapAssembly() {
@@ -62,13 +67,10 @@ function RoadmapAssembly() {
     const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
     function measure() {
       const box = plane.getBoundingClientRect();
-      const slots: Record<string, number> = { A: 0, B: 0, C: 0 };
+      scene!.dataset.animated = String(!reduced.matches);
       geometry = icons.map((element, index) => {
-        const target = element.dataset.to!;
-        const node = scene!.querySelector<HTMLElement>(`[data-route-node="${target}"]`)!.getBoundingClientRect();
         const item = assemblyIcons[index];
-        const slot = slots[target]++;
-        return { element, index, x: node.left - box.left + node.width * (.25 + slot * .22) - box.width * item.x / 100, y: node.top - box.top - 105 - slot % 2 * 12 - box.height * item.y / 100, rotation: item.r };
+        return { element, index, x: box.width * (item.endX - item.x) / 100, y: box.height * (item.endY - item.y) / 100, rotation: item.r };
       });
     }
     function place(progress: number) {
@@ -76,8 +78,9 @@ function RoadmapAssembly() {
         const offset = index % 3 * .035;
         const t = clamp((progress - offset) / (1 - offset));
         const smooth = t * t * (3 - 2 * t);
-        const dx = (desktop.matches ? x : clamp(x, -18, 18)) * smooth;
-        const dy = (desktop.matches ? y : clamp(y, -18, 18)) * smooth;
+        const arc = Math.sin(Math.PI * t) * (index % 2 ? -1 : 1) * (desktop.matches ? 28 : 12);
+        const dx = x * smooth + arc;
+        const dy = y * smooth + arc * .45;
         element.style.transform = `translate(calc(-50% + ${dx.toFixed(1)}px),calc(-50% + ${dy.toFixed(1)}px)) rotate(${(rotation * (1 - smooth)).toFixed(1)}deg)`;
       });
     }
@@ -114,15 +117,8 @@ function RoadmapAssembly() {
       if (frame !== null) window.cancelAnimationFrame(frame);
     };
   }, []);
-  return <div className="wrap rm-assembly" ref={sceneRef}>
-    <div className="rm-scatter" aria-hidden="true">{assemblyIcons.map((item, index) => <i key={index} data-assembly-icon data-to={item.to} style={{ '--x': `${item.x}%`, '--y': `${item.y}%`, '--r': `${item.r}deg` } as CSSProperties}><CodeIcon name={item.name} /></i>)}</div>
-    <div className="rm-assembly-caption mono"><span>HIỂU BÀI TOÁN → TỔ CHỨC LỜI GIẢI</span><span>01 — 03</span></div>
-    <div className="rm-route-nodes">{[
-      ['A', 'BẮT ĐẦU', 'Diễn đạt ý tưởng bằng C++', 'C++ · Điều kiện · Vòng lặp'],
-      ['B', 'XÂY NỀN', 'Khai thác dữ liệu để giải bài', 'Số học · Sắp xếp · Tìm kiếm'],
-      ['C', 'HỌC SÂU', 'Phân tích và lựa chọn thuật toán', 'Cấu trúc dữ liệu · Thuật toán'],
-    ].map(([code, label, title, topics]) => <Link key={code} className={`rm-node rm-node-${code.toLowerCase()}`} href={`/lo-trinh/${code.toLowerCase()}`} data-route-node={code}><span className="mono">{label}</span><b>{code}</b><strong>{title}</strong><span>{topics}</span><ArrowUpRight aria-hidden="true" /></Link>)}</div>
-    <p className="rm-assembly-note">Từ đọc hiểu đề đến lựa chọn thuật toán, mỗi nhóm kiến thức mở thêm một cách tiếp cận. Điểm bắt đầu được chọn từ những gì bạn đã học và cách bạn giải bài.</p>
+  return <div className="wrap rm-assembly" ref={sceneRef} aria-hidden="true">
+    <div className="rm-scatter">{assemblyIcons.map((item, index) => <i key={index} data-assembly-icon style={{ '--x': `${item.x}%`, '--y': `${item.y}%`, '--end-x': `${item.endX}%`, '--end-y': `${item.endY}%`, '--r': `${item.r}deg` } as CSSProperties}><CodeIcon name={item.name} /></i>)}</div>
   </div>;
 }
 
@@ -166,13 +162,13 @@ export function RoadmapExperience() {
   return <div className="roadmap-experience">
     <section className="rm-opening">
       <div className="wrap rm-hero">
-        <div className="rm-hero-copy"><p className="eyebrow">Lộ trình học tập / CSAT</p><GlyphHeading as="h1">Từ dòng lệnh<br />đầu tiên đến<br /><em>tư duy<br />thuật toán.</em></GlyphHeading><p>Một bài toán cần được hiểu, chia thành các bước rồi diễn đạt bằng chương trình. Qua C++ và các bài luyện, bạn tập đặt câu hỏi: cách giải có đúng không, còn trường hợp nào chưa xét và có thể xử lý hiệu quả hơn không? Đó là những việc cụ thể để rèn tư duy thuật toán cùng CSAT.</p><a className="text-link" href="#chon-lo-trinh">Tìm điểm bắt đầu <ArrowDown aria-hidden="true" size={18} /></a></div>
+        <Reveal variant="rise" className="rm-hero-heading"><p className="eyebrow">IDEA → CODE → SOLUTION</p><h1>Lộ trình học lập trình<br /><em>cùng CSAT Tutor</em></h1></Reveal>
+        <Reveal variant="rise" className="rm-hero-art"><div className="rm-code-stage" aria-hidden="true"><span className="rm-css-motif rm-css-pixels"><i/><i/><i/><i/></span><span className="rm-css-motif rm-css-bracket"/><div className="rm-3d-frame"><span className="rm-3d-heading mono">IDEA → CODE → SOLUTION <span><i /><i /><i /></span></span><div className="rm-3d-screen"><span className="rm-3d-brackets">&lt;/&gt;</span><div className="rm-code-lines"><i /><i /><i /><i /></div><CodeIcon name="terminal" /></div><div className="rm-3d-base"><span /><span /><span /><span /><span /></div></div><span className="rm-orbit rm-orbit-a"><CodeIcon name="cube" /></span><span className="rm-orbit rm-orbit-b"><CodeIcon name="function" /></span><span className="rm-orbit rm-orbit-c"><CodeIcon name="merge" /></span></div></Reveal>
         <div className="rm-hero-mosaic" aria-hidden="true">
           {[['basic-class', 'CƠ BẢN'], ['books', 'NÂNG CAO'], ['comp-program', 'CHỦ LỰC'], ['code4', 'NHỊP RIÊNG']].map(([asset, label], index) => <div className={`rm-hero-tile rm-hero-tile-${index + 1}`} key={asset}><Image src={`/images/site/${asset}.webp`} alt="" fill sizes="(max-width: 800px) 44vw, 29vw" priority={index < 2} /><span className="mono">{label}</span></div>)}
           <span className="rm-hero-center"><CodeIcon name="brackets" /></span>
         </div>
       </div>
-      <RoadmapAssembly />
     </section>
     <section className="rm-choose" id="chon-lo-trinh"><div className="wrap">
       <div className="rm-chapter mono"><span>01 / CHỌN ĐIỂM BẮT ĐẦU</span><span aria-hidden="true">+</span></div>
@@ -186,7 +182,8 @@ export function RoadmapExperience() {
       </div>
       <div className="rm-result" ref={resultRef} tabIndex={-1} aria-live="polite" aria-atomic="true"><div><p className="eyebrow">Gợi ý ban đầu</p><h3>{submitted ? result.title : 'Bạn muốn bắt đầu từ đâu?'}</h3><p>{submitted ? result.description : 'Điền ba lựa chọn phía trên để xem gợi ý, hoặc khám phá từng nhóm kiến thức bên dưới. Bạn luôn có thể tìm hiểu lớp khác.'}</p></div><div className="rm-result-links">{(submitted ? result.choices : ['AB', 'C'] as Course[]).map(course => <Link className="rm-result-course" key={course} href={href(course)}><b>{course === 'C' ? 'C+D' : course}</b><span>{courses[course]}</span><ArrowUpRight aria-hidden="true" size={18} /></Link>)}{submitted && result.choices.length === 0 && <a className="rm-result-course" href="#tu-van"><b>↗</b><span>Chia sẻ mục tiêu với CSAT</span></a>}</div></div>
     </div></section>
-    <section className="rm-code-interlude"><Reveal variant="rise" className="wrap rm-interlude-heading"><p className="eyebrow">IDEA → CODE → SOLUTION</p><h2>Lộ trình học lập trình<br /><em>cùng CSAT Tutor</em></h2></Reveal><div className="wrap rm-code-stage" aria-hidden="true"><span className="rm-css-motif rm-css-pixels"><i/><i/><i/><i/></span><span className="rm-css-motif rm-css-bracket"/><div className="rm-3d-frame"><span className="rm-3d-heading mono">IDEA → CODE → SOLUTION <span><i /><i /><i /></span></span><div className="rm-3d-screen"><span className="rm-3d-brackets">&lt;/&gt;</span><div className="rm-code-lines"><i /><i /><i /><i /></div><CodeIcon name="terminal" /></div><div className="rm-3d-base"><span /><span /><span /><span /><span /></div></div><span className="rm-orbit rm-orbit-a"><CodeIcon name="cube" /></span><span className="rm-orbit rm-orbit-b"><CodeIcon name="function" /></span><span className="rm-orbit rm-orbit-c"><CodeIcon name="merge" /></span></div></section>
+
+    <RoadmapAssembly />
     <section className="rm-foundation rm-class-section rm-class-a" id="lop-a" aria-label="Lớp A"><div className="wrap rm-chapter mono"><span>02 / LỚP A · NHẬP MÔN</span><span>9 CHỦ ĐỀ / 3 CHẶNG</span></div><div className="wrap rm-learning-layout"><Reveal className="rm-knowledge-visual" variant="left"><div className="rm-photo"><Image src="/images/site/basic-class.webp" alt="" width={960} height={640} sizes="(max-width: 800px) 90vw, 40vw" /></div><div className="rm-photo-code"><CodeIcon name="brackets"/><span className="mono">C++ · Rẽ nhánh · Vòng lặp</span></div><div className="rm-large-mark" aria-hidden="true">A</div></Reveal><Reveal className="rm-learning-copy" variant="right"><p className="eyebrow">NHẬP MÔN</p><GlyphHeading>Hiểu từng lệnh.<br/><em>Viết có ý tưởng.</em></GlyphHeading><p>Bắt đầu từ một yêu cầu, bạn xác định dữ liệu đầu vào, kết quả cần tìm và chia việc xử lý thành từng bước. Lớp A giới thiệu C++ qua nhập, xuất dữ liệu, kiểu dữ liệu, điều kiện và vòng lặp; tiếp đến là mảng, hàm và xâu. Khi luyện bài, việc thử chương trình, theo dõi từng bước và tìm lỗi giúp bạn kiểm tra xem câu lệnh có diễn đạt đúng ý tưởng của mình.</p><div className="rm-class-facts"><span>90 phút / buổi</span><span>5–8 học sinh</span><span>99.000đ / buổi</span></div><Link className="btn" href={href('A')}>Khám phá nội dung lớp A <ArrowRight aria-hidden="true" size={18}/></Link><p className="rm-small">Khung Cơ bản mặc định gồm A+B. <Link className="text-link" href={href('AB')}>Xem toàn bộ khung kiến thức <ArrowUpRight size={16}/></Link></p></Reveal></div></section>
     <section className="rm-foundation rm-class-section rm-class-b" id="lop-b" aria-label="Lớp B"><div className="wrap rm-chapter mono"><span>03 / LỚP B · THI ĐẤU CƠ BẢN</span><span>15 CHỦ ĐỀ / 4 CHẶNG</span></div><div className="wrap rm-learning-layout"><Reveal className="rm-knowledge-visual" variant="right"><div className="rm-photo"><Image src="/images/site/code4.webp" alt="" width={960} height={640} sizes="(max-width: 800px) 90vw, 40vw" /></div><div className="rm-photo-code"><CodeIcon name="search"/><span className="mono">Số học · Sắp xếp · Tìm kiếm</span></div><div className="rm-large-mark" aria-hidden="true">B</div></Reveal><Reveal className="rm-learning-copy" variant="left"><p className="eyebrow">THI ĐẤU CƠ BẢN</p><GlyphHeading>Nhận ra quy luật.<br/><em>Tìm thêm cách giải.</em></GlyphHeading><p>Cùng một bài toán có thể có nhiều cách giải. Lớp B bắt đầu từ vét cạn và thống kê, rồi khai thác tính chất số học, cách lưu dữ liệu, sắp xếp, tìm kiếm và xử lý xâu. Từ cách duyệt từng phương án, bạn tập nhận ra quy luật, so sánh lượng công việc của các lời giải và chọn cách phù hợp với dữ liệu. Thử các trường hợp khác nhau và tìm lỗi tiếp tục là phần cần thiết khi luyện bài.</p><div className="rm-class-facts"><span>90 phút / buổi</span><span>5–8 học sinh</span><span>99.000đ / buổi</span></div><Link className="btn" href={href('B')}>Khám phá nội dung lớp B <ArrowRight aria-hidden="true" size={18}/></Link><p className="rm-small">Khung Cơ bản mặc định gồm A+B. <Link className="text-link" href={href('AB')}>Xem toàn bộ khung kiến thức <ArrowUpRight size={16}/></Link></p></Reveal></div></section>
     <section className="rm-advanced rm-class-section" id="lop-c" aria-label="Lớp C — Lập trình thi đấu nâng cao"><div className="wrap rm-chapter mono"><span>04 / LỚP C</span><span>19 CHỦ ĐỀ / 6 CHẶNG</span></div><div className="wrap rm-advanced-layout"><Reveal variant="left"><p className="eyebrow">Lập trình thi đấu nâng cao</p><GlyphHeading>Phân tích sâu.<br /><em>Giải có cơ sở.</em></GlyphHeading><p>Khi dữ liệu lớn hoặc các lựa chọn phụ thuộc lẫn nhau, một ý tưởng cần được xem xét cả về tính đúng và độ phức tạp: số thao tác tăng ra sao khi dữ liệu tăng? Lớp C kết nối kỹ thuật mảng và cấu trúc dữ liệu với đệ quy, chia để trị, quay lui, tham lam, tìm kiếm trên đáp án và quy hoạch động. Qua 19 chủ đề C+D, trọng tâm là hiểu vì sao có thể dùng một phương pháp và khi nào cần cách khác.</p><div className="rm-advanced-topics">{[["array", "Cấu trúc dữ liệu"], ["pointers", "Hai con trỏ & cửa sổ trượt"], ["branch", "Tìm kiếm & quay lui"], ["merge", "Merge sort"], ["graph", "Quy hoạch động"], ["knapsack", "Knapsack 0/1"]].map(([icon, label]) => <span key={label}><CodeIcon name={icon} />{label}</span>)}</div><Link className="btn lime" href={href('C')}>Khám phá nội dung lớp C <ArrowRight aria-hidden="true" size={18} /></Link><p className="rm-small">Hãy mang theo những bài đã luyện và câu hỏi còn vướng để cùng gia sư trao đổi điểm bắt đầu.</p></Reveal><Reveal className="rm-code-window"><div className="rm-window-head mono"><span>MỘT BÀI TOÁN. NHIỀU GÓC NHÌN.</span><span aria-hidden="true">+ + +</span></div><Image src="/images/site/books.webp" alt="" width={960} height={640} sizes="(max-width: 800px) 90vw, 40vw" /><div className="rm-window-caption mono"><span>Ý TƯỞNG → THỬ NGHIỆM → ĐIỀU CHỈNH</span><CodeIcon name="loop" /></div></Reveal></div></section>

@@ -2853,7 +2853,7 @@
  .csat-public .home-page .section-head{align-items:start}
  .csat-public .home-page .section-head>div{flex:1;min-width:0}
  .csat-public .home-page .section-head>p{flex:0 0 28%}
- .csat-public .home-page .values-heading h2{font-size:clamp(48px,4.5vw,67.2px)}
+.csat-public .home-page .values-heading h2{font-size:clamp(48px,4.5vw,67.2px)}
  .csat-public .home-page .final-inner h2{font-size:clamp(97.2px,10.8vw,162px)}
  .csat-public .home-page .hero-art{margin-right:24px;height:792px}
  .csat-public .home-page .hero-portrait{height:942px;clip-path: inset(0 0 144px 0)}
@@ -2951,4 +2951,19 @@
   .csat-public .home-page .node-reviews { top: 64px; }
   .csat-public .home-page .node-roadmap { bottom: 64px; }
   .csat-public .home-page .node-fees { bottom: 64px; }
+}
+
+/* Bóng đèn đi cùng nhãn trong luồng bố cục, không phủ lên heading. */
+.csat-public .home-page .values-heading { display: block; }
+.csat-public .home-page .values-kicker { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
+.csat-public .home-page .values-kicker .eyebrow { margin: 0; padding: 0; }
+.csat-public .home-page .values-kicker .values-bulb { position: relative; inset: auto; flex: 0 0 52px; width: 52px; height: 78px; transform: none; }
+.csat-public .home-page .values-heading > p:last-child { max-width: 460px; margin-top: 0; }
+.csat-public .home-page .parent-copy .parent-consult { display: inline-flex; max-width: 100%; margin-top: 14px; text-align: left; line-height: 1.5; white-space: normal; }
+.csat-public .home-page .parent-consult > span { min-width: 0; }
+.csat-public .home-page .parent-consult > svg { flex-shrink: 0; }
+@media (max-width: 680px) {
+ .csat-public .home-page .values-kicker { gap: 14px; margin-bottom: 16px; }
+ .csat-public .home-page .values-kicker .values-bulb { flex-basis: 42px; width: 42px; height: 63px; }
+ .csat-public .home-page .parent-copy .parent-consult { width: 100%; }
 }

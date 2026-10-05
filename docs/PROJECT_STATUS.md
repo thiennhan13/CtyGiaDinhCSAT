@@ -133,3 +133,18 @@ Chi tiết email/API: [FUTURE_INTEGRATIONS.md](FUTURE_INTEGRATIONS.md). Phát h�
 - `/login` ở cả hai vai trò không render dock và lời mời học liệu; `/tutor` cũng loại trong lúc redirect. Không thay các form, liên hệ hỗ trợ hoặc xác thực.
 - AGENTS và [quy tắc thiết kế](PUBLIC_UI_DESIGN_SYSTEM.md) bổ sung cách dùng đa dạng phương pháp từ `ui-ux-pro-max`, không bắt buộc mỗi phần có heading lớn; giữ nhận diện và accessibility. Đã đọc/tra cứu skill local, không dùng gợi ý tự động để thay font/màu hoặc tạo số liệu.
 - Lint hai component đạt 0 cảnh báo; build kèm TypeScript đạt với cấu hình giả. Browser QA **100 kiểm tra đạt** cho trang liên lạc (lỗi auth giả, switch, desktop/mobile không có dock) và hệ sinh thái light/dark ở các breakpoint. Guard 367 tệp không finding, diff sạch. Không chạy lại DB/API không đổi; bản build mới chạy tại 3101, chưa commit/push/deploy hoặc gửi email.
+
+### Nội dung sâu hơn và hệ sinh thái bốn nhánh (local, 05/10/2026)
+
+- Đoạn dẫn và bốn lý do được biên tập theo mạch tình huống → hoạt động tư duy → giá trị học tập, mỗi đoạn ba câu. Giữ giới hạn tuyên bố giáo dục; không cam kết chuyển giao tư duy hoặc điểm thi. Bóng đèn nằm cùng nhãn trong luồng bố cục, không còn lệch/phủ heading.
+- Terminal CSAT ở giữa hai hàng, mỗi hàng hai thẻ, cột phải lệch xuống 24 px; thêm đường phụ/chip/cổng vuông và icon bảng học tập cho nhánh Đồng hành sát sao. Dưới 901 px dùng luồng dọc. Nhận xét tháng, kết nối gia sư và tư vấn lộ trình theo nội dung chủ trung tâm cung cấp; số bài/điểm CSATOJ diễn đạt là nội dung trao đổi cùng gia sư, chưa tự đồng bộ trong Portal.
+- Phần phụ huynh thêm nút trao đổi với đội ngũ, dẫn tới form hiện hành `/lo-trinh#tu-van`. Không tạo route đăng ký mới, không bật gửi form/email hoặc thêm API/database.
+- Lint ba component 0 cảnh báo; build kèm TypeScript đạt với Supabase giả/email tắt. Browser QA **136 kiểm tra đạt**: bốn lý do/bàn phím, bóng đèn 320/375 light/dark, bốn nhánh ở 320/375/900/901/1440 light/dark, reduced motion và no-JS. Đã xem ảnh sơ đồ, nội dung desktop/mobile và CTA mobile; không tràn hoặc che chữ. Guard 367 tệp không finding, diff sạch. Không chạy lại DB/API không đổi.
+- Preview bản build mới tại 3101. Chưa commit/push/deploy hoặc thao tác production; ảnh QA và script biên tập giữ ngoài Git.
+
+### Mở đầu lộ trình và CTA CSATOJ (local, 06/10/2026)
+
+- Trang chủ: Kho bài & máy chấm có nút Trải nghiệm ngay mở CSATOJ ở tab mới; đoạn mô tả phụ huynh mở rộng thành hai đoạn về quá trình học, nhận xét công bố, trao đổi và hỗ trợ tự luyện. Không tuyên bố các chỉ số CSATOJ đã đồng bộ vào Portal.
+- Lộ trình: dùng tiêu đề Lộ trình học lập trình cùng CSAT Tutor và art terminal ở trước bốn ảnh nền/blur. Bỏ hero cũ, interlude riêng và sơ đồ A/B/C lặp lại. Chín icon chuyển xuống giữa bộ chọn và lớp A, tản bất đối xứng rồi hội tụ theo cuộn; no-JS/reduce hiện bố cục hoàn chỉnh. Dọn CSS/selector không còn dùng, giữ chương trình và form frontend hiện hành.
+- Build kèm TypeScript và lint strict ba component đạt. Ba nhóm browser QA no-JS, selector/history/query và hệ sinh thái/CTA đạt; nhóm mở đầu/cuộn mới đạt **43 kiểm tra** ở 375/1440, light/dark và reduced motion. Assertion tiêu đề ban đầu phân biệt hoa/thường không đúng với CSS viết hoa đã được sửa và chạy lại đạt. Đã xem ảnh hero desktop/mobile, thẻ CSATOJ mobile và phần phụ huynh desktop; không che chữ hoặc tràn ngang.
+- Guard quét 367 tệp không finding; diff không lỗi whitespace. Không chạy lại DB/API vì không sửa các luồng này. Preview build tại 3101; chưa commit/push/deploy, gửi email hoặc truy cập database production. Trạng thái production và các tồn đọng trước đó giữ nguyên.

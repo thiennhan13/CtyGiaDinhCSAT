@@ -133,7 +133,7 @@ async function main(){
  });
  await run('home narrow bulb does not cover eyebrow text',async()=>{
   for(const theme of ['light','dark']){await page.emulateMedia({colorScheme:theme});for(const width of [320,375]){await page.setViewportSize({width,height:900});await go(page,'/');await page.getByRole('button',{name:'Chuyển giao diện sáng/tối'}).evaluate((e,t)=>{if(e.getAttribute('aria-pressed')!==String(t==='dark'))e.click();},theme);await page.locator('.home-values').evaluate(e=>scrollTo(0,e.getBoundingClientRect().top+scrollY-130));await page.waitForTimeout(900);
-   const overlap=await page.evaluate(()=>{const bulb=document.querySelector('.values-bulb img').getBoundingClientRect(),text=document.querySelector('.values-heading>.eyebrow'),range=document.createRange();range.selectNodeContents(text);return [...range.getClientRects()].some(r=>r.left<bulb.right&&r.right>bulb.left&&r.top<bulb.bottom&&r.bottom>bulb.top);});check(!overlap,'Bulb clears text at '+theme+'/'+width);check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Narrow home no overflow');await page.screenshot({path:path.join(output,`home-values-${theme}-${width}-viewport.png`)});
+   const overlap=await page.evaluate(()=>{const bulb=document.querySelector('.values-bulb img').getBoundingClientRect(),text=document.querySelector('.values-kicker>.eyebrow'),range=document.createRange();range.selectNodeContents(text);return [...range.getClientRects()].some(r=>r.left<bulb.right&&r.right>bulb.left&&r.top<bulb.bottom&&r.bottom>bulb.top);});check(!overlap,'Bulb clears text at '+theme+'/'+width);check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Narrow home no overflow');await page.screenshot({path:path.join(output,`home-values-${theme}-${width}-viewport.png`)});
   }}await page.emulateMedia({colorScheme:'light'});
  });
  await run('learning materials route, dock invitation and public contacts',async()=>{
@@ -168,16 +168,45 @@ async function main(){
     await page.getByRole('button',{name:'Chuyển giao diện sáng/tối'}).evaluate((e,t)=>{if(e.getAttribute('aria-pressed')!==String(t==='dark'))e.click();},theme);
     await page.waitForFunction(t=>document.documentElement.classList.contains('dark')===(t==='dark'),theme);
     await page.locator('.why-tree').scrollIntoViewIfNeeded();
-    check(await page.locator('.why-branch').count()===3,'Three ecosystem branches');
-    check(await page.locator('.why-branch li').count()===9,'Each branch has three bullet points');
-    check(await page.locator('.home-why a').count()===0,'No links inside ecosystem');
+    check(await page.locator('.why-branch').count()===4,'Four ecosystem branches');
+    check(await page.locator('.why-branch li').count()===12,'Each branch has three bullet points');
+    const experience=page.locator('.home-why a');
+    check(await experience.count()===1&&await experience.getAttribute('href')==='https://csatoj.vn/','Only the requested CSATOJ experience link in ecosystem');
+    check(await experience.getAttribute('target')==='_blank'&&(await experience.getAttribute('rel')).includes('noopener'),'External experience link opens safely');
     check(await page.locator('.footer-top .footer-contact').count()===1,'Contacts integrated into existing footer');
     check(await page.locator('.site-footer h2').count()===0,'No oversized contact section');
     check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Circuit tree and footer stay within viewport');
     check(await page.locator('.why-wires').isVisible()===(width>900),'Circuit tree changes to vertical below 901px');
    }
   }
-  await page.emulateMedia({reducedMotion:'reduce'});await page.locator('.why-branches').scrollIntoViewIfNeeded();check(await page.locator('.why-branch ul').first().isVisible(),'Bullet content available with reduced motion');await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.emulateMedia({reducedMotion:'reduce'});await page.locator('.why-parents').scrollIntoViewIfNeeded();check(await page.locator('.why-branch ul').last().isVisible(),'Bullet content available with reduced motion');await page.emulateMedia({reducedMotion:'no-preference'});
+ });
+ await run('roadmap opening art and scrolling symbols',async()=>{
+  for(const width of [375,1440])for(const theme of ['light','dark']){
+   await page.setViewportSize({width,height:900});await page.emulateMedia({reducedMotion:'no-preference'});await go(page,'/lo-trinh');
+   await page.getByRole('button',{name:'Chuyển giao diện sáng/tối'}).evaluate((e,t)=>{if(e.getAttribute('aria-pressed')!==String(t==='dark'))e.click();},theme);
+   await page.waitForFunction(t=>document.documentElement.classList.contains('dark')===(t==='dark'),theme);
+   check(await page.locator('main h1').count()===1&&/Lộ trình học lập trình/i.test(await page.locator('main h1').innerText()),'New roadmap heading is the single page title');
+   check(await page.locator('.rm-hero-tile img').count()===4,'Four background photos retained');
+   check(await page.locator('.rm-hero-art').isVisible(),'Terminal art remains with the opening title');
+   check(await page.evaluate(()=>!document.querySelector('main').textContent.includes('HIỂU BÀI TOÁN → TỔ CHỨC LỜI GIẢI')),'Repeated assembly caption removed');
+   const scene=page.locator('.rm-assembly'),icons=scene.locator('[data-assembly-icon]');
+   const absoluteTop=await scene.evaluate(e=>e.getBoundingClientRect().top+scrollY);
+   check(await page.evaluate(()=>{const choose=document.querySelector('.rm-choose'),assembly=document.querySelector('.rm-assembly'),a=document.querySelector('#lop-a');return !!(choose.compareDocumentPosition(assembly)&Node.DOCUMENT_POSITION_FOLLOWING)&&!!(assembly.compareDocumentPosition(a)&Node.DOCUMENT_POSITION_FOLLOWING); }),'Symbols follow selector and precede class A');
+   check(await icons.count()===9,'All nine symbols remain on mobile and desktop');
+   await page.evaluate(y=>scrollTo(0,y),absoluteTop-760);await page.waitForTimeout(120);
+   const before=await icons.evaluateAll(es=>es.map(e=>getComputedStyle(e).transform).join('|'));
+   await page.evaluate(y=>scrollTo(0,y),absoluteTop-140);await page.waitForTimeout(120);
+   check(await icons.evaluateAll(es=>es.map(e=>getComputedStyle(e).transform).join('|'))!==before,'Scroll drives the symbol composition');
+   check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Opening and animation do not cause horizontal overflow');
+   await page.emulateMedia({reducedMotion:'reduce'});await page.waitForTimeout(100);
+   const still=await icons.evaluateAll(es=>es.map(e=>getComputedStyle(e).transform).join('|'));
+   await page.evaluate(()=>scrollBy(0,50));await page.waitForTimeout(100);
+   check(await icons.evaluateAll(es=>es.map(e=>getComputedStyle(e).transform).join('|'))===still,'Reduced motion leaves a stable complete composition');
+   await page.evaluate(()=>scrollTo(0,0));await page.waitForTimeout(150);
+   await page.locator('.rm-hero').screenshot({path:path.join(output,`roadmap-new-opening-${width}-${theme}.png`)});
+  }
+  await page.emulateMedia({reducedMotion:'no-preference'});
  });
  await run('frontend forms validate review edit copy without requests',async()=>{
   const requests=[];page.on('request',r=>{if(r.url().includes('/api/consultations'))requests.push(r.method());});
