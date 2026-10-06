@@ -4,20 +4,22 @@ import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { ArrowRight, ArrowUpRight, Check, Copy, Pencil } from 'lucide-react';
 import { PublicSelect } from './PublicSelect';
 import { parentPhoneSchema } from '@/lib/parents';
+import type { PublicCourseCode } from '@/lib/public-courses';
 
 const choices = {
-  role: ['Phụ huynh', 'Học sinh', 'Sinh viên'],
-  level: ['Trao đổi thêm', 'Tiểu học', 'THCS', 'THPT', 'Đại học'],
+  role: ['Phụ huynh', 'Học sinh'],
+  level: ['Tiểu học', 'THCS', 'THPT'],
   course: ['Cần tư vấn thêm', 'A — Nhập môn', 'B — Thi đấu cơ bản', 'C — Thi đấu nâng cao', 'E — Chủ lực', 'K — Học riêng / tùy chọn'],
-  goal: ['Khám phá, cần tư vấn', 'Bắt đầu học lập trình', 'HSG THCS', 'Chuyên Tin', 'HSG tỉnh THPT', 'HSG Quốc gia'],
+  goal: ['Khám phá, cần tư vấn', 'Bắt đầu học lập trình', 'HSG THCS', 'Chuyên Tin', 'HSG tỉnh THPT'],
   background: ['Chưa rõ, muốn trao đổi', 'Chưa học lập trình', 'Đang làm quen cú pháp', 'Đã tự giải một số bài'],
 };
-function Select({ name, label, full = false }: { name: keyof typeof choices; label: string; full?: boolean }) {
-  return <PublicSelect name={name} label={label} full={full} defaultValue={choices[name][0]} options={choices[name].map(value => ({ value, label: value }))} />;
+function Select({ name, label, full = false, defaultValue }: { name: keyof typeof choices; label: string; full?: boolean; defaultValue?: string }) {
+  return <PublicSelect name={name} label={label} full={full} defaultValue={defaultValue || choices[name][0]} options={choices[name].map(value => ({ value, label: value }))} />;
 }
 
 /** Frontend only: user reviews/copies; no API, persistent storage or email side effects. */
-export function PublicConsultation({ kind = 'consultation', context = '' }: { kind?: 'materials' | 'consultation'; context?: string }) {
+export function PublicConsultation({ kind = 'consultation', context = '', defaultCourse }: { kind?: 'materials' | 'consultation'; context?: string; defaultCourse?: PublicCourseCode }) {
+  const courseDefault = choices.course.find(value => value.startsWith(`${defaultCourse} —`));
   const [ready, setReady] = useState(false);
   const [review, setReview] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -68,7 +70,7 @@ export function PublicConsultation({ kind = 'consultation', context = '' }: { ki
           <label className="field">Email<input name="email" type="email" autoComplete="email" maxLength={254} /></label>
           <Select name="level" label="Cấp học" />
           <label className="field">Lớp đang học<input name="school_year" maxLength={50} placeholder="Ví dụ: Lớp 8" /></label>
-          <Select name="course" label="Khóa bạn quan tâm" full />
+          <Select key={defaultCourse || 'undecided'} name="course" label="Khóa bạn quan tâm" full defaultValue={courseDefault} />
           <Select name="goal" label="Mục tiêu học tập" full />
           <Select name="background" label="Bạn đã học đến đâu?" full />
           <label className="field full">{kind === 'materials' ? 'Bạn muốn tìm tài liệu về nội dung nào?' : 'Bạn muốn trao đổi điều gì?'}<textarea name="message" maxLength={2000} rows={3} placeholder="Chia sẻ điều đang học, phần còn vướng hoặc lịch học mong muốn…" /></label>

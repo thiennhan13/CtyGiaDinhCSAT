@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { PublicShell } from '@/components/marketing/PublicShell';
 import { RoadmapExperience } from '@/components/marketing/RoadmapExperience';
 import '@/components/marketing/roadmap-experience.css';
+import '@/components/marketing/public-density.css';
 
 export const metadata: Metadata = {
   title: 'Lộ trình C++ và thuật toán — CSAT',

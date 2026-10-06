@@ -14,6 +14,8 @@ CSAT Portal giúp trung tâm, gia sư và phụ huynh cùng theo dõi việc h�
 
 Website công khai giới thiệu CSAT, các chương trình học và tiếp nhận nhu cầu tư vấn. Chương trình **Cơ bản mặc định gồm A+B**, **Nâng cao gồm C+D**; nội dung chi tiết nằm trong [chương trình đào tạo](docs/CHUONG_TRINH_DAO_TAO.md).
 
+Trang Đăng ký học ở `/dang-ky-hoc`, có năm thẻ A/B/C/E/K với đối tượng, nội dung và học phí. Từ trang lớp, khóa quan tâm được chọn sẵn; người dùng kiểm tra/sao chép thông tin rồi chủ động liên hệ CSAT. Chưa tạo đăng ký API hoặc lưu database.
+
 Học liệu miễn phí ở `/hoc-lieu-mien-phi`, có hướng dẫn luyện tập và form chuẩn bị nhu cầu để nhắn trung tâm. Trang đội ngũ ở `/gia-su`; Góc học Tin ở `/bai-dang` có lưới và trang bài viết một ảnh. Nội dung hiện lấy từ mã frontend; hệ thống đăng bài sẽ được nối sau. Xem [hướng dẫn nội dung](docs/PUBLIC_POSTS.md) để biết nơi sửa và phạm vi hiện tại.
 
 Catalog công khai dùng **5 lớp A/B/C/E/K**: A và B thuộc nền Cơ bản; C dùng C+D; E là Chủ lực, thi tuyển riêng từ C hướng HSG Tỉnh và tuyển sinh chuyên Tin; K học riêng với nội dung tùy chọn. Giao diện này được tích hợp trong Next.js; không chuyển đổi các lớp đang vận hành. Đội ngũ CSAT gồm các gia sư cựu học sinh chuyên Tin THPT Chuyên Phan Bội Châu. Xem [catalog](docs/PUBLIC_COURSE_CATALOG.md) và [hướng dẫn website công khai](docs/PUBLIC_WEBSITE.md).
@@ -32,9 +34,11 @@ Phần quản lý cốt lõi đã được xây dựng và đưa vào sử dụn
 | Form tư vấn và email nhắc tháng | Đã có mã; chưa đủ schema/cấu hình để vận hành, email tháng đang tắt |
 | CSATOJ | Chưa tích hợp API; số bài và ranking đang chờ kết nối |
 
-Production còn thiếu migration **18, 19, 21, 22**. Hai việc bảo mật cần ưu tiên là xác minh người tra cứu phụ huynh và thay mật khẩu khởi tạo gia sư đang dùng số điện thoại. Xem [tiến độ và việc cần làm](docs/PROJECT_STATUS.md) để biết điều kiện hoàn tất từng phần.
+Theo mốc đối chiếu trên, production còn thiếu migration **18, 19, 21, 22**; cần kiểm tra lại trước phát hành. Hai việc bảo mật cần ưu tiên là xác minh người tra cứu phụ huynh và thay mật khẩu khởi tạo gia sư đang dùng số điện thoại. Xem [tiến độ và việc cần làm](docs/PROJECT_STATUS.md) để biết điều kiện hoàn tất từng phần.
 
 ## Bắt đầu phát triển
+
+Tiếp tục từ một cuộc hội thoại mới hoặc bàn giao cho thành viên: đọc [hướng dẫn tiếp nhận](docs/HANDOFF.md), rồi chọn [workflow frontend](docs/FRONTEND_WORKFLOW.md) hoặc [workflow backend](docs/BACKEND_WORKFLOW.md). Hai phần dùng chung kiến trúc và hợp đồng dữ liệu, có tiêu chí kiểm thử riêng.
 
 Chuẩn bị **Node.js 24.x**, npm, Git và một project Supabase thử riêng.
 

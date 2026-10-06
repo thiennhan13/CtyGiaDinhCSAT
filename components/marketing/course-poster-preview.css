@@ -1,0 +1,14 @@
+.csat-public .course-poster-trigger{position:relative;cursor:zoom-in}
+.csat-public .course-poster-expand{position:absolute;right:6px;bottom:6px;display:flex;align-items:center;gap:8px;padding:7px;background:#f8f7f2;color:#191917;border:1px solid #19191745;box-shadow:2px 2px 0 #19191730;font:650 12px/1.4 var(--font)}
+.csat-public .course-poster-expand.is-background{right:20px;bottom:20px;padding:11px 14px;min-height:44px}
+.csat-public .course-poster-lightbox{position:fixed;inset:0;width:100%;height:100dvh;max-width:none;max-height:none;margin:0;padding:20px 24px;border:0;background:#151713f5;color:#f8f7f2;overflow:auto;overscroll-behavior:contain}
+.csat-public .course-poster-lightbox[open]{display:grid;grid-template-rows:auto minmax(0,1fr);gap:16px}
+.csat-public .course-poster-lightbox::backdrop{background:#151713e6}
+.csat-public .course-poster-lightbox-heading{display:flex;justify-content:space-between;align-items:center;gap:20px}
+.csat-public .course-poster-lightbox[open] .course-poster-lightbox-heading h2{font:650 18px/1.4 var(--font);text-transform:none;letter-spacing:0;color:#f8f7f2}
+.csat-public .course-poster-close{display:flex;align-items:center;gap:8px;min-height:48px;min-width:48px;border:1px solid #f8f7f270;border-radius:4px;padding:10px 14px;background:#f8f7f2;color:#191917;font:650 14px/1.4 var(--font)}
+.csat-public .course-poster-close:focus-visible{outline:3px solid #d9e64c;outline-offset:4px}
+.csat-public .course-poster-lightbox figure{display:grid;place-items:center;min-height:0;margin:0;pointer-events:none}
+.csat-public .course-poster-lightbox figure img{width:100%;height:100%;min-height:0;max-width:100%;max-height:100%;object-fit:contain;pointer-events:auto}
+@media(max-width:600px){.csat-public .course-poster-lightbox{padding:12px;gap:12px}.csat-public .course-poster-lightbox[open] .course-poster-lightbox-heading h2{font-size:15px}.csat-public .course-poster-close{padding:10px}.csat-public .course-poster-close>span{display:none}.csat-public .course-poster-expand.is-background{right:12px;bottom:12px}}
+@media print{.csat-public .course-poster-expand,.csat-public .course-poster-lightbox{display:none!important}}

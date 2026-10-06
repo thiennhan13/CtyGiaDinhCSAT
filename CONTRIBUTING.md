@@ -8,9 +8,11 @@
 4. Database thử: xem [database/README.md](database/README.md). Người chỉ sửa nội dung/trang công khai có thể chạy `node scripts/preview-public-site.cjs` mà không cần DB thật.
 5. Thống nhất phạm vi nhiệm vụ, dữ liệu được phép và tiêu chí nghiệm thu. Đừng cấp tài khoản production cho Codex chỉ để đọc mã.
 
+Khi đổi cuộc hội thoại hoặc nhận bàn giao, bắt đầu ở [HANDOFF](docs/HANDOFF.md). Chọn [frontend workflow](docs/FRONTEND_WORKFLOW.md) cho thiết kế/nội dung/tương tác, [backend workflow](docs/BACKEND_WORKFLOW.md) cho API/quyền/RPC/dữ liệu. Công việc nối hai phía cần chốt cùng hợp đồng trước khi sửa; không tạo hai luồng ghi song song.
+
 ## Một vòng công việc
 
-1. Kiểm tra working tree; tạo nhánh `codex/<muc-tieu>` nếu chưa có nhánh phù hợp. Giữ nguyên thay đổi người khác.
+1. Kiểm tra working tree; giữ nhánh đã thống nhất cho nhiệm vụ (checkout hiện dùng `main` theo chủ repo). Khi cần nhánh mới, dùng `codex/<muc-tieu>`, không tự đổi branch hoặc tạo worktree trong lúc đang nhận bàn giao. Giữ nguyên thay đổi người khác.
 2. Nhờ Codex khám phá luồng liên quan và nêu hiện trạng/giả định, rồi triển khai phạm vi đã duyệt. Có thể dùng prompt mẫu dưới đây.
 3. Sửa nhỏ theo nghiệp vụ; API/RPC cùng kiểm tra quyền; migration mới giữ lịch sử. Nếu cần dữ liệu thật, người quản trị cung cấp thông tin tối thiểu qua kênh nội bộ.
 4. Chạy kiểm thử thích hợp và bộ kiểm tra PR. UI phải kiểm tra mobile, keyboard và trạng thái thiếu/lỗi; avatar phải nghiệm thu Storage thử thật trước production.
@@ -22,7 +24,8 @@
 ## Prompt bàn giao cho Codex
 
 ```text
-Đọc AGENTS.md, README.md và các tài liệu hiện hành liên quan.
+Đọc docs/HANDOFF.md, AGENTS.md, README.md và các tài liệu hiện hành liên quan.
+Chọn docs/FRONTEND_WORKFLOW.md hoặc docs/BACKEND_WORKFLOW.md theo nhiệm vụ.
 Nhiệm vụ: [mục tiêu cụ thể]. Tiêu chí hoàn thành: [hành vi quan sát được].
 Trước khi sửa, đối chiếu mã/API/RPC/test và working tree; không coi tài liệu cũ là trạng thái production hiện tại.
 Dùng fixture hoặc Supabase thử. Không gửi thư thật, ghi production hoặc deploy khi chưa được cho phép trong nhiệm vụ này.

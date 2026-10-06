@@ -6,9 +6,29 @@
 
 **Giao diện công khai cập nhật 05/10/2026:** tích hợp catalog A/B/C/E/K vào React/Next.js, các thành phần và ranh giới xem [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md). Chưa thay enum/validation/RPC hoặc dữ liệu lớp. A/B dùng khung Cơ bản; C dùng C+D; E Chủ lực tuyển riêng từ C, tách PreVOI trong quản lý; K tùy chọn cần bản sao có nguồn/version và quyền trước khi vận hành. Không dùng mã tuyển sinh để tự đổi chương trình hay hình thức học. Các hợp đồng tương lai nằm trong [catalog](PUBLIC_COURSE_CATALOG.md).
 
-Đối chiếu mã tại `c4cf9f8` và thay đổi local ngày 01/10/2026. Đây là bản đồ triển khai; trạng thái production xem [PROJECT_STATUS.md](PROJECT_STATUS.md).
+Ranh giới dưới đây được đối chiếu lại ngày **06/10/2026** với mã nền `f83c3a6`; không kiểm tra production trong đợt tài liệu. Trạng thái và bằng chứng môi trường xem [PROJECT_STATUS.md](PROJECT_STATUS.md).
+
+## Phân chia frontend và backend
+
+Hai phần ở cùng ứng dụng, không cần tách thành dịch vụ/repository riêng để làm tiếp.
+
+| Phần | Sở hữu | Không thay thế |
+|---|---|---|
+| Frontend | Route/layout/component, nội dung, token, form state, responsive, accessibility và vòng đời hiệu ứng | Xác thực, quyền đọc/ghi, transaction và lịch sử |
+| Backend | API/Server Actions, validation/phiên/Origin, phạm vi truy cập, RPC/RLS, snapshot/audit, Storage/outbox | UI phải trình bày đúng trạng thái/thiếu dữ liệu và phản hồi lỗi |
+| Hợp đồng chung | Request/response, enum, revision, published/draft, `null`, lỗi và adapter tương thích | Không tự map catalog tuyển sinh thành enum chương trình database |
+
+Workflow thực hiện: [frontend](FRONTEND_WORKFLOW.md), [backend](BACKEND_WORKFLOW.md). Tiếp nhận công việc: [HANDOFF](HANDOFF.md). Nguồn chuẩn chỉ duy trì ở tài liệu chuyên môn tương ứng, tránh chép toàn bộ backlog vào từng workflow.
 
 ## Luồng chính
+
+**Catalog tách A/B, cập nhật 06/10:** Website chỉ giới thiệu, tư vấn và đăng ký các lớp A/B/C/E/K riêng. A+B là cách gộp tạm của quản lý nội bộ, không có entry point công khai; `/lo-trinh/co-ban` và `/lo-trinh/basic` chuyển về tổng quan và không nằm trong sitemap. Chương trình `basic`, mặc định A+B và bản công bố/lịch sử hiện có giữ nguyên; định hướng lớp tương lai tách riêng cần đặc tả backend và chuyển đổi được phép.
+
+**Lộ trình công khai, biên tập 06/10:** `lib/public-courses.ts` giữ dữ kiện tuyển sinh/poster; `learning-curriculum-20260922.json` quyết định mã, tên, thứ tự và phạm vi các chặng/chủ đề; `lib/public-roadmap-content.ts` diễn giải định hướng, vai trò kiến thức và kỹ năng rèn luyện. `RoadmapCourseSection` và `CourseKnowledge` trình bày tổng quan; `CourseDetailContent` trình bày tiến trình và chi tiết chủ đề. `CourseStageNavigation` mở native disclosure khi đi tới chặng, không lưu trạng thái hoặc kết luận thành thạo. E tách đường tuyển đầu vào từ C khỏi ba trọng tâm phát triển, không tạo giáo trình riêng. Căn cứ biên tập ở [nghiên cứu nội dung](ROADMAP_CONTENT_RESEARCH.md).
+
+**Ảnh và chuyển mục, cập nhật 06/10:** `CoursePosterPreview` dùng chung cho tổng quan, chi tiết và đăng ký; liên kết tới WebP là fallback không JS, khi có JS mở native dialog toàn màn hình, có nút đóng/Escape và trả focus. Ảnh lớn chỉ được render khi mở; không gọi API hoặc đổi style khóa cuộn trang. `PublicSectionNavigation` chỉ hiện trên lộ trình/đăng ký, chuyển giữa section/header liền kề, tôn trọng reduced motion; dọn scroll/resize listener, ResizeObserver và rAF khi đổi route. CSS dành một rail riêng bên phải nội dung.
+
+**Đăng ký học, cập nhật 06/10:** `/dang-ky-hoc` là server page đọc enum `course` A/B/C/E/K; `EnrollmentExperience` dùng catalog `lib/public-courses.ts` và truyền `defaultCourse` xuống form chung. Khóa route chi tiết có ưu tiên hơn query; mã lạ không đi vào form. Điều hướng từ thẻ/lớp tới đăng ký không gọi API hay lưu request. Nội dung chặng/tag lộ trình dùng `CourseKnowledge` và JSON curriculum hiện hành; không thay template, chương trình database hoặc quy tắc chuyển chặng.
 
 **Form website công khai, cập nhật 04/10:** nhập → validation phía trình duyệt → xem lại/chỉnh sửa → sao chép theo thao tác người dùng. Chưa gọi API tư vấn hoặc endpoint trạng thái; dữ liệu chỉ giữ trong trang. API/RPC tư vấn hiện có vẫn là backend độc lập cho lần kết nối sau, không tự kích hoạt theo form frontend mới.
 
@@ -23,7 +43,7 @@ flowchart LR
     V[Vercel cron ngày 28] --> N
 ```
 
-`proxy.ts` định tuyến và làm mới phiên; nó không thay thế quyền của API/database. Public pages là `/`, `/lo-trinh`, `/lo-trinh/[program]`, `/gia-su`, `/bai-dang`, `/bai-dang/[slug]`, `/thanh-tich`, `/hoc-lieu-mien-phi`; admin `/admin`, gia sư `/tutor`, phụ huynh `/parents`. `/gia-su` giới thiệu đội ngũ, khác với kênh đăng nhập `/tutor`. `app/(auth)` là route group, không tạo tiền tố URL. `/login` là trang liên lạc chung, switch radio Phụ huynh/Gia sư; `/tutor` vẫn qua proxy kiểm tra phiên rồi chuyển người chưa đăng nhập tới `/login?role=tutor`. Hai form dùng lại handler xác thực và endpoint hiện hành, không gộp phiên/quyền. `/thanh-tich` là khung tĩnh, chưa có schema hoặc dữ liệu thành tích. `/hoc-lieu-mien-phi` dùng lại PracticeVideo và form tài liệu frontend đã tách khỏi trang chủ; không thêm API/database. Footer/dock lấy liên hệ công khai từ `lib/public-contact.ts`.
+`proxy.ts` định tuyến và làm mới phiên; nó không thay thế quyền của API/database. Public pages là `/`, `/dang-ky-hoc`, `/lo-trinh`, `/lo-trinh/[program]`, `/gia-su`, `/bai-dang`, `/bai-dang/[slug]`, `/thanh-tich`, `/hoc-lieu-mien-phi`; admin `/admin`, gia sư `/tutor`, phụ huynh `/parents`. `/gia-su` giới thiệu đội ngũ, khác với kênh đăng nhập `/tutor`. `app/(auth)` là route group, không tạo tiền tố URL. `/login` là trang liên lạc chung, switch radio Phụ huynh/Gia sư; `/tutor` vẫn qua proxy kiểm tra phiên rồi chuyển người chưa đăng nhập tới `/login?role=tutor`. Hai form dùng lại handler xác thực và endpoint hiện hành, không gộp phiên/quyền. `/thanh-tich` là khung tĩnh, chưa có schema hoặc dữ liệu thành tích. `/hoc-lieu-mien-phi` dùng lại PracticeVideo và form tài liệu frontend đã tách khỏi trang chủ; không thêm API/database. Footer/dock lấy liên hệ công khai từ `lib/public-contact.ts`.
 
 ## Ranh giới quyền
 
@@ -61,7 +81,7 @@ Tên đầy đủ, kiểu và chữ ký hàm phải đọc SQL hiện hành; `ty
 
 **Ảnh gia sư:** form multipart → API kiểm tra ownership/revision → Sharp kiểm tra ảnh, xoay/cắt 512×512, WebP ≤200 KiB → Storage → RPC lưu profile → dọn ảnh cũ sau thành công. `tutor_avatar_assets` theo dõi vòng đời để xử lý kết quả ghi không chắc chắn. Bucket public để xem, client không được ghi trực tiếp.
 
-**Tư vấn/email:** form lưu request và outbox cùng transaction → thử gửi nếu cờ Production bật → lưu kết quả provider. Nhắc tháng gộp một thư/gia sư; admin xem hàng đợi, reconcile và xử lý ngoại lệ. Lịch trong `vercel.json` là `0 1 28 * *` UTC (08:00 Việt Nam). Mã có lease, retry, idempotency; MAIL-01/02 vẫn cần sửa trước bật. Không có scheduler retry riêng.
+**Backend tư vấn/email:** endpoint tư vấn lưu request và outbox cùng transaction → thử gửi nếu cờ Production bật → lưu kết quả provider. Form công khai mới chưa gọi endpoint này; cần adapter và nghiệm thu khi nối. Nhắc tháng gộp một thư/gia sư; admin xem hàng đợi, reconcile và xử lý ngoại lệ. Lịch trong `vercel.json` là `0 1 28 * *` UTC (08:00 Việt Nam). Mã có lease, retry, idempotency; MAIL-01/02 vẫn cần sửa trước bật. Không có scheduler retry riêng.
 
 Kho nội bộ, prototype và cấu hình công cụ local được loại khỏi TypeScript/lint lẫn gói Vercel CLI. Không import các tệp đó từ mã runtime. Tài nguyên phục vụ website chỉ giữ bản được chọn; nguồn thiết kế không phải dependency của build.
 

@@ -1,48 +1,56 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import curriculum from '@/lib/learning-curriculum-20260922.json';
 import { PublicShell } from '@/components/marketing/PublicShell';
-import { CodeIcon, GlyphHeading } from '@/components/marketing/PublicMotion';
+import { GlyphHeading } from '@/components/marketing/PublicMotion';
 import { PublicConsultation } from '@/components/marketing/PublicConsultation';
 import '@/components/marketing/roadmap-experience.css';
+import { enrollmentHref, publicCourseCode, publicCourses } from '@/lib/public-courses';
+import { publicRoadmapContent } from '@/lib/public-roadmap-content';
+import { CoursePoster } from '@/components/marketing/RoadmapCourseSection';
+import { CourseCurriculum, CoursePathway, CourseSpecialDirection } from '@/components/marketing/CourseDetailContent';
+import '@/components/marketing/roadmap-editorial.css';
 
 const catalog = {
-  a: { code: 'A', title: 'Nhập môn lập trình', heading: ['Hiểu từng lệnh.', 'Viết có ý tưởng.'], summary: 'Bắt đầu từ một bài toán, bạn xác định dữ liệu đầu vào, kết quả cần tìm và chia cách xử lý thành từng bước. Lớp A giới thiệu C++ qua nhập, xuất dữ liệu, kiểu dữ liệu, điều kiện và vòng lặp; sau đó là mảng, hàm và xâu. Khi luyện bài, thử chương trình trên các ví dụ và tìm lỗi là cách kiểm tra xem từng câu lệnh có diễn đạt đúng ý tưởng. Chín chủ đề tạo điểm bắt đầu cho việc giải bài bằng chương trình.', audience: 'Học sinh lớp 5–7 muốn bắt đầu với C++ và tìm hiểu cách giải bài toán bằng chương trình.', foundation: 'Bạn có thể bắt đầu từ môi trường lập trình và những thao tác nhập, xuất dữ liệu. Gia sư sẽ cùng bạn trao đổi điều đã học và mục tiêu trước khi chọn hướng học.', asset: 'basic-class', price: '99.000đ', part: 'A' },
-  b: { code: 'B', title: 'Lập trình thi đấu cơ bản', heading: ['Nhận ra quy luật.', 'Tìm thêm cách giải.'], summary: 'Cùng một bài toán, bạn có thể xét từng phương án hoặc tìm quy luật để giảm bớt công việc. Lớp B kết nối vét cạn và thống kê với số học, tổ chức dữ liệu, sắp xếp, chặt nhị phân và xử lý xâu. Qua 15 chủ đề, bạn có thêm cơ sở để so sánh cách giải, chọn phương pháp phù hợp với dữ liệu và giải thích lựa chọn của mình. Việc thử nhiều trường hợp, kiểm tra kết quả và tìm lỗi tiếp tục gắn với quá trình luyện bài thi đấu.', audience: 'Học sinh lớp 7–9 quan tâm HSG cấp Phường hoặc Chuyên Tin. Phạm vi ôn luyện được trao đổi theo mục tiêu cụ thể.', foundation: 'Nhìn lại điều kiện, vòng lặp, mảng, hàm và xâu qua các bài bạn đã làm. Từ đó, cùng gia sư chọn phần cần củng cố hoặc nội dung muốn học tiếp.', asset: 'basic-class', price: '99.000đ', part: 'B' },
-  c: { code: 'C', title: 'Lập trình thi đấu nâng cao', heading: ['Phân tích sâu.', 'Giải có cơ sở.'], summary: 'Một thuật toán cần có lý do để tin rằng nó đúng và phù hợp với giới hạn dữ liệu. Lớp C đào sâu hai câu hỏi đó qua kỹ thuật mảng, cấu trúc dữ liệu, đệ quy, chia để trị, quay lui, tham lam, tìm kiếm trên đáp án và băm xâu. Quy hoạch động nối các bài toán con bằng trạng thái và quan hệ chuyển. Toàn bộ 19 chủ đề C+D là cơ sở để phân tích lời giải và độ phức tạp: số thao tác tăng ra sao khi dữ liệu tăng.', audience: 'Học sinh lớp 7–9 quan tâm HSG tỉnh hoặc Chuyên Tin, muốn đào sâu cấu trúc dữ liệu và các phương pháp giải bài toán.', foundation: 'Chia sẻ cách bạn dùng C++, mảng, xâu và hàm, cùng những bài đã tự viết và kiểm tra lời giải. Việc học thực tế là cơ sở để trao đổi điểm bắt đầu.', asset: 'books', price: '109.000đ', part: 'CD' },
-  e: { code: 'E', title: 'Chủ lực', heading: ['Học sâu hơn.', 'Theo đuổi mục tiêu.'], summary: 'Từ nền tảng lớp C, lớp E dành cho học sinh muốn học kiến thức khó hơn và hướng đến thứ hạng cao tại kỳ thi HSG Tỉnh hoặc tuyển sinh chuyên Tin. Học sinh tham gia qua thi tuyển đầu vào riêng từ lớp C. Lớp học theo nhóm 3–4 học sinh, mỗi buổi 2 giờ; lịch được thống nhất cùng các thành viên.', audience: 'Học sinh từ lớp C muốn đào sâu kiến thức và hướng đến thứ hạng cao trong kỳ thi HSG Tỉnh hoặc tuyển sinh chuyên Tin.', foundation: 'Học sinh lớp C đăng ký thi tuyển đầu vào riêng. Cùng đội ngũ trao đổi quá trình luyện bài, mục tiêu và cách tham gia thi tuyển trước khi chọn bước tiếp theo.', asset: 'comp-program', price: '', part: '' },
-  k: { code: 'K', title: 'Kèm riêng', heading: ['Học điều cần học.', 'Theo nhịp của bạn.'], summary: 'Lớp K dành thời gian cho nhu cầu học cụ thể: củng cố một phần kiến thức, tìm hiểu thêm một dạng bài hoặc sắp xếp nhịp học riêng. Bạn học 1–1 hoặc cùng nhóm đăng ký riêng, chọn nội dung từ các chương trình đã được duyệt. Từ bài đã làm và phần còn vướng, cùng gia sư xác định trọng tâm, phạm vi và thời gian học.', audience: 'Người học muốn học 1–1 hoặc cùng nhóm đăng ký riêng, với nội dung được trao đổi theo nhu cầu cụ thể.', foundation: 'Chia sẻ nội dung đã học, những phần còn vướng và thời gian có thể luyện tập. Cùng đội ngũ thống nhất phạm vi, hình thức, lịch và học phí trước khi bắt đầu.', asset: 'code4', price: '', part: '' },
-  'co-ban': { code: 'A+B', title: 'Cơ bản · A+B', heading: ['Hiểu câu lệnh.', 'Tìm lời giải.'], summary: 'Khung Cơ bản đi từ hiểu bài toán và chia nhỏ cách xử lý đến diễn đạt bằng C++. Phần A giới thiệu điều kiện, vòng lặp, mảng, hàm và xâu; phần B mở thêm cách giải qua số học, tổ chức dữ liệu, sắp xếp và tìm kiếm. Trong quá trình luyện bài, bạn tập thử chương trình, tìm lỗi và so sánh các phương pháp. Toàn bộ A+B gồm 24 chủ đề, kết nối việc viết câu lệnh với lựa chọn lời giải.', audience: 'Người học muốn bắt đầu với C++ hoặc hệ thống lại nền tảng. Phần A hướng đến học sinh lớp 5–7, phần B hướng đến lớp 7–9.', foundation: 'Khung Cơ bản mặc định gồm A+B. Cùng CSAT trao đổi nội dung đã học và các bài đã làm để chọn điểm bắt đầu, thay vì chỉ dựa vào cấp học.', asset: 'basic-class', price: '', part: 'AB' },
+  a: { code: 'A', title: 'Nhập môn lập trình', price: '99.000đ', part: 'A', audience: '' },
+  b: { code: 'B', title: 'Lập trình thi đấu cơ bản', price: '99.000đ', part: 'B', audience: '' },
+  c: { code: 'C', title: 'Lập trình thi đấu nâng cao', price: '109.000đ', part: 'CD', audience: '' },
+  e: { code: 'E', title: 'Chủ lực', price: '', part: '', audience: '' },
+  k: { code: 'K', title: 'Kèm riêng', price: '', part: '', audience: '' },
 } as const;
 type CourseKey = keyof typeof catalog;
-const aliases: Record<string, CourseKey> = { 'nang-cao': 'c', advanced: 'c', custom: 'k', 'tuy-chinh': 'k', basic: 'co-ban' };
+const aliases: Record<string, CourseKey> = { 'nang-cao': 'c', advanced: 'c', custom: 'k', 'tuy-chinh': 'k' };
 function resolve(program: string): CourseKey | undefined { return Object.hasOwn(catalog, program) ? program as CourseKey : Object.hasOwn(aliases, program) ? aliases[program] : undefined; }
-export function generateStaticParams() { return [...Object.keys(catalog), ...Object.keys(aliases), 'hsgqg', 'voi', 'prevoi'].map(program => ({ program })); }
+export function generateStaticParams() { return [...Object.keys(catalog), ...Object.keys(aliases), 'co-ban', 'basic', 'hsgqg', 'voi', 'prevoi'].map(program => ({ program })); }
 export const dynamicParams = false;
 export async function generateMetadata({ params }: { params: Promise<{ program: string }> }): Promise<Metadata> {
   const { program } = await params;
+  if (['co-ban', 'basic'].includes(program)) return { title: 'Tìm hiểu lộ trình — CSAT', alternates: { canonical: 'https://portal.csatoj.vn/lo-trinh' } };
   const key = resolve(program);
   if (!key) return { title: 'Không tìm thấy lộ trình — CSAT' };
   const course = catalog[key];
-  return { title: `${course.code} — ${course.title} · CSAT`, description: course.summary, alternates: { canonical: `https://portal.csatoj.vn/lo-trinh/${key}` } };
+  return { title: `${course.code} — ${course.title} · CSAT`, description: publicRoadmapContent[course.code].introduction, alternates: { canonical: `https://portal.csatoj.vn/lo-trinh/${key}` } };
 }
 const contextValues: Record<string, Record<string, string>> = {
-  level: { primary: 'Tiểu học', thcs: 'THCS', thpt: 'THPT', university: 'Đại học' },
-  goal: { undecided: 'Khám phá, cần trao đổi thêm', start: 'Bắt đầu học lập trình', thcs: 'HSG cấp THCS', specialist: 'Chuyên Tin', province: 'HSG tỉnh cấp THPT', national: 'HSG Quốc gia' },
+  level: { primary: 'Tiểu học', thcs: 'THCS', thpt: 'THPT' },
+  goal: { undecided: 'Khám phá, cần tư vấn', start: 'Bắt đầu học lập trình', thcs: 'HSG cấp THCS', specialist: 'Chuyên Tin', province: 'HSG tỉnh cấp THPT' },
   background: { unsure: 'Chưa rõ, muốn trao đổi', new: 'Chưa học lập trình', syntax: 'Đang làm quen cú pháp', practice: 'Đã tự giải một số bài lập trình' },
 };
 export default async function CoursePage({ params, searchParams }: { params: Promise<{ program: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [{ program }, search] = await Promise.all([params, searchParams]);
-  if (['hsgqg', 'voi', 'prevoi'].includes(program)) redirect('/lo-trinh?goal=national#tu-van');
+  if (['co-ban', 'basic'].includes(program)) redirect('/lo-trinh');
+  if (['hsgqg', 'voi', 'prevoi'].includes(program)) redirect('/dang-ky-hoc#thong-tin');
   const key = resolve(program);
   if (!key) notFound();
   const course = catalog[key];
+  const courseCode = publicCourseCode(course.code)!;
+  const enrollment = publicCourses.find(item => item.code === courseCode);
   const template = curriculum.find(item => item.program === (key === 'c' ? 'advanced' : 'basic'))!;
-  const stages = ['A', 'B', 'AB', 'CD'].includes(course.part) ? template.stages.filter(stage => course.part !== 'A' && course.part !== 'B' || stage.part === course.part) : [];
-  const count = stages.reduce((total, stage) => total + stage.lessons.length, 0);
+  const stages = ['A', 'B', 'CD'].includes(course.part) ? template.stages.filter(stage => course.part !== 'A' && course.part !== 'B' || stage.part === course.part) : [];
+  const contentCode = courseCode;
+  const content = publicRoadmapContent[contentCode];
   const query = new URLSearchParams();
   const context = [`${course.code} — ${course.title}`];
   for (const [name, options] of Object.entries(contextValues)) {
@@ -50,12 +58,15 @@ export default async function CoursePage({ params, searchParams }: { params: Pro
     if (typeof value === 'string' && Object.hasOwn(options, value)) { query.set(name, value); context.push(options[value]); }
   }
   const linkTo = (code: string) => `/lo-trinh/${code}${query.size ? `?${query}` : ''}`;
-  return <PublicShell><div className="roadmap-experience rm-course-page">
-    <header className="wrap rm-course-intro"><nav className="rm-breadcrumb" aria-label="Đường dẫn"><Link href="/">Giới thiệu</Link><span>/</span><Link href="/lo-trinh">Lộ trình học tập</Link><span>/</span><span>{course.code}</span></nav><div className="rm-course-hero"><div><p className="eyebrow">{key === 'co-ban' ? 'Khung kiến thức' : `Lớp ${course.code}`} / {course.title}</p><GlyphHeading as="h1">{course.heading[0]}<br /><em>{course.heading[1]}</em></GlyphHeading><p className="rm-course-lead">{course.summary}</p><a className="btn" href="#tu-van">Trao đổi về hướng học này <ArrowRight aria-hidden="true" size={18} /></a></div><div className="rm-course-photo"><Image src={`/images/site/${course.asset}.webp`} alt="" width={960} height={640} priority sizes="(max-width: 800px) 90vw, 40vw" /><span aria-hidden="true">{course.code}</span></div></div>
-      <nav className="rm-course-switch" aria-label="Khám phá các lớp">{Object.entries(catalog).filter(([slug]) => slug !== 'co-ban').map(([slug, item]) => <Link href={linkTo(slug)} key={slug} aria-current={key === slug ? 'page' : undefined}><b>{item.code}</b>{item.title}<ArrowUpRight aria-hidden="true" size={16} /></Link>)}</nav>
-      <div className="rm-course-facts"><div><span className="mono">HƯỚNG HỌC</span><p>{course.audience}</p></div><div><span className="mono">CÙNG CHỌN ĐIỂM BẮT ĐẦU</span><p>{course.foundation}</p></div><div><span className="mono">THÔNG TIN LỚP</span>{course.price ? <><strong>{course.price}<small> / buổi</small></strong><p>90 phút · 5–8 học sinh.<br />Lịch học theo đợt tuyển sinh; trao đổi cụ thể cùng đội ngũ trước khi đăng ký.</p></> : <p>{key === 'co-ban' ? 'Xem thông tin từng lớp A, B hoặc cùng đội ngũ trao đổi về lịch học và lựa chọn phạm vi.' : key === 'e' ? '3–4 học sinh · 2 giờ / buổi. Thi tuyển đầu vào riêng từ lớp C; lịch theo các thành viên lớp. Học phí trao đổi cùng đội ngũ.' : 'Trao đổi cụ thể cùng đội ngũ về nền tảng, lịch học, thời lượng và học phí.'}</p>}</div></div>
+  return <PublicShell><div className={`roadmap-experience rm-course-page rm-detail-${key}`}>
+    <header className="wrap rm-course-intro">
+      <nav className="rm-course-switch" aria-label="Khám phá các lớp">{Object.entries(catalog).map(([slug, item]) => <Link href={linkTo(slug)} key={slug} aria-current={key === slug ? 'page' : undefined}><b>{item.code}</b>{item.title}<ArrowUpRight aria-hidden="true" size={16} /></Link>)}</nav>
+      <nav className="rm-breadcrumb" aria-label="Đường dẫn"><Link href="/">Giới thiệu</Link><span>/</span><Link href="/lo-trinh">Lộ trình học tập</Link><span>/</span><span>{course.code}</span></nav>
+      <div className="rm-course-hero"><div><p className="eyebrow">Lớp {course.code} / {course.title}</p><h1>{content.headline[0]}<br /><em>{content.headline[1]}</em></h1>{enrollment && <div className="rm-heading-facts"><span>{enrollment.duration}</span><span>{enrollment.size}</span></div>}<p className="rm-course-lead">{content.introduction}</p><Link className="btn" href={enrollmentHref(courseCode)}>Đăng ký học lớp {course.code} <ArrowRight aria-hidden="true" size={18} /></Link></div><CoursePoster code={courseCode} priority /></div>
+      <div className="rm-course-facts"><div><span className="mono">ĐỐI TƯỢNG</span><p>{enrollment?.audience || course.audience}</p></div><div><span className="mono">CÙNG CHỌN ĐIỂM BẮT ĐẦU</span><p>{content.foundation}</p></div><div><span className="mono">THÔNG TIN LỚP</span>{course.price ? <><strong>{course.price}<small> / buổi</small></strong><p>90 phút · 5–8 học sinh.<br />Lịch học theo đợt tuyển sinh; trao đổi cụ thể cùng đội ngũ trước khi đăng ký.</p></> : <p>{key === 'e' ? '3–4 học sinh · 2 giờ / buổi. Thi tuyển đầu vào riêng từ lớp C; lịch theo các thành viên lớp. Học phí trao đổi cùng đội ngũ.' : 'Trao đổi cụ thể cùng đội ngũ về nền tảng, lịch học, thời lượng và học phí.'}</p>}</div></div>
     </header>
-    {stages.length > 0 ? <section className="rm-course-curriculum"><div className="wrap"><div className="rm-chapter mono"><span>NỘI DUNG HỌC TẬP / {course.code}</span><span>{count} CHỦ ĐỀ / {stages.length} CHẶNG</span></div><div className="rm-curriculum-heading"><GlyphHeading>Từng chủ đề.<br /><em>Thêm cách giải.</em></GlyphHeading><p>Mỗi chặng nhóm những kiến thức có liên hệ để bạn thấy một cách giải được xây dựng từ đâu. Danh mục cho biết nội dung học; cách vận dụng, bài luyện và phần cần củng cố được trao đổi từ việc học thực tế.</p></div>{key === 'co-ban' && <nav className="rm-part-links" aria-label="Phạm vi kiến thức Cơ bản"><Link href={linkTo('a')}>A · 9 chủ đề</Link><Link href={linkTo('b')}>B · 15 chủ đề</Link><span aria-current="page">A+B · 24 chủ đề</span></nav>}<div className="rm-curriculum-stages">{stages.map((stage, index) => <details className="rm-curriculum-stage" key={stage.id} open={index === 0}><summary><span className="rm-stage-index mono">{String(index + 1).padStart(2, '0')} / {stage.part}</span><span><strong>{stage.title}</strong><small>{stage.lessons.length} chủ đề</small></span><span className="rm-stage-toggle" aria-hidden="true">+</span></summary><div className="rm-stage-body"><p>{stage.description.replace(/^Con /, 'Học sinh ')}</p><ol>{stage.lessons.map(lesson => <li key={lesson.code}><span className="mono">{lesson.code}</span><div><h3>{lesson.title}</h3>{lesson.description && <p>{lesson.description}</p>}</div></li>)}</ol></div></details>)}</div></div></section> : <section className="wrap rm-special-content"><div><p className="eyebrow">{course.code} / Cùng trao đổi hướng học</p><GlyphHeading>{key === 'e' ? <>Đào sâu kiến thức.<br /><em>Cùng hướng tới mục tiêu.</em></> : <>Tập trung điều cần học.<br /><em>Theo nhịp của bạn.</em></>}</GlyphHeading><p>{key === 'e' ? 'Những bài đã luyện ở lớp C là điểm bắt đầu để trao đổi phần kiến thức muốn đào sâu và mục tiêu kỳ thi. Lớp Chủ lực hướng đến HSG Tỉnh và tuyển sinh chuyên Tin; học sinh tham gia qua thi tuyển đầu vào riêng. Cùng đội ngũ trao đổi nội dung học cụ thể và học phí trước khi đăng ký.' : 'Một chủ đề cần củng cố hay một nhóm kiến thức muốn tìm hiểu thêm đều có thể là điểm bắt đầu. Cùng gia sư chọn nội dung từ các khung đã duyệt, rồi thống nhất hình thức 1–1 hoặc nhóm riêng và thời gian học.'}</p></div><div className="rm-special-steps">{['Chia sẻ nền tảng và mục tiêu', 'Cùng trao đổi nội dung, hình thức học', 'Thống nhất lịch và học phí'].map((step, index) => <div key={step}><span className="mono">0{index + 1}</span><h3>{step}</h3><CodeIcon name={index === 0 ? 'brackets' : index === 1 ? 'branch' : 'loop'} /></div>)}</div></section>}
-    <section className="rm-consult-section" id="tu-van"><div className="wrap rm-consult-layout"><div><p className="eyebrow">Cùng CSAT chọn bước tiếp theo</p><GlyphHeading>Chia sẻ việc học.<br /><em>Cùng chọn hướng đi.</em></GlyphHeading><p>Bạn đang quan tâm {course.title.toLowerCase()}? Hãy bắt đầu từ những điều đã học và mục tiêu muốn hướng tới.</p><div className="rm-consult-context"><span className="mono">NỘI DUNG QUAN TÂM</span><p>{context.join(' · ')}</p></div></div><PublicConsultation kind="consultation" context={context.join(' · ')} /></div></section>
+    <CoursePathway code={contentCode} />
+    {stages.length > 0 ? <CourseCurriculum code={contentCode} stages={stages} /> : <CourseSpecialDirection code={courseCode as 'E' | 'K'} />}
+    <section className="rm-consult-section" id="tu-van"><div className="wrap rm-consult-layout"><div><p className="eyebrow">Cùng CSAT chọn bước tiếp theo</p><GlyphHeading>Chia sẻ việc học.<br /><em>Cùng chọn hướng đi.</em></GlyphHeading><p>Bạn đang quan tâm {course.title.toLowerCase()}? Hãy bắt đầu từ những điều đã học và mục tiêu muốn hướng tới.</p><div className="rm-consult-context"><span className="mono">NỘI DUNG QUAN TÂM</span><p>{context.join(' · ')}</p></div></div><PublicConsultation kind="consultation" context={context.join(' · ')} defaultCourse={courseCode} /></div></section>
   </div></PublicShell>;
 }

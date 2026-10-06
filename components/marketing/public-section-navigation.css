@@ -1,0 +1,8 @@
+.csat-public .public-section-jump{position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:34;display:grid;gap:8px;padding:6px;background:var(--surface);border:1px solid var(--line);box-shadow:3px 3px 0 color-mix(in srgb,var(--blue) 35%,transparent);border-radius:8px}
+.csat-public .public-section-jump button{display:grid;place-items:center;min-width:44px;min-height:44px;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--blue)}
+.csat-public .public-section-jump button:hover:not(:disabled){background:var(--blue);color:var(--paper)}
+.csat-public .public-section-jump button:disabled{opacity:.35;cursor:default}
+.csat-public:has(.public-section-jump)>main{padding-right:76px}
+@media(max-width:900px){.csat-public .public-section-jump{right:3px;padding:3px;gap:6px}.csat-public:has(.public-section-jump)>main{padding-right:58px}.csat-public:has(.public-section-jump)>main .wrap{width:calc(100% - 28px)}}
+@media(max-width:600px){.csat-public:has(.public-section-jump) .rm-course-page .rm-course-hero h1{font-size:24px!important}}
+@media print{.csat-public .public-section-jump{display:none!important}.csat-public:has(.public-section-jump)>main{padding-right:0}}

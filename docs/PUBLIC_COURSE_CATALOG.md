@@ -1,18 +1,18 @@
 # Catalog khóa học công khai và thiết kế tích hợp
 
-Cập nhật **05/10/2026** theo xác nhận của trung tâm. Tài liệu này là nguồn thống nhất cho tên khóa, nội dung tuyển sinh và thiết kế dữ liệu tương lai. Nội dung A/B/C đọc từ [chương trình đào tạo đã duyệt](CHUONG_TRINH_DAO_TAO.md). Giao diện đã tích hợp Next.js; các hợp đồng dự kiến bên dưới **chưa được triển khai vào API/RPC hoặc database production**.
+Cập nhật **06/10/2026** theo xác nhận của trung tâm. Tài liệu này là nguồn thống nhất cho tên khóa, nội dung tuyển sinh và thiết kế dữ liệu tương lai. Nội dung A/B/C đọc từ [chương trình đào tạo đã duyệt](CHUONG_TRINH_DAO_TAO.md). Giao diện đã tích hợp Next.js; các hợp đồng dự kiến bên dưới **chưa được triển khai vào API/RPC hoặc database production**.
 
 ## Năm khóa học trên website
 
 | Mã | Tên hiển thị | Nội dung, đối tượng đã có căn cứ | Thông tin công khai |
 |---|---|---|---|
 | A | Nhập môn lập trình | A01–A09: 9 chủ đề/3 chặng; học sinh lớp 5–7 làm quen C++ | 99.000đ/buổi; 90 phút; 5–8 học sinh; lịch theo đợt tuyển sinh |
-| B | Lập trình thi đấu cơ bản | B01–B15: 15 chủ đề/4 chặng; học sinh lớp 7–9, định hướng HSG cấp Phường/Chuyên Tin theo poster | 99.000đ/buổi; 90 phút; 5–8 học sinh; trao đổi phạm vi luyện thi cụ thể |
-| C | Lập trình thi đấu nâng cao | C01–C12 và D01–D07: 19 chủ đề/6 chặng; học sinh lớp 7–9 hướng HSG tỉnh/Chuyên Tin theo poster | 109.000đ/buổi; 90 phút; 5–8 học sinh; trao đổi nền tảng trước khi chọn lớp |
+| B | Lập trình thi đấu cơ bản | B01–B15: 15 chủ đề/4 chặng; học sinh lớp 7–9 định hướng HSG cấp Phường hoặc chuyên Tin các tỉnh không quá cạnh tranh, đúng poster | 99.000đ/buổi; 90 phút; 5–8 học sinh; trao đổi phạm vi luyện thi cụ thể |
+| C | Lập trình thi đấu nâng cao | C01–C12 và D01–D07: 19 chủ đề/6 chặng; học sinh lớp 7–9 định hướng HSG cấp Tỉnh hoặc chuyên Tin các tỉnh mạnh, cạnh tranh, đúng poster | 109.000đ/buổi; 90 phút; 5–8 học sinh; trao đổi nền tảng trước khi chọn lớp |
 | E | Chủ lực | Thi tuyển đầu vào riêng từ lớp C; kiến thức khó hơn, hướng đến thứ hạng cao tại HSG Tỉnh và tuyển sinh chuyên Tin | 3–4 học sinh; 2 giờ/buổi; lịch theo thành viên lớp; học phí trao đổi cùng đội ngũ |
 | K | Kèm riêng | Học 1–1 hoặc nhóm đăng ký riêng; chọn/phối nội dung từ các chương trình theo nhu cầu | Nội dung, lịch, thời lượng và học phí trao đổi trước khi bắt đầu |
 
-**A+B là cách xem toàn bộ khung Cơ bản, không phải khóa tuyển sinh thứ sáu.** C vẫn dùng trọn C+D, không đổi thành giáo trình PreVOI. Quyết định 05/10 thay quyết định 04/10: E là Chủ lực theo ảnh trung tâm cung cấp, không phải PreVOI. Danh mục kiến thức và học phí E chưa được cung cấp; website không tạo giáo trình hoặc giá thay trung tâm.
+**A và B là hai lớp công khai riêng. A+B chỉ là cách gộp tạm để quản lý nội bộ; không có trang riêng hoặc lựa chọn A+B trong tư vấn/tuyển sinh.** Theo yêu cầu 06/10, các lớp tương lai được giới thiệu và lựa chọn riêng; việc tách lớp quản lý thực tế là nhiệm vụ backend sau này, không tự chuyển dữ liệu hiện có. C vẫn dùng trọn C+D, không đổi thành giáo trình PreVOI. Quyết định 05/10 thay quyết định 04/10: E là Chủ lực theo ảnh trung tâm cung cấp, không phải PreVOI. Danh mục kiến thức và học phí E chưa được cung cấp; website không tạo giáo trình hoặc giá thay trung tâm.
 
 Thông tin trên hỗ trợ tìm hiểu, không kết luận năng lực từ tuổi hoặc cấp học. Giá tuyển sinh không cập nhật đơn giá lớp đang học, không dùng để tính lại học phí lịch sử. Khung kiến thức không ấn định số buổi hoặc cam kết kết quả thi.
 
@@ -23,7 +23,7 @@ Thông tin trên hỗ trợ tìm hiểu, không kết luận năng lực từ tu
 | Khóa công khai | A, B, C, E, K | Người đọc tìm hiểu và đăng ký trao đổi; là catalog website, chưa phải enum loại lớp trong database |
 | Chương trình kiến thức | `basic`, `advanced`, `voi`, `custom` | Mã ứng dụng/database hiện có; chỉ gán vào lớp qua thao tác có quyền |
 | Hình thức học | `group`, `individual` | Học nhóm hoặc 1–1; độc lập với chương trình |
-| Phạm vi Cơ bản | A, B hoặc A+B | Nội dung lớp mặc định A+B; việc xem phần B không xác nhận đã thành thạo A |
+| Phạm vi Cơ bản trong quản lý | A, B hoặc A+B | Nội dung quản lý hiện tại mặc định A+B; không áp dụng cách gộp này cho catalog công khai hoặc tự xác nhận thành thạo A |
 | Phiên bản giáo án | `template_id`, `version` | Xác định nội dung đã chọn; giữ nháp/công bố, revision và lịch sử |
 
 Mapping thiết kế:
@@ -43,11 +43,16 @@ Selector đã được tích hợp vào Next.js. Theo yêu cầu mới ngày 04/
 
 Ba đầu vào: cấp học, mục tiêu và nền tảng do người dùng tự mô tả. Nền tảng gồm chưa học; đang làm quen cú pháp; đã tự giải một số bài; chưa rõ/cần trao đổi. Đây không phải bài kiểm tra xếp lớp.
 
-- Mục tiêu HSG Quốc gia: mời trao đổi riêng, không gợi ý E hoặc xác nhận đủ điều kiện. Các URL cũ `/lo-trinh/hsgqg`, `/lo-trinh/voi`, `/lo-trinh/prevoi` chuyển về tư vấn mục tiêu quốc gia, không coi là alias của E.
-- Đại học với mục tiêu khác: tư vấn riêng. Không dùng cấp học để khẳng định phải theo một khóa cụ thể.
+- Theo chỉ định 06/10, selector và mọi form công khai bỏ cấp học Đại học, lựa chọn cấp học Trao đổi thêm, vai trò Sinh viên và mục tiêu HSG Quốc gia. Cấp học còn Tiểu học/THCS/THPT; vai trò Phụ huynh/Học sinh. Các URL cũ `/lo-trinh/hsgqg`, `/lo-trinh/voi`, `/lo-trinh/prevoi` chuyển về `/dang-ky-hoc#thong-tin`, không gán vào E.
 - Mới bắt đầu: ưu tiên tìm hiểu A; đang làm quen cú pháp: A/B; đã luyện bài: B/C; chưa rõ: xem các khóa và trao đổi.
 - Người đọc luôn được xem khóa khác. K có đường tư vấn riêng; selector không tự chẩn đoán người dùng cần 1–1.
-- URL chỉ giữ enum được phép, không chứa tên, số điện thoại, email hoặc mô tả tự do. `course=AB` là ngữ cảnh xem toàn khung Cơ bản, không tạo mã khóa tuyển sinh mới.
+- URL chỉ giữ enum được phép, không chứa tên, số điện thoại, email hoặc mô tả tự do. `course=AB` không được nhận hoặc lan truyền trong selector. URL cũ `/lo-trinh/co-ban` và `/lo-trinh/basic` chuyển về `/lo-trinh`; sitemap chỉ giữ năm lớp A/B/C/E/K.
+
+### Trang Đăng ký học — 06/10/2026
+
+Người dùng đã duyệt phương án 3 và chỉnh tiếp: `/dang-ky-hoc` có năm thẻ A/B/C/E/K, lưới 3/2/1 cột, poster 144 × 144 px (gấp đôi mẫu 72 px), thời lượng/sĩ số ngay dưới tên lớp, đối tượng theo poster thay mô tả chung, các bước học và tag kiến thức. `lib/public-courses.ts` giữ nội dung tuyển sinh, giá và các bước giải thích công khai; `CourseKnowledge` lấy các chặng/mã chủ đề từ JSON đã duyệt, không đổi curriculum. K không có ô đối tượng riêng trên poster; dùng đúng hình thức 1–1/nhóm đăng ký riêng đã ghi trong ảnh. E/K chỉ dùng tag định hướng/hình thức, chưa tạo chuyên đề thuật toán chưa được duyệt.
+
+CTA từ lớp X tới `/dang-ky-hoc?course=X#thong-tin`; server chỉ nhận A/B/C/E/K và form chọn mặc định X. Trang chi tiết tự xác định khóa từ route, không tin query khóa khác; alias nâng cao/tùy chỉnh xác định C/K. Người dùng vẫn đổi khóa được và lựa chọn đó đi vào bản xem lại. Không hiển thị A+B như lớp hoặc phạm vi tư vấn công khai. Form tài liệu/tư vấn/đăng ký đều dùng `PublicConsultation`, giữ xem lại/sao chép/liên hệ chủ động. Không đổi validation API/RPC hoặc dữ liệu lịch sử.
 
 ### Hợp đồng intake dự kiến
 
@@ -58,7 +63,7 @@ Mở rộng luồng tư vấn hiện có cùng lúc ở validation, API, RPC, ad
 | `request_kind` | `consultation` hoặc `materials`; yêu cầu cũ thiếu trường là tư vấn |
 | `course_interest` | A/B/C/E/K hoặc `null`; là lựa chọn chủ động của người gửi, không phải lớp được nhận |
 | `background` | Mã tự mô tả `new`, `syntax`, `practice`, `unsure` hoặc `null`; thiếu ở dữ liệu cũ là chưa cung cấp, không suy ra chưa biết lập trình |
-| `curriculum_scope` | A/B/AB/CD hoặc `null` khi cần giữ ngữ cảnh xem kiến thức; server đối chiếu với khóa đã chọn |
+| `curriculum_scope` | A/B/CD hoặc `null` theo khóa công khai; AB chỉ giữ trong mô hình quản lý nội bộ hiện có, không tạo lựa chọn intake mới |
 | `level` mở rộng | Bổ sung Tiểu học; giữ các giá trị THCS/THPT/Đại học/chưa rõ hiện có |
 | `goal` mở rộng | Bổ sung mục tiêu bắt đầu học lập trình nếu UI dùng lựa chọn này; giữ các mục tiêu thi và chưa rõ hiện có |
 
@@ -103,7 +108,7 @@ Poster và tài liệu nguồn nội bộ không đưa vào Git. Ảnh/asset cô
 
 ## Kiểm chứng hiện tại và khi mở rộng
 
-- Catalog có đúng năm mã; A+B chỉ là cách xem; đủ 9/15/19 chủ đề từ nguồn, không sao chép C+D thành PreVOI.
+- Catalog có đúng năm mã A/B/C/E/K; A/B có trang, tư vấn và đăng ký riêng, không công khai A+B; đủ 9/15/19 chủ đề từ nguồn, không sao chép C+D thành PreVOI.
 - E dùng tên Chủ lực và điều kiện/sĩ số/thời lượng mới được duyệt; mục tiêu quốc gia không gắn E. Giáo trình và học phí chưa duyệt nằm trong tài liệu, không bịa nội dung lên website.
 - No-JS vẫn đọc được E/K và liên hệ qua Zalo/Facebook; form chỉ xuất hiện khi đã bật tiếp nhận. Query không nhận/lan truyền dữ liệu tự do.
 - Intake kiểm tra dữ liệu cũ/mới, khóa–phạm vi không khớp, thiếu cờ bật, gửi trùng và email lỗi sau khi lưu thành công.

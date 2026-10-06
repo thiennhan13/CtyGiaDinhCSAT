@@ -7,6 +7,8 @@
 3. Phân biệt mã nguồn, kiểm thử local, staging và production. Mốc production trong tài liệu có ngày; phải xác minh lại khi nhiệm vụ cần trạng thái hiện tại.
 4. Không mặc định skill trên máy tác giả tồn tại ở máy khác. Quy tắc trong repo này đủ để bắt đầu; `.agents/` là công cụ local, không phải dependency runtime. Nếu được yêu cầu một skill nhưng không có, báo rõ và tìm nguồn phù hợp.
 
+Tiếp nhận cuộc hội thoại mới: đọc `docs/HANDOFF.md`, rồi `docs/FRONTEND_WORKFLOW.md` hoặc `docs/BACKEND_WORKFLOW.md` theo phạm vi. Chỉ nạp mã và tài liệu liên quan; không dùng toàn bộ nhật ký/prototype làm context mặc định. Frontend dùng `design`, `ui-styling`, `ui-ux-pro-max` từ catalog skill của máy hiện tại, không yêu cầu thư mục skill riêng trong project.
+
 ## Các bất biến nghiệp vụ
 
 - Không reset database, xóa lịch sử, sửa trực tiếp kỳ đã chốt hay tính lại lịch sử bằng giá hiện hành. Dùng luồng đính chính/điều chỉnh có audit.

@@ -5,11 +5,15 @@
 | Tài liệu | Mục đích |
 |---|---|
 | [README](../README.md) | Tổng quan, thành quả, cấu trúc và định hướng |
+| [HANDOFF](HANDOFF.md) | Điểm bắt đầu cho chat/thành viên mới, quyết định cần giữ và thứ tự đọc gọn |
+| [FRONTEND_WORKFLOW](FRONTEND_WORKFLOW.md) | Nơi sửa UI, ba skill thiết kế, workflow nội dung/tương tác và browser QA |
+| [BACKEND_WORKFLOW](BACKEND_WORKFLOW.md) | API/RPC/quyền, migration, hợp đồng dữ liệu và nghiệm thu/phát hành |
 | [AGENTS](../AGENTS.md), [CONTRIBUTING](../CONTRIBUTING.md) | Quy tắc Codex và workflow nhóm |
 | [PROJECT_STATUS](PROJECT_STATUS.md) | Mã so với production, ngày kiểm tra, backlog và tiêu chí hoàn tất |
 | [ARCHITECTURE](ARCHITECTURE.md) | Luồng dữ liệu, quyền, bảng/RPC, vị trí mã và công cụ |
 | [CHUONG_TRINH_DAO_TAO](CHUONG_TRINH_DAO_TAO.md) | Nội dung đã được duyệt và cách phân bố A/B/C/D |
 | [PUBLIC_COURSE_CATALOG](PUBLIC_COURSE_CATALOG.md) | Hệ 5 lớp A/B/C/E/K, E Chủ lực tuyển từ C, K tùy chọn và hợp đồng hệ thống tương lai |
+| [ROADMAP_CONTENT_RESEARCH](ROADMAP_CONTENT_RESEARCH.md) | Căn cứ poster, nguồn tham khảo VNOI/USACO Guide và nội dung biên tập lộ trình/chặng/chủ đề |
 | [PUBLIC_UI_DESIGN_SYSTEM](PUBLIC_UI_DESIGN_SYSTEM.md) | Nhận diện công khai, font/logo/ảnh/token và ranh giới UI; đọc trước khi sửa thiết kế |
 | [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md) | Mã Next.js, tài nguyên, form thực, kiểm thử và phát hành trang công khai |
 | [PUBLIC_POSTS](PUBLIC_POSTS.md) | Trang đội ngũ, bài viết frontend, nơi sửa và ranh giới lần nối database sau |
