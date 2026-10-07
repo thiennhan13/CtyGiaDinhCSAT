@@ -1,6 +1,6 @@
 import curriculum from '@/lib/learning-curriculum-20260922.json';
 import { type PublicCourseCode } from '@/lib/public-courses';
-import { publicRoadmapContent, roadmapStageContent } from '@/lib/public-roadmap-content';
+import { publicRoadmapContent } from '@/lib/public-roadmap-content';
 import './course-knowledge.css';
 
 const topicLabels: Record<string, string> = {
@@ -17,6 +17,6 @@ export function CourseKnowledge({ code }: { code: PublicCourseCode }) {
   const template = curriculum.find(item => item.program === (code === 'C' ? 'advanced' : 'basic'))!;
   const stages = code === 'E' || code === 'K' ? [] : template.stages.filter(stage => code === 'C' || stage.part === code);
   return <div className="course-knowledge" aria-label={stages.length ? `Các chặng kiến thức lớp ${code}` : code === 'E' ? 'Trọng tâm phát triển lớp E' : `Các bước tìm hiểu lớp ${code}`}>
-    <ol className={`knowledge-${code.toLowerCase()}`}>{stages.length ? stages.map((stage, index) => <li key={stage.id}><span className="knowledge-index">0{index + 1}<span className="knowledge-range">{stage.lessons[0].code}–{stage.lessons.at(-1)!.code}</span></span><h3>{stage.title}</h3><ul className="knowledge-tags">{stage.lessons.map(lesson => <li key={lesson.code}>{topicLabels[lesson.code] || lesson.title}</li>)}</ul><p className="knowledge-skill"><strong>Tư duy rèn luyện</strong>{roadmapStageContent[stage.id].skills.join(' · ')}</p></li>) : direction.map((step, index) => <li key={step.title}><span className="knowledge-index">0{index + 1} / {step.label}</span><h3>{step.title}</h3><p>{step.description}</p></li>)}</ol>
+    <ol className={`knowledge-${code.toLowerCase()}`}>{stages.length ? stages.map((stage, index) => <li key={stage.id}><span className="knowledge-index">0{index + 1}<span className="knowledge-range">{stage.lessons[0].code}–{stage.lessons.at(-1)!.code}</span></span><h3>{stage.title}</h3><ul className="knowledge-tags">{stage.lessons.map(lesson => <li key={lesson.code}>{topicLabels[lesson.code] || lesson.title}</li>)}</ul></li>) : direction.map((step, index) => <li key={step.title}><span className="knowledge-index">0{index + 1} / {step.label}</span><h3>{step.title}</h3><p>{step.description}</p></li>)}</ol>
   </div>;
 }

@@ -10,15 +10,13 @@
 .csat-public .course-knowledge>ol>li>p{font-size:13px;line-height:1.6;color:var(--muted);margin-top:10px}
 .csat-public .rm-advanced .course-knowledge{--line:#ffffff42;--glass-bg:#ffffff12;--soft:#ffffff12;--muted:#e5eaff}
 .csat-public .rm-advanced .knowledge-index{color:var(--lime)}
-.csat-public .rm-editorial-class .course-knowledge>ol>li{border-top:3px solid var(--course-accent);background:var(--surface);padding:20px}
+.csat-public .rm-editorial-class .course-knowledge>ol>li{border-top:3px solid var(--course-accent);background:var(--surface);padding:20px;display:flex;flex-direction:column}
 .csat-public .rm-editorial-class .course-knowledge h3{font:750 18px/1.35 var(--font);letter-spacing:-.025em}
 .csat-public .rm-editorial-class .knowledge-index{color:var(--course-accent);font-size:11px}
 .csat-public .rm-editorial-class .knowledge-tags>li{font-size:12px;background:var(--course-tint)}
-.csat-public .knowledge-skill strong{display:block;color:var(--ink);font-size:12px;margin-bottom:5px}
 .csat-public .rm-class-a .course-knowledge>ol,.csat-public .rm-class-c .course-knowledge>ol{grid-template-columns:repeat(3,minmax(0,1fr))}
-.csat-public .rm-class-k .course-knowledge>ol{grid-template-columns:1fr}
-.csat-public .rm-flagship .course-knowledge>ol>li:nth-child(2){border-top-color:var(--orange)}
+.csat-public .rm-class-k .course-knowledge>ol{grid-template-columns:repeat(3,minmax(0,1fr))}
 .csat-public .rm-flagship .course-knowledge>ol{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:1100px){.csat-public .rm-class-a .course-knowledge>ol,.csat-public .rm-class-c .course-knowledge>ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:600px){.csat-public .rm-class-a .course-knowledge>ol,.csat-public .rm-class-c .course-knowledge>ol{grid-template-columns:1fr}.csat-public .rm-editorial-class .course-knowledge>ol>li{padding:18px}}
+@media(max-width:600px){.csat-public .rm-class-a .course-knowledge>ol,.csat-public .rm-class-c .course-knowledge>ol,.csat-public .rm-class-k .course-knowledge>ol{grid-template-columns:1fr}.csat-public .rm-editorial-class .course-knowledge>ol>li{padding:18px}}
 @media(max-width:520px){.csat-public .course-knowledge>ol{grid-template-columns:1fr}.csat-public .course-knowledge>ol>li{padding:15px}}

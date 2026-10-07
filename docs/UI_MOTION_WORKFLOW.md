@@ -1,77 +1,45 @@
-# Chuyển động và workflow giao diện CSAT
+# Chuyển động và tương tác công khai
 
-Cập nhật 05/10/2026 cho bản React/Next.js. Đọc cùng [website công khai](PUBLIC_WEBSITE.md), [nhận diện](PUBLIC_UI_DESIGN_SYSTEM.md) và [catalog](PUBLIC_COURSE_CATALOG.md). Kết quả kiểm thử/phát hành ghi trong [PROJECT_STATUS](PROJECT_STATUS.md).
+Chuyển động dẫn mắt và phản hồi thao tác; nội dung, liên kết và focus luôn sử dụng được. Quy định bố cục/style ở [design system](PUBLIC_UI_DESIGN_SYSTEM.md), quy trình ở [frontend](FRONTEND_WORKFLOW.md).
 
-## Nguyên tắc
+## Ràng buộc
 
-Chuyển động dẫn mắt vào nội dung và phản hồi thao tác. Tiêu đề, liên kết, form và focus luôn ổn định. Không khóa cuộn, dựng cảnh cuộn trống hoặc trì hoãn điều hướng để chạy hiệu ứng. Không dùng ranking để suy ra mức độ thành thạo.
+- Cuộn gốc, không scroll lock/cảnh cuộn trống; không trì hoãn điều hướng hoặc gửi form để chạy animation.
+- Ưu tiên opacity/transform, không animate blur/layout liên tục. Gradient/orb/line/mạch ở phía sau là trang trí tĩnh.
+- Chỉ arm nội dung ngoài viewport sau hydrate; phần đã nhìn thấy không bị che lại. Reveal chạy một lần, focus mở ngay; no-JS/reduced motion/print luôn đọc đầy đủ.
+- Observer/listener/timer/rAF có cleanup khi đổi route; gộp rAF, dừng tác vụ khi tab ẩn/ngoài viewport.
+- Hover chỉ bật với thiết bị phù hợp; có bàn phím/touch cho thao tác thật. Art không là nút giả hoặc nhận focus.
+- Glyph chỉ là lớp aria-hidden, giữ văn bản DOM/copy/chiều rộng; không ở tên lớp, tiêu đề tư vấn, tên học sinh, menu hoặc form. Tắt touch/selection/reduce/thiếu CSS Highlight API.
+- Không thêm thư viện cho vài transition, không lấy hiệu ứng template thay nội dung đã duyệt.
 
-- Cobalt, lime, cam; hình học góc cắt, nét vuông, nhịp pixel. Biến thể giới hạn, không ngẫu nhiên hóa nội dung hoặc vị trí nút.
-- Hover thao tác 160–240 ms, icon trang trí 350–720 ms, click khoảng 260 ms; reveal trượt 820 ms, mảng màu 700 ms, lệch nhịp thẻ 90 ms. Theo điều chỉnh tiếp ngày 05/10, reveal trở lại nhịp nhanh để thanh màu không đến sau nội dung; phản hồi nút/form giữ nhanh.
-- Chỉ arm vùng ngoài viewport khi hydrate, kích hoạt ngay khi vào màn hình (rootMargin 0). Vùng đã hiện lúc tải không bị che lại. Wipe giữ nội dung hidden đến mốc 43% khi thanh phủ kín; visibility và thanh dùng cùng timeline CSS, không timer riêng hoặc đổi văn bản. Focus/reduced motion kết thúc hiệu ứng ngay; print giữ nội dung hiện.
-- Scroll theo cuộn gốc, rAF được gộp; chỉ trang trí di chuyển. Dừng ngoài viewport/tab ẩn. Tối đa 24 icon desktop, 10 mobile một cảnh.
-- Blur kính cố định 8–12 px. Hero làm mờ nhẹ cố định riêng ảnh trang trí; chữ và CTA không bị ảnh hưởng.
-- Reduced motion thấy trạng thái hoàn chỉnh ngay; kiểm tra cả JavaScript và CSS.
+## Hành vi hiện hành
 
-## Hiệu ứng
-
-| Mã | Khu vực và hành vi | Fallback |
+| Vùng | Chuyển động | Fallback và giới hạn |
 |---|---|---|
-| M01 | Hero trang chủ: ảnh phóng thêm 10%, neo trên và cắt trong khung; hai vòng tròn đồng tâm; C++ trắng, icon/pixel hover theo hướng và nhịp khác nhau. Bảng tên/thành tích không bị che | Chữ và ảnh luôn hiện; reduce bỏ chuyển động hover |
-| M01b | Trang đội ngũ dùng chung hero; bài đăng dùng reveal lên lệch nhịp 90 ms, link điều hướng trực tiếp | No-JS/reduce đọc được, bàn phím mở bài |
-| M01c | Video writing tại Không gian luyện tập ở `/hoc-lieu-mien-phi`: lazy, muted/loop trong viewport, dừng khi tab ẩn; có nút dừng/phát | Poster khi no-JS/reduce/save-data/lỗi; reduce/save-data cho phép chủ động phát |
-| M02 | Icon giá trị mở nội dung bằng hover, focus hoặc click | Nội dung đọc được không cần hover |
-| M03 | Bóng đèn: silhouette lime chuyển sang ảnh khi cuộn tới | Reduce/no-JS thấy ảnh hoàn chỉnh |
-| M04 | Ba thẻ gia sư xuất hiện lệch nhịp, hướng lên/phải, phản hồi viền/nhấc nhẹ | Mobile xếp dọc |
-| M05 | Sáu bước buổi học, minh họa cao hơn bám cạnh desktop, ba icon code nhỏ phản hồi hover; nút chọn cuộn theo cùng đường đọc của observer | Mobile từng bước độc lập; màn hình thấp thu chiều cao card |
-| M06 | Reveal lên/trái/phải cho chữ và khóa học; mảng màu chỉ ở ảnh. Quãng trượt 26–38 px, easing cubic-bezier(.16,1,.3,1) | Reduce bỏ overlay |
-| M07 | Mở đầu lộ trình: tiêu đề và art terminal nằm trước bốn ảnh góc khuyết có blur cố định. Sau bộ chọn, 9 icon từ bố cục tản bất đối xứng hội tụ theo đường cong khi cuộn; không còn các thẻ A/B/C lặp lại | No-JS/reduce giữ bố cục hoàn chỉnh; mobile vẫn đủ 9 icon, cảnh cao 240–270 px |
-| M08 | Selector phản hồi lựa chọn, cập nhật kết quả sau nút bấm | Các lớp vẫn đọc được |
-| M09 | Năm phần A/B/C/E/K riêng: gradient tĩnh phía sau, reveal ảnh/chữ theo hướng đối xứng, nội dung cố định | Mobile một cột |
-| M10 | Glyph tối đa bảy grapheme cùng dòng, khoảng 420 ms; nhận vị trí mới mỗi 35 ms; đổi glyph mỗi 80 ms (lộ trình 88 ms, chậm thêm 10%) | Tắt touch, selection, reduce, tab ẩn, thiếu CSS Highlight API |
-| M11 | Click ba biến thể pixel ngắn, không chặn hành động | Reduce bỏ hoàn toàn |
-| M12 | Menu/dock: focus liên kết đầu, Escape trả focus, không mở chồng | Menu tĩnh khi no-JS |
+| Hero/đội ngũ | Portrait trong khung, icon/pixel hover nhẹ; thẻ gia sư reveal lệch nhịp | Không che tên/thành tích; reduce giữ yên |
+| Bốn lý do | Panel mở bằng hover/focus/click; bóng đèn reveal khi tới | Nội dung không phụ thuộc hover, bàn phím/no-JS dùng được |
+| Hệ sinh thái | Reveal rise, icon bốn nhánh phản hồi hover khác nhau | Mạch/blob/chip tĩnh sau thẻ, không animation lặp |
+| Sáu bước buổi học | Điều hướng tới bước theo đường đọc, art cạnh desktop | Mobile từng bước độc lập; không ép chiều cao màn hình thấp |
+| Học liệu/video | Reveal trái/phải; video lazy/mute/loop trong viewport | Pause/play; poster no-JS/reduce/save-data/lỗi, dừng tab ẩn |
+| Mở đầu lộ trình | Art trước ảnh blur cố định; 9 icon hội tụ theo cuộn | No-JS/reduce bố cục hoàn chỉnh; không phải trạng thái xếp lớp |
+| Từ chọn điểm bắt đầu tới tư vấn | Reveal slide/fade 16–18 px/520 ms một lần ở wrapper | Section ngoài cố định để spacing/nút mục đúng; không wipe/glyph |
+| Ảnh nền lớp tổng quan | Zoom 110%, hover ảnh/bóng rung hữu hạn khoảng 500 ms | Không click, không parallax/sticky/chạy cùng cuộn; reduce giữ yên |
+| Thành tích | Thẻ lướt lên 24 px/520 ms, hero rise 16 px; hover thẻ 220 ms/art 260 ms | Reveal một lần, art trở về khi rời chuột; reduce tắt, no-JS/print hiện |
+| Menu/select | Disclosure/select với focus rõ, Escape trả focus; chevron 180 ms | No-JS menu native; không chờ animation để đi link |
+| Nút lên/xuống | Tới section/header liền kề, offset menu | Overlay không dành cột; reduce cuộn tức thời, cleanup khi unmount |
+| Poster chi tiết/đăng ký | Mở native dialog theo thao tác, ảnh lớn chỉ khi cần | Đóng/Escape/focus-return; no-JS link WebP, không khóa root scroll |
+| Glyph còn được phép | Tối đa 7 grapheme gần chuột/~420 ms | Không đổi text thật; dọn khi scroll/selection/resize/blur/tab ẩn |
+| Phản hồi click | Pixel ngắn, không chặn hành động | Reduce tắt hoàn toàn |
 
-Glyph giữ nguyên DOM, dấu tiếng Việt, chiều rộng và tên truy cập. Copy là chữ tiêu đề (trình duyệt có thể viết hoa theo text-transform), không phải ký hiệu. Overlay aria-hidden, không bắt chuột; dọn khi scroll, selection, resize, blur, tab ẩn hoặc unmount. Không dùng menu/form hoặc đổi con trỏ thật.
-
-## Phân công
-
-Chỉ tạo agent khi người dùng hoặc hướng dẫn áp dụng yêu cầu. Khi làm song song, tối đa ba agent cùng điều phối:
-
-1. Điều phối sở hữu shell, token, hợp đồng component/form, tài liệu và build.
-2. Agent trang chủ sở hữu JSX, CSS và nội dung trang chủ.
-3. Agent lộ trình sở hữu selector, catalog và chuyển động lộ trình.
-4. QA độc lập sở hữu runner/bằng chứng, không sửa component đang có người thực hiện.
-
-Giao việc ghi file sở hữu, nguồn nội dung, hợp đồng, test và giới hạn. Gửi phần chênh lệch cần biết, không sao chép toàn bộ lịch sử chat. Sau gián đoạn, xem trạng thái agent/Git trước khi tiếp tục; không giao cùng file cho hai người.
+Reveal chung ở nơi khác có slide 820 ms, wipe 700 ms khi phù hợp ảnh; không áp nhịp đó đè lên lộ trình/Thành tích đã duyệt 520 ms. Wipe chỉ che khi thanh đã phủ kín, timeline CSS thống nhất; không dùng timer riêng để thay nội dung.
 
 ## Nghiệm thu
 
-Kiểm tra bản Next.js cuối; kết quả HTML demo không thay bằng chứng tích hợp:
+Kiểm tra Next.js cuối, không dùng prototype HTML thay bằng chứng:
+desktop/mobile, sáng/tối, no-JS/reduce, zoom 200%, focus/bàn phím; scroll nhanh hai chiều, resize, tab ẩn/hiện, client navigation/history. Không mất nội dung/focus, chồng CTA hoặc tích lũy effect.
 
-- Desktop/mobile, light/dark, bàn phím, zoom 200%, no-JS, reduced motion.
-- Logo/menu dài, dock/safe-area, thành tích hero, glyph xuống dòng/chọn/copy chữ.
-- Cuộn nhanh hai chiều, theme, đổi trang/back/forward, resize, chuyển tab; không mất nội dung/focus hoặc tích lũy listener/rAF.
-- Selector chỉ lưu mã được phép trong URL; không có thông tin liên hệ, không xác nhận đủ điều kiện học.
-- Form frontend: validation → kiểm tra/chỉnh lại → sao chép; không request API, không lưu bền vững, không báo đã gửi. Clipboard bị chặn thì chọn nội dung để sao chép thủ công. Luồng API/idempotency cần nghiệm thu riêng khi nối sau.
-- Đo bản build: mục tiêu lab LCP ≤2,5 giây, CLS ≤0,1; ghi cấu hình/giới hạn, không gọi số lab là dữ liệu người dùng thực.
+Ảnh tổng quan phải vẫn ở nền sau đổi route và đảo thứ tự CSS; chi tiết/đăng ký mở/đóng ảnh và trả focus đúng. Chữ thật chọn/copy được. Form dùng dữ liệu giả, không gửi request ngoài quyền.
 
-Chặn phát hành khi không đọc/thao tác được, gửi dữ liệu thật trong QA, sai nguồn nội dung, ảnh che chữ/CTA, mất nội dung nhập, lộ dữ liệu hoặc mất focus. Không tắt test để che lỗi.
+Hiệu năng là mục tiêu đo trên build (LCP ≤2,5 giây, CLS ≤0,1), không là bảo đảm production. Không tắt test để né lỗi hoặc gọi kiểm tra vài trạng thái là chứng nhận WCAG. Kết quả/phạm vi ở [PROJECT_STATUS](PROJECT_STATUS.md).
 
-Nguồn: [W3C về chuyển động do tương tác](https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html), [web.dev về animation](https://web.dev/articles/animations-guide). Không tự tuyên bố chứng nhận WCAG hoặc bảo đảm hiệu năng production.
-
-## Tên mẫu chuyển động để trao đổi thêm
-
-- **Staggered reveal**: các thẻ gia sư lần lượt xuất hiện; đã áp dụng.
-- **Directional slide reveal**: khóa A/C từ trái, B từ phải; đã áp dụng bằng opacity/translate, không khóa cuộn.
-- **Masked image reveal / color wipe**: mảng màu mở ảnh; giữ cho các ảnh phù hợp.
-- **SVG path draw**: có thể phát triển đường nối thuật toán; chưa áp dụng thêm trong đợt này.
-- **FLIP / shared-layout transition**: tham khảo cho cảnh icon ghép sơ đồ phức tạp hơn; hiện vẫn là cảnh rAF có sẵn.
-
-Tham khảo [Motion: scroll-triggered và scroll-linked animation](https://motion.dev/docs/react-scroll-animations), [GSAP: lỗi triển khai thường gặp](https://gsap.com/resources/mistakes/). Không thêm thư viện chỉ để thay vài transition, không sao chép nguyên template chưa kiểm tra license. Reveal chỉ ẩn phần ngoài viewport sau hydration, mở ngay khi focus/reduce; no-JS vẫn hiện nội dung. Các listener/observer/timer đều dọn khi unmount. Mục 04 không có glyph.
-
-Ngày 05/10: Không gian luyện tập đã tách sang trang Học liệu miễn phí, dùng hai Reveal trái/phải, cùng mốc kích hoạt và nhịp 820 ms. Art phụ huynh dùng rise, gradient không animate blur. Mỗi lớp có chapter riêng; không còn nhánh E/K gộp. Các fallback và cleanup của Reveal giữ nguyên.
-
-Hệ sinh thái CSAT dùng mạch điện/terminal theo lựa chọn tiếp ngày 05/10: art dẫn trực tiếp, không heading riêng; nút giữa và bốn nhánh Reveal rise. Desktop hai hàng, hai ô/hàng, cột phải lệch nhẹ bằng vị trí layout cố định; mobile luồng dọc. Icon nhánh lần lượt nhấc, xoay/phóng nhẹ, dịch ngang và dịch/ xoay nhẹ; không thêm vòng animation tự chạy. Blob gradient và đường mạch là trang trí tĩnh, blur không animate; dây có stacking context sau nút/thẻ để không phủ nội dung khi reveal. Lời mời học liệu nằm trên nút liên hệ, là link tĩnh có nút ẩn, không timer hoặc thông báo live; reduced motion bỏ chuyển động icon. Dock/lời mời không render tại trang liên lạc. Chuyển trang học liệu dọn observer/video như luồng cũ.
-
-Menu lộ trình dùng disclosure native; không trì hoãn điều hướng. Chỉ chevron xoay 180 ms khi mở và giữ yên ở reduced motion. Hover trên desktop không thay focus; Escape đóng và trả focus về summary. Listener pointer ngoài component được dọn khi unmount; mobile bấm mở và no-JS dùng cơ chế details gốc. Bốn lý do học thi đấu thay nội dung cũ nhưng giữ nguyên hover/click/keyboard, panel transition và fallback của LearningValues.
+Tham khảo nguyên tắc: [W3C giảm chuyển động tương tác](https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html), [web.dev animation](https://web.dev/articles/animations-guide). Các hiệu ứng mới như SVG path draw/shared-layout chỉ là khả năng, không là yêu cầu đã duyệt.

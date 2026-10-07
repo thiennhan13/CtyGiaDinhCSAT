@@ -1,4 +1,6 @@
-.csat-public .course-poster-trigger{position:relative;cursor:zoom-in}
+.csat-public .course-poster-trigger{cursor:zoom-in}
+/* Background triggers own their positioning; route CSS can load in any order. */
+.csat-public .course-poster-trigger:not(.rm-background-poster){position:relative}
 .csat-public .course-poster-expand{position:absolute;right:6px;bottom:6px;display:flex;align-items:center;gap:8px;padding:7px;background:#f8f7f2;color:#191917;border:1px solid #19191745;box-shadow:2px 2px 0 #19191730;font:650 12px/1.4 var(--font)}
 .csat-public .course-poster-expand.is-background{right:20px;bottom:20px;padding:11px 14px;min-height:44px}
 .csat-public .course-poster-lightbox{position:fixed;inset:0;width:100%;height:100dvh;max-width:none;max-height:none;margin:0;padding:20px 24px;border:0;background:#151713f5;color:#f8f7f2;overflow:auto;overscroll-behavior:contain}

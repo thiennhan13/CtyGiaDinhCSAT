@@ -1,8 +1,8 @@
 # Đội ngũ và bài đăng công khai
 
-## Phạm vi hiện tại — 05/10/2026
+## Phạm vi hiện tại
 
-`/gia-su` giới thiệu đội ngũ, dùng chung hero và thẻ gia sư trong `TutorShowcase.tsx` với trang chủ. Nội dung và thành tích là thông tin công khai đã được trung tâm cung cấp; không đọc hồ sơ riêng hay thay dữ liệu `tutor_public_profiles`. Trang đăng nhập gia sư vẫn ở `/tutor`, menu mang tên “Kênh gia sư”.
+`/gia-su` giới thiệu đội ngũ, dùng chung hero và thẻ gia sư trong `TutorShowcase.tsx` với trang chủ. Nội dung và thành tích là thông tin công khai đã được trung tâm cung cấp; không đọc hồ sơ riêng hay thay dữ liệu `tutor_public_profiles`. Menu Trang liên lạc dẫn `/login`; `/tutor` giữ entry kiểm tra phiên và chuyển người chưa đăng nhập tới `/login?role=tutor`.
 
 `/bai-dang` có lưới bài viết và `/bai-dang/[slug]` có trang bài với tên CSAT, văn bản, một ảnh và liên kết đọc tiếp. Ba bài đầu là nội dung giới thiệu chương trình, cách học và đội ngũ từ tài liệu đã duyệt; không tạo ngày đăng, bình luận hoặc số tương tác. Bài không tồn tại trả 404. Đây là khung frontend, chưa có database hay công cụ đăng bài.
 
@@ -17,6 +17,17 @@
 | Bố cục bài | `components/marketing/posts.css` |
 
 Giữ văn bản thuần; ảnh chỉ dùng tài nguyên tối ưu được phép. Slug ổn định, duy nhất và gồm chữ thường không dấu/số/dấu gạch ngang. Sitemap lấy bài từ cùng nguồn dữ liệu. Quy tắc thiết kế chung ở [nhận diện](PUBLIC_UI_DESIGN_SYSTEM.md).
+
+## Thông tin gia sư đã được duyệt
+
+| Gia sư | Nội dung công khai có căn cứ |
+|---|---|
+| Trần Hải Đăng | Thủ khoa khóa 52 chuyên Tin THPT Chuyên Phan Bội Châu; Giải Nhất HSGQG 2025–2026, hạng 3 toàn quốc; Giải Nhì và Giải Ba HSGQG 2023–2025 |
+| Ngô Tuấn Hiệp | Giải Nhì HSGQG; Giải Nhất tỉnh Nghệ An 2025–2026 |
+| Trần Đăng Quang | Giải Nhì HSGQG 2024–2025 và 2025–2026 |
+| Nguyễn Ngọc Bảo Toàn | Giải Nhì HSGQG 2025–2026; Giải Ba HSGQG 2024–2025 |
+
+Nguồn là poster/thông tin trung tâm đã cung cấp và cho phép dùng, không phải dữ liệu suy từ bài viết hoặc ranking. Không diễn giải Thủ khoa khóa 52 thành một kỳ thi cụ thể; không gán danh hiệu cá nhân thành kết quả toàn trung tâm/học viên. Poster tổng hợp chưa rõ đối tượng/giai đoạn không dùng làm số liệu quảng cáo.
 
 ## Khi nối hệ thống đăng bài
 

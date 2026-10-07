@@ -1,64 +1,80 @@
 # Workflow frontend
 
-Áp dụng cho website công khai và giao diện admin/gia sư/phụ huynh. Frontend và backend cùng ứng dụng Next.js; ranh giới là trách nhiệm, không phải hai repository. Tổng quan và trạng thái đọc [HANDOFF](HANDOFF.md), [ARCHITECTURE](ARCHITECTURE.md), [PROJECT_STATUS](PROJECT_STATUS.md).
+Phạm vi: website công khai và UI admin/gia sư/phụ huynh. Ưu tiên hiện tại là hoàn thiện frontend theo chỉ dẫn chủ trung tâm; backend/API chờ hợp đồng và triển khai riêng. Hai luồng cùng ứng dụng Next.js, không phải hai repository.
 
-## Nguồn và nơi sửa
+## Trước khi sửa
 
-| Phần | Entry point |
+Đọc README/AGENTS/SECURITY, [HANDOFF](HANDOFF.md), [trạng thái](PROJECT_STATUS.md), [kiến trúc](ARCHITECTURE.md), rồi tài liệu chức năng. Xem Git status/diff và UI đang chạy; giữ thay đổi có sẵn, chỉ nạp mã liên quan.
+
+Dùng **Node.js 24** cho local, CI và deploy theo quyết định chủ trung tâm và .nvmrc/engines. Kiểm tra node --version trước chạy; runtime hosted cần xác minh riêng.
+
+## Bản đồ nguồn
+
+| Nhiệm vụ | Nơi đọc/sửa |
 |---|---|
-| Trang chủ, đội ngũ, hệ sinh thái | `app/page.tsx`, `components/marketing/HomeExperience.tsx`, `TutorShowcase.tsx`, `WhyCSAT.tsx` |
-| Đăng ký học, thẻ lớp và khóa mặc định | `app/dang-ky-hoc/page.tsx`, `EnrollmentExperience.tsx`, `lib/public-courses.ts`, `PublicConsultation.tsx` |
-| Lộ trình và chi tiết lớp | `app/lo-trinh/page.tsx`, `components/marketing/RoadmapExperience.tsx`, `app/lo-trinh/[program]/page.tsx` |
-| Poster mở toàn màn hình, màu lớp và chuyển mục | `CoursePosterPreview.tsx`, `PublicSectionNavigation.tsx`, `roadmap-poster-colors.css` trong `components/marketing/` |
-| Shell, menu, theme, footer/dock | `PublicShell.tsx`, `PublicHeader.tsx`, `PublicNavigation.tsx`, `RoadmapNavigation.tsx`, `public-design.css` trong `components/marketing/` |
-| Chuyển động, select, form | `PublicMotion.tsx`, `PublicFeedback.tsx`, `PublicSelect.tsx`, `PublicConsultation.tsx` trong `components/marketing/` |
-| Học liệu, bài viết, thành tích | `app/hoc-lieu-mien-phi/`, `app/bai-dang/`, `app/thanh-tich/`; nội dung bài viết `lib/public-posts.ts` |
-| Liên lạc và đăng nhập | `app/(auth)/login/page.tsx`, `components/auth/ContactEntry.tsx`, `ParentLoginForm.tsx`, `TutorLoginForm.tsx` |
-| Cổng phụ huynh | `app/parents/`, `components/learning/ParentShell.tsx`, `ParentPortalView.tsx`; JSON contract `lib/parent-learning.ts` |
-| Hồ sơ gia sư | `app/tutor/profile/page.tsx`, `components/tutors/TutorProfileEditor.tsx`, `TutorProfileCard.tsx` |
-| Quản lý nghiệp vụ | `app/admin/`, `app/tutor/`, component trong `features/`; đọc query/action liên quan trước khi sửa |
+| Website public: route/component/asset/form | [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md) |
+| Neobrutalism, font/palette/layout ngoại lệ | [PUBLIC_UI_DESIGN_SYSTEM](PUBLIC_UI_DESIGN_SYSTEM.md) |
+| Tên/giá/đối tượng/tuyển sinh | [PUBLIC_COURSE_CATALOG](PUBLIC_COURSE_CATALOG.md), lib/public-courses.ts |
+| Nội dung học và diễn giải | [CHUONG_TRINH_DAO_TAO](CHUONG_TRINH_DAO_TAO.md), JSON chuẩn; lib/public-roadmap-content.ts, [nghiên cứu](ROADMAP_CONTENT_RESEARCH.md) |
+| Mục tiêu cuối khoá | lib/public-course-outcomes.ts, CourseOutcomes trong CourseDetailContent.tsx |
+| Thành tích/bài đăng | [PUBLIC_ACHIEVEMENTS](PUBLIC_ACHIEVEMENTS.md), [PUBLIC_POSTS](PUBLIC_POSTS.md) |
+| Motion/ảnh/dialog/select | PublicMotion/PublicFeedback/CoursePosterPreview/PublicSelect; [motion workflow](UI_MOTION_WORKFLOW.md) |
+| Cổng phụ huynh | app/parents/, components/learning/ParentShell.tsx, ParentPortalView.tsx; contract lib/parent-learning.ts |
+| Hồ sơ gia sư | app/tutor/profile/, components/tutors/TutorProfileEditor.tsx, TutorProfileCard.tsx |
+| Admin/gia sư nghiệp vụ | app/admin/, app/tutor/, features/; đọc query/action/API/RPC tương ứng |
 
-Nội dung đào tạo: [chương trình](CHUONG_TRINH_DAO_TAO.md), [catalog](PUBLIC_COURSE_CATALOG.md), `lib/learning-curriculum-20260922.json`. Dữ kiện tuyển sinh ở `lib/public-courses.ts`; phần diễn giải lộ trình, chặng và chủ đề ở `lib/public-roadmap-content.ts`, có [căn cứ biên tập](ROADMAP_CONTENT_RESEARCH.md). `RoadmapCourseSection`, `CourseKnowledge`, `CourseDetailContent` dùng các nguồn này. Nội dung trang chủ/đăng ký còn có cách trình bày riêng; khi thay cùng khái niệm phải đối chiếu các nơi dùng, không giả định đã có CMS.
+Tên component public không có tiền tố ở components/marketing/. Không cần đọc toàn bộ prototype/nhật ký để hiểu giao diện hiện hành.
 
-## Cách áp dụng ba skill
+## Áp dụng skill và quyết định đã duyệt
 
-Đọc SKILL.md từ catalog trên máy đang dùng; các skill hiện được cài chung ngoài project, thường dưới thư mục `.agents/skills` của người dùng. Không hardcode đường dẫn máy tác giả, không cài package hoặc gọi dịch vụ tạo ảnh chỉ vì ví dụ trong skill có lệnh đó.
+Đọc skill từ catalog máy hiện tại; design định hướng art, ui-ux-pro-max hỗ trợ layout/UX, ui-styling hiện thực component/token; banner-design khi có banner/hero. Không hardcode đường dẫn máy tác giả hoặc sao chép skill vào repo.
 
-| Skill | Trách nhiệm trong CSAT |
-|---|---|
-| `design` | Art direction, ngôn ngữ hình học/icon, sự thống nhất logo/ảnh và cách thể hiện nội dung |
-| `ui-ux-pro-max` | Phân cấp thị giác, bố cục đa dạng, khả năng đọc, responsive, accessibility và tương tác theo ngữ cảnh |
-| `ui-styling` | Hiện thực component, token, dark mode, trạng thái form/dialog/select và kiểm tra sử dụng bàn phím |
+Neobrutalism/playful edtech là hướng đã duyệt; dùng editorial/bento/timeline/sơ đồ theo mục đích. Giữ Archivo, logo, palette và Base UI/select hiện có. Không đổi nhận diện hoặc cài dependency theo gợi ý tự động. Nếu skill được gọi thiếu, báo rõ, tìm nguồn phù hợp; quy tắc repo đủ để bắt đầu.
 
-Skill là phương pháp hỗ trợ. [Design system đã duyệt](PUBLIC_UI_DESIGN_SYSTEM.md) là nguồn nhận diện; không thay Archivo, palette, logo hoặc Base UI/select hiện có theo gợi ý tự động. Chỉ đọc reference/tra cứu phù hợp phần đang sửa. Nếu thiếu skill được yêu cầu, báo rõ và dùng nguồn khả dụng theo AGENTS; không sao chép skill vào Git để tạo dependency runtime.
+Thay đổi layout/nội dung chưa duyệt cần bản xem cụ thể. Không bắt buộc dựng ba HTML cho mọi sửa nhỏ; chỉ làm khi được yêu cầu. Chỉ tạo agent khi người dùng/chỉ dẫn áp dụng yêu cầu, giao file sở hữu rõ và không sửa trùng.
 
-Website công khai có thể dùng editorial, bento, sơ đồ, timeline, ảnh phối chữ và bố cục so le; không ép mọi phần vào heading → đoạn dẫn → hàng thẻ. Với portal nghiệp vụ, ưu tiên đọc dữ liệu, trạng thái và thao tác chính xác; không mang typography hero hay hiệu ứng trang trí vào bảng/form chỉ để đồng bộ hình thức.
+## Một vòng làm việc
 
-## Một vòng triển khai
+1. Xác định mục đích, người đọc, hành vi cần quan sát và ranh giới dữ liệu.
+2. Đối chiếu nội dung mới với catalog/giáo trình và chỉ đạo gần nhất. Dữ kiện, diễn giải, nội dung chờ duyệt phải phân biệt.
+3. Thiết kế cấu trúc ngữ nghĩa và responsive trước kích thước chi tiết; ảnh flexible, heading/CTA không bị phủ, không cắt chữ để ép chiều cao.
+4. Tái dùng shell/token/component; CSS scope .csat-public hoặc page/class phù hợp, không reset toàn hệ thống để sửa một section.
+5. Hoàn thiện trạng thái focus/bàn phím/touch/no-JS/reduced motion; dọn observer/listener/timer/rAF. Không khóa cuộn, thay DOM text bằng glyph hoặc trì hoãn điều hướng.
+6. Dùng media đã chọn/tối ưu, dimensions/sizes đúng; nguồn/prototype/ảnh QA giữ scratch/internal ngoài runtime.
+7. Chạy kiểm tra theo thay đổi, xem ảnh thực tế, cập nhật tài liệu nguồn và PROJECT_STATUS. Bàn giao kết quả, file chính, bằng chứng và giới hạn.
 
-1. Đọc hướng dẫn bắt buộc, xem status/diff, xác định người đọc và thao tác cần làm. Giữ nhánh/working tree đã thống nhất; không ghi đè phần có sẵn.
-2. Đối chiếu UI đang chạy với component, dữ liệu và nguồn nội dung. Nêu các quyết định lớn cần duyệt; chỉnh nhỏ trong phạm vi được giao thì thực hiện trực tiếp.
-3. Chốt cấu trúc, nội dung thật, bố cục responsive và trạng thái. Với thiết kế mới chưa được duyệt, tạo bản xem cụ thể để duyệt; prototype/ảnh QA ở kho nội bộ. Trang hiện hành đã dùng Next.js, không bắt buộc quay lại HTML cho mỗi thay đổi.
-4. Tái sử dụng shell/token/component; CSS công khai giới hạn `.csat-public`. Không phủ CSS marketing lên portal; không thêm reset toàn cục để sửa một section.
-5. Tương tác: phản hồi nhanh, focus rõ, click/tap và bàn phím đều dùng được. Observer/listener/timer/rAF có cleanup; cuộn gốc không bị khóa; glyph là lớp trang trí, không đổi DOM text. Nhịp reveal và fallback theo [motion workflow](UI_MOTION_WORKFLOW.md).
-6. Media: chọn nguồn có quyền và đúng nội dung, tối ưu WebP/AVIF, khai báo kích thước/sizes. Video cần vị trí đã được người dùng duyệt, bản tối ưu, pause/viewport/tab/reduced-motion và poster. Không tải nguồn lớn nguyên trạng.
-7. Kiểm tra phần thay đổi, xem ảnh thực tế rồi cập nhật nguồn tài liệu và PROJECT_STATUS. Bàn giao file chính, kiểm thử, giới hạn và việc tiếp theo.
+Nội dung học thuật dùng chủ ngữ/vị ngữ rõ, gắn hoạt động với phương pháp và mục tiêu. Không bịa thành tích, chỉ số, học phí, chủ đề mới hoặc cam kết kết quả. Giữ đoạn chủ trung tâm tự biên tập khi nhiệm vụ chỉ là styling.
 
-## Khi giao diện cần backend
+## Giao tiếp với backend
 
-- Thống nhất request/response, validation, quyền, revision, lỗi, `null` và trạng thái trước khi nối. Dữ liệu giả chỉ dùng trong môi trường thử, không biến thành thành tích/chỉ số trên website.
-- Form công khai hiện chỉ xem lại/sao chép và liên hệ thật; chưa gửi API. Cần adapter/consent/idempotency cùng backend khi nối; bật env không tự hoàn thiện luồng.
-- Trang phụ huynh chỉ đọc bản công bố trong phạm vi liên kết. Không tự lọc dữ liệu ngoài quyền ở client, không biến `null` thành 0 hoặc lấy giá hiện hành tính lại lịch sử.
-- UI không được thay Auth/RPC hay thêm service key để “lấy dữ liệu cho dễ”. Chuyển phần hợp đồng/quyền sang [backend workflow](BACKEND_WORKFLOW.md).
+Chốt input/response, enum, validation, quyền, revision, lỗi và null trước nối. Form public hiện chỉ xem lại/sao chép/liên hệ thật; không báo đã gửi. Bật env không tự hoàn thiện adapter/schema.
 
-## Preview và kiểm thử
+Trang phụ huynh chỉ đọc published trong phạm vi liên kết, không lọc quyền thay server, không biến null thành 0 hoặc tính học phí cũ bằng giá mới. Catalog C/E/K không tự map vào enum lớp hoặc chuyển dữ liệu hiện có. Backend có workflow riêng: [BACKEND_WORKFLOW](BACKEND_WORKFLOW.md).
+
+## Preview và QA
 
 ```sh
+node --version
 node scripts/preview-public-site.cjs
 ```
 
-Mở `http://127.0.0.1:3100`. Lệnh này dùng Supabase giả/email tắt; chỉ phục vụ sửa website công khai, không chứng minh portal dữ liệu thật hoạt động. Browser runner: `node scripts/check-public-site.cjs`, cần Playwright/Chromium trên máy; cấu hình `PLAYWRIGHT_MODULE` khi cần, `PUBLIC_QA_BASE_URL` theo server loopback. `PUBLIC_QA_FILTER` giới hạn nhóm kiểm tra liên quan, không bỏ ca đang lỗi để báo đạt. Runner chặn mạng ngoài và các request ghi không được mock.
+Preview tại http://127.0.0.1:3100 dùng cấu hình giả/email tắt. Không chứng minh dữ liệu portal/production hoạt động; không mở .env ra output hoặc giả VERCEL_ENV.
 
-Kiểm tra desktop/mobile, sáng/tối, bàn phím/focus, 320 px/zoom 200%, reduced motion/no-JS, lỗi/thiếu dữ liệu và điều hướng back/forward. Với animation thêm cuộn nhanh hai chiều, resize, chuyển tab và chọn/copy chữ; hình ảnh không che text/CTA. Không công bố đạt WCAG hoặc mục tiêu LCP/CLS nếu chưa đo đúng bản.
+```sh
+npm run check:repo
+npm run test:repo
+npm run typecheck
+npm run lint:strict
+npm run build
+npm run test:public
+```
 
-Chạy lint/TypeScript/build và hồi quy phù hợp phạm vi; trước PR dùng đầy đủ bộ kiểm tra trong [CONTRIBUTING](../CONTRIBUTING.md), ghi rõ phần chưa chạy. Không chạy lại DB/concurrency cho một chỉnh CSS thuần túy; khi hợp đồng/quyền thay đổi, kiểm thử cả hai phía. Không tự push/deploy từ kết quả QA.
+Build dùng môi trường thử/placeholders. Playwright đã khóa version trong devDependency; local dùng Microsoft Edge có sẵn (mặc định msedge), không cài Chromium riêng theo quyết định chủ trung tâm. CI cài Chromium trên runner; PLAYWRIGHT_MODULE là override local tùy chọn. PUBLIC_QA_BASE_URL phải là loopback, PUBLIC_QA_FILTER chọn nhóm liên quan và không được rỗng kết quả. Runner chặn mạng ngoài/request ghi; không bỏ ca đang lỗi để báo đạt. CI chỉ chạy nhóm smoke trong [CI/CD](CICD_SETUP.md).
+
+Kiểm tra desktop/mobile/ngang/dọc, breakpoint hai phía, 320 px/zoom 200%, light/dark, bàn phím/focus, no-JS/reduce; nội dung dài/thiếu, ảnh/CTA, client navigation và back/forward. Với motion thêm cuộn nhanh/resize/chuyển tab/chọn-copy chữ; với ảnh nền kiểm tra thứ tự tải CSS. Đo tương phản trên nền thực; không gọi toàn bộ site đạt WCAG hoặc LCP/CLS nếu chưa đo đủ.
+
+Chọn kiểm thử phù hợp: Markdown thuần dùng guard/liên kết/diff; CSS/content/runtime dùng lint/type/build/browser tương ứng. Không chạy DB/concurrency cho CSS thuần. Trước PR vẫn đầy đủ kiểm tra trong [CONTRIBUTING](../CONTRIBUTING.md), ghi skipped/chưa chạy; đổi contract/quyền cần kiểm thử hai phía. Không tự push/deploy từ test xanh.
+
+## Duy trì tài liệu
+
+Sửa mục hiện hành thay vì nối nhật ký ngày tháng. HANDOFF chỉ dẫn đọc/quyết định; design system giữ style; catalog giữ nghiệp vụ; website giữ mã/hành vi; PROJECT_STATUS giữ trạng thái/bằng chứng/backlog. Không sao chép nguyên cùng quy định vào mọi tài liệu. Ngày chỉ giữ cho bằng chứng môi trường hoặc dữ kiện nguồn cần độ mới.

@@ -1,44 +1,43 @@
 # Danh mục tài liệu
 
-## Nguồn hiện hành để bắt đầu
+Tài liệu hiện hành viết theo chức năng/quyết định, không theo nhật ký cuộc hội thoại. Agent bắt đầu từ HANDOFF, chỉ đọc sâu theo nhiệm vụ.
 
-| Tài liệu | Mục đích |
+## Nguồn chuẩn
+
+| Tài liệu | Sở hữu |
 |---|---|
-| [README](../README.md) | Tổng quan, thành quả, cấu trúc và định hướng |
-| [HANDOFF](HANDOFF.md) | Điểm bắt đầu cho chat/thành viên mới, quyết định cần giữ và thứ tự đọc gọn |
-| [FRONTEND_WORKFLOW](FRONTEND_WORKFLOW.md) | Nơi sửa UI, ba skill thiết kế, workflow nội dung/tương tác và browser QA |
-| [BACKEND_WORKFLOW](BACKEND_WORKFLOW.md) | API/RPC/quyền, migration, hợp đồng dữ liệu và nghiệm thu/phát hành |
-| [AGENTS](../AGENTS.md), [CONTRIBUTING](../CONTRIBUTING.md) | Quy tắc Codex và workflow nhóm |
-| [PROJECT_STATUS](PROJECT_STATUS.md) | Mã so với production, ngày kiểm tra, backlog và tiêu chí hoàn tất |
-| [ARCHITECTURE](ARCHITECTURE.md) | Luồng dữ liệu, quyền, bảng/RPC, vị trí mã và công cụ |
-| [CHUONG_TRINH_DAO_TAO](CHUONG_TRINH_DAO_TAO.md) | Nội dung đã được duyệt và cách phân bố A/B/C/D |
-| [PUBLIC_COURSE_CATALOG](PUBLIC_COURSE_CATALOG.md) | Hệ 5 lớp A/B/C/E/K, E Chủ lực tuyển từ C, K tùy chọn và hợp đồng hệ thống tương lai |
-| [ROADMAP_CONTENT_RESEARCH](ROADMAP_CONTENT_RESEARCH.md) | Căn cứ poster, nguồn tham khảo VNOI/USACO Guide và nội dung biên tập lộ trình/chặng/chủ đề |
-| [PUBLIC_UI_DESIGN_SYSTEM](PUBLIC_UI_DESIGN_SYSTEM.md) | Nhận diện công khai, font/logo/ảnh/token và ranh giới UI; đọc trước khi sửa thiết kế |
-| [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md) | Mã Next.js, tài nguyên, form thực, kiểm thử và phát hành trang công khai |
-| [PUBLIC_POSTS](PUBLIC_POSTS.md) | Trang đội ngũ, bài viết frontend, nơi sửa và ranh giới lần nối database sau |
-| [BILLING_LOGIC](BILLING_LOGIC.md) | Bất biến học phí/chốt sổ hiện hành |
-| [Database README](../database/README.md) | Migration, baseline, verification và khởi tạo môi trường thử |
-| [SETUP_VERCEL_SUPABASE](SETUP_VERCEL_SUPABASE.md), [CICD_SETUP](CICD_SETUP.md) | Cấu hình và phát hành; không phải bằng chứng đã thực hiện |
-| [Workflow tương tác](UI_MOTION_WORKFLOW.md) | Phân công, vòng đời hiệu ứng React, fallback và tiêu chí nghiệm thu |
-| [FUTURE_INTEGRATIONS](FUTURE_INTEGRATIONS.md) | Việc còn lại trước Resend/email/API CSATOJ |
-| [SECURITY](../SECURITY.md) | Git-safe/nội bộ, giới hạn guard và xử lý thông tin đã chia sẻ |
+| [README](../README.md), [HANDOFF](HANDOFF.md) | Tổng quan và thứ tự tiếp nhận, các quyết định cần giữ |
+| [AGENTS](../AGENTS.md), [CONTRIBUTING](../CONTRIBUTING.md), [SECURITY](../SECURITY.md) | Quyền, dữ liệu, workflow nhóm và kiểm tra trước chia sẻ |
+| [PROJECT_STATUS](PROJECT_STATUS.md) | Trạng thái local/production, bằng chứng, nội dung chờ và backlog |
+| [ARCHITECTURE](ARCHITECTURE.md) | Ranh giới trách nhiệm, luồng dữ liệu/quyền, cấu trúc mã |
+| [FRONTEND_WORKFLOW](FRONTEND_WORKFLOW.md), [BACKEND_WORKFLOW](BACKEND_WORKFLOW.md) | Quy trình triển khai và kiểm thử theo phạm vi |
+| [PUBLIC_UI_DESIGN_SYSTEM](PUBLIC_UI_DESIGN_SYSTEM.md) | Neobrutalism/playful edtech, token/font/palette và ngoại lệ từng trang |
+| [UI_MOTION_WORKFLOW](UI_MOTION_WORKFLOW.md) | Motion, fallback, vòng đời effect và nghiệm thu |
+| [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md) | Route/component/media/form và hành vi công khai |
+| [PUBLIC_COURSE_CATALOG](PUBLIC_COURSE_CATALOG.md) | Năm lớp A/B/C/E/K, dữ kiện tuyển sinh và hợp đồng tương lai |
+| [CHUONG_TRINH_DAO_TAO](CHUONG_TRINH_DAO_TAO.md) | Phạm vi/thứ tự/mã kiến thức chuẩn, quản lý A+B/C+D hiện hành |
+| [ROADMAP_CONTENT_RESEARCH](ROADMAP_CONTENT_RESEARCH.md) | Quy tắc hành văn, nguồn tham khảo, dữ kiện so với diễn giải |
+| [PUBLIC_ACHIEVEMENTS](PUBLIC_ACHIEVEMENTS.md) | Bố cục 3 đã duyệt, catalog tĩnh/WebP, nguồn còn chờ và cập nhật |
+| [PUBLIC_POSTS](PUBLIC_POSTS.md) | Đội ngũ/bài viết frontend và điều kiện nối CMS |
+| [BILLING_LOGIC](BILLING_LOGIC.md) | Học phí/chốt sổ/đính chính/lịch sử |
+| [Database README](../database/README.md) | Migration/baseline/verification và database thử |
+| [SETUP_VERCEL_SUPABASE](SETUP_VERCEL_SUPABASE.md), [CICD_SETUP](CICD_SETUP.md) | Hướng dẫn cấu hình/phát hành, không phải bằng chứng đã thực hiện |
+| [FUTURE_INTEGRATIONS](FUTURE_INTEGRATIONS.md) | Hợp đồng/điều kiện email và API CSATOJ |
 
-## Đặc tả và hồ sơ các đợt đã qua
+## Hồ sơ tham khảo
 
-Những tài liệu này giải thích bối cảnh và quyết định; dòng “đã/chưa triển khai”, số test hay bước migration chỉ đúng ở thời điểm viết. Trạng thái mới đọc PROJECT_STATUS; không dùng gói SQL cũ trên production hiện tại.
+Giữ hồ sơ có giá trị nghiệp vụ/verification, không nạp mặc định. Tên file có ngày giúp truy lại phiên bản, không quyết định trạng thái hiện tại.
 
-- Kế hoạch UI và bản duyệt HTML 03–04/10 đã chuyển vào kho nội bộ cùng prototype. Nguồn hiện hành là PUBLIC_WEBSITE, PUBLIC_UI_DESIGN_SYSTEM và UI_MOTION_WORKFLOW; không dùng số đo HTML cũ thay nghiệm thu ứng dụng.
+- [Hồ sơ gia sư](TUTOR_PROFILES_20260923.md), [chuyển khung chương trình](CLASS_CURRICULUM_ROLLOUT_20260923.md).
+- [Cổng phụ huynh](PARENT_PORTAL_CURRICULUM_20260922.md), [phát hành parent/email](RELEASE_PARENT_EMAIL_20260922.md).
+- [Tư vấn](PUBLIC_SITE_AND_CONSULTATIONS_20260913.md), [kế hoạch email](EMAIL_ROLLOUT_PLAN_20260914.md), [setup email cũ](EMAIL_VERCEL_SETUP_20260914.md).
+- [Ngày/điểm danh](CHANGES_20260906_DATE_ATTENDANCE.md), [CHANGELOG](../CHANGELOG.md).
+- Database UPDATE/ACCOUNTING_UPGRADE/LEARNING_PORTAL_DEPLOYMENT/POST_UPGRADE_CHECK: bối cảnh migration; dùng database README và verification hiện hành trước thực thi.
 
-- [Hồ sơ gia sư](TUTOR_PROFILES_20260923.md): luồng và kiểm thử local, vẫn cần Storage thật.
-- [Chuyển khung chương trình](CLASS_CURRICULUM_ROLLOUT_20260923.md): biên bản đã lược thông tin nội bộ.
-- [Cổng phụ huynh và khung](PARENT_PORTAL_CURRICULUM_20260922.md), [phát hành parent/email](RELEASE_PARENT_EMAIL_20260922.md).
-- [Trang công khai/tư vấn](PUBLIC_SITE_AND_CONSULTATIONS_20260913.md), [kế hoạch email](EMAIL_ROLLOUT_PLAN_20260914.md), [setup email cũ](EMAIL_VERCEL_SETUP_20260914.md).
-- [Sửa ngày/điểm danh](CHANGES_20260906_DATE_ATTENDANCE.md), [CHANGELOG](../CHANGELOG.md).
-- Các `database/UPDATE_*.md`, `ACCOUNTING_UPGRADE.md`, `LEARNING_PORTAL_DEPLOYMENT.md`, `POST_UPGRADE_CHECK_*.md`, `CLASS_PROGRAM_DEFAULTS.md`, `PARENT_PHONE_FORMAT.md`: bối cảnh migration/nghiệp vụ; xem chỉ dẫn mới ở đầu tài liệu.
+Prototype, nguồn thiết kế/Excel, screenshot QA, backup và dữ liệu thật giữ ngoài Git trong kho nội bộ phân quyền. Không biến đường dẫn máy tác giả thành dependency.
 
-## Tài liệu ngoài Git
+## Cách duy trì
 
-Prototype, Excel nguồn, sổ tay vận hành, backup, báo cáo có dữ liệu thật và gói `internal/` do chủ trung tâm cấp riêng. Thành viên không cần bản sao dữ liệu production để hiểu kiến trúc hoặc chạy test. Không biến các đường dẫn máy tác giả thành dependency của workflow nhóm.
+Mỗi tài liệu có một trách nhiệm; đổi quyết định thì cập nhật nguồn chuẩn và nơi dẫn chiếu, không nối thêm đoạn cập nhật mâu thuẫn. Xóa mô tả phương án hết hiệu lực khỏi nguồn hiện hành, giữ lịch sử ở Git/hồ sơ cần thiết. Ngày năm học/thành tích, tên migration và bằng chứng môi trường vẫn giữ khi có ý nghĩa.
 
-Khi tài liệu mâu thuẫn: đối chiếu mã/RPC/test và schema môi trường; ghi lại bằng chứng có ngày rồi cập nhật tài liệu hiện hành. Không mặc định bản có ngày mới hơn là đã triển khai.
+Nếu tài liệu mâu thuẫn, ưu tiên quyết định trực tiếp đã duyệt và đối chiếu mã/RPC/test/schema thật. Không mặc định file mới hơn là đã deploy; không suy chỉ dẫn production từ một ghi chú lịch sử.

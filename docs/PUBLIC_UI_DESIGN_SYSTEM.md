@@ -1,71 +1,106 @@
-# Nhận diện và hệ thiết kế website CSAT
+# Thiết kế website CSAT
 
-Quyết định được duyệt **05/10/2026**, áp dụng vào giao diện Next.js. Đọc tài liệu này khi sửa giao diện công khai; cấu trúc mã đọc [website](PUBLIC_WEBSITE.md), chương trình đọc [hệ 5 lớp](PUBLIC_COURSE_CATALOG.md), thao tác/QA đọc [workflow](UI_MOTION_WORKFLOW.md). Không cần nạp toàn bộ biên bản lịch sử để bắt đầu. Trạng thái phát hành thực tế xem PROJECT_STATUS.
+Nguồn quy định thiết kế hiện hành của website công khai. Áp dụng cùng [catalog](PUBLIC_COURSE_CATALOG.md), [cấu trúc website](PUBLIC_WEBSITE.md) và [motion](UI_MOTION_WORKFLOW.md). Quyết định trực tiếp đã duyệt của chủ trung tâm có ưu tiên hơn gợi ý tự động của skill và prototype cũ.
 
-## Nội dung và tài nguyên
+## Định hướng: neobrutalism và playful edtech
 
-- Theo nội dung chủ trung tâm cập nhật 04/10: CSAT gồm đội ngũ gia sư cựu học sinh chuyên Tin THPT Chuyên Phan Bội Châu. Không ghi đè thông tin nền từng gia sư trong database từ thông điệp tập thể.
-- Logo chính là `csat-logo-compact.svg`; dòng phụ **Lập trình thi đấu & Tư duy thuật toán**. CSATOJ dùng `csatoj-logo-compact.svg`, dòng **Kho đề thi & bài tập** ở trái logo. SVG đã có chữ dạng path; không cần tệp KVANT để hiển thị và không gọi font UI là KVANT. Bản gốc dùng để biên tập được giữ trong kho nội bộ, không tải cùng ứng dụng.
-- Chỉ cắt khoảng trắng viewBox của bản dẫn xuất; giữ nguyên màu, tỷ lệ và nội dung logo. Dark mode dùng nền kem nhỏ phía sau logo, không tự đảo màu.
-- Hải Đăng: Thủ khoa khóa 52 chuyên Tin THPT Chuyên Phan Bội Châu; Giải Nhất HSGQG 2025–2026, hạng 3 toàn quốc; Giải Nhì và Giải Ba HSGQG 2023–2025. Không suy thành thành tích trung tâm/học viên hoặc bổ sung loại kỳ thi “thủ khoa”.
-- Ba poster gia sư Ngô Tuấn Hiệp, Trần Đăng Quang và Nguyễn Ngọc Bảo Toàn dùng cùng nội dung HTML đọc được. Poster tổng hợp giải thưởng chưa rõ đối tượng/giai đoạn không dùng trong catalog hoặc cam kết.
-- Ảnh sách/code/Git/bóng đèn là minh họa, không phải ảnh lớp hay nội dung chính thức CSATOJ. Tạo bản phục vụ WebP/AVIF, giữ nguồn và giấy phép trong manifest; khai báo kích thước, lazy load dưới màn hình đầu. Không tải SVG ảnh nhúng 7 MB nguyên bản vào trang.
+Thiết kế làm rõ tư duy lập trình, thứ tự phát triển và giá trị học tập bằng typography, màu, sơ đồ và hình học. Neobrutalism là ngôn ngữ chủ đạo ở thẻ/facts/banner: mặt màu phẳng, đường viền rõ, bóng cứng lệch, góc vuông hoặc cắt góc, chữ có trọng lượng và phân cấp rõ. Playful edtech thể hiện bằng terminal, pixel, code, mạch điện, huy chương và tương tác nhẹ; không biến nội dung học thuật thành đồ chơi hoặc nút giả.
 
-## Token và thành phần
+Kết hợp editorial cho nội dung dài/chặng học; bento khi nội dung cần ưu tiên khác nhau; timeline/sơ đồ khi có trình tự hoặc quan hệ thật. Không ép mọi section thành tiêu đề lớn → đoạn dẫn → hàng thẻ giống nhau. Art có thể dẫn nội dung, nhưng section vẫn có tên truy cập và thứ tự heading đúng.
 
-Điều chỉnh tỷ lệ 05/10: hero text giảm 10% so với bản mở rộng trước; khung/ảnh hero giới thiệu lớn hơn khoảng 20% trên desktop. CTA cuối giảm chữ chính 10%, tăng nhãn dẫn 10% và nút 20%, thêm khoảng cách giữa các dòng và cắt góc nút. Ảnh lớp C có tỷ lệ 4:3; E dùng comp-program.webp với cùng thành phần ảnh như K. Mobile giữ ảnh trong chiều rộng màn hình.
+Không tự thay nhận diện bằng mẫu của skill. design định hướng art; ui-ux-pro-max hỗ trợ bố cục/UX; ui-styling hiện thực token/component; banner-design hỗ trợ phân cấp hero/banner. Tra cứu đúng ngữ cảnh, không cài thêm thư viện hay dịch vụ chỉ vì mẫu có dùng.
 
-Ba tầng: giá trị gốc → vai trò → component. Nền kem `#f8f7f2`, xanh `#2b50e0`, lime `#d9e64c`, cam `#ee683e`; dark mode nâu ấm. Màu trong logo được giữ theo tài nguyên, không ép đổi thành màu nút.
+## Font, logo và màu
 
-| Thành phần | Quy tắc |
+| Nhóm | Quy định |
 |---|---|
-| Menu | Archivo 500–600, 15–16 px; cùng bộ font toàn hệ thống |
-| Tiêu đề/nội dung | Archivo, Segoe UI, Lucida Grande, Arial, sans-serif; Archivo tự phục vụ qua next/font. Tiêu đề công khai viết hoa; desktop hero/heading tăng 50%, mobile dùng cỡ linh hoạt |
-| Điều hướng | Logo CSAT, Giới thiệu, dropdown Lộ trình, Thành tích (`/thanh-tich`), Đội ngũ, Bài đăng, Trang liên lạc, logo CSATOJ và theme; thu gọn khi không đủ chỗ |
-| Nền gốc | Dots 15 px, blob lime/mint tròn; C+SAT dùng SVG nét KVANT dẫn xuất từ logo đã duyệt, rộng 70vw, nghiêng −5°, top 2vh/left −3vw theo ứng dụng hiện có |
-| Kính | Navbar/dock/bộ chọn/kết quả; nền sáng khoảng 92%, tối khoảng 94%, blur cố định 8–12 px; fallback nền đặc |
-| Nội dung dài/form | Nền đặc, chữ rõ; không kính chồng nhiều lớp, không animate blur |
-| Icon | Icon thao tác nhỏ giữ hệ hiện có; bộ trang trí code lớn SVG góc cắt, nét vuông, pixel; không dùng emoji thay nút |
-| Liên hệ | Dock desktop cách đáy 24 px; mobile 16 px + safe-area; không che form/bàn phím |
+| Font UI | Archivo tự phục vụ qua next/font; fallback Segoe UI, Lucida Grande, Arial, sans-serif. Ký hiệu A/B/C/E/K và C/ELITE dùng font menu --font-nav. Không cài KVANT |
+| Logo | csat-logo-compact.svg, csatoj-logo-compact.svg giữ tỷ lệ, màu và chữ dạng path. Chỉ cắt khoảng trắng viewBox ở bản dẫn xuất |
+| Dòng phụ | CSAT: Lập trình thi đấu & Tư duy thuật toán; CSATOJ: Kho đề thi & bài tập |
+| Bảng màu chung | Kem #F8F7F2, cobalt #2B50E0, lime #D9E64C, cam #EE683E; ink tương phản. Dark mode nền nâu ấm theo token hiện có |
+| Bảng màu E | Mint #8AD6D1, teal #359FA0, kem #FFF0C5, coral #FF8C52. Tổng quan E nền ngoài xanh đậm #122C31, mặt đọc sáng, cam chủ đạo banner/sơ đồ |
+| Token | Giá trị gốc → vai trò semantic → component. Không hardcode màu của một lớp vào shell chung |
 
-Spacing theo nhịp 4/8 px. Chữ thường tương phản ≥4,5:1; chữ lớn và ranh giới thao tác ≥3:1. Target thao tác ≥44×44 CSS px. Không coi layer nền động là nền an toàn cho chữ nếu chưa đo ở trạng thái xấu nhất.
+Nét KVANT trong logo/watermark SVG không phải font chữ UI. Dark mode có mặt kem nhỏ bảo vệ logo, không tự đảo màu logo. Giữ nội dung/ảnh gia sư đã duyệt; không suy thành thành tích trung tâm.
 
-## Bố cục và hành vi
+## Hình khối, typography và khả năng đọc
 
-Vận dụng nhiều phương pháp từ `ui-ux-pro-max` theo mục đích từng phần: phân cấp thị giác và khoảng trắng, so le/editorial, bento, sơ đồ mạch/cây, timeline, ảnh phối chữ và reveal có định hướng. Không bắt buộc mỗi phần có một tiêu đề lớn, đoạn dẫn rồi hàng thẻ giống nhau. Với phần dẫn bằng art hoặc sơ đồ, dùng tên truy cập cho section và tiêu đề con đúng nghĩa; bỏ chữ lặp không cần thiết, không bỏ thông tin cần hiểu hoặc khả năng điều hướng bàn phím. Chọn bố cục theo nội dung và hành động người đọc cần thực hiện, giữ token/nhận diện đã duyệt; gợi ý font/màu hoặc stack từ skill chỉ là tham khảo, không tự thay cấu hình CSAT. Khi skill local không có, tài liệu này là quy tắc dùng chung của nhóm.
+- Thẻ mới theo neobrutalism dùng viền 2–3 px và bóng cứng lệch 4–5 px; góc nhỏ/vuông/cắt góc theo component. Không thêm tilt hoặc hover nhấc mạnh khiến thẻ thông tin giống nút.
+- Heading công khai viết hoa theo CSS, body viết câu tự nhiên. Chữ thật đọc/copy được; dùng font heading cho tên phần học, font menu cho ký hiệu/nhãn phụ.
+- Dải tag dùng màu để phân nhóm, vẫn có nhãn rõ nghĩa; màu không là cách duy nhất biểu đạt lớp/mức độ/trạng thái.
+- Thẻ đọc và form có mặt đặc hoặc đủ tương phản. Gradient/orb/line ở phía sau, không phủ chữ. Ngoại lệ mặt mô tả E được quy định riêng dưới đây.
+- Kính chỉ giữ tại navbar/dock/select/kết quả đã có; blur cố định 8–12 px, fallback đặc. Không mở rộng glassmorphism thành phong cách thẻ mới hoặc animate blur.
+- Nhịp khoảng cách 4/8 px; ưu tiên nội dung gọn nhưng không cắt chữ, thu nút hoặc khóa chiều cao.
+- Mục tiêu tương phản: chữ thường ≥4,5:1, chữ lớn/ranh giới thao tác ≥3:1; target ≥44×44 CSS px. Cần đo nền composited khi chữ đặt trên ảnh/gradient.
+- Icon thao tác giữ hệ Lucide/Base UI hiện có; art SVG nét vuông, góc gãy, pixel và mạch. Art aria-hidden, không nhận focus/pointer; không dùng emoji thay thao tác.
 
-Trang chủ: hero CSAT → bốn lý do học thi đấu và bóng đèn → đội ngũ ba gia sư → hệ sinh thái bốn nhánh → khóa học → sáu bước buổi học → phụ huynh → tư vấn. Hệ sinh thái dùng terminal CSAT ở giữa hai hàng, mỗi hàng hai ô, cột phải lệch xuống 24 px; mạch góc chéo/chip/cổng vuông nằm sau nội dung. Dưới 901 px dùng luồng dọc, không ép chữ vào sơ đồ nhỏ. Bóng đèn đi cùng nhãn “Bốn lý do để bắt đầu” trong luồng bố cục, không phủ heading. Học liệu có trang riêng. Dùng chung PublicNavigation tại trang đăng nhập gia sư/phụ huynh và trong ParentShell; giữ sidebar nội dung, nút in và đóng tra cứu. Khung desktop công khai tối đa 1.408 px, tăng 10% từ 1.280 px, co theo viewport.
+Portal admin/gia sư/phụ huynh ưu tiên dữ liệu, quyền và thao tác chính xác. Không áp hero typography, lớp màu hoặc hiệu ứng trang trí công khai lên bảng nghiệp vụ.
 
-Trang lộ trình, cập nhật 06/10: “Lộ trình học lập trình cùng CSAT Tutor” và art terminal ở trước bốn ảnh góc khuyết, blur cố định → chọn điểm bắt đầu → cụm 9 icon → năm phần A/B/C/E/K → tư vấn. Bỏ hero chữ/đoạn dẫn cũ, interlude riêng và sơ đồ thẻ A/B/C lặp lại. Nền chia theo section kem/lime/xanh; giữ nhịp nhận diện nhưng không để lớp nền xám phủ toàn trang. Cụm icon chỉ trang trí, không phải đánh giá đầu vào hoặc cơ chế tự chuyển chặng.
+## Responsive và mật độ
 
-Glyph chỉ thay lớp hiển thị tối đa 7 ký tự gần chuột trong khoảng 420 ms; văn bản gốc, copy, thứ tự đọc và kích thước không đổi. Không dùng ở menu, form, touch, selection hoặc reduced motion. Icon hội tụ chỉ là bản sao trang trí; liên kết thật cố định. Nhịp và kiểm thử xem [motion workflow](UI_MOTION_WORKFLOW.md).
+Khung công khai chung tối đa 1.408 px, co theo viewport; Thành tích có ngoại lệ riêng. Dùng grid/flex, minmax, clamp và sizes đúng với ảnh hiển thị. Không fix chiều rộng poster desktop hoặc phóng bằng một số pixel để đáp ứng mọi màn hình.
 
-## Mật độ nội dung — 06/10/2026
+Trang giới thiệu dùng khoảng đệm dọc 70% mức gốc; tổng quan lộ trình 50%. Token ở public-density.css, scope home-overview/roadmap-overview. Không áp tỷ lệ này sang portal, đội ngũ hoặc chi tiết lớp. Giữ khoảng trống menu, focus, nút và trường nhập.
 
-Theo yêu cầu của chủ trung tâm, trang giới thiệu `/` dùng khoảng đệm dọc giữa các phần bằng **70%** mức trước đó; trang tổng quan `/lo-trinh` dùng **50%**. Token theo trang nằm trong `components/marketing/public-density.css`, giới hạn bởi `.csat-public .home-overview` và `.csat-public .roadmap-overview`. Giữ khoảng cách tới menu đầu trang, kích thước nút và khoảng cách trường nhập. Khoảng đệm cuối hero được giảm cùng tỷ lệ; cụm icon chuyển tiếp lộ trình thu gọn còn nửa chiều cao, giữ đủ 9 icon.
+QA bao gồm màn hình ngang/dọc, 320 px, breakpoint hai phía và zoom 200%; ảnh/đường nối không đè nội dung, thẻ co theo chữ dài.
 
-Ví dụ: section trang chủ desktop 96 → 67,2 px mỗi phía, mobile 56 → 39,2 px; section lớp lộ trình desktop 80/96 → 40/48 px, mobile 50/65 → 25/32,5 px. Riêng năm phần mô tả lớp trên tổng quan lộ trình, tiêu đề và chiều rộng/cao ảnh còn **70%**; chiều cao phần tự co theo nội dung, không cắt chữ hoặc ép chiều cao cố định. Không áp dụng các quy tắc này sang trang đội ngũ, chi tiết từng lớp hoặc Portal.
+## Quy định theo trang
 
-Theo duyệt tiếp ngày 06/10, tích hợp phương án 3 tại `/dang-ky-hoc`: poster 144 × 144 px gấp đôi mẫu, thời lượng và sĩ số ngay dưới tên, phần đối tượng bám poster, các bước học và tag. Dùng cobalt cho A, lime cho B, cam cho C, lime trên nền đậm cho E, viền nét đứt cho K; tên/nhãn giữ rõ nghĩa ngoài màu sắc. Lưới 3 cột desktop, 2 cột tablet, 1 cột mobile. Lộ trình A/B/C dùng ô nhóm chặng/tag theo curriculum; E/K dùng bước trao đổi. Nội dung dẫn được rút gọn theo hướng hành động, không cam kết đầu ra.
+### Giới thiệu
 
-Prototype và ảnh QA tiếp tục ngoài Git tại `scratch/`; poster gốc ở `public/images/courses/` giữ nguyên và loại khỏi gói Vercel. Chỉ bốn WebP đã chọn ở `public/images/site/course-{a,b,c,ek}.webp` được phục vụ runtime. Lời mời học liệu được ẩn riêng trên trang đăng ký để giữ form dễ dùng.
+Hero CSAT → bốn lý do học thi đấu → đội ngũ → hệ sinh thái → lớp học → sáu bước buổi học → phụ huynh → tư vấn. Bóng đèn ở cạnh nhãn trong luồng bố cục, không phủ heading.
 
-## Tham khảo và bàn giao
+Hệ sinh thái dùng terminal ở giữa bốn nhánh: Kho bài & máy chấm, Nhóm học nhỏ, Gia sư chuyên Phan, Đồng hành sát sao. Hai hàng, mỗi hàng hai ô trên desktop, cột phải lệch nhẹ; dưới 901 px chuyển dọc. Đường mạch/chip nằm sau nội dung, art dẫn section không cần heading lớn lặp lại. CSATOJ có CTA thật.
 
-[Crency](https://crency.agency/) tham khảo cách tổ chức chữ và trải nghiệm; cảnh hội tụ thiết kế riêng cho CSAT, không khẳng định đã xác minh công nghệ của họ. [W3C](https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html) hướng dẫn giảm chuyển động, [web.dev](https://web.dev/articles/animations-guide) hướng dẫn ưu tiên transform/opacity.
+### Tìm hiểu lộ trình
 
-Prototype/manifest/ảnh QA lưu nội bộ ngoài Git. Khi tích hợp ứng dụng, đưa bản tài nguyên được duyệt và giấy phép phù hợp vào repo; không đưa poster nguồn, file thử hay ảnh tải dư vào commit chỉ vì chúng nằm trong public. Mọi kết quả QA ghi phiên bản, môi trường và giới hạn ở [PROJECT_STATUS](PROJECT_STATUS.md).
+Mở đầu bằng tiêu đề/art terminal trước bốn ảnh góc khuyết → chọn điểm bắt đầu → cụm 9 icon → A/B/C/E/K → tư vấn. Không phục hồi hero cũ hoặc sơ đồ A/B/C lặp đã bỏ.
 
-### Hình khối và form — 05/10/2026
+Ảnh A/B/C.jpg, E.jpg và Custom.jpg cho K dùng bản WebP tối ưu ở catalog. Ảnh nằm dưới nền tên/miêu tả, không tràn xuống kiến thức; zoom 110% để hover không lộ viền. Vị trí absolute không bị CSS trigger ghi đè khi chuyển route. Tổng quan không cho click mở ảnh, không link/button/tabindex/dialog hoặc nút Xem ảnh lớp. Không parallax, sticky hoặc di chuyển ảnh theo cuộn; hover phản hồi ảnh/bóng hữu hạn, reduced motion tắt.
 
-Ảnh A+B và ảnh minh họa CSATOJ cắt chéo góc; poster gia sư giữ đầy đủ thành tích. Navbar, form và cửa sổ code giảm bo góc. Hero lộ trình đặt bốn ảnh sau chữ, blur Gaussian cố định nhẹ và lớp nền chuyển sắc bảo vệ chữ; ảnh Chủ lực dùng comp-program.webp từ nguồn trung tâm. Dropdown dùng PublicSelect trên Base UI có bàn phím/typeahead, Escape trả focus, bảng chọn riêng hai theme; vẫn chỉ frontend. Lớp C hiển thị sáu nhóm kiến thức thành ba hàng, hai cột, icon bên trái.
-## Tinh chỉnh hero giới thiệu — 05/10/2026
+A/B/C bỏ tiêu đề phụ và dải thuật toán ngay dưới giới thiệu. Kiến thức nối tiếp · Tư duy phát triển giữ tên chặng và tag thuật toán theo đúng thứ tự; không mô tả kỹ năng phía dưới hoặc nhãn Tư duy rèn luyện. Các ô roadmap dùng một hue với đậm nhạt khác nhau; phần tính chất/đối tượng có thể phối nhiều màu, rõ tương phản. Nhãn Nền tảng để phát triển được giữ.
 
-Ảnh gia sư được phóng thêm 10% trong lớp cắt theo khung, transform-origin ở giữa phía trên; không tăng khung hoặc thay khoảng cách menu. Orbit có vòng tròn đồng tâm phía trong. C++ trắng; icon/pixel đổi hướng, nhịp và màu khi hover, reduced motion giữ yên. Watermark KVANT ở light giảm opacity 0,12 → 0,085; dark tăng nhẹ 0,16 → 0,18. Dots có token riêng, không thay màu viền hoặc chữ nội dung.
+Hashtag chỉ A/B/C, góc phải ảnh và không chèn chữ; E/K không có hashtag. K: ba ô Một hướng học từ nhu cầu cụ thể cùng hàng trên 600 px, dọc khi hẹp. Heading lớp và heading tư vấn không có glyph.
 
-Khoảng cách thực từ menu đến nhãn CSAT: desktop 45 px, tablet 31,5 px, mobile nhỏ 22 px. Khung ảnh cao 792/560/520 px tại viewport 1440/768/375 px; ảnh giữ tỷ lệ, phần cắt mở rộng theo khung. Ba icon terminal, nhánh và mảng cùng bộ hình học nằm dưới lớp portrait, không nhận pointer/focus; hover chỉ dịch/xoay nhẹ trên thiết bị chuột và không bật khi giảm chuyển động. Quy tắc nằm trong `home-experience.css`, không tác động hero lộ trình.
-## Bố cục lộ trình cập nhật (local, 06/10/2026)
+### E trong tổng quan
 
-Tổng quan dùng tên lớp + facts ngay dưới tên; poster đặt làm nền cho vùng mô tả, clip trước vùng kiến thức, có mask/opacity để giữ khả năng đọc và nút Xem ảnh. Chi tiết/đăng ký giữ thumbnail, cùng mở lightbox toàn màn hình với nút Đóng. Ảnh không sticky/reveal/parallax; chỉ phản hồi hover hữu hạn. Tiêu đề thẻ không glyph. Token màu cục bộ lấy theo poster: A xanh lam, B tím, C cam, E/K xanh ngọc, với phiên bản sáng/tối có tương phản rõ. Tag A dùng cyan/cam/tím sáng; E dùng mint/vàng/xanh nhạt trên nền tối. Danh mục chặng có ô đánh số nhiều màu và tag kiến thức; giữ bố cục 3/2/1 cột theo nội dung và viewport, cùng giảm 50% khoảng đệm ranh giới section.
+- Đúng một mục nổi bật, nền ngoài xanh đậm/orb rõ và art code/ngoặc/binary/huy chương. Ba trọng tâm sáng, giữ bảng màu E; số 03 teal đậm/chữ trắng để tách nền kem.
+- Tên CHỦ LỰC viết hoa, heading lớn; bỏ khẩu hiệu Chuyên sâu tri thức. Vững tư duy thi đấu. Tag Thi đấu & phát triển ở hàng thời lượng/sĩ số.
+- Ảnh roadmap-e-v3.webp, 3200×2400, Next Image quality 90 riêng E; crop/transform-origin 50% 75%, zoom 110%, opacity 1, không blur. Gradient kem nhẹ phía trên, nửa dưới trong suốt.
+- Mô tả căn giữa; nền transparent, radial kem từ tâm ra trong suốt (82% → 54% → 0), không viền/nền kem đều. Chữ trên ảnh dùng --e-photo-ink #0D0D0C, không tự đổi trắng/kem chỉ vì nền ngoài tối.
+- Sơ đồ gọn ba ô: C / NỀN TẢNG NÂNG CAO → THI TUYỂN RIÊNG → huy chương / ELITE. Không heading Từ nền tảng đến Chủ lực hoặc chú thích lặp.
+- Ô 1/3 căn giữa cả hai chiều; C cùng hàng dòng dưới, không icon C lặp; huy chương cùng hàng ELITE, không chữ E/Chủ lực lặp. Các nhãn cùng Archivo 750, line-height 1,4, 14 px desktop/12 px mobile, in hoa. Ba ô tối thiểu 72 px và tăng theo chữ, viền 2 px/bóng 4 px, không giả nút.
+- Icon thi tuyển ClipboardCheck nét 1,5; huy chương nền nét 0,8, code/ngoặc/binary nét 2,2. Không thêm font/dependency để vẽ icon.
+- Nội dung ba trọng tâm: tri thức/phương pháp; đội ngũ/môi trường; bài tập/cọ xát. Không tự tạo danh mục giáo trình/giá/contest.
 
-E là điểm nhấn căn giữa: nền tối, chữ mint theo poster, tagline rộng ở giữa, đường tuyển từ C; ba ô trọng tâm xanh ngọc/nâu vàng/xanh lam nằm ngang trên desktop và dọc trên mobile. Không biến ba trọng tâm thành giáo trình hay điều kiện lên lớp. Trang chi tiết đặt thanh lớp trên cùng; sơ đồ chặng dẫn tới native disclosure, các heading chủ đề dùng Archivo. Rail phải có hai nút tối thiểu 44 px, dành khoảng riêng ngoài vùng đọc ở mọi breakpoint. Native image dialog nằm trên header/dock/rail, có focus rõ và Escape; không khóa cuộn bằng script. CSS `roadmap-editorial.css`, `roadmap-poster-colors.css`, `course-poster-preview.css`, `public-section-navigation.css` giới hạn `.csat-public`; PNG gốc không đi vào runtime.
+Nguồn sửa mô tả E: lib/public-roadmap-content.ts, E.overview; trọng tâm ở E.development. Giữ phần chủ trung tâm tự biên tập.
+
+### Chi tiết lớp
+
+Poster chiếm cột co giãn cạnh heading/đoạn dẫn trên màn hình ngang, kéo xuống gần hàng nút đăng ký; dọc/mobile giữ ảnh gọn cạnh heading/facts và đưa mô tả/nút xuống hàng đầy đủ. Không đè chữ, không cố định chiều rộng ảnh theo màn hình desktop.
+
+Breadcrumb 14–15 px một hàng, căn giữa. Ba khối Đối tượng / Cùng chọn điểm bắt đầu / Thông tin lớp dùng neobrutalism, viền 2 px/bóng 5 px, typography rõ. Lịch ở ngay dưới CTA.
+
+Tất cả lớp dùng nền chung website; E chi tiết không mang nền tối riêng của E tổng quan. Orb/line/blob radial tĩnh theo accent từng lớp, ở góc sau chi tiết, không bắt pointer; mặt thẻ đọc đặc.
+
+Chặng editorial: số/tên/nội dung căn giữa, thẳng hàng, mũi tên chỉ thứ tự ngang hoặc dọc. Nội dung chủ đề chi tiết vẫn đầy đủ. Mục tiêu cuối khoá đặt trước Cùng CSAT chọn bước tiếp theo; heading tư vấn thường, không glyph.
+
+### Đăng ký học
+
+Mẫu 3 đã duyệt: lưới 3/2/1 cột desktop/tablet/mobile, poster 144 px desktop và thu khi hẹp. Thời lượng/sĩ số ngay dưới tên; đối tượng bám nguồn ảnh đã đối chiếu, tag kiến thức, giá và CTA. E/K không tự thêm giá. Ảnh chi tiết/đăng ký vẫn mở toàn màn hình có nút tắt.
+
+### Thành tích
+
+Mẫu 3 nhãn gắn cạnh ảnh: poster vuông bên trái, tên/thành tích/trường bên phải, cả mobile vẫn liền cạnh. Viền 3 px/bóng 5 px, dải lime/cam/cobalt, body trên mặt trắng, không gradient/blur trong thẻ. Nhãn HỌC SINH không đánh số.
+
+Desktop >1100 px wrap tối đa 1760 px/lề tối thiểu 12 px mỗi bên, chỉ áp trang này. Ba thẻ ≥1440 px, hai ở 901–1439 px, một ≤900 px. Ảnh chiếm 48% ngang desktop/42% hẹp, khung vuông căn giữa cạnh nhãn; không cắt poster hoặc khóa chiều cao chữ.
+
+Hero căn giữa, line-height 1,144; huy chương/terminal hai bên, tâm giữa mép wrap và mép chữ. Art đã tăng 10%, co theo vùng bên; ≤800 px cùng hàng dưới chữ. Art nhiều lớp hình học, hover nhẹ 260 ms, không animation lặp. Thẻ lướt lên 24 px/520 ms một lần; hover 220 ms. Chi tiết ở [Thành tích](PUBLIC_ACHIEVEMENTS.md).
+
+## Tương tác và nguồn tài nguyên
+
+Tiêu đề lớp/tư vấn, menu, form, tên học sinh không glyph. Những nơi glyph còn được duyệt chỉ là lớp aria-hidden giữ văn bản thật, tắt touch/selection/reduced motion; không lan hiệu ứng sang toàn bộ heading.
+
+Nút lên/xuống ở lề phải là overlay, có thể đè nội dung theo yêu cầu, không dành thanh/cột dọc hoặc giảm wrap. Lightbox có đóng/Escape/focus-return, no-JS mở WebP trực tiếp; không khóa cuộn trang bằng sửa root.
+
+Chỉ đưa media đã chọn/tối ưu vào runtime. Raw poster/video, prototype/ảnh QA/manifest nội bộ ngoài Git và gói deploy. SVG/CSS trang trí không cần tạo bitmap. No-JS/reduced motion/print đọc đầy đủ; observer/listener/rAF có cleanup. Xem [motion workflow](UI_MOTION_WORKFLOW.md) và [frontend workflow](FRONTEND_WORKFLOW.md).

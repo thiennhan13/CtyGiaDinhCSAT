@@ -11,8 +11,8 @@ test('private paths stay blocked even if force-added; approved source stays allo
   for (const p of ['.env.example', 'AGENTS.md', 'database/migrations/20260923_22_tutor_profiles.sql', 'database/tests/fixtures/schema-before-accounting.sql', 'public/images/csat-mark.png']) assert.equal(pathRule(p), null, p);
 });
 test('source media and local IDE state cannot enter Git; selected derivatives remain allowed', () => {
-  for (const file of ['public/videos/writing.mp4', 'public/images/tutors/poster.png', 'public/images/3D/orb.jpg', 'public/images/books.jpg', 'public/images/light-bulb.svg', '.idea/workspace.xml', '.vscode/settings.json']) assert.ok(pathRule(file), file);
-  for (const file of ['public/media/writing-960.webm', 'public/images/site/books.webp', 'public/icon/csat-logo-compact.svg']) assert.equal(pathRule(file), null, file);
+  for (const file of ['public/videos/writing.mp4', 'public/images/tutors/poster.png', 'public/images/courses/A.jpg', 'public/images/students/poster.jpg', 'public/images/3D/orb.jpg', 'public/images/books.jpg', 'public/images/light-bulb.svg', '.idea/workspace.xml', '.vscode/settings.json']) assert.ok(pathRule(file), file);
+  for (const file of ['public/media/writing-960.webm', 'public/images/site/books.webp', 'public/images/site/roadmap-a.webp', 'public/images/site/achievements/student.webp', 'public/icon/csat-logo-compact.svg']) assert.equal(pathRule(file), null, file);
 });
 
 test('secret detection returns locations without leaking the secret; no broad fixture bypass', () => {

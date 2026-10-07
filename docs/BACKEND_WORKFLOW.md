@@ -17,6 +17,8 @@ Một luồng ghi phải đi từ validation và kiểm tra quyền đến ghi a
 
 ## Hợp đồng giữa frontend và backend
 
+Quyết định tên gọi đã duyệt: hai phần C/D được giới thiệu chung là lớp C, và các lớp nâng cao tương lai cũng dùng tên C. Đây là định hướng đã ghi trong docs; hiện trạng tên/loại lớp trên gia sư/admin, enum `advanced`, scope CD, mã chủ đề C01–D07, template/snapshot và dữ liệu lịch sử chưa đổi. Khi triển khai ở quản lý, cần đặc tả mapping/tương thích và phạm vi áp dụng cho lớp mới; không tự đổi tên lớp cũ hoặc chạy migration từ thay đổi website. Đối chiếu [catalog](PUBLIC_COURSE_CATALOG.md).
+
 Trước khi sửa: xác định caller, input, RPC/bảng bị tác động, người được phép đọc/ghi, bản nháp/công bố và ca lỗi. Ghi rõ thay đổi tương thích hoặc adapter cần có; giữ chữ ký RPC khi chỉ bổ sung trường JSON. Thiếu dữ liệu trả `null` có nghĩa, không giả số liệu để đáp ứng layout.
 
 Form tư vấn công khai **chưa gọi** backend request/outbox. Luồng endpoint đã có phải được kiểm thử riêng; không mô tả hai phần là đã nối. API CSATOJ chưa triển khai: cần hợp đồng/mapping, kiểm tra liên kết, timeout/cache/rate limit; không gọi từ UI bằng key bí mật hoặc suy ra năng lực từ ranking.
@@ -59,4 +61,4 @@ Trước PR chạy thêm guard và guard tests theo [CONTRIBUTING](../CONTRIBUTI
 
 Production theo [setup](SETUP_VERCEL_SUPABASE.md): đối chiếu đúng môi trường → backup/restore thử → migration còn thiếu được phép → SQL verification → deploy tương thích với email tắt → smoke theo vai trò → gửi mẫu/bật luồng đã được phép. Không tự thao tác dashboard, chạy SQL có ghi, gửi thư, reset tài khoản hoặc push/deploy chỉ vì test xanh.
 
-Nếu lỗi, dừng gửi, giữ lịch sử/outbox và chọn phiên bản ứng dụng tương thích. Sửa dữ liệu bằng migration bù; không restore đè làm mất phát sinh mới. Cập nhật PROJECT_STATUS bằng ngày Việt Nam, commit/môi trường/bằng chứng, phần chưa chạy và điều kiện còn thiếu.
+Nếu lỗi, dừng gửi, giữ lịch sử/outbox và chọn phiên bản ứng dụng tương thích. Sửa dữ liệu bằng migration bù; không restore đè làm mất phát sinh mới. Cập nhật mục trạng thái tương ứng trong PROJECT_STATUS: phạm vi/mã, môi trường, bằng chứng, phần chưa chạy và điều kiện còn thiếu. Giữ ngày cho kiểm chứng môi trường; không nối nhật ký từng lượt sửa.

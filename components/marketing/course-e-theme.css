@@ -1,0 +1,15 @@
+/* Approved E palette: mint, teal, cream and coral; never a global brand reset. */
+.csat-public :is(.rm-editorial-class.rm-class-e,.enrollment-card.enrollment-e,.enrollment-selected.enrollment-e){
+  --e-mint:#8ad6d1;--e-teal:#359fa0;--e-cream:#fff0c5;--e-coral:#ff8c52;
+  --course-tone:#165e64;--ink:#173f44;--muted:#3d5d60;--paper:#fff;--surface:#fff;--soft:#edf8f6;--line:#165e6440;
+  --course-tone-soft:var(--soft);--course-accent:var(--e-teal);--course-on-accent:#10282d;--course-tint:color-mix(in srgb,var(--e-mint) 28%,var(--surface));
+  --roadmap-tone:var(--course-tone);--blue:var(--course-tone);--lime:var(--e-cream);--orange:var(--e-coral);
+  --button-bg:#165e64;--button-fg:#fff;--field-bg:var(--surface);--focus:#165e64;color:var(--ink);
+}
+.dark .csat-public :is(.rm-editorial-class.rm-class-e,.enrollment-card.enrollment-e,.enrollment-selected.enrollment-e){
+  --course-tone:var(--e-mint);--ink:#e8f7f3;--muted:#bcded8;--paper:#122c31;--surface:#17383e;--soft:#20434a;--line:#8ad6d150;
+  --button-bg:var(--e-mint);--button-fg:#10282d;--focus:var(--e-mint);
+}
+.csat-public .enrollment-card.enrollment-e{background:var(--surface)}
+.csat-public .enrollment-card.enrollment-e .enrollment-card-top{background:linear-gradient(to bottom,var(--e-cream),#fff 75%);color:#173f44}
+.csat-public .enrollment-card.enrollment-e :is(h2,.enrollment-learning h3,.enrollment-knowledge h3){color:var(--course-tone)}

@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
   images: {
+    qualities: [75, 90],
     remotePatterns: [
       {
         // Sử dụng cho ảnh placeholder trong môi trường phát triển

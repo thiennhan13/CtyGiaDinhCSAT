@@ -2,7 +2,7 @@ import type { PublicCourseCode } from '@/lib/public-courses';
 
 /** Public editorial copy; this does not replace the approved curriculum or define attainment. */
 export type PublicRoadmapCode = PublicCourseCode;
-export type RoadmapPathway = { label: string; title: string; description: string };
+export type RoadmapPathway = { label: string; title: string; description: string; tags?: readonly string[] };
 export type PublicRoadmapContent = {
   tagline: string;
   overview: string;
@@ -20,7 +20,7 @@ export const publicRoadmapContent: Record<PublicRoadmapCode, PublicRoadmapConten
     overview: 'Lớp A xây dựng nền tảng lập trình qua 9 chủ đề: từ nhập, xuất dữ liệu và điều khiển chương trình đến mảng, hàm và xâu. Mỗi nhóm kiến thức mở thêm một cách biểu diễn bài toán, để việc viết mã gắn với một ý tưởng có thể giải thích và kiểm tra.',
     headline: ['Xây nền tảng lập trình.', 'Hình thành tư duy thuật toán.'],
     introduction: 'Một chương trình bắt đầu từ việc hiểu dữ liệu đã cho và kết quả cần tìm. Lớp A dẫn người học qua những cấu trúc cốt lõi của C++: kiểu dữ liệu, toán tử, rẽ nhánh và vòng lặp; tiếp đó là mảng, hàm và xâu ký tự. Ba chặng kết nối việc đọc đề, tổ chức cách xử lý và kiểm tra chương trình. Đây là điểm khởi đầu cho học sinh muốn tìm hiểu chuyên Tin và lập trình thi đấu, với trọng tâm là hiểu ý nghĩa của từng thao tác trước khi kết hợp chúng thành lời giải.',
-    foundation: 'Có thể bắt đầu từ môi trường lập trình và thao tác nhập, xuất dữ liệu. Những nội dung đã học, bài đã thử và mục tiêu của học sinh là cơ sở để trao đổi điểm bắt đầu phù hợp.',
+    foundation: 'Nếu bạn chưa học lập trình, lớp A sẽ giúp bạn làm quen với C++ từ những thao tác đầu tiên. Nếu bạn đã học một phần, hãy chia sẻ các bài mình từng làm và những chỗ còn chưa hiểu. CSAT sẽ cùng bạn nhìn lại nền tảng để chọn nội dung cần học hoặc củng cố trước.',
     pathway: [
       { label: 'ĐIỂM BẮT ĐẦU', title: 'Hiểu dữ liệu và yêu cầu', description: 'Xác định đầu vào, đầu ra và cách mô tả một bài toán bằng các bước xử lý cụ thể.' },
       { label: 'QUÁ TRÌNH HỌC', title: 'Từ câu lệnh đến cấu trúc', description: 'Kết nối điều kiện, vòng lặp, mảng, hàm và xâu theo trình tự 3 chặng kiến thức.' },
@@ -33,7 +33,7 @@ export const publicRoadmapContent: Record<PublicRoadmapCode, PublicRoadmapConten
     overview: 'Lớp B nối nền tảng C++ với những phương pháp giải bài thi đấu: vét cạn, thống kê, số học, tổ chức dữ liệu, sắp xếp và tìm kiếm. Qua 15 chủ đề trong 4 chặng, người học có cơ sở để nhận diện cấu trúc bài toán và so sánh các cách xử lý.',
     headline: ['Nhận diện cấu trúc bài toán.', 'Lựa chọn phương pháp giải.'],
     introduction: 'Khi đã diễn đạt được một ý tưởng bằng C++, câu hỏi tiếp theo là: có thể xử lý bài toán bằng cách nào khác? Lớp B bắt đầu từ vét cạn và thống kê, khai thác tính chất số học, rồi chuyển sang cấu trúc dữ liệu, sắp xếp, chặt nhị phân và xử lý xâu. Mười lăm chủ đề tạo nền tảng để phân biệt một cách giải đúng với một cách giải còn phù hợp khi dữ liệu tăng. Định hướng học gắn với HSG cấp Phường và tuyển sinh chuyên Tin theo phạm vi nêu trong đối tượng của lớp.',
-    foundation: 'Cùng nhìn lại điều kiện, vòng lặp, mảng, hàm và xâu qua những bài học sinh đã làm. Việc chọn phần cần củng cố hoặc học tiếp dựa trên nền tảng thực tế, không chỉ dựa vào cấp học.',
+    foundation: 'Trước khi học lớp B, bạn cần làm quen với điều kiện, vòng lặp, mảng, hàm và xâu trong C++. Bạn có thể chia sẻ những bài đã tự giải và những bước còn gặp khó khăn. CSAT sẽ cùng bạn xem lại cách phân tích, viết và kiểm tra chương trình để xác định phần cần củng cố trước khi học các phương pháp thi đấu cơ bản.',
     pathway: [
       { label: 'ĐIỂM BẮT ĐẦU', title: 'Kết nối nền tảng C++', description: 'Dùng kiến thức mảng, hàm và xâu để mô tả phương án giải và kiểm tra trên dữ liệu cụ thể.' },
       { label: 'QUÁ TRÌNH HỌC', title: 'Xây bộ công cụ cơ bản', description: 'Đi từ duyệt phương án, số học đến tổ chức dữ liệu, sắp xếp, tìm kiếm và xử lý xâu.' },
@@ -43,10 +43,10 @@ export const publicRoadmapContent: Record<PublicRoadmapCode, PublicRoadmapConten
   },
   C: {
     tagline: 'Mở rộng phương pháp. Đào sâu lập luận.',
-    overview: 'Lớp C bao quát toàn bộ 19 chủ đề C+D, tổ chức thành 6 chặng. Kỹ thuật mảng, cấu trúc dữ liệu và các chiến lược tìm lời giải kết nối với quy hoạch động, đặt trọng tâm vào mô hình bài toán, tính đúng đắn và hiệu quả của thuật toán.',
+    overview: 'Lớp C bao quát toàn bộ 19 chủ đề, tổ chức thành 6 chặng. Kỹ thuật mảng, cấu trúc dữ liệu và các chiến lược tìm lời giải kết nối với quy hoạch động, đặt trọng tâm vào mô hình bài toán, tính đúng đắn và hiệu quả của thuật toán.',
     headline: ['Phân tích bài toán sâu hơn.', 'Xây lời giải có lập luận.'],
-    introduction: 'Một lời giải thuật toán cần trả lời được ba câu hỏi: vì sao đúng, sử dụng dữ liệu như thế nào và tốn bao nhiêu thao tác. Lớp C phát triển cách phân tích đó qua kỹ thuật mảng, cấu trúc dữ liệu, đệ quy, chia để trị, quay lui, tham lam, chặt nhị phân trên đáp án và băm xâu. Quy hoạch động tiếp nối bằng việc xác định trạng thái, liên hệ các bài toán con và truy vết lời giải. Toàn bộ phần C+D gồm 19 chủ đề, hướng đến nền tảng chuyên Tin và HSG cấp Tỉnh theo đối tượng đã công bố.',
-    foundation: 'Những bài đã tự phân tích, cài đặt và kiểm tra bằng C++ là cơ sở để trao đổi nền tảng. Đặc biệt cần nhìn lại mảng, xâu, hàm và các phương pháp cơ bản trước khi chọn điểm học tiếp.',
+    introduction: 'Một lời giải thuật toán cần trả lời được ba câu hỏi: vì sao đúng, sử dụng dữ liệu như thế nào và tốn bao nhiêu thao tác. Lớp C phát triển cách phân tích đó qua kỹ thuật mảng, cấu trúc dữ liệu, đệ quy, chia để trị, quay lui, tham lam, chặt nhị phân trên đáp án và băm xâu. Quy hoạch động tiếp nối bằng việc xác định trạng thái, liên hệ các bài toán con và truy vết lời giải. Toàn bộ chương trình lớp C gồm 19 chủ đề, hướng đến nền tảng chuyên Tin và HSG cấp Tỉnh theo đối tượng đã công bố.',
+    foundation: 'Lớp C tiếp nối nền tảng C++ và các phương pháp giải bài cơ bản. Bạn hãy chia sẻ những bài đã tự phân tích, cài đặt và kiểm tra, cùng các thuật toán mình từng sử dụng. Từ đó, CSAT sẽ cùng bạn xác định kiến thức cần củng cố và điểm học tiếp phù hợp trong chương trình nâng cao.',
     pathway: [
       { label: 'ĐIỂM BẮT ĐẦU', title: 'Từ nền tảng đến mô hình', description: 'Kết nối kiến thức cơ bản với cách biểu diễn dữ liệu và phân tích giới hạn của bài toán.' },
       { label: 'QUÁ TRÌNH HỌC', title: 'Kỹ thuật → chiến lược → trạng thái', description: 'Sáu chặng đi từ xử lý mảng và cấu trúc dữ liệu đến các chiến lược tìm kiếm, rồi quy hoạch động.' },
@@ -55,29 +55,30 @@ export const publicRoadmapContent: Record<PublicRoadmapCode, PublicRoadmapConten
     focusTags: ['Cộng dồn', 'Mảng hiệu', 'Hai con trỏ', 'Cấu trúc dữ liệu', 'Đệ quy', 'Chia để trị', 'Quay lui', 'Tham lam', 'Chặt trên đáp án', 'Hashing', 'Quy hoạch động', 'Knapsack', 'LIS / LCS'],
   },
   E: {
-    tagline: 'Đầu vào chọn lọc. Tri thức rộng, tư duy sâu.',
-    overview: 'Lớp Chủ lực tiếp nối nền tảng lớp C qua thi tuyển đầu vào riêng. Định hướng học mở rộng chiều sâu kiến thức, bám sát chuyên Tin và tư duy lập trình thi đấu, vượt ra ngoài việc chỉ luyện dạng bài để hướng đến thứ hạng cao trong kỳ thi HSG Tỉnh và tuyển sinh chuyên Tin.',
+    tagline: 'Chuyên sâu tri thức. Vững tư duy thi đấu.',
+    // Sửa đoạn giới thiệu lớp E ở overview; nội dung ba ô bên dưới ở development.
+    overview: 'Được chọn lọc từ lớp C qua thi tuyển riêng, học sinh lớp E cùng hướng đến thứ hạng cao trong các kỳ thi lập trình thi đấu trên nền tảng chuyên Tin. Quá trình học nối kiến thức thuật toán với tư duy toán học: từ phân tích cấu trúc bài toán, liên hệ các phương pháp đến xây dựng và kiểm chứng lời giải. Trong một tập thể chung định hướng, sự đồng hành của gia sư và những cơ hội luyện đề, cọ xát giúp người học phát triển thế mạnh riêng, rèn khả năng giải quyết vấn đề độc lập và từng bước đi sâu vào tư duy thi đấu.',
     headline: ['Đào sâu tri thức chuyên Tin.', 'Phát triển tư duy thi đấu.'],
-    introduction: 'Lớp E dành cho học sinh cần kiến thức khó hơn và muốn mở rộng khả năng tiếp cận bài toán. Từ nền tảng lớp C, định hướng Chủ lực kết nối chiều rộng kiến thức với chiều sâu lập luận: nhận diện bản chất vấn đề, liên hệ các phương pháp và xem xét lời giải trong bối cảnh lập trình thi đấu. Mục tiêu gắn với HSG Tỉnh và tuyển sinh chuyên Tin, đồng thời chú trọng sự phát triển tư duy vượt ra ngoài ôn luyện theo dạng. Học sinh tham gia qua thi tuyển đầu vào riêng từ lớp C; nhóm 3–4 học sinh, mỗi buổi 2 giờ, lịch thống nhất theo các thành viên.',
-    foundation: 'Học sinh từ lớp C tham gia thi tuyển đầu vào riêng. Quá trình học, những bài đã luyện và mục tiêu chuyên Tin là cơ sở để trao đổi việc tham gia; hoàn thành lớp C không đồng nghĩa tự động được nhận vào lớp E.',
+    introduction: 'Lớp E chọn lọc học sinh từ lớp C qua thi tuyển riêng, cùng hướng tới thứ hạng cao trong các kỳ thi lập trình thi đấu và học theo định hướng chuẩn chuyên Tin. Mở rộng tri thức gắn với liên hệ phương pháp: khai thác cấu trúc bài toán, phát triển thế mạnh thuật toán, tư duy toán học và năng lực giải quyết vấn đề. Gia sư có thành tích từ giải Nhất cấp Tỉnh đến HSG Quốc gia đồng hành cùng tập thể chung định hướng và quyết tâm. Bài tập chuyên sâu từ đề thi thật và đề luyện thi, cùng ưu tiên tiếp cận sớm các contest của CSAT, tạo thêm cơ hội giao lưu và cọ xát. Nhóm 3–4 học sinh, mỗi buổi 2 giờ; lịch học thống nhất theo các thành viên.',
+    foundation: 'Lớp E tuyển chọn học sinh từ lớp C qua một kỳ thi đầu vào riêng. Nếu bạn muốn theo đuổi chuyên Tin và phát triển năng lực thi đấu, hãy trao đổi với CSAT về quá trình học, những bài đã luyện và mục tiêu của mình để tìm hiểu việc thi tuyển. Học sinh có thể ứng tuyển khi đủ năng lực, không bắt buộc hoàn thành toàn bộ lớp C; kết quả thi tuyển là cơ sở để CSAT lựa chọn vào lớp E.',
     pathway: [
-      { label: 'NỀN TẢNG', title: 'Xuất phát từ lớp C', description: 'Kết nối nền tảng C+D với nhu cầu học kiến thức khó hơn và mục tiêu phát triển tiếp theo.' },
+      { label: 'NỀN TẢNG', title: 'Xuất phát từ lớp C', description: 'Kết nối nền tảng lớp C với nhu cầu học kiến thức khó hơn và mục tiêu phát triển tiếp theo.' },
       { label: 'ĐẦU VÀO', title: 'Thi tuyển riêng', description: 'Đăng ký trao đổi cùng đội ngũ để tìm hiểu thi tuyển vào lớp Chủ lực từ lớp C.' },
-      { label: 'ĐỊNH HƯỚNG', title: 'Chuyên Tin và tư duy thi đấu', description: 'Đào sâu kiến thức, mở rộng cách phân tích và liên hệ phương pháp; hướng đến HSG Tỉnh và tuyển sinh chuyên Tin.' },
+      { label: 'ĐỊNH HƯỚNG', title: 'Chuyên Tin và tư duy thi đấu', description: 'Phát triển thuật toán, tư duy toán học và năng lực giải quyết vấn đề; hướng tới thứ hạng cao trong các kỳ thi lập trình thi đấu.' },
     ],
     development: [
-      { label: 'CHIỀU RỘNG TRI THỨC', title: 'Mở rộng tri thức', description: 'Đặt kiến thức đã học vào những yêu cầu khó hơn: phân tích dữ kiện, làm rõ ràng buộc và nhận diện điều cần tìm. Từ đó, xem xét một vấn đề dưới nhiều góc nhìn thay vì chỉ nhận dạng bài quen thuộc.' },
-      { label: 'CHIỀU SÂU LẬP LUẬN', title: 'Liên hệ phương pháp', description: 'So sánh những hướng giải có thể sử dụng, giải thích điều kiện áp dụng và lý do lựa chọn. Liên hệ cách biểu diễn dữ liệu với cách xử lý để xây dựng một lập luận nhất quán, có thể kiểm chứng.' },
-      { label: 'TÍNH ĐỘC LẬP TƯ DUY', title: 'Phát triển tư duy thi đấu độc lập', description: 'Chủ động hình thành giả thuyết, tìm trường hợp phản biện và kiểm tra lời giải trong giới hạn dữ liệu. Việc đối chiếu ý tưởng, mã và kết quả là cơ sở để điều chỉnh cách tiếp cận khi gặp bài toán mới.' },
+      { label: 'TRI THỨC & PHƯƠNG PHÁP', title: 'Thuật toán và tư duy toán học', description: 'Mở rộng tri thức, kết nối các phương pháp và tìm bản chất của bài toán. Rèn lập luận, xây mô hình, kiểm chứng lời giải để phát triển thế mạnh thuật toán, tư duy toán học và khả năng giải quyết vấn đề một cách độc lập.', tags: ['Thuật toán', 'Tư duy toán học', 'Giải quyết vấn đề'] },
+      { label: 'ĐỘI NGŨ & MÔI TRƯỜNG', title: 'Cùng chí hướng, cùng tiến xa', description: 'Gia sư có thành tích từ giải Nhất cấp Tỉnh đến HSG Quốc gia đồng hành cùng những thành viên được chọn lọc, chung định hướng và quyết tâm. Tầm nhìn, kinh nghiệm và bí quyết của các anh chị đi trước tạo động lực để cả nhóm học sâu và luyện tập bền bỉ.', tags: ['Gia sư chuyên Tin', 'Nhóm chọn lọc', 'Động lực học tập'] },
+      { label: 'BÀI TẬP & CỌ XÁT', title: 'Luyện đề sâu, thử sức sớm', description: 'Bài tập chuyên sâu được tuyển chọn từ đề thi thật và đề luyện thi; chấm và chữa lời giải trên CSATOJ, theo dõi quá trình học trên CSAT Portal. Lớp E được ưu tiên tiếp cận sớm nhất các contest của CSAT, cùng những cơ hội giao lưu và cọ xát.', tags: ['Đề thi thật', 'Contest', 'Giao lưu · Cọ xát'] },
     ],
-    focusTags: ['Chủ lực', 'Đầu vào từ C', 'Thi tuyển riêng', 'Chuyên Tin', 'HSG Tỉnh', 'Tư duy thi đấu', 'Đào sâu kiến thức'],
+    focusTags: ['Chọn lọc từ C', 'Thi tuyển riêng', 'Chuyên Tin', 'Thuật toán', 'Tư duy toán học', 'Giải quyết vấn đề', 'Contest'],
   },
   K: {
     tagline: 'Trọng tâm rõ ràng. Nhịp học phù hợp.',
     overview: 'Lớp K tổ chức học 1–1 hoặc theo nhóm đăng ký riêng. Nội dung được chọn từ các khung đã duyệt theo nhu cầu cụ thể: củng cố nền tảng, làm rõ phần kiến thức còn vướng hoặc sắp xếp một hướng học riêng.',
     headline: ['Xác định trọng tâm học tập.', 'Xây hướng học phù hợp.'],
     introduction: 'Nhu cầu học tập có thể bắt đầu từ một chủ đề chưa rõ, một nhóm bài cần phân tích lại hoặc mong muốn bố trí nhịp học riêng. Lớp K dành cho hình thức 1–1 hoặc nhóm đăng ký riêng, với nội dung được trao đổi từ các chương trình đã duyệt. Người học cùng đội ngũ xác định nền tảng, phạm vi kiến thức và mục tiêu trước khi thống nhất thời lượng, lịch học, học phí. Trọng tâm là một hướng học có căn cứ từ nhu cầu thực tế.',
-    foundation: 'Chia sẻ nội dung đã học, bài đã làm, phần còn vướng và thời gian có thể luyện tập. Những thông tin này giúp xác định trọng tâm trước khi chọn phạm vi và hình thức học.',
+    foundation: 'Bạn có thể chọn lớp K khi muốn học 1–1 hoặc cùng một nhóm đăng ký riêng. Hãy chia sẻ phần kiến thức cần học, những bài còn vướng, mục tiêu và thời gian có thể dành cho việc luyện tập. CSAT sẽ cùng bạn xác định trọng tâm, chọn nội dung từ các chương trình đã duyệt và thống nhất hình thức, nhịp học phù hợp.',
     pathway: [
       { label: 'NHU CẦU', title: 'Xác định điều cần học', description: 'Làm rõ nền tảng hiện tại, phần cần củng cố và mục tiêu muốn hướng tới.' },
       { label: 'PHẠM VI', title: 'Chọn nội dung có căn cứ', description: 'Cùng đội ngũ chọn hoặc phối nội dung từ những khung chương trình đã được duyệt.' },
@@ -154,7 +155,7 @@ export const roadmapStageContent: Record<string, RoadmapStageContent> = {
   'advanced-6': {
     description: 'LIS, LCS, Edit Distance và các trạng thái mở rộng tiếp tục phát triển cách mô tả bài toán bằng quy hoạch động. Nội dung kết nối độ dài hoặc giá trị tối ưu với truy vết, đồng thời xem xét trạng thái hai chiều và chia đoạn theo cấu trúc dữ liệu của bài.',
     skills: ['Mô hình hóa dãy / xâu', 'Truy vết lời giải', 'Mở rộng trạng thái'],
-    bridge: 'Kết nối các phương pháp C+D để phân tích bài toán chuyên Tin và trao đổi hướng đào sâu tiếp theo.',
+    bridge: 'Kết nối các phương pháp của lớp C để phân tích bài toán chuyên Tin và trao đổi hướng đào sâu tiếp theo.',
   },
 };
 

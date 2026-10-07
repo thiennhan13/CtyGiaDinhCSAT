@@ -1,10 +1,10 @@
 # Công việc khi có email tên miền và API
 
-Nội dung tích hợp cập nhật 23/09/2026; bổ sung trạng thái runtime 01/10/2026. Đây là backlog và điều kiện bật tính năng, chưa phải thay đổi đã triển khai. Setup hiện tại: [SETUP_VERCEL_SUPABASE.md](SETUP_VERCEL_SUPABASE.md).
+Đây là hợp đồng và điều kiện bật tính năng, chưa phải thay đổi đã triển khai. Trạng thái/backlog duy trì tại [PROJECT_STATUS](PROJECT_STATUS.md). Setup hiện tại: [SETUP_VERCEL_SUPABASE.md](SETUP_VERCEL_SUPABASE.md).
 
 ## 1. Phân biệt các tích hợp
 
-**Bổ sung 05/10/2026 — form website:** hai form hiện chỉ ở frontend, hỗ trợ nhập, kiểm tra và sao chép để nhắn CSAT; chưa gọi API tư vấn. Khi kết nối: ánh xạ khóa/mục tiêu/nền tảng theo [catalog](PUBLIC_COURSE_CATALOG.md), thêm consent cho lưu dữ liệu, phục hồi idempotency/retry, kiểm chứng quyền/Origin/rate limit và chỉ báo tiếp nhận sau khi API xác nhận lưu. Giữ các cờ gửi tắt đến khi nghiệm thu. Không chỉ nhập key hoặc bật `CONSULTATIONS_ENABLED` rồi coi form đã nối; đọc [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
+**Form website:** các form hiện chỉ ở frontend, hỗ trợ nhập, kiểm tra và sao chép để nhắn CSAT; chưa gọi API tư vấn. Khi kết nối: ánh xạ khóa/mục tiêu/nền tảng theo [catalog](PUBLIC_COURSE_CATALOG.md), thêm consent cho lưu dữ liệu, phục hồi idempotency/retry, kiểm chứng quyền/Origin/rate limit và chỉ báo tiếp nhận sau khi API xác nhận lưu. Giữ các cờ gửi tắt đến khi nghiệm thu. Không chỉ nhập key hoặc bật `CONSULTATIONS_ENABLED` rồi coi form đã nối; đọc [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
 
 | Thành phần | Vai trò | Trạng thái |
 |---|---|---|
@@ -97,21 +97,8 @@ Nếu thêm gửi thư mời/khôi phục mật khẩu bằng Supabase Auth sau 
 
 Có API key mới chỉ hoàn thành điều kiện đầu vào; tính năng cần phát triển và nghiệm thu các bước trên. Trong thời gian chờ, tiếp tục hiển thị “Chưa kết nối dữ liệu”.
 
-## 6. Bảng theo dõi để lần sau tiếp tục đúng chỗ
+## 6. Theo dõi tiến độ
 
-Trạng thái toàn hệ thống và kết quả DB sau 23/09 xem [PROJECT_STATUS](PROJECT_STATUS.md).
+Trạng thái, bằng chứng và backlog chỉ duy trì trong [PROJECT_STATUS](PROJECT_STATUS.md): DB-01/PROFILE-01 cho schema/Storage, OPS-01 cho runtime/CI, MAIL-01/02/03 cho email, OJ-01 cho CSATOJ. Không giữ bảng trạng thái trùng ở tài liệu tích hợp.
 
-| Mã | Việc | Trạng thái 23/09/2026 | Điều kiện hoàn thành |
-|---|---|---|---|
-| SETUP-01 | Đối chiếu schema/dashboard thực và chuẩn bị backup | Chưa làm trong lần này | Ghi migration thực, đúng project, backup phục hồi được |
-| SETUP-02 | Nghiệm thu Storage Supabase thật | Còn chờ môi trường thử/quyền | Upload/thay/gỡ/quyền và cleanup đạt |
-| SETUP-03 | Chuẩn hóa Node CI/local/Vercel | Repo/CI chuyển Node 24 ngày 01/10; Vercel chưa đổi | CI/Preview thực đạt, chủ hệ thống đồng bộ runtime khi phát hành |
-| MAIL-01 | Hạn xử lý tổng hợp admin | Chưa sửa | Regression đợt cũ/tổng hợp mới đạt |
-| MAIL-02 | Khoảng cách retry sau gián đoạn | Chưa sửa | Không thử lại trước 5 phút, concurrency đạt |
-| MAIL-03 | Resend, DNS, API key | Chưa có theo thông tin trung tâm | Domain verified, cấu hình Production đầy đủ |
-| MAIL-04 | Thư mẫu và bật từng luồng | Chưa gửi/chưa bật | Được phép, Gmail nhận mẫu, hàng đợi được kiểm chứng |
-| MAIL-05 | Chuyển mailbox nhận thư tên miền | Tùy chọn | Có địa chỉ thật; đổi config/mã và xử lý snapshot đúng |
-| OJ-01 | Hợp đồng API và mapping | Chưa có | Tài liệu/khóa thử/định nghĩa chỉ số đã thống nhất |
-| OJ-02 | Tích hợp API, quyền và giao diện | Chưa triển khai | Dữ liệu thật đúng phạm vi, staging đạt |
-
-Không đánh dấu hoàn thành chỉ vì đã có tài liệu hoặc build local thành công. Khi thực hiện cập nhật ngày, commit/migration, môi trường, bằng chứng kiểm tra và việc còn lại; tuyệt đối không ghi giá trị secret vào đây.
+Bật từng luồng sau nghiệm thu và quyền phù hợp; thư mẫu phải thực nhận, không chỉ accepted. Đổi mailbox là lựa chọn riêng cần địa chỉ được xác nhận và xử lý snapshot hàng đợi. Không ghi secret vào Markdown, không đánh dấu hoàn thành từ build local.

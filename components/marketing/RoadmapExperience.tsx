@@ -170,7 +170,7 @@ export function RoadmapExperience() {
         </div>
       </div>
     </section>
-    <section className="rm-choose" id="chon-lo-trinh"><div className="wrap">
+    <section className="rm-choose" id="chon-lo-trinh"><Reveal className="wrap rm-section-reveal" variant="rise">
       <div className="rm-chapter mono"><span>01 / CHỌN ĐIỂM BẮT ĐẦU</span><span aria-hidden="true">+</span></div>
       <div className="rm-selector rm-glass"><div className="rm-selector-copy"><p className="eyebrow">Lộ trình từ chính bạn</p><GlyphHeading>Mục tiêu của bạn.<br />Nền tảng <em>đã có.</em></GlyphHeading><p>Chọn cấp học, mục tiêu và những gì đã từng học. Từ đó, bạn có thể tìm hiểu vài hướng trước khi trao đổi cụ thể cùng gia sư.</p><CodeIcon name="branch" /><p className="rm-small">Gợi ý để tìm hiểu chương trình; việc chọn lớp cần trao đổi thêm.</p></div>
         <form className="rm-selector-form" onSubmit={submit}>
@@ -180,11 +180,11 @@ export function RoadmapExperience() {
           <button className="btn" type="submit">Xem hướng học <ArrowRight aria-hidden="true" size={18} /></button>
         </form>
       </div>
-      <div className="rm-result" ref={resultRef} tabIndex={-1} aria-live="polite" aria-atomic="true"><div><p className="eyebrow">Gợi ý ban đầu</p><h3>{submitted ? result.title : 'Bạn muốn bắt đầu từ đâu?'}</h3><p>{submitted ? result.description : 'Điền ba lựa chọn phía trên để xem gợi ý, hoặc khám phá từng nhóm kiến thức bên dưới. Bạn luôn có thể tìm hiểu lớp khác.'}</p></div><div className="rm-result-links">{(submitted ? result.choices : ['A', 'B', 'C'] as Course[]).map(course => <Link className="rm-result-course" key={course} href={href(course)}><b>{course === 'C' ? 'C+D' : course}</b><span>{courses[course]}</span><ArrowUpRight aria-hidden="true" size={18} /></Link>)}{submitted && result.choices.length === 0 && <a className="rm-result-course" href="#tu-van"><b>↗</b><span>Chia sẻ mục tiêu với CSAT</span></a>}</div></div>
-    </div></section>
+      <div className="rm-result" ref={resultRef} tabIndex={-1} aria-live="polite" aria-atomic="true"><div><p className="eyebrow">Gợi ý ban đầu</p><h3>{submitted ? result.title : 'Bạn muốn bắt đầu từ đâu?'}</h3><p>{submitted ? result.description : 'Điền ba lựa chọn phía trên để xem gợi ý, hoặc khám phá từng nhóm kiến thức bên dưới. Bạn luôn có thể tìm hiểu lớp khác.'}</p></div><div className="rm-result-links">{(submitted ? result.choices : ['A', 'B', 'C'] as Course[]).map(course => <Link className="rm-result-course" key={course} href={href(course)}><b>{course}</b><span>{courses[course]}</span><ArrowUpRight aria-hidden="true" size={18} /></Link>)}{submitted && result.choices.length === 0 && <a className="rm-result-course" href="#tu-van"><b>↗</b><span>Chia sẻ mục tiêu với CSAT</span></a>}</div></div>
+    </Reveal></section>
 
     <RoadmapAssembly />
     {(['A', 'B', 'C', 'E', 'K'] as const).map((code, index) => <RoadmapCourseSection key={code} code={code} chapter={String(index + 2).padStart(2, '0')} href={href(code)} />)}
-    <section className="rm-consult-section" id="tu-van"><div className="wrap"><div className="rm-chapter mono"><span>07 / CÙNG CHỌN BƯỚC TIẾP THEO</span><span>CSAT</span></div><div className="rm-consult-layout"><div><GlyphHeading>Chọn bước tiếp theo.<br /><em>Cùng CSAT.</em></GlyphHeading><p>Kể một chút về việc học của bạn: những bài đã làm, câu hỏi còn vướng và mục tiêu muốn theo đuổi. Đó là điểm khởi đầu để cùng đội ngũ trao đổi lộ trình.</p><div className="rm-consult-context"><span className="mono">NỘI DUNG QUAN TÂM</span><p>{context}</p></div><span className="rm-consult-symbol" aria-hidden="true"><CodeIcon name="brackets" />+</span></div><PublicConsultation kind="consultation" context={serialized ? context : undefined} defaultCourse={publicCourseCode(selection.course)} /></div></div></section>
+    <section className="rm-consult-section" id="tu-van"><Reveal className="wrap rm-section-reveal" variant="right"><div className="rm-chapter mono"><span>07 / CÙNG CHỌN BƯỚC TIẾP THEO</span><span>CSAT</span></div><div className="rm-consult-layout"><div><h2>Chọn bước tiếp theo.<br /><em>Cùng CSAT.</em></h2><p>Kể một chút về việc học của bạn: những bài đã làm, câu hỏi còn vướng và mục tiêu muốn theo đuổi. Đó là điểm khởi đầu để cùng đội ngũ trao đổi lộ trình.</p><div className="rm-consult-context"><span className="mono">NỘI DUNG QUAN TÂM</span><p>{context}</p></div><span className="rm-consult-symbol" aria-hidden="true"><CodeIcon name="brackets" />+</span></div><PublicConsultation kind="consultation" context={serialized ? context : undefined} defaultCourse={publicCourseCode(selection.course)} /></div></Reveal></section>
   </div>;
 }

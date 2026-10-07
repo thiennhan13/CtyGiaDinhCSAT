@@ -26,7 +26,7 @@ export function EnrollmentExperience({ selectedCourse }: { selectedCourse?: Publ
       </article>)}
       <aside className="enrollment-help"><span aria-hidden="true">{'{ ? }'}</span><p className="eyebrow">Cùng chọn hướng đi</p><h2>Chưa rõ nên<br />bắt đầu ở đâu?</h2><p>Nhìn lại nền tảng, những bài đã làm và mục tiêu của bạn. Gia sư sẽ cùng bạn trao đổi trước khi chọn lớp.</p><Link className="btn secondary" href="/lo-trinh#chon-lo-trinh">Tìm điểm bắt đầu <ArrowUpRight aria-hidden="true" size={18} /></Link></aside>
     </section>
-    <p className="wrap enrollment-catalog-note">Lớp C gồm C+D. Lịch mở lớp được trao đổi theo đợt tuyển sinh.</p>
+    <p className="wrap enrollment-catalog-note">Lịch mở lớp được trao đổi theo đợt tuyển sinh.</p>
     <section className="enrollment-registration" id="thong-tin" aria-labelledby="registration-title"><div className="wrap enrollment-registration-layout"><div><p className="eyebrow">Cùng CSAT chọn bước tiếp theo</p><h2 id="registration-title">{selected ? <>Bạn quan tâm lớp {selected.code}.<br /><em>Cùng trao đổi.</em></> : <>Bắt đầu từ bạn.<br /><em>Cùng chọn lớp.</em></>}</h2><p>Chia sẻ nền tảng, mục tiêu và thời gian có thể học. Kiểm tra thông tin, sau đó sao chép để chủ động nhắn đội ngũ CSAT.</p>{selected && <div className={`enrollment-selected enrollment-${selected.code.toLowerCase()}`}><strong>Lớp {selected.code} · {selected.name}</strong><p>{selected.duration} · {selected.size}</p></div>}</div><PublicConsultation key={selectedCourse || 'undecided'} defaultCourse={selectedCourse} context={selected ? `${selected.code} — ${selected.name}` : undefined} /></div></section>
   </div>;
 }

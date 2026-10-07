@@ -1,17 +1,17 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Clock3, Users, UserRound, Compass, BookOpen } from 'lucide-react';
 import curriculum from '@/lib/learning-curriculum-20260922.json';
 import { PublicShell } from '@/components/marketing/PublicShell';
-import { GlyphHeading } from '@/components/marketing/PublicMotion';
 import { PublicConsultation } from '@/components/marketing/PublicConsultation';
 import '@/components/marketing/roadmap-experience.css';
 import { enrollmentHref, publicCourseCode, publicCourses } from '@/lib/public-courses';
 import { publicRoadmapContent } from '@/lib/public-roadmap-content';
 import { CoursePoster } from '@/components/marketing/RoadmapCourseSection';
-import { CourseCurriculum, CoursePathway, CourseSpecialDirection } from '@/components/marketing/CourseDetailContent';
+import { CourseCurriculum, CoursePathway, CourseSpecialDirection, CourseOutcomes } from '@/components/marketing/CourseDetailContent';
 import '@/components/marketing/roadmap-editorial.css';
+import '@/components/marketing/course-detail.css';
 
 const catalog = {
   a: { code: 'A', title: 'Nhập môn lập trình', price: '99.000đ', part: 'A', audience: '' },
@@ -61,12 +61,13 @@ export default async function CoursePage({ params, searchParams }: { params: Pro
   return <PublicShell><div className={`roadmap-experience rm-course-page rm-detail-${key}`}>
     <header className="wrap rm-course-intro">
       <nav className="rm-course-switch" aria-label="Khám phá các lớp">{Object.entries(catalog).map(([slug, item]) => <Link href={linkTo(slug)} key={slug} aria-current={key === slug ? 'page' : undefined}><b>{item.code}</b>{item.title}<ArrowUpRight aria-hidden="true" size={16} /></Link>)}</nav>
-      <nav className="rm-breadcrumb" aria-label="Đường dẫn"><Link href="/">Giới thiệu</Link><span>/</span><Link href="/lo-trinh">Lộ trình học tập</Link><span>/</span><span>{course.code}</span></nav>
-      <div className="rm-course-hero"><div><p className="eyebrow">Lớp {course.code} / {course.title}</p><h1>{content.headline[0]}<br /><em>{content.headline[1]}</em></h1>{enrollment && <div className="rm-heading-facts"><span>{enrollment.duration}</span><span>{enrollment.size}</span></div>}<p className="rm-course-lead">{content.introduction}</p><Link className="btn" href={enrollmentHref(courseCode)}>Đăng ký học lớp {course.code} <ArrowRight aria-hidden="true" size={18} /></Link></div><CoursePoster code={courseCode} priority /></div>
-      <div className="rm-course-facts"><div><span className="mono">ĐỐI TƯỢNG</span><p>{enrollment?.audience || course.audience}</p></div><div><span className="mono">CÙNG CHỌN ĐIỂM BẮT ĐẦU</span><p>{content.foundation}</p></div><div><span className="mono">THÔNG TIN LỚP</span>{course.price ? <><strong>{course.price}<small> / buổi</small></strong><p>90 phút · 5–8 học sinh.<br />Lịch học theo đợt tuyển sinh; trao đổi cụ thể cùng đội ngũ trước khi đăng ký.</p></> : <p>{key === 'e' ? '3–4 học sinh · 2 giờ / buổi. Thi tuyển đầu vào riêng từ lớp C; lịch theo các thành viên lớp. Học phí trao đổi cùng đội ngũ.' : 'Trao đổi cụ thể cùng đội ngũ về nền tảng, lịch học, thời lượng và học phí.'}</p>}</div></div>
+      <nav className="rm-breadcrumb" aria-label="Đường dẫn"><Link href="/">Giới thiệu</Link><span aria-hidden="true">/</span><Link href="/lo-trinh">Lộ trình học tập</Link><span aria-hidden="true">/</span><span aria-current="page">{course.code}</span></nav>
+      <div className="rm-course-hero"><div className="rm-detail-copy"><p className="eyebrow">Lớp {course.code} / {course.title}</p><h1>{content.headline[0]}<br /><em>{content.headline[1]}</em></h1>{enrollment && <div className="rm-heading-facts"><span><Clock3 size={17} aria-hidden="true" />{enrollment.duration}</span><span><Users size={17} aria-hidden="true" />{enrollment.size}</span></div>}<p className="rm-course-lead">{content.introduction}</p><div className="rm-detail-enrollment"><Link className="btn" href={enrollmentHref(courseCode)}>Đăng ký học lớp {course.code} <ArrowRight aria-hidden="true" size={18} /></Link><p className="rm-schedule-note">*Lịch học sắp xếp thuận tiện nhất cho học viên theo từng đợt tuyển sinh; trao đổi cụ thể cùng CSAT ngay bây giờ!</p></div></div><CoursePoster code={courseCode} sizes="(max-width: 600px) 112px, (max-width: 900px) 28vw, 40vw" priority /></div>
+      <div className="rm-course-facts"><div><UserRound aria-hidden="true" size={25} /><h2>ĐỐI TƯỢNG</h2><p>{enrollment?.audience || course.audience}</p></div><div><Compass aria-hidden="true" size={25} /><h2>CÙNG CHỌN ĐIỂM BẮT ĐẦU</h2><p>{content.foundation}</p></div><div><BookOpen aria-hidden="true" size={25} /><h2>THÔNG TIN LỚP</h2>{course.price ? <><strong>{course.price}<small> / buổi</small></strong><p>{enrollment?.duration} · {enrollment?.size}.</p></> : <p>{key === 'e' ? '3–4 học sinh · 2 giờ / buổi. Thi tuyển đầu vào riêng từ lớp C; học phí trao đổi cùng đội ngũ.' : 'Trao đổi cụ thể cùng đội ngũ về nền tảng, thời lượng và học phí.'}</p>}</div></div>
     </header>
     <CoursePathway code={contentCode} />
     {stages.length > 0 ? <CourseCurriculum code={contentCode} stages={stages} /> : <CourseSpecialDirection code={courseCode as 'E' | 'K'} />}
-    <section className="rm-consult-section" id="tu-van"><div className="wrap rm-consult-layout"><div><p className="eyebrow">Cùng CSAT chọn bước tiếp theo</p><GlyphHeading>Chia sẻ việc học.<br /><em>Cùng chọn hướng đi.</em></GlyphHeading><p>Bạn đang quan tâm {course.title.toLowerCase()}? Hãy bắt đầu từ những điều đã học và mục tiêu muốn hướng tới.</p><div className="rm-consult-context"><span className="mono">NỘI DUNG QUAN TÂM</span><p>{context.join(' · ')}</p></div></div><PublicConsultation kind="consultation" context={context.join(' · ')} defaultCourse={courseCode} /></div></section>
+    <CourseOutcomes code={courseCode} />
+    <section className="rm-consult-section" id="tu-van"><div className="wrap rm-consult-layout"><div><p className="eyebrow">Cùng CSAT chọn bước tiếp theo</p><h2>Chia sẻ việc học.<br /><em>Cùng chọn hướng đi.</em></h2><p>Bạn đang quan tâm {course.title.toLowerCase()}? Hãy bắt đầu từ những điều đã học và mục tiêu muốn hướng tới.</p><div className="rm-consult-context"><span className="mono">NỘI DUNG QUAN TÂM</span><p>{context.join(' · ')}</p></div></div><PublicConsultation kind="consultation" context={context.join(' · ')} defaultCourse={courseCode} /></div></section>
   </div></PublicShell>;
 }

@@ -1,97 +1,74 @@
 # CSAT Portal
 
-CSAT Portal giúp trung tâm, gia sư và phụ huynh cùng theo dõi việc học của học sinh — từ lớp học, buổi học và nhận xét đến lộ trình và học phí.
+CSAT xây dựng website giới thiệu, tuyển sinh và Portal theo dõi việc học — từ lớp, buổi học và nhận xét đến lộ trình/học phí.
 
 **Website:** [portal.csatoj.vn](https://portal.csatoj.vn)
 
-**Công nghệ:** Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · Supabase · Vercel
+**Công nghệ:** Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · Supabase · Vercel.
 
-## Portal phục vụ ai?
+## Định hướng hiện tại
 
-- **Admin:** quản lý học sinh, gia sư, lớp học, học phí và chốt sổ.
-- **Gia sư:** theo dõi lớp, điểm danh, cập nhật lộ trình, nhận xét tháng và hồ sơ cá nhân.
-- **Phụ huynh:** xem nhận xét, nội dung học, định hướng phát triển, gia sư và học phí của con.
+Hoàn thiện frontend theo chỉ dẫn của chủ trung tâm. Website công khai dùng **neobrutalism và playful edtech**, kết hợp typography/editorial, thẻ màu, sơ đồ mạch và art tin học; giữ Archivo, logo và palette đã duyệt. Backend/API/logic vận hành hoàn thiện riêng theo hợp đồng và quyền. Xem [quy định thiết kế](docs/PUBLIC_UI_DESIGN_SYSTEM.md).
 
-Website công khai giới thiệu CSAT, các chương trình học và tiếp nhận nhu cầu tư vấn. Chương trình **Cơ bản mặc định gồm A+B**, **Nâng cao gồm C+D**; nội dung chi tiết nằm trong [chương trình đào tạo](docs/CHUONG_TRINH_DAO_TAO.md).
+Catalog công khai có **A/B/C/E/K**: A nhập môn, B thi đấu cơ bản, C nâng cao, E CHỦ LỰC chọn lọc từ C qua thi riêng, K kèm riêng/tùy chọn. C là tên chung cho toàn bộ C/D và các lớp nâng cao tương lai; giữ A9/B15/C19, mã C01–D07/scope CD. Quản lý hiện hành vẫn mặc định Cơ bản A+B, Nâng cao C+D; không tự chuyển lớp cũ.
 
-Trang Đăng ký học ở `/dang-ky-hoc`, có năm thẻ A/B/C/E/K với đối tượng, nội dung và học phí. Từ trang lớp, khóa quan tâm được chọn sẵn; người dùng kiểm tra/sao chép thông tin rồi chủ động liên hệ CSAT. Chưa tạo đăng ký API hoặc lưu database.
+## Chức năng
 
-Học liệu miễn phí ở `/hoc-lieu-mien-phi`, có hướng dẫn luyện tập và form chuẩn bị nhu cầu để nhắn trung tâm. Trang đội ngũ ở `/gia-su`; Góc học Tin ở `/bai-dang` có lưới và trang bài viết một ảnh. Nội dung hiện lấy từ mã frontend; hệ thống đăng bài sẽ được nối sau. Xem [hướng dẫn nội dung](docs/PUBLIC_POSTS.md) để biết nơi sửa và phạm vi hiện tại.
-
-Catalog công khai dùng **5 lớp A/B/C/E/K**: A và B thuộc nền Cơ bản; C dùng C+D; E là Chủ lực, thi tuyển riêng từ C hướng HSG Tỉnh và tuyển sinh chuyên Tin; K học riêng với nội dung tùy chọn. Giao diện này được tích hợp trong Next.js; không chuyển đổi các lớp đang vận hành. Đội ngũ CSAT gồm các gia sư cựu học sinh chuyên Tin THPT Chuyên Phan Bội Châu. Xem [catalog](docs/PUBLIC_COURSE_CATALOG.md) và [hướng dẫn website công khai](docs/PUBLIC_WEBSITE.md).
-
-## Tình trạng hiện tại
-
-Phần quản lý cốt lõi đã được xây dựng và đưa vào sử dụng. Hệ thống **chưa hoàn tất toàn bộ việc triển khai và nghiệm thu**, nhất là xác thực phụ huynh, hồ sơ gia sư và email.
-
-Đối chiếu Supabase chỉ đọc ngày **01/10/2026**:
-
-| Hạng mục | Trạng thái |
+| Phần | Vai trò |
 |---|---|
-| Quản lý lớp, điểm danh, học phí và chốt sổ | Đã có nền tảng nghiệp vụ, phân quyền và lịch sử thay đổi |
-| Chương trình A+B / C+D | Migration 20 đã áp dụng; giữ riêng bản nháp và bản công bố |
-| Cổng phụ huynh, hồ sơ và avatar gia sư | Đã có mã; production còn thiếu schema cho phí từng buổi và hồ sơ mở rộng, chưa có bucket avatar |
-| Form tư vấn và email nhắc tháng | Đã có mã; chưa đủ schema/cấu hình để vận hành, email tháng đang tắt |
-| CSATOJ | Chưa tích hợp API; số bài và ranking đang chờ kết nối |
+| Website | Giới thiệu, tìm hiểu/chi tiết lộ trình, đăng ký học, đội ngũ, bài đăng, học liệu, thành tích, liên lạc |
+| Admin | Quản lý học sinh/gia sư/lớp, học phí và chốt sổ có audit |
+| Gia sư | Buổi học, điểm danh, lộ trình, nhận xét tháng và hồ sơ |
+| Phụ huynh | Nội dung đã công bố, định hướng, gia sư và học phí của con |
 
-Theo mốc đối chiếu trên, production còn thiếu migration **18, 19, 21, 22**; cần kiểm tra lại trước phát hành. Hai việc bảo mật cần ưu tiên là xác minh người tra cứu phụ huynh và thay mật khẩu khởi tạo gia sư đang dùng số điện thoại. Xem [tiến độ và việc cần làm](docs/PROJECT_STATUS.md) để biết điều kiện hoàn tất từng phần.
+Form public chỉ kiểm tra → xem lại → sao chép → chủ động nhắn CSAT; chưa nối API/lưu đăng ký hoặc gửi tài liệu. Khóa quan tâm mặc định theo trang lớp.
 
-## Bắt đầu phát triển
+Thành tích dùng bố cục 3 nhãn cạnh ảnh đã duyệt, dữ liệu riêng và HTML tĩnh/WebP responsive. Bài viết cũng lấy catalog frontend, chưa có quản trị database. Không dựng số liệu hoặc cam kết đầu ra chưa có nguồn.
 
-Tiếp tục từ một cuộc hội thoại mới hoặc bàn giao cho thành viên: đọc [hướng dẫn tiếp nhận](docs/HANDOFF.md), rồi chọn [workflow frontend](docs/FRONTEND_WORKFLOW.md) hoặc [workflow backend](docs/BACKEND_WORKFLOW.md). Hai phần dùng chung kiến trúc và hợp đồng dữ liệu, có tiêu chí kiểm thử riêng.
+Mã và local QA đã có, hệ thống chưa nghiệm thu toàn bộ production: xác thực phụ huynh, mật khẩu khởi tạo gia sư, schema/Storage và email còn việc cần làm. API CSATOJ chưa tích hợp. Trạng thái, bằng chứng và backlog chỉ duy trì tại [PROJECT_STATUS](docs/PROJECT_STATUS.md).
 
-Chuẩn bị **Node.js 24.x**, npm, Git và một project Supabase thử riêng.
+## Tiếp nhận và chạy local
+
+Đọc [HANDOFF](docs/HANDOFF.md), README/AGENTS/SECURITY và tài liệu nghiệp vụ liên quan; chọn [frontend](docs/FRONTEND_WORKFLOW.md) hoặc [backend](docs/BACKEND_WORKFLOW.md). Kiểm tra Git status/diff, giữ công việc có sẵn.
+
+Dùng **Node.js 24** cho local, CI và deploy theo .nvmrc/engines. Kiểm tra phiên bản thực trước khi chạy; kết quả local không xác nhận runtime của deployment.
 
 ```sh
+node --version
 npm ci
 npm ci --prefix database/tests
+node scripts/preview-public-site.cjs
 ```
 
-Sao chép `.env.example` thành `.env.local` nếu chưa có, rồi điền cấu hình môi trường thử. Làm theo [hướng dẫn database](database/README.md) để khởi tạo schema phù hợp.
+Preview công khai tại [127.0.0.1:3100](http://127.0.0.1:3100) dùng cấu hình giả/email tắt, không cần DB thật. Cài database test chỉ khi cần kiểm thử nghiệp vụ. Với portal dùng project Supabase thử riêng và .env.example làm mẫu, không đưa secret ra output. [Database README](database/README.md) hướng dẫn khởi tạo đúng baseline/migration.
 
-```sh
-npm run dev
-```
-
-Mở [localhost:3000](http://localhost:3000). Nếu chỉ sửa trang giới thiệu, chạy `node scripts/preview-public-site.cjs` và mở [127.0.0.1:3100](http://127.0.0.1:3100); chế độ này dùng cấu hình giả, không cần kết nối database thật.
-
-## Cấu trúc dự án
+## Cấu trúc
 
 ```text
-app/          Trang, layout và API theo vai trò
-components/   Thành phần giao diện
-features/     Các module quản lý theo nghiệp vụ
-lib/          Xác thực, validation, dữ liệu học tập và tích hợp
-database/     Migration, SQL kiểm chứng và kiểm thử database/API
-scripts/      Công cụ kiểm tra, preview và vận hành
-types/        Kiểu dữ liệu dùng trong ứng dụng
-docs/         Tài liệu nghiệp vụ, kỹ thuật và triển khai
-.github/      CI và mẫu pull request
+app/          Route/layout/API theo vai trò
+components/   UI; marketing cho website công khai
+features/     Module nghiệp vụ quản lý
+lib/          Contract, Auth, validation, catalog/nội dung và tích hợp
+database/     Migration, verification, database/API tests
+scripts/      Guard, preview, QA và vận hành có phạm vi
+types/        Kiểu ứng dụng
+docs/         Quyết định, chức năng, workflow và trạng thái
+.github/      CI và mẫu PR
 ```
 
-Đọc [kiến trúc hệ thống](docs/ARCHITECTURE.md) để hiểu luồng dữ liệu, quyền truy cập và trách nhiệm của từng phần.
+[ARCHITECTURE](docs/ARCHITECTURE.md) giải thích luồng/quyền; [danh mục docs](docs/README.md) chỉ rõ nguồn chuẩn. Prototype/media gốc/ảnh QA/backup và dữ liệu thật ở kho nội bộ, không là dependency runtime.
 
-## Kiểm thử và đóng góp
+## Kiểm thử và phát hành
 
 ```sh
 npm run check:repo
 npm run test:repo
 npm run test:db
 npm run typecheck
-npm run lint
+npm run lint:strict
 npm run build
 ```
 
-Dùng cấu hình thử khi build. Bộ kiểm thử PostgreSQL native chạy trên Windows; CI có job riêng cho phần này. Quy trình làm việc và gửi PR nằm trong [CONTRIBUTING.md](CONTRIBUTING.md); hướng dẫn cho Codex nằm trong [AGENTS.md](AGENTS.md).
+Chạy theo phạm vi thay đổi; đầy đủ trước PR theo [CONTRIBUTING](CONTRIBUTING.md). UI cần browser QA, ảnh upload cần thử Supabase Storage thật trên project thử. Ghi rõ chưa chạy/skipped; test local không thay staging/production.
 
-## Hướng phát triển
-
-Ưu tiên tăng cường xác thực, đồng bộ database với ứng dụng và nghiệm thu cổng phụ huynh. Tiếp theo là hoàn thiện email tư vấn, nhắc nhận xét tháng; tích hợp CSATOJ khi có API. HSGQG là hướng mở rộng cần duyệt nội dung, chưa phải giáo trình chính thức.
-
-Mọi thay đổi cần giữ lịch sử học tập và tài chính. Admin chốt sổ thủ công; cron chỉ nhắc việc, không tự công bố nhận xét hoặc chốt sổ.
-
-## Tài liệu liên quan
-
-- [Cài đặt Vercel và Supabase](docs/SETUP_VERCEL_SUPABASE.md) · [CI và phát hành](docs/CICD_SETUP.md)
-- [Bảo mật và tài liệu nội bộ](SECURITY.md) — quy định về secret, dữ liệu thật, prototype và tệp nguồn ngoài Git.
-- [Danh mục tài liệu](docs/README.md) — tra cứu hướng dẫn chuyên sâu và các mốc lịch sử.
+Giữ nháp/công bố, revision, snapshot và lịch sử. Admin chốt sổ thủ công, cron chỉ nhắc việc; không tự công bố, tính lại học phí cũ bằng giá mới hoặc suy thành thạo từ ranking. Không tự push/merge/deploy khi test xanh. [SECURITY](SECURITY.md) quy định Git-safe và dữ liệu nội bộ.

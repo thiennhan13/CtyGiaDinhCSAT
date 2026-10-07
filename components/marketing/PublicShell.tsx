@@ -6,6 +6,7 @@ import { PublicNavigation } from './PublicNavigation';
 import { PublicFeedback } from './PublicFeedback';
 import { PublicSectionNavigation } from './PublicSectionNavigation';
 import './public-design.css';
+import './course-e-theme.css';
 export function PublicShell({ children }: {
     children: React.ReactNode;
 }) {

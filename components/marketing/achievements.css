@@ -1,15 +1,73 @@
-.csat-public .awards-page{position:relative;isolation:isolate}
-.csat-public .awards-hero{display:grid;grid-template-columns:1.2fr .8fr;gap:50px;align-items:center;padding-top:72px;padding-bottom:90px}
-.csat-public .awards-hero h1{font-size:clamp(48px,7vw,100px);line-height:1.02;text-transform:uppercase;letter-spacing:-.055em;font-weight:850}
+.csat-public .awards-page{--award-ink:#191917;--award-white:#fff;--award-blue:#2b50e0;--award-lime:#d9e64c;--award-orange:#ee683e;--award-border:3px solid var(--award-ink);position:relative;isolation:isolate}
+.csat-public .awards-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,680px) minmax(0,1fr);gap:32px;align-items:center;padding-block:64px 52px}
+.csat-public .awards-hero-copy{min-width:0;text-align:center}
+.csat-public .awards-hero-copy .eyebrow{font-size:11px;letter-spacing:.1em;line-height:1.6}
+.csat-public .awards-hero h1{font-size:clamp(38px,4.5vw,64px);line-height:1.144;letter-spacing:-.045em;font-weight:800}
 .csat-public .awards-hero h1 em{font-style:normal;color:var(--blue)}
-.csat-public .awards-hero p:not(.eyebrow){max-width:580px;font-size:18px;color:var(--muted);margin:28px 0}
-.csat-public .awards-art{position:relative;display:grid;place-items:center;min-height:370px;isolation:isolate}
-.csat-public .awards-art:before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse,color-mix(in srgb,var(--lime) 60%,transparent),transparent 70%);z-index:-1}
-.csat-public .awards-art>svg{width:220px;height:220px;stroke-width:1.2;color:var(--blue);rotate:-8deg}
-.csat-public .awards-art>span{position:absolute;padding:18px;background:var(--surface);border:1px solid var(--line);box-shadow:4px 4px 0 var(--lime)}
-.csat-public .awards-art>span:nth-of-type(1){top:0;right:5%;rotate:9deg}.csat-public .awards-art>span:nth-of-type(2){bottom:0;left:0;rotate:-6deg}
-.csat-public .awards-sections{display:grid;grid-template-columns:1fr 1fr;gap:32px;padding-bottom:96px}
-.csat-public .awards-sections article{height:100%;padding:40px;background:var(--surface);border:1px solid var(--line);border-radius:4px}
-.csat-public .awards-sections h2{font-size:clamp(28px,3vw,42px);margin:22px 0;text-transform:uppercase;line-height:1.1;letter-spacing:-.04em}
-.csat-public .awards-sections p{color:var(--muted);margin-bottom:25px;font-size:16px}
-@media(max-width:800px){.csat-public .awards-hero{grid-template-columns:1fr;gap:24px;padding-top:40px;padding-bottom:50px}.csat-public .awards-art{min-height:260px}.csat-public .awards-art>svg{width:160px;height:160px}.csat-public .awards-sections{grid-template-columns:1fr;gap:20px}.csat-public .awards-sections article{padding:26px}}
+.csat-public .awards-hero p:not(.eyebrow){max-width:680px;font-size:16px;line-height:1.8;color:var(--muted);margin:24px auto 0;text-wrap:pretty}
+.csat-public .awards-hero .awards-art{width:min(220px,100%);height:264px;justify-self:center;position:relative;display:grid;place-items:center;isolation:isolate}
+.csat-public .awards-art-scene{width:calc(100% / 1.1);height:calc(100% / 1.1);position:relative;display:grid;place-items:center;isolation:isolate;transform:scale(1.1)}
+.csat-public .awards-hero .awards-art-medal{translate:16px 0}
+.csat-public .awards-hero .awards-art-terminal{translate:-16px 0}
+.csat-public .awards-art-square{position:relative;display:grid;place-items:center;width:156px;height:168px;border:var(--award-border);background:var(--award-blue);color:var(--award-ink);box-shadow:8px 8px 0 var(--award-ink);transform:rotate(-5deg)}
+.csat-public .awards-art-square svg{width:112px;height:112px}
+.csat-public .awards-art-terminal .awards-art-square{background:var(--award-orange);transform:rotate(5deg)}
+.csat-public .awards-art-grid{position:absolute;inset:22px 8px 18px;border:2px solid var(--ink);background:repeating-linear-gradient(0deg,transparent 0 23px,var(--ink) 23px 24px),repeating-linear-gradient(90deg,transparent 0 23px,var(--ink) 23px 24px);opacity:.16;transform:rotate(4deg);z-index:-1}
+.csat-public .awards-art-terminal .awards-art-grid{transform:rotate(-4deg)}
+.csat-public .awards-art-strip{position:absolute;left:18px;bottom:6px;display:flex;gap:4px;padding:5px;border:2px solid var(--award-ink);background:var(--award-white);box-shadow:3px 3px 0 var(--award-ink);transform:rotate(3deg)}
+.csat-public .awards-art-strip i{display:block;width:16px;height:9px;background:var(--award-blue)}
+.csat-public .awards-art-strip i:nth-child(2){background:var(--award-orange)}
+.csat-public .awards-art-strip i:nth-child(3){background:var(--award-lime)}
+.csat-public .awards-art-terminal .awards-art-strip{left:auto;right:18px;top:0;bottom:auto;transform:rotate(-3deg)}
+.csat-public .awards-art-spark{position:absolute;left:0;top:0;color:var(--blue);width:26px;height:26px}
+.csat-public .awards-art-spark svg{display:block;width:100%;height:100%}
+.csat-public .awards-art-terminal .awards-art-spark{left:auto;right:0;top:auto;bottom:0;color:var(--orange)}
+.csat-public .awards-art-code{position:absolute;right:0;top:8px;padding:9px;background:var(--award-lime);color:var(--award-ink);border:var(--award-border);box-shadow:4px 4px 0 var(--award-ink);transform:rotate(9deg)}
+.csat-public .awards-art-code svg{display:block;width:32px;height:32px}
+.csat-public .awards-art-terminal .awards-art-code{left:0;right:auto;top:auto;bottom:6px;background:var(--award-blue);color:var(--award-white);transform:rotate(-9deg)}
+.csat-public .awards-art-pixel{width:26px;height:26px;border:var(--award-border);background:var(--award-orange);position:absolute;left:0;bottom:34px;transform:rotate(-9deg);box-shadow:3px 3px 0 var(--award-ink)}
+.csat-public .awards-art-terminal .awards-art-pixel{left:auto;right:0;bottom:auto;top:8px;background:var(--award-lime);transform:rotate(9deg)}
+.csat-public .awards-art-dot{position:absolute;right:8px;bottom:10px;width:12px;height:12px;background:var(--award-ink)}
+.csat-public .awards-art-terminal .awards-art-dot{right:auto;left:8px;top:12px;bottom:auto}
+.csat-public .awards-art-ray{position:absolute;width:30px;height:4px;background:var(--ink);z-index:-1}
+.csat-public .awards-art-ray-one{top:9px;left:20px;transform:rotate(48deg)}
+.csat-public .awards-art-ray-two{top:30px;left:0;transform:rotate(16deg)}
+.csat-public .awards-art-terminal .awards-art-ray-one{left:auto;right:20px;top:auto;bottom:9px}
+.csat-public .awards-art-terminal .awards-art-ray-two{left:auto;right:0;top:auto;bottom:30px}
+.csat-public .awards-students{padding-bottom:48px;scroll-margin-top:116px}
+.csat-public .awards-section-label{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-block:16px;border-block:2px solid var(--ink);margin-bottom:28px}
+.csat-public .awards-section-label h2{font-size:14px;font-weight:800;line-height:1.4;letter-spacing:.04em;text-align:left}
+.csat-public .awards-section-label>span{font-size:11px;font-weight:700;letter-spacing:.04em}
+.csat-public .awards-student-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:27px}
+.csat-public .awards-card-reveal{min-width:0;height:100%}
+.csat-public .awards-student-card{--award-band:var(--award-lime);--award-band-ink:var(--award-ink);display:grid;grid-template-columns:48% 52%;min-width:0;height:100%;align-items:stretch;color:var(--award-ink)}
+.csat-public .awards-student-card[data-tone=orange]{--award-band:var(--award-orange)}
+.csat-public .awards-student-card[data-tone=blue]{--award-band:var(--award-blue);--award-band-ink:var(--award-white)}
+.csat-public .awards-student-photo{min-width:0;min-height:0;width:100%;aspect-ratio:1;align-self:center;margin:0;padding:7.2px;display:block;border:var(--award-border);background:var(--award-white)}
+.csat-public .awards-student-photo picture{display:block;min-width:0;width:100%;height:100%}
+.csat-public .awards-student-photo img{width:100%;height:100%;aspect-ratio:1;object-fit:contain;transition:transform 220ms var(--ease)}
+.csat-public .awards-student-data{min-width:0;display:flex;flex-direction:column;border:var(--award-border);border-left:0;background:var(--award-white);box-shadow:5px 5px 0 var(--award-ink);transition:box-shadow 220ms var(--ease)}
+.csat-public .awards-student-heading{padding:9px 12.6px 10.8px;background:var(--award-band);color:var(--award-band-ink);border-bottom:2px solid var(--award-ink)}
+.csat-public .awards-student-label{display:block;font-size:10px;font-weight:700;letter-spacing:.05em;margin-bottom:5.4px}
+.csat-public .awards-student-heading h3{font-size:22px;line-height:1.25;font-weight:800;letter-spacing:-.02em;overflow-wrap:break-word}
+.csat-public .awards-student-award{display:flex;align-items:center;gap:9px;padding:12.6px;flex:1;border-bottom:2px solid var(--award-ink)}
+.csat-public .awards-student-award>svg{width:23.4px;height:23.4px;flex-shrink:0}
+.csat-public .awards-student-award>div{min-width:0}
+.csat-public .awards-field-label{display:block;font-size:10px;font-weight:700;letter-spacing:.04em;line-height:1.4;margin-bottom:5px}
+.csat-public .awards-student-award ul{margin:0;padding:0;list-style:none;display:grid;gap:7px}
+.csat-public .awards-student-award li{font-size:16.5px;font-weight:700;line-height:1.45;overflow-wrap:break-word}
+.csat-public .awards-student-school{padding:10.8px 12.6px}
+.csat-public .awards-student-school p{margin:0;font-size:14.3px;line-height:1.5;overflow-wrap:break-word}
+.csat-public .awards-next{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-block:24px 48px;border-top:2px solid var(--ink)}
+.csat-public .awards-next p{margin:0;max-width:560px;font-size:15px;color:var(--muted)}
+.csat-public .awards-page .awards-reveal{--reveal-x:0px;--reveal-y:16px}
+.csat-public .awards-page .awards-card-reveal{--reveal-y:24px}
+@media(prefers-reduced-motion:no-preference){.csat-public .awards-page .awards-reveal.reveal-play{animation-duration:520ms}}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){.csat-public .awards-student-card:hover .awards-student-data{box-shadow:7px 7px 0 var(--award-ink)}.csat-public .awards-student-card:hover img{transform:translateY(-2px)}.csat-public .awards-art-square,.csat-public .awards-art-code,.csat-public .awards-art-strip,.csat-public .awards-art-spark{transition:transform 260ms var(--ease),box-shadow 260ms var(--ease)}.csat-public .awards-art:hover .awards-art-square{transform:translateY(-5px) rotate(0);box-shadow:11px 11px 0 var(--award-ink)}.csat-public .awards-art:hover .awards-art-code{transform:translateY(-3px) rotate(0)}.csat-public .awards-art:hover .awards-art-strip{transform:translateY(3px) rotate(0)}.csat-public .awards-art:hover .awards-art-spark{transform:rotate(45deg)}}
+@media(min-width:1101px){.csat-public .awards-page>.wrap{width:min(1760px,100% - 24px)}}
+@media(max-width:1439px){.csat-public .awards-student-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.csat-public .awards-student-grid{grid-template-columns:1fr;gap:21.6px}.csat-public .awards-student-card{grid-template-columns:42% 58%}}
+@media(max-width:1200px){.csat-public .awards-hero{grid-template-columns:minmax(0,1fr) minmax(0,2.7fr) minmax(0,1fr);gap:24px}.csat-public .awards-hero .awards-art{width:min(165px,100%)}.csat-public .awards-hero .awards-art-medal{translate:12px 0}.csat-public .awards-hero .awards-art-terminal{translate:-12px 0}}
+@media(max-width:1050px){.csat-public .awards-art-square{width:126px;height:140px}.csat-public .awards-art-square svg{width:92px;height:92px}.csat-public .awards-art-code{padding:6px}.csat-public .awards-art-code svg{width:26px;height:26px}.csat-public .awards-student-heading h3{font-size:19.8px}.csat-public .awards-student-award{padding:10.8px}.csat-public .awards-student-school{padding:9px 10.8px}}
+@media(max-width:800px){.csat-public .awards-hero{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 36px;padding-block:36px 32px}.csat-public .awards-hero-copy{grid-column:1/-1;grid-row:1}.csat-public .awards-hero .awards-art{width:min(162.8px,100%);height:184.8px;grid-row:2;translate:none}.csat-public .awards-art-medal{grid-column:1;justify-self:end}.csat-public .awards-art-terminal{grid-column:2;justify-self:start}.csat-public .awards-art-square{width:118px;height:128px}.csat-public .awards-art-square svg{width:86px;height:86px}.csat-public .awards-art-code{padding:6px}.csat-public .awards-art-code svg{width:24px;height:24px}.csat-public .awards-art-pixel{width:20px;height:20px}.csat-public .awards-hero p:not(.eyebrow){font-size:15px;margin-top:20px}.csat-public .awards-student-grid{grid-template-columns:1fr;gap:21.6px}.csat-public .awards-student-card{grid-template-columns:42% 58%}.csat-public .awards-student-heading h3{font-size:23.1px}.csat-public .awards-student-award li{font-size:17.6px}.csat-public .awards-next{flex-direction:column;align-items:flex-start;gap:12px}}
+@media(max-width:520px){.csat-public .awards-hero{gap:18px 20px;padding-top:30px}.csat-public .awards-hero .awards-art{width:min(138.6px,100%);height:162.8px}.csat-public .awards-art-square{width:100px;height:112px;box-shadow:5px 5px 0 var(--award-ink)}.csat-public .awards-art-square svg{width:76px;height:76px}.csat-public .awards-art-code{padding:4px;box-shadow:3px 3px 0 var(--award-ink)}.csat-public .awards-art-code svg{width:22px;height:22px}.csat-public .awards-art-pixel{width:18px;height:18px}.csat-public .awards-art-dot{width:8px;height:8px}.csat-public .awards-art-ray{width:20px;height:3px}.csat-public .awards-hero h1{font-size:clamp(34px,9vw,46px)}.csat-public .awards-hero-copy .eyebrow{font-size:10px;letter-spacing:.06em}.csat-public .awards-section-label{margin-bottom:22px}.csat-public .awards-section-label h2{font-size:12px}.csat-public .awards-section-label>span{display:none}.csat-public .awards-student-card{grid-template-columns:42% 58%}.csat-public .awards-student-photo{padding:4.5px}.csat-public .awards-student-heading{padding:7.2px 9px 9px}.csat-public .awards-student-heading h3{font-size:18.7px;line-height:1.3}.csat-public .awards-student-label{font-size:9px}.csat-public .awards-student-award{padding:9px;gap:7.2px}.csat-public .awards-student-award>svg{width:18px;height:18px}.csat-public .awards-student-award li{font-size:14.3px;line-height:1.5}.csat-public .awards-student-school{padding:9px}.csat-public .awards-student-school p{font-size:13.2px}.csat-public .awards-students{padding-bottom:36px}}

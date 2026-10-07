@@ -1,4 +1,4 @@
-name: CI — TypeCheck & Build
+name: CI — Quality & Public UI
 
 on:
   push:
@@ -27,6 +27,7 @@ jobs:
       CONSULTATIONS_ENABLED: 'false'
       CONSULTATIONS_EMAIL_ENABLED: 'false'
       NEXT_TELEMETRY_DISABLED: '1'
+      APP_ORIGIN: http://127.0.0.1:3100
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, verified 2026-10-01
@@ -53,9 +54,33 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
       - name: Lint
-        run: npm run lint
+        run: npm run lint:strict
       - name: Build with placeholders
         run: npm run build
+      - name: Install Chromium for public smoke tests
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Public pages, navigation and no-JS smoke
+        env:
+          CSAT_BROWSER_CHANNEL: chromium
+          PUBLIC_QA_BASE_URL: http://127.0.0.1:3100
+          PUBLIC_QA_FILTER: '^layout no-preference/light/(375|1440)|^no-JS reading|^navbar collapse|^roadmap disclosure|^selector submit|^new course chapters|^approved curriculum|^enrollment catalog|^frontend forms'
+        run: |
+          node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3100 > "$RUNNER_TEMP/csat-public.log" 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid" 2>/dev/null || true; wait "$preview_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in {1..60}; do
+            if curl --fail --silent --output /dev/null http://127.0.0.1:3100/; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then
+            echo 'Public preview did not become ready.'
+            exit 1
+          fi
+          npm run test:public
 
   postgres:
     name: PostgreSQL 17 (Windows, Node 24)

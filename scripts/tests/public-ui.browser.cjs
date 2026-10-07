@@ -1,4 +1,4 @@
-// Manual QA against an isolated local public preview, never a deployed site.
+// QA against an isolated local public preview, never a deployed site.
 // Set PLAYWRIGHT_MODULE for an installed module, PUBLIC_QA_BASE_URL for localhost,
 // and CSAT_BROWSER_CHANNEL for an installed Chromium channel (default msedge).
 // PUBLIC_QA_FILTER optionally limits named checks for targeted re-verification.
@@ -11,9 +11,9 @@ const output=path.resolve(__dirname,'../../scratch/public-release');
 const routes=['/dang-ky-hoc','/','/hoc-lieu-mien-phi','/lo-trinh','/lo-trinh/a','/lo-trinh/b','/lo-trinh/c','/lo-trinh/e','/lo-trinh/k','/lo-trinh/co-ban','/lo-trinh/nang-cao','/thanh-tich','/login','/gia-su','/bai-dang','/bai-dang/tu-dong-code-dau-tien'];
 const failures=[],errors=[],unexpectedWrites=[],assetFailures=[];
 const filter=process.env.PUBLIC_QA_FILTER?new RegExp(process.env.PUBLIC_QA_FILTER):null;
-let assertions=0,layouts=0;
+let assertions=0,layouts=0,checksRun=0;
 function check(value,message){assertions++;if(!value)throw Error(message);}
-async function run(name,fn){if(filter&&!filter.test(name))return;try{await fn();console.log('PASS '+name);}catch(e){failures.push({name,error:e.message});console.error('FAIL '+name+': '+e.message);}}
+async function run(name,fn){if(filter&&!filter.test(name))return;checksRun++;try{await fn();console.log('PASS '+name);}catch(e){failures.push({name,error:e.message});console.error('FAIL '+name+': '+e.message);}}
 async function secure(context){
  await context.route('**/*',async route=>{const req=route.request(),url=new URL(req.url());
   if(['data:','blob:'].includes(url.protocol))return route.continue();
@@ -95,15 +95,94 @@ async function main(){
   check((await page.locator('#lop-e').innerText()).includes('3–4 học sinh'),'Approved E cohort');
   check((await page.locator('#lop-e').innerText()).includes('2 giờ'),'Approved E duration');
   for(const alias of ['hsgqg','voi','prevoi']){await go(page,'/lo-trinh/'+alias);check(new URL(page.url()).pathname==='/dang-ky-hoc','Legacy course route leads to enrollment');check(!new URL(page.url()).searchParams.has('goal'),'Removed goal is not propagated');}
-  await go(page,'/thanh-tich');check(await page.locator('.awards-sections article').count()===2,'Awards scaffold has student and tutor areas');check(await page.locator('.nav-links a[href="/thanh-tich"]').count()===1,'Awards menu is internal');
+  await go(page,'/thanh-tich');check(await page.locator('.awards-student-card').count()>=15,'Awards contain verified editorial cards');check(await page.locator('.nav-links a[href="/thanh-tich"]').count()===1,'Awards menu is internal');
+ });
+ await run('achievements responsive editorial cards and static media',async()=>{
+  const requests=[];
+  for(const theme of ['light','dark'])for(const motion of ['no-preference','reduce']){
+   const c=await browser.newContext({viewport:{width:1440,height:900},colorScheme:theme,reducedMotion:motion});await secure(c);
+   await c.addInitScript(t=>{if(['http:','https:'].includes(location.protocol))localStorage.setItem('theme',t);},theme);const p=await c.newPage();
+   p.on('request',r=>{if(new URL(r.url()).pathname.startsWith('/api/')||r.url().includes('supabase'))requests.push(r.url());});
+   for(const width of [320,375,600,768,800,801,900,901,1024,1050,1051,1100,1101,1200,1201,1280,1439,1440,1600,1920]){
+    await p.setViewportSize({width,height:900});await go(p,'/thanh-tich');layouts++;
+    const cards=p.locator('.awards-student-card');check(await cards.count()>=15,'Verified achievement cards present');
+    for(let y=0;y<await p.evaluate(()=>document.documentElement.scrollHeight);y+=700){await p.evaluate(v=>scrollTo(0,v),y);await p.waitForTimeout(90);}
+    await p.waitForFunction(()=>[...document.querySelectorAll('.awards-student-photo img')].every(i=>i.complete&&i.naturalWidth>0));
+    await p.waitForFunction(()=>[...document.querySelectorAll('.awards-reveal')].every(e=>e.classList.contains('is-revealed')&&!e.classList.contains('reveal-play')));
+    check(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Achievement page reflows without overflow');
+    check(await p.locator('h1').count()===1,'One page heading');
+    check(await p.locator('#awards-students-title').innerText()==='BẢNG VÀNG VINH DANH','Honor roll has the approved heading');
+    check(await p.locator('.awards-hero a[href="#hoc-sinh"]').count()===0,'Hero has no removed student-anchor CTA');
+    check(await p.locator('.awards-hero-copy').evaluate(e=>getComputedStyle(e).textAlign==='center'),'Hero copy is centered');
+    check(await p.locator('.awards-hero').evaluate(e=>{
+     const copy=e.querySelector('.awards-hero-copy').getBoundingClientRect(),left=e.querySelector('.awards-art-medal').getBoundingClientRect(),right=e.querySelector('.awards-art-terminal').getBoundingClientRect();
+     const within=[left,right,copy].every(r=>r.left>=0&&r.right<=innerWidth+1&&r.width>0&&r.height>0);
+     return within&&(innerWidth>800?left.right<=copy.left+1&&copy.right<=right.left+1:left.top>=copy.bottom-1&&right.top>=copy.bottom-1&&left.right<=right.left+1);
+    }),'Both decorative arts fit beside or below copy without overlap');
+    check(await p.locator('.awards-art-scene').evaluateAll(es=>es.every(e=>Math.abs(Number(getComputedStyle(e).transform.match(/matrix\(([^,]+)/)[1])-1.1)<.001)),'Hero art compositions are enlarged by ten percent');
+    if(width>800)check(await p.locator('.awards-hero').evaluate(e=>{
+     const h=e.getBoundingClientRect(),t=e.querySelector('.awards-hero-copy').getBoundingClientRect(),a=e.querySelector('.awards-art-medal').getBoundingClientRect(),b=e.querySelector('.awards-art-terminal').getBoundingClientRect();
+     return Math.abs(a.left+a.width/2-(h.left+t.left)/2)<1&&Math.abs(b.left+b.width/2-(t.right+h.right)/2)<1;
+    }),'Desktop art centers between page edges and text');
+    check(await p.locator('.dock-materials-notice').count()===0,'Learning-materials invitation does not cover achievement cards');
+    check(await cards.evaluateAll(es=>es.every(e=>{
+     const photo=e.querySelector('figure').getBoundingClientRect(),data=e.querySelector('.awards-student-data').getBoundingClientRect();
+     return Math.abs(photo.width-photo.height)<1&&Math.abs(photo.top+photo.height/2-data.top-data.height/2)<1&&Math.abs(photo.right-data.left)<1&&data.right<=innerWidth+1&&photo.left>=0;
+    })),'Square photo frame is centered beside readable information without clipping');
+    check(await cards.evaluateAll(es=>es.every(e=>[...e.querySelectorAll('h3,li,.awards-student-school p')].every(t=>t.scrollWidth<=t.clientWidth+1&&t.scrollHeight<=t.clientHeight+1))),'Real names, achievements and schools fit');
+    check(await p.locator('.awards-student-photo img').evaluateAll(es=>es.every(e=>getComputedStyle(e).objectFit==='contain'&&e.loading==='lazy'&&e.getAttribute('src').includes('.webp')&&e.width>0&&e.height>0)),'Full posters use lazy optimized WebP');
+    check(await cards.evaluateAll(es=>es.every(e=>e.querySelector('h3').textContent.trim()&&!/\[|\]|placeholder/i.test(e.textContent)&&e.querySelectorAll('.awards-student-award li').length)),'No invented placeholder content');
+    check(await p.locator('.awards-student-heading').evaluateAll(es=>{
+     const lum=s=>{const v=s.match(/[\d.]+/g).slice(0,3).map(n=>{n=Number(n)/255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4});return v[0]*.2126+v[1]*.7152+v[2]*.0722;};
+     return es.every(e=>{const s=getComputedStyle(e),a=lum(s.color),b=lum(s.backgroundColor);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5;});
+    }),'Name bands meet 4.5:1 text contrast');
+    const columns=await p.locator('.awards-student-grid').evaluate(e=>getComputedStyle(e).gridTemplateColumns.split(' ').length);
+    check(columns===(width>=1440?3:width>900?2:1),'Three wide-screen, two narrow-screen or one mobile card per row');
+    if(width>1100)check(await p.locator('.awards-students').evaluate(e=>{const r=e.getBoundingClientRect();return r.width>=Math.min(1760,innerWidth-24)-1;}),'Desktop uses the widened page space');
+    check(await p.locator('.awards-student-label').evaluateAll(es=>es.every(e=>e.textContent.trim()==='HỌC SINH')),'Student labels have no serial numbers');
+    check(await p.locator('.awards-card-reveal').evaluateAll(es=>es.every(e=>e.dataset.revealVariant==='rise')),'All cards slide upward on entry');
+    if(motion==='reduce')check(await p.locator('.awards-reveal').evaluateAll(es=>es.every(e=>getComputedStyle(e).opacity==='1'&&getComputedStyle(e).animationName==='none')),'Reduced motion is fully readable');
+    if(motion==='no-preference'&&[375,1440].includes(width)){await p.evaluate(()=>scrollTo(0,0));await p.screenshot({path:path.join(output,`achievements-${theme}-${width}.png`),fullPage:true});}
+   }
+   await c.close();
+  }
+  check(requests.length===0,'Static achievements make no API/database requests');
+ });
+ await run('achievements reveal no-JS and client navigation',async()=>{
+  await page.setViewportSize({width:1440,height:900});await go(page,'/thanh-tich');
+  const last=page.locator('.awards-card-reveal').last();check(await last.evaluate(e=>e.classList.contains('reveal-ready')),'Offscreen cards wait for entry');
+  await last.scrollIntoViewIfNeeded();await page.waitForFunction(()=>document.querySelector('.awards-card-reveal:last-child').classList.contains('is-revealed'));
+  await page.waitForTimeout(1100);check(await last.evaluate(e=>getComputedStyle(e).opacity==='1'&&!e.classList.contains('reveal-play')),'Reveal finishes readable');
+  await page.evaluate(()=>scrollTo(0,0));await last.scrollIntoViewIfNeeded();check(await last.evaluate(e=>!e.classList.contains('reveal-play')),'Reveal does not repeat');
+  await page.evaluate(()=>scrollTo(0,0));await page.emulateMedia({reducedMotion:'no-preference'});
+  const art=page.locator('.awards-art-medal'),frame=art.locator('.awards-art-square');
+  const rest=await frame.evaluate(e=>getComputedStyle(e).transform);await art.hover();await page.waitForTimeout(320);
+  check(await frame.evaluate((e,b)=>getComputedStyle(e).transform!==b,rest),'Decorative art responds to hover');
+  await page.mouse.move(0,0);await page.waitForTimeout(320);
+  check(await frame.evaluate((e,b)=>getComputedStyle(e).transform===b,rest),'Art returns to its resting layout');
+  await page.emulateMedia({reducedMotion:'reduce'});await art.hover();await page.waitForTimeout(320);
+  check(await frame.evaluate((e,b)=>getComputedStyle(e).transform===b&&getComputedStyle(e).transitionDuration==='0s',rest),'Reduced motion suppresses decorative hover movement');
+  await page.emulateMedia({reducedMotion:'no-preference'});await page.mouse.move(0,0);
+  for(const width of [320,1440]){
+   const c=await browser.newContext({javaScriptEnabled:false,viewport:{width,height:900}});await secure(c);const p=await c.newPage();await go(p,'/thanh-tich');
+   check(await p.locator('.awards-student-card').count()>=15,'No-JS includes full static catalog');
+   check(await p.locator('.awards-card-reveal').evaluateAll(es=>es.every(e=>getComputedStyle(e).opacity==='1')),'No-JS cards are visible');
+   check(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'No-JS reflow');await c.close();
+  }
+  await go(page,'/gia-su');await page.locator('.nav-links a[href="/thanh-tich"]').click();await page.waitForURL(url=>url.pathname==='/thanh-tich');
+  check(await page.locator('.awards-student-card').count()>=15,'Client navigation renders catalog');
+  await page.goBack({waitUntil:'networkidle'});await page.goForward({waitUntil:'networkidle'});
+  const first=page.locator('.awards-student-card').first();await first.scrollIntoViewIfNeeded();await page.waitForTimeout(1100);
+  check(await first.evaluate(e=>Math.abs(e.querySelector('figure').getBoundingClientRect().right-e.querySelector('.awards-student-data').getBoundingClientRect().left)<1),'Back/forward preserves attached layout');
  });
  await run('separate public A and B courses',async()=>{
-  for(const route of ['/lo-trinh','/dang-ky-hoc','/lo-trinh/a','/lo-trinh/b']){
+  for(const route of ['/lo-trinh','/dang-ky-hoc','/lo-trinh/a','/lo-trinh/b','/','/lo-trinh/c','/lo-trinh/e']){
    await go(page,route);check(!/A\s*\+\s*B/.test(await page.locator('main').innerText()),'No combined public course '+route);
+   check(!(await page.locator('main').innerText()).includes('C+D'),'Advanced public name is C '+route);
    check(await page.locator('a[href*="/lo-trinh/co-ban"],a[href*="/lo-trinh/basic"]').count()===0,'No combined route links '+route);
   }
   for(const alias of ['co-ban','basic']){await go(page,'/lo-trinh/'+alias);check(new URL(page.url()).pathname==='/lo-trinh','Old combined route redirects to overview');}
-  for(const [background,codes]of [['new',['A']],['syntax',['A','B']],['practice',['B','C+D']],['unsure',['A','B','C+D']]]){
+  for(const [background,codes]of [['new',['A']],['syntax',['A','B']],['practice',['B','C']],['unsure',['A','B','C']]]){
    await go(page,'/lo-trinh?background='+background+'&show=1');await page.waitForFunction(()=>document.querySelector('.rm-result h3').textContent!=='Bạn muốn bắt đầu từ đâu?');
    check(JSON.stringify(await page.locator('.rm-result-links b').allTextContents())===JSON.stringify(codes),'Separate course suggestions '+background);
   }
@@ -112,28 +191,109 @@ async function main(){
   const sitemap=await page.request.get(new URL('/sitemap.xml',base).href);check(sitemap.status()===200,'Sitemap loads');const xml=await sitemap.text();
   check(!xml.includes('/lo-trinh/co-ban')&&!xml.includes('/lo-trinh/basic'),'Combined route removed from sitemap');
   for(const code of ['a','b'])check(xml.includes('/lo-trinh/'+code+'</loc>'),'Separate course in sitemap '+code);
+  await go(page,'/lo-trinh/c');check((await page.locator('.rm-stage-index').allTextContents()).every(text=>text.trim().endsWith('/ C')),'Every advanced stage uses public name C');
+ });
+ await run('roadmap client navigation and CSS load order',async()=>{
+  for(const theme of ['light','dark'])for(const width of [375,1440])for(const source of ['/','/dang-ky-hoc','/lo-trinh/e','/gia-su']){
+   const c=await browser.newContext({viewport:{width,height:900},colorScheme:theme,reducedMotion:'reduce'});await secure(c);
+   try{
+    await c.addInitScript(t=>{if(['http:','https:'].includes(location.protocol))localStorage.setItem('theme',t);},theme);const p=await c.newPage();await go(p,source);
+    await p.evaluate(()=>window.__csatNavigationProbe='client');
+    await p.locator('.footer-nav a[href="/lo-trinh"]').click();await p.waitForURL('**/lo-trinh');await p.waitForLoadState('networkidle');
+    check(await p.evaluate(()=>window.__csatNavigationProbe)==='client','Roadmap reached through client navigation '+source);
+    // Replay the shared trigger rules last: route chunks may arrive in either order.
+    await p.evaluate(()=>{
+     const rules=Array.from(document.styleSheets).flatMap(s=>{try{return Array.from(s.cssRules);}catch{return[];}}).filter(r=>r.selectorText?.startsWith('.csat-public .course-poster-trigger'));
+     const style=document.createElement('style');style.textContent=rules.map(r=>r.cssText).join('\n');document.head.append(style);
+    });
+    for(const code of ['a','b','c','e','k'])check(await p.locator('#lop-'+code).evaluate(e=>{
+     const trigger=e.querySelector('.rm-background-poster'),band=e.querySelector('.rm-description-band'),r=trigger.getBoundingClientRect(),b=band.getBoundingClientRect();
+     return getComputedStyle(trigger).position==='absolute'&&trigger.offsetParent===band&&Math.abs(r.top-b.top)<=2&&Math.abs(r.bottom-b.bottom)<=2;
+    }),'Image stays in background regardless of CSS order '+theme+'/'+width+source+'/'+code);
+    const e=p.locator('#lop-e');check(await e.evaluate(e=>{
+     const image=e.querySelector('.rm-background-poster'),band=e.querySelector('.rm-description-band'),r=image.getBoundingClientRect(),b=band.getBoundingClientRect(),s=getComputedStyle(image.querySelector('img'));
+     const overlay=getComputedStyle(image,'::after').backgroundImage;
+     return Math.abs((r.left+r.right)-(b.left+b.right))<2&&s.objectPosition==='50% 75%'&&Math.abs(parseFloat(s.height)/r.height-1)<.01&&overlay.includes('gradient')&&/(?:rgba\(0,\s*0,\s*0,\s*0\)|transparent) 50%/.test(overlay)&&/(?:rgba\(0,\s*0,\s*0,\s*0\)|transparent) 100%/.test(overlay);
+    }),'E centered 75-percent crop has a transparent lower-half overlay '+theme+'/'+width);
+    await p.goBack({waitUntil:'networkidle'});check(new URL(p.url()).pathname===source,'Back restores source '+source);
+    await p.goForward({waitUntil:'networkidle'});check(await p.locator('.rm-background-poster').evaluateAll(es=>es.every(e=>getComputedStyle(e).position==='absolute')),'Forward preserves background layout');
+    check(await p.locator('.rm-background-poster').evaluateAll(es=>es.every(e=>e.tagName==='DIV'&&!e.hasAttribute('tabindex')&&!e.hasAttribute('href'))),'Overview images remain non-interactive after client navigation');
+    check(await p.locator('.course-poster-lightbox').count()===0,'Overview mounts no image dialog');
+   }finally{await c.close();}
+  }
+ });
+ await run('roadmap approved hashtags, centered E and simple entrances',async()=>{
+  const approved={A:['NhậpMônC++','Lớp5Đến7','NềnTảngChuyênTin'],B:['ThiĐấuCơBản','SốHọcVàTìmKiếm','HSGCấpPhường'],C:['ThuậtToánNângCao','HSGCấpTỉnh','ChuyênTin'],E:[],K:[]};
+  for(const theme of ['light','dark'])for(const width of [320,375,768,1440]){
+   const c=await browser.newContext({viewport:{width,height:900},colorScheme:theme,reducedMotion:'reduce'});await secure(c);
+   try{
+    await c.addInitScript(t=>{if(['http:','https:'].includes(location.protocol))localStorage.setItem('theme',t);},theme);
+    const p=await c.newPage();await go(p,'/lo-trinh');
+    for(const code of ['a','b','c','e','k']){
+     const section=p.locator('#lop-'+code);
+     if(code==='e'||code==='k'){check(await section.locator('.rm-course-hashtags').count()===0,'No hashtags '+theme+'/'+width+'/'+code);continue;}
+     check(JSON.stringify(await section.locator('.rm-course-hashtags li').allTextContents())===JSON.stringify(approved[code.toUpperCase()].map(t=>'#'+t)),'Approved hashtags '+theme+'/'+width+'/'+code);
+     check(await section.evaluate(e=>{const tags=e.querySelector('.rm-course-hashtags').getBoundingClientRect(),band=e.querySelector('.rm-description-band').getBoundingClientRect(),heading=e.querySelector('h2').getBoundingClientRect();return tags.left>=band.left&&tags.right<=band.right+1&&tags.top>=band.top&&tags.bottom<=band.bottom&&!(tags.left<heading.right&&tags.right>heading.left&&tags.top<heading.bottom&&tags.bottom>heading.top);}), 'Hashtags fit image and clear heading '+theme+'/'+width+'/'+code);
+    }
+    check(await p.locator('#lop-e .e-hero-copy').evaluate(e=>{const r=e.getBoundingClientRect(),b=e.parentElement.getBoundingClientRect();return getComputedStyle(e).textAlign==='center'&&Math.abs((r.left+r.right)-(b.left+b.right))<2;}),'E introduction centered '+theme+'/'+width);
+    check(await p.locator('#lop-k .course-knowledge>ol>li').evaluateAll((es,w)=>{const r=es.map(e=>e.getBoundingClientRect());return w>600?r.every(b=>Math.abs(b.top-r[0].top)<2):r.every((b,i)=>!i||b.top>=r[i-1].bottom);},width),'K keeps three columns above 600px and stacks on mobile '+theme+'/'+width);
+    for(const code of ['a','b','c'])check(await p.locator('#lop-'+code+' .course-knowledge>ol>li').evaluateAll(es=>es.length>0&&es.every(e=>e.querySelector('h3')&&e.querySelectorAll('.knowledge-tags>li').length>0&&!e.querySelector('p'))),'Knowledge cards retain stage and algorithms without descriptions '+theme+'/'+width+'/'+code);
+    check(await p.locator('.roadmap-course-letter').evaluateAll(es=>es.length>=6&&es.every(e=>getComputedStyle(e).fontFamily===getComputedStyle(document.querySelector('.nav-roadmap>summary')).fontFamily)),'Course letters share the menu font '+theme+'/'+width);
+    check(await p.locator('#lop-e .e-entry>p').count()===0,'No admission footnote');
+    check(await p.locator('#lop-e .e-circuit-path li').evaluateAll(es=>{const r=es.map(e=>e.getBoundingClientRect());return es.length===3&&r.every(b=>Math.abs(b.top-r[0].top)<2);}), 'Three circuit nodes fit one row '+theme+'/'+width);
+    check(await p.locator('#lop-e .e-hero-copy h2').evaluate(e=>parseFloat(getComputedStyle(e).fontSize)>=40),'E heading is larger');
+    check(await p.locator('#lop-e .e-hero-copy h2').evaluate(e=>getComputedStyle(e).textTransform==='uppercase'),'E course name is uppercase');
+    check(await p.locator('#lop-e .e-circuit-node :is(b,span,strong)').evaluateAll(es=>{const reference=getComputedStyle(es[0]);return es.length===4&&es.every(e=>{const s=getComputedStyle(e);return s.fontFamily===reference.fontFamily&&s.fontSize===reference.fontSize&&s.fontWeight===reference.fontWeight&&s.lineHeight===reference.lineHeight&&s.textTransform==='uppercase';});}),'Admission labels have one font scale and uppercase treatment');
+    check(await p.locator('#lop-e .e-competition-tag').innerText()==='Thi đấu & phát triển','E competition tag');
+    check(await p.locator('#lop-e .rm-heading-facts>.e-competition-tag').count()===1,'Competition tag shares the facts group');
+    check(await p.locator('#lop-e .e-headline').count()===0,'E has no redundant slogan');
+    check(await p.locator('#lop-e .e-circuit-heading,#lop-e .e-circuit-c svg').count()===0,'No admission heading or duplicate C icon');
+    check(await p.locator('#lop-e .e-entry-mark[aria-hidden=true]').count()===2,'Only selection and flagship marks remain');
+    check(await p.locator('#lop-e .e-circuit-selection svg').evaluate(e=>getComputedStyle(e).strokeWidth==='1.5px'),'Selection icon has thin stroke');
+    check(await p.locator('#lop-e .e-circuit-node').evaluateAll((es,w)=>es.every(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.height<=(w>600?80:110)&&parseFloat(s.borderTopWidth)===2&&s.boxShadow!=='none';}),width),'Compact neubrutalist entry panels '+theme+'/'+width);
+    check(await p.locator('#lop-e .e-entry-label').evaluateAll(es=>es.every(e=>{const r=e.getBoundingClientRect(),box=e.parentElement.getBoundingClientRect(),[a,b]=[...e.children].map(c=>c.getBoundingClientRect());return Math.abs((r.top+r.bottom)-(box.top+box.bottom))<2&&Math.abs((r.left+r.right)-(box.left+box.right))<2&&a.right<=b.left&&Math.abs((a.top+a.bottom)-(b.top+b.bottom))<2;})),'C and Elite labels are centered with inline contents');
+    check((await p.locator('#lop-e .e-circuit-e').innerText()).trim()==='ELITE','Last entry panel shows medal and ELITE without duplicate caption');
+    check(await p.locator('#lop-e .e-message').evaluate(e=>{const s=getComputedStyle(e);return s.backgroundColor==='rgba(0, 0, 0, 0)'&&s.backgroundImage.startsWith('radial-gradient(')&&s.backgroundImage.includes('rgba(0, 0, 0, 0) 100%')&&parseFloat(s.borderTopWidth)===0;}),'E description has a transparent cream radial gradient');
+    check(await p.locator('#lop-e .e-art-medal').evaluate(e=>getComputedStyle(e).strokeWidth==='0.8px'),'Background medal restores thin stroke');
+    check(await p.locator('#lop-e .rm-background-poster img').getAttribute('src').then(s=>s.includes('roadmap-e-v3')&&s.includes('q=90')),'E uses high-quality optimized image');
+    if(width===1440)check(await p.locator('#lop-e .rm-heading-facts>span').evaluateAll(es=>{const r=es.map(e=>e.getBoundingClientRect());return r.every(b=>Math.abs(b.top-r[0].top)<2);}), 'All E facts share one desktop row');
+    check(await p.locator('#lop-e .e-pillar-3 .e-pillar-label>span:first-child').evaluate(e=>getComputedStyle(e).backgroundColor!==getComputedStyle(e.closest('.e-pillar')).backgroundColor),'03 counter separates from card surface');
+    check(await p.locator('.rm-section-reveal').evaluateAll(es=>es.every(e=>getComputedStyle(e).opacity==='1'&&getComputedStyle(e).animationName==='none')),'Reduced motion reads all sections '+theme+'/'+width);
+   }finally{await c.close();}
+  }
+  await page.setViewportSize({width:1440,height:900});await page.emulateMedia({reducedMotion:'no-preference'});await go(page,'/lo-trinh');
+  const panel=page.locator('#lop-c .rm-section-reveal');check(await panel.evaluate(e=>e.classList.contains('reveal-ready')),'Off-screen section waits for entry');
+  await panel.scrollIntoViewIfNeeded();await page.waitForFunction(()=>document.querySelector('#lop-c .rm-section-reveal').classList.contains('is-revealed'));
+  check(await panel.evaluate(e=>{const s=getComputedStyle(e);return s.animationName==='csat-editorial-enter'&&s.animationDuration==='0.52s';}),'Entrance is a short slide/fade');
+  await page.waitForTimeout(1100);check(await panel.evaluate(e=>getComputedStyle(e).opacity==='1'&&!e.classList.contains('reveal-play')),'Entrance finishes fully readable');
+  await page.evaluate(()=>scrollTo(0,0));await panel.scrollIntoViewIfNeeded();check(await panel.evaluate(e=>!e.classList.contains('reveal-play')),'Entrance does not repeat on scrolling');
  });
  await run('roadmap editorial posters, motion and stage navigation',async()=>{
   await page.setViewportSize({width:1440,height:900});await go(page,'/lo-trinh');
   check(await page.locator('.rm-class-section [data-glyph-hover]').count()===0,'Course headings have no glyph effect');
-  check(await page.locator('.rm-class-section .public-reveal').count()===0,'Course images/content have no scroll reveal');
+  check(await page.locator('.roadmap-overview .rm-section-reveal').count()===7,'Seven sections have one simple entrance each');
+  check(await page.locator('.rm-section-reveal[data-reveal-variant=wipe]').count()===0,'Simple entrances have no cover wipe');
   check(await page.locator('.rm-class-section .rm-small').count()===0,'No caption below enrollment actions');
-  for(const [code,asset] of [['a','a'],['b','b'],['c','c'],['e','ek'],['k','ek']]){
+  for(const code of ['a','b','c','e','k']){
    const poster=page.locator('#lop-'+code+' .rm-background-poster');
-   check((await poster.locator('img').getAttribute('src')).includes('course-'+asset+'.webp'),'Course poster source '+code);
+   check((await poster.locator('img').getAttribute('src')).includes('roadmap-'+(code==='e'?'e-v3':code)+'.webp'),'Course illustration source '+code);
+   check(await poster.locator('.course-poster-expand').count()===0,'No view-image button on overview '+code);
    await poster.scrollIntoViewIfNeeded();await page.mouse.move(0,0);
+   // Measure scroll attachment after the requested one-time entrance has finished.
+   await page.waitForFunction(code=>{const r=document.querySelector('#lop-'+code+' .rm-section-reveal');return r.classList.contains('is-revealed')&&!r.classList.contains('reveal-play');},code);
    const before=await poster.evaluate(e=>e.getBoundingClientRect().top+scrollY);
    await page.evaluate(()=>scrollBy(0,180));
    check(Math.abs(await poster.evaluate(e=>e.getBoundingClientRect().top+scrollY)-before)<1,'Poster stays in document flow '+code);
    check(await poster.evaluate(e=>getComputedStyle(e).position)==='absolute','Background poster stays fixed within description '+code);
   }
-  const poster=page.locator('#lop-a .rm-background-poster');await poster.locator('.course-poster-expand').hover();
-  check(await poster.locator('img').evaluate(e=>getComputedStyle(e).animationName)==='rm-poster-response','Hover image response');
+  const poster=page.locator('#lop-a .rm-background-poster');const posterBounds=await poster.boundingBox();await poster.hover({position:{x:posterBounds.width-2,y:2}});
+  check(await poster.locator('img').evaluate(e=>getComputedStyle(e).animationName)==='rm-background-response','Hover image response keeps zoom');
   check(await poster.locator('img').evaluate(e=>getComputedStyle(e).animationIterationCount)==='1','Hover is finite');
   await page.emulateMedia({reducedMotion:'reduce'});
   check(await poster.locator('img').evaluate(e=>getComputedStyle(e).animationName)==='none','Reduced motion stops hover response');await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.mouse.move(0,0);check(await poster.locator('img').evaluate(e=>Math.abs(new DOMMatrix(getComputedStyle(e).transform).a-1.1)<.001),'Background remains zoomed 110 percent');
   check(await page.locator('#lop-e.rm-flagship .rm-admission-path li').count()===3,'E admission path has three distinct steps');
-  check((await page.locator('#lop-e .rm-admission-path').innerText()).includes('Thi tuyển riêng'),'C to E requires selection');
+  check((await page.locator('#lop-e .rm-admission-path').innerText()).toLocaleLowerCase('vi').includes('thi tuyển riêng'),'C to E requires selection');
   for(const slug of ['a','b','c','e','k']){
    await go(page,'/lo-trinh/'+slug);
    check(await page.locator('.rm-course-intro').evaluate(e=>e.firstElementChild.classList.contains('rm-course-switch')),'Course switch at top '+slug);
@@ -159,7 +319,16 @@ async function main(){
  });
  await run('poster lightbox and section jump controls',async()=>{
   await page.setViewportSize({width:1440,height:900});await page.emulateMedia({reducedMotion:'reduce'});
-  for(const route of ['/lo-trinh','/dang-ky-hoc']){
+  await go(page,'/lo-trinh');
+  for(const code of ['a','b','c','e','k']){
+   const image=page.locator('#lop-'+code+' .rm-background-poster');
+   check(await image.evaluate(e=>e.tagName==='DIV'&&!e.hasAttribute('href')&&!e.hasAttribute('tabindex')&&getComputedStyle(e).cursor!=='zoom-in'),'Overview image has no action or zoom cursor '+code);
+   // Click the actual image area below the fixed header; content may cover this static background.
+   await image.evaluate(e=>scrollTo({top:scrollY+e.getBoundingClientRect().top-document.querySelector('.site-header').getBoundingClientRect().bottom-24,behavior:'instant'}));
+   const url=page.url(),box=await image.boundingBox();await page.mouse.click(box.x+box.width-18,box.y+40);
+   check(page.url()===url&&await page.locator('.course-poster-lightbox').count()===0,'Clicking overview image has no effect '+code);
+  }
+  for(const route of ['/dang-ky-hoc']){
    await go(page,route);
    for(const code of ['a','b','c','e','k']){
     const trigger=page.locator(route==='/lo-trinh'?'#lop-'+code+' .course-poster-trigger':'.enrollment-'+code+' .course-poster-trigger');
@@ -171,7 +340,7 @@ async function main(){
     check(await dialog.getByRole('button',{name:'Đóng ảnh'}).evaluate(e=>e===document.activeElement),'Close button receives focus');
     await page.keyboard.press('Tab');check(await dialog.evaluate(e=>e.contains(document.activeElement)),'Focus remains within image modal');
     await dialog.locator('figure img').evaluate(e=>e.decode());
-    check(await dialog.locator('figure img').evaluate(e=>{const r=e.getBoundingClientRect();return e.naturalWidth===1000&&r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight;}),'Complete optimized poster fits screen');
+    check(await dialog.locator('figure img').evaluate((e,expectedWidth)=>{const r=e.getBoundingClientRect();return e.naturalWidth===expectedWidth&&r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight;},route==='/lo-trinh'?1600:1000),'Complete optimized image fits screen');
     check(await page.evaluate(()=>getComputedStyle(document.body).overflow)===overflow,'Image preview does not change page scroll styles');
     if(code==='a')await page.screenshot({path:path.join(output,route==='/lo-trinh'?'roadmap-poster-modal-1440.png':'enrollment-poster-modal-1440.png')});
     if(code==='b')await dialog.getByRole('button',{name:'Đóng ảnh'}).click();else await page.keyboard.press('Escape');
@@ -187,7 +356,7 @@ async function main(){
    await page.waitForFunction(()=>{const t=document.querySelector('.rm-choose').getBoundingClientRect().top,h=document.querySelector('.site-header').getBoundingClientRect().bottom;return Math.abs(t-h-24)<3;});
    await page.waitForFunction(()=>!document.querySelector('.public-section-jump button').disabled);
    check(!await previous.isDisabled(),'Previous enabled after next section');
-   const clear=await navigation.evaluate(e=>{const n=e.getBoundingClientRect(),r=document.querySelector('.rm-choose .wrap').getBoundingClientRect();return n.left>=r.right&&n.right<=innerWidth;});check(clear,'Right rail clears content '+width);
+   const floating=await navigation.evaluate(e=>{const n=e.getBoundingClientRect(),main=document.querySelector('main');return getComputedStyle(e).position==='fixed'&&n.left>=0&&n.right<=innerWidth&&getComputedStyle(main).paddingRight==='0px'&&Math.abs(main.getBoundingClientRect().right-innerWidth)<1;});check(floating,'Floating controls preserve full content width '+width);
    await previous.click();await page.waitForFunction(()=>document.querySelector('.public-section-jump button').disabled);check(await previous.isDisabled(),'Previous returns to opening');
    await page.locator('#tu-van').evaluate(e=>scrollTo({top:scrollY+e.getBoundingClientRect().top-document.querySelector('.site-header').getBoundingClientRect().bottom-24,behavior:'instant'}));
    await page.waitForFunction(()=>document.querySelector('.public-section-jump button:last-child').disabled);check(await next.isDisabled(),'Next disabled at final section');
@@ -196,16 +365,23 @@ async function main(){
   await go(page,'/lo-trinh');
   for(const code of ['a','b','c','e','k']){
    const section=page.locator('#lop-'+code);
-   check(await section.evaluate(e=>{const image=e.querySelector('.rm-background-poster').getBoundingClientRect(),band=e.querySelector('.rm-description-band').getBoundingClientRect(),knowledge=e.querySelector('.rm-overview-roadmap').getBoundingClientRect(),description=e.querySelector('.rm-audience-panel').getBoundingClientRect();return image.bottom<=band.bottom+1&&image.bottom<=knowledge.top+1&&image.bottom>=description.bottom;}),'Background ends after description before knowledge '+code);
+   check(await section.evaluate(e=>{const image=e.querySelector('.rm-background-poster').getBoundingClientRect(),band=e.querySelector('.rm-description-band').getBoundingClientRect(),knowledge=e.querySelector('.rm-overview-roadmap,.e-pillars-group').getBoundingClientRect(),description=e.querySelector('.rm-audience-panel,.e-hero-copy').getBoundingClientRect();return image.bottom<=band.bottom+1&&image.bottom<=knowledge.top+1&&image.bottom>=description.bottom;}),'Background ends after description before knowledge '+code);
   }
-  for(const code of ['a','e']){
-   const colors=await page.locator('#lop-'+code+' .course-knowledge h3').evaluateAll(es=>[...new Set(es.map(e=>getComputedStyle(e).color))]);check(colors.length>=3,'Three clear development colors '+code);
-   const ratios=await page.locator('#lop-'+code+' .rm-focus-tags li').evaluateAll(es=>{
+  for(const code of ['a','b','c','e','k']){
+   const colors=await page.locator('#lop-'+code+' :is(.course-knowledge,.e-pillars) h3').evaluateAll(es=>[...new Set(es.map(e=>getComputedStyle(e).color))]);check(colors.length===1,'Roadmap headings use one shared accent '+code);
+   const backgrounds=await page.locator('#lop-'+code+' :is(.course-knowledge>ol>li,.e-pillar)').evaluateAll(es=>[...new Set(es.map(e=>getComputedStyle(e).backgroundColor))]);check(backgrounds.length>=2,'Roadmap cards have distinct surfaces '+code);
+   if(code==='e')check(await page.locator('#lop-e .e-pillar').count()===3,'E consolidates learning, community and practice into three pillars');
+   else if(code==='k'){const tagColors=await page.locator('#lop-'+code+' .rm-focus-tags li').evaluateAll(es=>[...new Set(es.map(e=>getComputedStyle(e).backgroundColor))]);check(tagColors.length>=3,'Colorful property tags '+code);}
+   const ratios=await page.locator('#lop-'+code+' .rm-course-hashtags li,#lop-'+code+' .rm-focus-tags li,#lop-'+code+' .knowledge-tags li,#lop-'+code+' .rm-property,#lop-'+code+' .rm-heading-facts>span').evaluateAll(es=>{
     const canvas=document.createElement('canvas');canvas.width=canvas.height=1;const ctx=canvas.getContext('2d');
     function lum(color){ctx.clearRect(0,0,1,1);ctx.fillStyle=color;ctx.fillRect(0,0,1,1);const a=[...ctx.getImageData(0,0,1,1).data].slice(0,3).map(x=>x/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return a[0]*.2126+a[1]*.7152+a[2]*.0722;}
     return es.map(e=>{const s=getComputedStyle(e),a=lum(s.color),b=lum(s.backgroundColor);return(Math.max(a,b)+.05)/(Math.min(a,b)+.05);});
-   });check(ratios.every(r=>r>=4.5),'A/E tags meet readable contrast '+code);
+   });check(ratios.every(r=>r>=4.5),'Class properties and tags meet readable contrast '+code);
   }
+  for(const code of ['a','b','c']){check(await page.locator('#lop-'+code+' .rm-editorial-intro h3,#lop-'+code+' .rm-audience-panel .rm-focus-tags').count()===0,'No duplicate subtitle or algorithm strip '+code);check(await page.locator('#lop-'+code+' .course-knowledge>ol>li>p').count()===0,'Knowledge cards omit skill descriptions '+code);}
+  check(await page.locator('#lop-e .e-background-art[aria-hidden=true] svg').count()===4,'E artwork is decorative and static');
+  check(await page.getByRole('heading',{name:'Nền tảng để phát triển',exact:true}).count()===3,'Foundation label updated for A/B/C');
+  check(!(await page.locator('main').innerText()).includes('Nền tảng để học tiếp'),'Old foundation label removed');
   await page.emulateMedia({reducedMotion:'no-preference'});
  });
  await run('contact entry role switch and mocked authentication errors',async()=>{
@@ -224,8 +400,65 @@ async function main(){
   await c.close();
  });
  await run('glyph DOM text, multicolor overlay and reduced motion',async()=>{
-  await go(page,'/lo-trinh');const h=page.locator('[data-glyph-hover]').first();await h.scrollIntoViewIfNeeded();const before=await h.textContent(),box=await h.boundingBox();await page.mouse.move(box.x+30,box.y+25);await page.waitForTimeout(60);const units=page.locator('.csat-glyph-unit');check(await units.count()>0&&await units.count()<=7,'One to seven graphemes');check(await h.textContent()===before,'Original DOM text unchanged');check((await units.evaluateAll(es=>[...new Set(es.map(e=>getComputedStyle(e).color))])).length>=2,'Multiple colors');await page.waitForTimeout(500);check(await units.count()===0,'Glyph ends promptly');
+  await go(page,'/lo-trinh');check(await page.locator('#tu-van [data-glyph-hover]').count()===0,'Overview consultation has no glyph effect');const h=page.locator('[data-glyph-hover]').first();await h.scrollIntoViewIfNeeded();const before=await h.textContent(),box=await h.boundingBox();await page.mouse.move(box.x+30,box.y+25);await page.waitForTimeout(60);const units=page.locator('.csat-glyph-unit');check(await units.count()>0&&await units.count()<=7,'One to seven graphemes');check(await h.textContent()===before,'Original DOM text unchanged');check((await units.evaluateAll(es=>[...new Set(es.map(e=>getComputedStyle(e).color))])).length>=2,'Multiple colors');await page.waitForTimeout(500);check(await units.count()===0,'Glyph ends promptly');
   await page.evaluate(()=>{const h=document.querySelector('[data-glyph-hover]'),r=document.createRange();r.selectNodeContents(h);getSelection().removeAllRanges();getSelection().addRange(r);});check((await page.evaluate(()=>getSelection().toString())).replace(/\s/g,'').toLocaleUpperCase('vi')===before.replace(/\s/g,'').toLocaleUpperCase('vi'),'Selected text remains original');await page.evaluate(()=>getSelection().removeAllRanges());await page.emulateMedia({reducedMotion:'reduce'});await page.mouse.move(box.x+50,box.y+25);await page.waitForTimeout(60);check(await units.count()===0,'Reduced motion suppresses glyph');await page.emulateMedia({reducedMotion:'no-preference'});
+ });
+ await run('course detail responsive poster, editorial order and outcomes',async()=>{
+  for(const theme of ['light','dark']){
+   const c=await browser.newContext({colorScheme:theme,reducedMotion:'reduce'});await secure(c);
+   await c.addInitScript(t=>{if(['http:','https:'].includes(location.protocol))localStorage.setItem('theme',t);},theme);
+   const p=await c.newPage();
+   for(const [width,height] of [[320,900],[375,900],[768,1024],[1024,768],[1024,1366],[1440,900],[1920,1080]]){
+    await p.setViewportSize({width,height});
+    for(const code of ['a','b','c','e','k']){
+     await go(p,'/lo-trinh/'+code);layouts++;
+     await p.waitForFunction(()=>{const i=document.querySelector('.rm-course-hero img');return i.complete&&i.naturalWidth>0;});
+     check(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Detail has no overflow '+code+'/'+width+'/'+height);
+     check(await p.locator('.rm-breadcrumb').evaluate(e=>{
+      const r=[...e.children].map(n=>n.getBoundingClientRect());return r.every(n=>Math.abs(n.top+n.height/2-r[0].top-r[0].height/2)<1)&&getComputedStyle(e).fontSize!=='12px';
+     }),'Breadcrumb reads on one centered line '+code);
+     check(await p.locator('.rm-course-hero').evaluate(e=>{
+      const photo=e.querySelector('.rm-course-poster').getBoundingClientRect();
+      return photo.left>=0&&photo.right<=innerWidth+1&&photo.width>0&&[...e.querySelectorAll('h1,.rm-course-lead,.rm-detail-enrollment')].every(n=>{
+       const r=n.getBoundingClientRect();return r.right<=photo.left+1||r.left>=photo.right-1||r.bottom<=photo.top+1||r.top>=photo.bottom-1;
+      });
+     }),'Photo remains in flow without covering copy or registration '+code);
+     if(width>900&&width>height)check(await p.locator('.rm-course-poster').evaluate(e=>e.getBoundingClientRect().width>300),'Landscape poster expands with the column '+code);
+     check(await p.locator('.rm-detail-enrollment').evaluate(e=>e.querySelector('.btn').nextElementSibling.classList.contains('rm-schedule-note')),'Schedule is immediately below registration '+code);
+     check(!(await p.locator('.rm-course-facts').innerText()).includes('Lịch học theo đợt tuyển sinh'),'Old schedule is removed from facts '+code);
+     check(await p.locator('.rm-course-outcomes h3').count()===4&&await p.locator('#outcomes-title').innerText()==='Mục tiêu cuối khoá','Four learning aims and next direction '+code);
+     check(await p.locator('.rm-course-outcomes').evaluate(e=>e.nextElementSibling?.id==='tu-van'),'Learning aims immediately precede consultation '+code);
+     check(await p.locator('.rm-schedule-note').innerText()==='*Lịch học sắp xếp thuận tiện nhất cho học viên theo từng đợt tuyển sinh; trao đổi cụ thể cùng CSAT ngay bây giờ!','Current schedule invitation '+code);
+     check(await p.locator('#tu-van [data-glyph-hover]').count()===0,'Consultation headings are plain text '+code);
+     check(await p.locator('.rm-course-curriculum,.rm-detail-special').evaluate(e=>{const s=getComputedStyle(e,'::before');return s.backgroundImage.includes('radial-gradient')&&s.pointerEvents==='none'&&s.zIndex==='-1';}),'Course-colored blobs stay behind content and do not intercept input '+code);
+     if(code==='e')check(await p.locator('.rm-course-hero').evaluate(e=>getComputedStyle(e).backgroundColor==='rgba(0, 0, 0, 0)'&&getComputedStyle(e.parentElement.parentElement).backgroundImage==='none'),'E shares the page surface without a separate background');
+     if(['a','b','c'].includes(code)){
+      check(await p.locator('.rm-stage-map a').evaluateAll(es=>es.every(e=>getComputedStyle(e).textAlign==='center')),'Stage titles are centered '+code);
+      check(await p.locator('.rm-stage-map').evaluate(e=>{
+       const r=[...e.querySelectorAll('a')].map(n=>n.getBoundingClientRect());return Math.max(...r.map(n=>n.height))-Math.min(...r.map(n=>n.height))<1;
+      }),'Stage tiles keep aligned heights '+code);
+      check(await p.locator('.rm-stage-direction').count()===await p.locator('.rm-stage-map a').count()-1,'Arrows connect the ordered stages '+code);
+     }
+     if(theme==='light'&&['b','e'].includes(code)&&[375,1440].includes(width)){
+      await p.locator('.rm-course-intro').screenshot({path:path.join(output,`detail-${code}-intro-${width}.png`)});
+      if(code==='b')await p.locator('.rm-stage-map').screenshot({path:path.join(output,`detail-b-stages-${width}.png`)});
+     }
+    }
+   }
+   await c.close();
+  }
+  for(const code of ['a','b','c','e','k']){
+   const c=await browser.newContext({javaScriptEnabled:false,viewport:{width:375,height:900}});await secure(c);const p=await c.newPage();
+   await go(p,'/lo-trinh/'+code);layouts++;check(await p.locator('.rm-course-outcomes h3').count()===4,'No-JS includes learning aims '+code);
+   check(await p.locator('.rm-course-poster').getAttribute('href')!==null,'No-JS poster keeps a direct image link '+code);await c.close();
+  }
+  await page.setViewportSize({width:1440,height:900});await go(page,'/lo-trinh/b');
+  const last=page.locator('.rm-stage-map a').last();await last.focus();await last.press('Enter');
+  check(await page.locator('.rm-curriculum-stage').last().getAttribute('open')!==null,'Keyboard stage navigation opens its destination');
+  await go(page,'/lo-trinh');await page.locator('#lop-b .rm-class-actions .btn').click();await page.waitForURL(u=>u.pathname==='/lo-trinh/b');
+  check(await page.locator('.rm-course-poster').evaluate(e=>e.getBoundingClientRect().width>300),'Client navigation preserves fluid poster sizing');
+  await page.goBack({waitUntil:'networkidle'});await page.goForward({waitUntil:'networkidle'});
+  check(await page.locator('.rm-schedule-note').count()===1&&await page.locator('.rm-course-outcomes h3').count()===4,'Back/forward preserves detail structure');
  });
  await run('approved curriculum preserved on public course routes',async()=>{
   const curriculum=require('../../lib/learning-curriculum-20260922.json');
@@ -378,7 +611,8 @@ async function main(){
   await page.setViewportSize({width:1024,height:650});await go(page,'/');await page.locator('.lesson-stage').scrollIntoViewIfNeeded();check((await page.locator('.lesson-stage').boundingBox()).height<550,'Short viewport card stays usable');
  });
  await context.close();check(errors.length===0,'No JS errors: '+errors.join('; '));check(assetFailures.length===0,'No missing assets: '+JSON.stringify(assetFailures));check(unexpectedWrites.length===0,'No unmocked writes: '+JSON.stringify(unexpectedWrites));
- }finally{await browser.close();await fs.writeFile(path.join(output,filter?'qa-targeted-report.json':'qa-report.json'),JSON.stringify({base:base.origin,browser:process.env.CSAT_BROWSER_CHANNEL||'msedge',filter:filter?.source||null,layouts,assertions,failures,errors,assetFailures,unexpectedWrites},null,2));}
- console.log(JSON.stringify({passed:failures.length===0,layouts,assertions,failures,report:path.join(output,filter?'qa-targeted-report.json':'qa-report.json')}));if(failures.length)process.exitCode=1;
+ check(checksRun>0,'PUBLIC_QA_FILTER did not select any checks');
+ }finally{await browser.close();await fs.writeFile(path.join(output,filter?'qa-targeted-report.json':'qa-report.json'),JSON.stringify({base:base.origin,browser:process.env.CSAT_BROWSER_CHANNEL||'msedge',filter:filter?.source||null,checksRun,layouts,assertions,failures,errors,assetFailures,unexpectedWrites},null,2));}
+ console.log(JSON.stringify({passed:failures.length===0,checksRun,layouts,assertions,failures,report:path.join(output,filter?'qa-targeted-report.json':'qa-report.json')}));if(failures.length)process.exitCode=1;
 }
 main().catch(e=>{console.error(e.message);process.exitCode=1;});

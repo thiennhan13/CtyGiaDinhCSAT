@@ -7,7 +7,7 @@ const { execFileSync } = require('node:child_process');
 function pathRule(file) {
   const p = file.replaceAll('\\', '/');
   if (/(^|\/)(?:internal|private-data|backups|exports|artifacts|scratch|prototypes|node_modules|\.next|\.vercel|\.agents|\.codex|\.aws|\.ssh|\.idea|\.vscode|test-results|playwright-report)(\/|$)/i.test(p)) return 'private-or-generated-path';
-  if (/^public\/(?:videos\/|images\/(?:3D\/|tutors\/|(?:3d-code|devpad|light-bulb)\.svg$|(?:basic-class|books|code|code2|code4|code-building|git|comp-program)\.jpg$|(?:haidang|csatkeyboard)\.png$))/i.test(p)) return 'original-media-needs-selection';
+  if (/^public\/(?:videos\/|images\/(?:3D\/|tutors\/|courses\/|students\/|(?:3d-code|devpad|light-bulb)\.svg$|(?:basic-class|books|code|code2|code4|code-building|git|comp-program)\.jpg$|(?:haidang|csatkeyboard)\.png$))/i.test(p)) return 'original-media-needs-selection';
   if (/(^|\/)\.env[^/]*$/i.test(p) && p !== '.env.example') return 'environment-file';
   if (/\.(?:env|dump|backup|xlsx?|csv|docx?|pdf|zip|7z|tar|tgz|gz|pem|key|p12|pfx|log|tsbuildinfo)$/i.test(p)) return 'private-export-or-key-file';
   return null;

@@ -1,5 +1,19 @@
 /** Public enrollment content. Source: approved curriculum and course posters. */
 export type PublicCourseCode = 'A' | 'B' | 'C' | 'E' | 'K';
+/** Overview hashtags approved on 07/10; E/K removed by the owner's next revision. */
+export const publicCourseHashtags: Partial<Record<PublicCourseCode, readonly [string, string, string]>> = {
+  A: ['#NhậpMônC++', '#Lớp5Đến7', '#NềnTảngChuyênTin'],
+  B: ['#ThiĐấuCơBản', '#SốHọcVàTìmKiếm', '#HSGCấpPhường'],
+  C: ['#ThuậtToánNângCao', '#HSGCấpTỉnh', '#ChuyênTin'],
+};
+/** Overview illustrations derived from A/B/C/E.jpg and Custom.jpg (K). Posters remain separate. */
+export const publicCourseIllustrations: Record<PublicCourseCode, { image: string; width: number; height: number }> = {
+  A: { image: 'roadmap-a', width: 1600, height: 900 },
+  B: { image: 'roadmap-b', width: 1600, height: 900 },
+  C: { image: 'roadmap-c', width: 1600, height: 900 },
+  E: { image: 'roadmap-e-v3', width: 3200, height: 2400 },
+  K: { image: 'roadmap-k', width: 1600, height: 900 },
+};
 export type PublicCourse = {
   code: PublicCourseCode;
   name: string;
@@ -40,7 +54,7 @@ export const publicCourses: PublicCourse[] = [
   {
     code: 'C', name: 'Lập trình thi đấu nâng cao', label: 'Phân tích · Kết hợp kỹ thuật',
     audience: 'Học sinh lớp 7, 8, 9 có định hướng thi HSG cấp Tỉnh, chuyên Tin các tỉnh mạnh, cạnh tranh.',
-    duration: '90 phút / buổi', size: '5–8 học sinh', scope: '19 chủ đề C+D · 6 chặng', price: '109.000đ', image: 'course-c',
+    duration: '90 phút / buổi', size: '5–8 học sinh', scope: '19 chủ đề · 6 chặng', price: '109.000đ', image: 'course-c',
     tags: ['Cộng dồn · Mảng hiệu', 'Hai con trỏ', 'Cửa sổ trượt', 'Set · Map', 'Queue · Deque · Stack', 'Đệ quy · Merge sort', 'Quay lui · Cắt nhánh', 'Tham lam', 'Chặt trên đáp án', 'Hashing', 'Quy hoạch động', 'Knapsack', 'LIS · LCS'],
     steps: [
       { title: 'Phân tích dữ liệu và giới hạn', description: 'Chọn kỹ thuật mảng và cấu trúc dữ liệu phù hợp.' },
@@ -50,9 +64,9 @@ export const publicCourses: PublicCourse[] = [
   },
   {
     code: 'E', name: 'Chủ lực', label: 'Thi tuyển riêng từ lớp C',
-    audience: 'Các học sinh cần kiến thức khó hơn, không chỉ dừng ở ôn thi lấy thứ hạng cao trong các kỳ thi HSG Tỉnh, tuyển sinh chuyên Tin.',
+    audience: 'Học sinh được chọn lọc từ lớp C, có định hướng chuyên Tin và quyết tâm theo đuổi lập trình thi đấu ở mức chuyên sâu.',
     duration: '120 phút / buổi', size: '3–4 học sinh', scope: 'Đầu vào từ lớp C · Lịch theo thành viên', price: '', image: 'course-ek',
-    tags: ['Nền tảng lớp C', 'Thi tuyển đầu vào riêng', 'HSG Tỉnh', 'Tuyển sinh chuyên Tin', 'Nhóm 3–4 học sinh'],
+    tags: ['Chọn lọc từ C', 'Thi tuyển riêng', 'Chuyên Tin', 'Thuật toán', 'Tư duy toán học', 'Contest'],
     steps: [
       { title: 'Nhìn lại nền tảng lớp C', description: 'Chia sẻ quá trình luyện bài và phần muốn học sâu hơn.' },
       { title: 'Tham gia thi tuyển riêng', description: 'Trao đổi cùng đội ngũ về mục tiêu và thi tuyển đầu vào.' },

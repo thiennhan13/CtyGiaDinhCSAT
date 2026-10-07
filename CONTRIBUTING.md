@@ -3,7 +3,7 @@
 ## Onboarding
 
 1. Chủ repo cấp quyền tối thiểu cần thiết cho GitHub. Thành viên đọc README → PROJECT_STATUS → ARCHITECTURE → AGENTS → SECURITY.
-2. Cài Node 24.x, Git; chạy `npm ci` và `npm ci --prefix database/tests`. Dùng lockfile đã có, không tự nâng toàn bộ dependency.
+2. Cài Node.js 24 theo .nvmrc/engines và Git; kiểm tra runtime thật rồi chạy `npm ci` và `npm ci --prefix database/tests`. Dùng lockfile đã có, không tự nâng toàn bộ dependency.
 3. Dùng project Supabase thử riêng hoặc fixture localhost. Mẫu `.env.example` không chứa khóa thật. Không ghi đè `.env.local` có sẵn; không đưa giá trị secret vào prompt.
 4. Database thử: xem [database/README.md](database/README.md). Người chỉ sửa nội dung/trang công khai có thể chạy `node scripts/preview-public-site.cjs` mà không cần DB thật.
 5. Thống nhất phạm vi nhiệm vụ, dữ liệu được phép và tiêu chí nghiệm thu. Đừng cấp tài khoản production cho Codex chỉ để đọc mã.

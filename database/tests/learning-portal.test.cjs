@@ -5,6 +5,10 @@ for(const name of fs.readdirSync(path.join(__dirname,'../migrations')).filter(n=
 await as(db);return db;}
 const body=()=>({goal:'Real goal',focus_tags:[],next_step:'Practice',stage_index:null,title:'',content:'',continuation:'',program:'basic',format:'group',template_id:'30000000-0000-4000-8000-000000000001'});
 const save=(db,b=body(),rev=0,publish=false)=>value(db,'select save_learning_record($1,$2,null,null,$3,$4,$5)',[id(30),'class',rev,JSON.stringify(b),publish]);
+module.exports={ready,body,save};
+
+// Importing shared fixtures must not register this file's tests a second time.
+if(require.main===module){
 test('learning migration preserves accounting, pins template, isolates drafts and rejects stale revisions',async()=>{
  const db=await ready();try{
  const before=await value(db,'select jsonb_agg(to_jsonb(p)) from payments p');
@@ -32,7 +36,6 @@ test('parent projection rejects other children and only shows published learning
  await db.exec('reset role;set role anon');await assert.rejects(()=>value(db,'select parent_learning_portal($1,null,null,0)',['a'.repeat(64)]),/permission denied/);
  }finally{await db.close();}
 });
-module.exports={ready,body,save};
 
 const {randomUUID}=require('node:crypto');
 async function service(db){await db.exec('reset role');await db.query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({role:'service_role'})]);await db.exec('set role service_role');}
@@ -127,3 +130,4 @@ test('combined release SQL applies atomically and read-only verification succeed
  assert.equal(await value(db,'select count(*)::int from learning_templates'),2);
  }finally{await db.close();}
 });
+}

@@ -1,49 +1,63 @@
 # Cấu trúc hệ thống CSAT Portal
 
-**Trang công khai 05/10:** `/gia-su` tái sử dụng `TutorShowcase` với trang chủ; `/bai-dang` và `/bai-dang/[slug]` lấy văn bản thuần từ `lib/public-posts.ts`, chưa có database đăng bài. `PracticeVideo` tải bản media tối ưu theo viewport và dọn observer/listener khi unmount. Chi tiết ở [PUBLIC_POSTS](PUBLIC_POSTS.md) và [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md); không đổi auth/RPC.
+Một ứng dụng Next.js phục vụ website công khai và admin/gia sư/phụ huynh. Không cần tách dịch vụ hoặc repository chỉ để chia frontend/backend. Trạng thái triển khai ở [PROJECT_STATUS](PROJECT_STATUS.md), quy trình ở [frontend](FRONTEND_WORKFLOW.md) và [backend](BACKEND_WORKFLOW.md).
 
-**UI 05/10/2026:** PublicHeader tái sử dụng PublicNavigation cho login, tutor entry và ParentShell; không đổi auth/RPC. PublicSelect dùng Base UI cho form frontend và bộ chọn hướng học; dữ liệu tư vấn vẫn chưa gửi. Font toàn ứng dụng thống nhất Archivo. Quy tắc tại [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
+## Phân chia trách nhiệm
 
-**Giao diện công khai cập nhật 05/10/2026:** tích hợp catalog A/B/C/E/K vào React/Next.js, các thành phần và ranh giới xem [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md). Chưa thay enum/validation/RPC hoặc dữ liệu lớp. A/B dùng khung Cơ bản; C dùng C+D; E Chủ lực tuyển riêng từ C, tách PreVOI trong quản lý; K tùy chọn cần bản sao có nguồn/version và quyền trước khi vận hành. Không dùng mã tuyển sinh để tự đổi chương trình hay hình thức học. Các hợp đồng tương lai nằm trong [catalog](PUBLIC_COURSE_CATALOG.md).
-
-Ranh giới dưới đây được đối chiếu lại ngày **06/10/2026** với mã nền `f83c3a6`; không kiểm tra production trong đợt tài liệu. Trạng thái và bằng chứng môi trường xem [PROJECT_STATUS.md](PROJECT_STATUS.md).
-
-## Phân chia frontend và backend
-
-Hai phần ở cùng ứng dụng, không cần tách thành dịch vụ/repository riêng để làm tiếp.
-
-| Phần | Sở hữu | Không thay thế |
+| Tầng | Trách nhiệm | Ranh giới |
 |---|---|---|
-| Frontend | Route/layout/component, nội dung, token, form state, responsive, accessibility và vòng đời hiệu ứng | Xác thực, quyền đọc/ghi, transaction và lịch sử |
-| Backend | API/Server Actions, validation/phiên/Origin, phạm vi truy cập, RPC/RLS, snapshot/audit, Storage/outbox | UI phải trình bày đúng trạng thái/thiếu dữ liệu và phản hồi lỗi |
-| Hợp đồng chung | Request/response, enum, revision, published/draft, `null`, lỗi và adapter tương thích | Không tự map catalog tuyển sinh thành enum chương trình database |
+| Route/layout/component | Trang, dữ liệu để hiển thị, responsive, tương tác và accessibility | Không thay Auth/quyền/transaction |
+| API/Server Action | Validation, phiên/Origin/phạm vi, gọi nghiệp vụ và ánh xạ lỗi | Không tin client/UUID/menu ẩn |
+| Contract/read model | Request/response, enum, revision, draft/published, null và lỗi | Giữ tương thích khi mở rộng |
+| RPC/RLS/PostgreSQL | Quyền, ghi atomic, audit/snapshot và dữ liệu hiệu lực | Không bỏ qua qua helper ghi trực tiếp |
+| Storage/tích hợp | Avatar/outbox/email và API bên ngoài khi được bật | Service key chỉ server, tác động thật đúng quyền |
 
-Workflow thực hiện: [frontend](FRONTEND_WORKFLOW.md), [backend](BACKEND_WORKFLOW.md). Tiếp nhận công việc: [HANDOFF](HANDOFF.md). Nguồn chuẩn chỉ duy trì ở tài liệu chuyên môn tương ứng, tránh chép toàn bộ backlog vào từng workflow.
+proxy.ts định tuyến/làm mới phiên, không thay quyền API/database. app/(auth) là route group không tạo tiền tố URL.
 
-## Luồng chính
-
-**Catalog tách A/B, cập nhật 06/10:** Website chỉ giới thiệu, tư vấn và đăng ký các lớp A/B/C/E/K riêng. A+B là cách gộp tạm của quản lý nội bộ, không có entry point công khai; `/lo-trinh/co-ban` và `/lo-trinh/basic` chuyển về tổng quan và không nằm trong sitemap. Chương trình `basic`, mặc định A+B và bản công bố/lịch sử hiện có giữ nguyên; định hướng lớp tương lai tách riêng cần đặc tả backend và chuyển đổi được phép.
-
-**Lộ trình công khai, biên tập 06/10:** `lib/public-courses.ts` giữ dữ kiện tuyển sinh/poster; `learning-curriculum-20260922.json` quyết định mã, tên, thứ tự và phạm vi các chặng/chủ đề; `lib/public-roadmap-content.ts` diễn giải định hướng, vai trò kiến thức và kỹ năng rèn luyện. `RoadmapCourseSection` và `CourseKnowledge` trình bày tổng quan; `CourseDetailContent` trình bày tiến trình và chi tiết chủ đề. `CourseStageNavigation` mở native disclosure khi đi tới chặng, không lưu trạng thái hoặc kết luận thành thạo. E tách đường tuyển đầu vào từ C khỏi ba trọng tâm phát triển, không tạo giáo trình riêng. Căn cứ biên tập ở [nghiên cứu nội dung](ROADMAP_CONTENT_RESEARCH.md).
-
-**Ảnh và chuyển mục, cập nhật 06/10:** `CoursePosterPreview` dùng chung cho tổng quan, chi tiết và đăng ký; liên kết tới WebP là fallback không JS, khi có JS mở native dialog toàn màn hình, có nút đóng/Escape và trả focus. Ảnh lớn chỉ được render khi mở; không gọi API hoặc đổi style khóa cuộn trang. `PublicSectionNavigation` chỉ hiện trên lộ trình/đăng ký, chuyển giữa section/header liền kề, tôn trọng reduced motion; dọn scroll/resize listener, ResizeObserver và rAF khi đổi route. CSS dành một rail riêng bên phải nội dung.
-
-**Đăng ký học, cập nhật 06/10:** `/dang-ky-hoc` là server page đọc enum `course` A/B/C/E/K; `EnrollmentExperience` dùng catalog `lib/public-courses.ts` và truyền `defaultCourse` xuống form chung. Khóa route chi tiết có ưu tiên hơn query; mã lạ không đi vào form. Điều hướng từ thẻ/lớp tới đăng ký không gọi API hay lưu request. Nội dung chặng/tag lộ trình dùng `CourseKnowledge` và JSON curriculum hiện hành; không thay template, chương trình database hoặc quy tắc chuyển chặng.
-
-**Form website công khai, cập nhật 04/10:** nhập → validation phía trình duyệt → xem lại/chỉnh sửa → sao chép theo thao tác người dùng. Chưa gọi API tư vấn hoặc endpoint trạng thái; dữ liệu chỉ giữ trong trang. API/RPC tư vấn hiện có vẫn là backend độc lập cho lần kết nối sau, không tự kích hoạt theo form frontend mới.
+## Website công khai: dữ liệu đến giao diện
 
 ```mermaid
 flowchart LR
-    U[Trình duyệt theo vai trò] --> N[Next.js trang và API]
-    N --> A[Kiểm tra phiên và quyền]
-    A --> R[PostgreSQL RPC / RLS]
-    R --> D[Dữ liệu và audit]
-    N --> S[Supabase Storage avatar]
-    N --> E[Resend khi được bật]
-    V[Vercel cron ngày 28] --> N
+    C[Catalog tuyển sinh] --> P[Trang Next.js]
+    K[Giáo trình đã duyệt] --> R[Diễn giải / mục tiêu học]
+    R --> P
+    H[Catalog thành tích / bài viết] --> P
+    P --> U[HTML / ảnh tối ưu / tương tác]
+    U --> F[Xem lại và sao chép]
+    F --> L[Người dùng chủ động liên hệ]
 ```
 
-`proxy.ts` định tuyến và làm mới phiên; nó không thay thế quyền của API/database. Public pages là `/`, `/dang-ky-hoc`, `/lo-trinh`, `/lo-trinh/[program]`, `/gia-su`, `/bai-dang`, `/bai-dang/[slug]`, `/thanh-tich`, `/hoc-lieu-mien-phi`; admin `/admin`, gia sư `/tutor`, phụ huynh `/parents`. `/gia-su` giới thiệu đội ngũ, khác với kênh đăng nhập `/tutor`. `app/(auth)` là route group, không tạo tiền tố URL. `/login` là trang liên lạc chung, switch radio Phụ huynh/Gia sư; `/tutor` vẫn qua proxy kiểm tra phiên rồi chuyển người chưa đăng nhập tới `/login?role=tutor`. Hai form dùng lại handler xác thực và endpoint hiện hành, không gộp phiên/quyền. `/thanh-tich` là khung tĩnh, chưa có schema hoặc dữ liệu thành tích. `/hoc-lieu-mien-phi` dùng lại PracticeVideo và form tài liệu frontend đã tách khỏi trang chủ; không thêm API/database. Footer/dock lấy liên hệ công khai từ `lib/public-contact.ts`.
+- Catalog lib/public-courses.ts sở hữu A/B/C/E/K, facts/giá/đối tượng/ảnh/hashtag; JSON curriculum quyết định mã/tên/thứ tự, lib/public-roadmap-content.ts diễn giải, lib/public-course-outcomes.ts giữ mục tiêu học.
+- RoadmapCourseSection/CourseKnowledge render tổng quan; FlagshipCourseSection giữ riêng một mục E. CourseDetailContent/CourseStageNavigation/CourseOutcomes render chi tiết; native disclosure/mũi tên chỉ điều hướng, không ghi tiến độ.
+- C là tên công khai của toàn bộ C/D và các lớp nâng cao tương lai; giữ 19 chủ đề C01–D07, scope CD, template và lớp quản lý hiện có. A+B chỉ gộp nội bộ; public tách A/B. E tuyển riêng từ C, không map tự động vào voi/PreVOI. K chọn nguồn chéo chương trình là thiết kế tương lai, chưa triển khai.
+- /dang-ky-hoc đọc query course theo whitelist. CTA từ lớp truyền mặc định; route lớp có ưu tiên hơn query. PublicConsultation chỉ validate/xem lại/sao chép, không gọi API hoặc lưu bền vững. Backend tư vấn vẫn là luồng độc lập.
+- /thanh-tich là static route, lib/public-achievements.ts và WebP responsive dựng sẵn; tách hồ sơ Portal, không API/CMS. /bai-dang lấy lib/public-posts.ts; /gia-su dùng chung TutorShowcase.
+- /hoc-lieu-mien-phi tái dùng PracticeVideo/form frontend. Footer/dock lấy lib/public-contact.ts. /login là switch Phụ huynh/Gia sư dùng handler riêng, /tutor qua proxy rồi redirect nếu chưa có phiên.
+
+Bản đồ route/component và hành vi ở [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md); nội dung tuyển sinh ở [catalog](PUBLIC_COURSE_CATALOG.md). Không để tài liệu kiến trúc thành nhật ký chỉnh màu/kích thước.
+
+## Ranh giới UI và tài nguyên
+
+CSS public scope .csat-public; font toàn hệ thống Archivo. PublicHeader tái dùng menu tại login/ParentShell, nội dung nghiệp vụ nằm ngoài scope marketing.
+
+CoursePosterPreview: tổng quan interactive=false trả ảnh/div tĩnh, chi tiết/đăng ký mở native dialog và fallback WebP khi no-JS. CSS trigger relative chỉ khớp ảnh không phải background; description-band giữ absolute independent thứ tự tải chunk. Ảnh lớn chỉ dựng khi mở, không API/scroll lock.
+
+PublicSectionNavigation là hai nút fixed overlay, không dành cột; đến section/header liền kề. Reveal/listener/observer/rAF dọn khi đổi route. PracticeVideo dừng ngoài viewport/tab ẩn, fallback poster/no-JS/reduce. Style và trạng thái đọc ở [design system](PUBLIC_UI_DESIGN_SYSTEM.md)/[motion](UI_MOTION_WORKFLOW.md).
+
+Runtime chỉ chứa media tối ưu đã chọn; raw source, prototype và công cụ local ngoài Git/gói build. Không import scratch/internal để chạy ứng dụng.
+
+## Luồng nghiệp vụ
+
+```mermaid
+flowchart LR
+    U[Trình duyệt theo vai trò] --> N[Next.js API / Actions]
+    N --> A[Validation / phiên / quyền]
+    A --> R[PostgreSQL RPC / RLS]
+    R --> D[Dữ liệu / audit / snapshot]
+    N --> S[Storage avatar]
+    N --> E[Resend khi được bật]
+    V[Cron ngày 28] --> N
+```
 
 ## Ranh giới quyền
 
@@ -96,9 +110,9 @@ Kho nội bộ, prototype và cấu hình công cụ local được loại khỏ
 | Vận hành | `scripts/email-smoke.cjs`, `tutor-avatar-cleanup.cjs` | Mặc định preview/dry-run; `--send`/`--apply` có tác động thật và cần phép |
 | SQL maintenance | `database/maintenance/` | Thay đổi dữ liệu một lần có điều kiện; không phải migration tự động |
 
-Bộ browser QA cần Playwright/Chromium riêng; runtime Codex trên máy tác giả không được đưa vào Git. Truyền `PLAYWRIGHT_MODULE` theo máy nếu dùng runner tương ứng; đây chưa phải CI browser có tính di động đầy đủ.
+Bộ public browser QA dùng Playwright khóa version trong devDependency, Chromium cài riêng và bản build placeholder trên loopback. CI chạy nhóm smoke; `PLAYWRIGHT_MODULE` chỉ là override local tùy chọn. Các runner Portal riêng vẫn cần fixture/môi trường theo hướng dẫn tương ứng; không đưa runtime Codex của máy tác giả vào Git.
 
-## Đánh giá cấu trúc và hướng chỉnh dần — 01/10/2026
+## Hướng tổ chức module
 
 Cấu trúc hiện tại phù hợp với một ứng dụng Next.js phục vụ quy mô trung tâm: trang/API nằm trong `app`, giao diện có thành phần dùng chung, các thao tác tài chính và học tập quan trọng có RPC/transaction/audit. Chưa có nhu cầu tách thành nhiều dịch vụ; ưu tiên hoàn thiện ranh giới trong ứng dụng hiện có.
 
@@ -106,8 +120,8 @@ Cấu trúc hiện tại phù hợp với một ứng dụng Next.js phục vụ
 
 - `app/admin/classes/[id]/page.tsx` hơn 1.000 dòng, cùng giữ trạng thái form, truy vấn dữ liệu và nhiều nhóm giao diện. Nên tách danh sách học sinh, lịch/buổi học, thay đổi gia sư/đơn giá và lịch sử thành các phần có trách nhiệm rõ ràng.
 - Truy vấn và thao tác hiện nằm ở cả trang, `features/*` và `lib/*`. Với phần sửa mới, để trang điều phối, module nghiệp vụ quản lý query/action/validation, component nhận dữ liệu và xử lý tương tác. Không cần di chuyển đồng loạt chỉ để đổi cây thư mục.
-- Ngày 05/10 đã bỏ `features/tutors/actions.ts` cùng kiểu input chỉ dùng ở đó sau khi xác minh không có import, re-export hoặc nơi gọi. Quản lý gia sư dùng `app/api/admin/tutors/route.ts` để tạo Auth user và vô hiệu hóa mềm; hồ sơ công khai dùng API profile riêng. Không tái tạo helper ghi/xóa trực tiếp song song với các luồng này.
+- Đã bỏ `features/tutors/actions.ts` cùng kiểu input chỉ dùng ở đó sau khi xác minh không có import, re-export hoặc nơi gọi. Quản lý gia sư dùng `app/api/admin/tutors/route.ts` để tạo Auth user và vô hiệu hóa mềm; hồ sơ công khai dùng API profile riêng. Không tái tạo helper ghi/xóa trực tiếp song song với các luồng này.
 - Kiểu dữ liệu và validation cần nhất quán giữa UI/API/RPC; các trang lớn còn dùng `any`. Ưu tiên hợp đồng dữ liệu của luồng đang sửa, tránh thay kiểu hàng loạt khi chưa có kiểm thử.
-- CI và database test đã có cấu hình; browser QA còn phụ thuộc runtime máy tác giả. Hoàn thiện môi trường thử và runner dùng chung trước khi coi quy trình phát hành đã hoàn chỉnh.
+- CI có database test và public browser smoke dùng dependency đã khóa. Tiếp tục chuẩn hóa môi trường thử cho Portal và nghiệm thu staging trước khi coi quy trình phát hành đã hoàn chỉnh.
 
 Tiêu chí sau mỗi đợt tách module: hành vi và quyền không đổi, lịch sử được bảo toàn, kiểm thử liên quan đạt và thành viên mới tìm được nơi sửa một nghiệp vụ mà không phải dò nhiều cách triển khai song song.

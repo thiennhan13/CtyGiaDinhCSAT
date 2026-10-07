@@ -1,18 +1,18 @@
 # Thiết lập Vercel–Supabase và phát hành CSAT Portal
 
-## Bản giao diện công khai — 04/10/2026
+## Phát hành giao diện công khai
 
 Trang chủ/lộ trình/catalog mới dùng Next.js trực tiếp, không cần migration mới hoặc Resend. Theo yêu cầu cập nhật, hai form chỉ chạy frontend: nhập, xem lại và sao chép để nhắn Zalo/Facebook; chưa gọi API hoặc lưu dữ liệu. Giữ `CONSULTATIONS_ENABLED=false` và `CONSULTATIONS_EMAIL_ENABLED=false`. Lần nối sau cần adapter/validation/consent và QA, không chỉ bật biến môi trường. Tài nguyên, trạng thái chưa tích hợp và QA xem [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
 
 Phát hành qua project Vercel hiện phục vụ `portal.csatoj.vn`. Trước deploy xác minh đúng project/domain, giữ nguyên các biến nghiệp vụ và không tạo project thứ hai. Nếu dùng CLI: đăng nhập tại máy, `vercel link` tới project hiện có rồi `vercel deploy --prod` sau khi kiểm thử bản cuối. Không đưa token vào chat hoặc lệnh được lưu trong tài liệu. `.vercelignore` loại tài nguyên nguồn lớn và tài liệu nội bộ. [Tham khảo Vercel CLI](https://vercel.com/docs/cli/deploy).
 
-Sau deploy: kiểm tra `/`, `/lo-trinh`, các lớp A/B/C/E/K và liên kết đăng nhập; xác nhận menu/theme/ảnh/font và CTA tư vấn hoạt động. Ghi URL deployment, thời điểm và kết quả vào PROJECT_STATUS. Nếu lỗi giao diện, rollback deployment trước trên Vercel; không khôi phục hoặc sửa database để xử lý lỗi CSS.
+Sau deploy được phép: kiểm tra `/`, `/lo-trinh`, các lớp A/B/C/E/K, `/dang-ky-hoc`, `/thanh-tich` và liên kết đăng nhập; xác nhận menu/theme/ảnh/font và CTA tư vấn hoạt động. Ghi URL deployment, thời điểm và kết quả vào PROJECT_STATUS. Nếu lỗi giao diện, rollback deployment trước trên Vercel; không khôi phục hoặc sửa database để xử lý lỗi CSS.
 
-Bổ sung bàn giao ngày 01/10/2026; cấu hình đối chiếu từ mã và tài liệu trước đó. Đây là hướng dẫn thực hiện, không phải xác nhận các bước đã được áp dụng trên production. Lần này chỉ cập nhật tài liệu; không đăng nhập dashboard, thay cấu hình, chạy migration, tạo bucket, deploy hoặc gửi thư.
+Đây là hướng dẫn thực hiện, không xác nhận đã áp dụng trên production. Trạng thái và ngày kiểm chứng môi trường chỉ duy trì tại [PROJECT_STATUS](PROJECT_STATUS.md); mọi tác động thật cần quyền phù hợp.
 
 Dùng tài liệu này làm đầu mối cấu hình cho bản kết hợp đến migration 22. Các tài liệu phát hành trước giữ vai trò lịch sử; không dùng riêng chuỗi migration 18–19 hoặc 18–21 cho bản ứng dụng mới. Danh sách việc sau này: [FUTURE_INTEGRATIONS.md](FUTURE_INTEGRATIONS.md).
 
-> Cập nhật production 24/09/2026: đã áp dụng riêng migration 20 và bổ sung 2 liên hệ/tra cứu phụ huynh. Migration 18, 19, 21, 22 vẫn còn thiếu. [Biên bản kiểm chứng](CLASS_CURRICULUM_ROLLOUT_20260923.md). Không chạy lại migration 20 và không suy ra các số migration nhỏ hơn đều đã có.
+> Đối chiếu registry/cấu trúc/grants thực trước phát hành. Migration 20 đã được ghi nhận áp dụng; không chạy lại hoặc suy từ số lớn nhất rằng các migration trước đó đều có. Xem trạng thái production trong PROJECT_STATUS.
 
 ## 1. Chọn trạng thái phát hành lúc chưa có email/API
 
@@ -22,7 +22,7 @@ Dùng tài liệu này làm đầu mối cấu hình cho bản kết hợp đế
 | Admin, gia sư, cổng phụ huynh | Có | Supabase đúng môi trường, migration và liên kết tài khoản/dữ liệu |
 | Hồ sơ, giới thiệu, thành tích gia sư | Có | Migration 22 |
 | Avatar | Có | Migration 22 và bucket/policy riêng bên dưới; không cần API CSATOJ |
-| Form tư vấn chỉ lưu Portal | Có, nếu chủ động bật nhận form | Migration 18, hash key, admin kiểm tra Portal |
+| Form tư vấn lưu Portal | Backend đã có, frontend chưa nối | Adapter/consent/validation, migration 18, hash key và admin tiếp nhận |
 | Thư tư vấn, nhắc tháng, tổng hợp admin | Chưa bật | Resend, domain gửi được xác minh, kiểm thử và sửa lỗi cron còn mở |
 | Số bài/ranking CSATOJ | Chưa kết nối | Cần triển khai tích hợp; nhập API key đơn thuần chưa đủ |
 
@@ -34,7 +34,7 @@ Mặc định phát hành ban đầu: `CONSULTATIONS_ENABLED=false`, `CONSULTATI
 
 1. Mở đúng project phục vụ `portal.csatoj.vn`; kiểm tra repository, Production Branch và Root Directory. Không tạo project thứ hai nếu project hiện tại đã đúng.
 2. Framework: **Next.js**; Root Directory là thư mục chứa `package.json` (repository này ở gốc); Install Command `npm ci`; Build Command `npm run build`; giữ Output Directory mặc định của Next.js, không cấu hình static export.
-3. Workflow nhóm dùng Node 24.x (`.nvmrc`, engines và CI). Kiểm tra bản cuối trên runtime này rồi đồng bộ Vercel khi phát hành được phép; đợt tài liệu không đổi dashboard Vercel. Node 20 đã hết hỗ trợ; không giữ môi trường mới ở Node 20. [Node release schedule](https://github.com/nodejs/Release), [Node trên Vercel](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions).
+3. Dùng Node.js 24 cho local, CI và deploy theo `.nvmrc`/engines. Kiểm chứng dependency/CI/Preview trước phát hành được phép và đối chiếu runtime deployment; không tự đổi dashboard. [Node release schedule](https://github.com/nodejs/Release), [Node trên Vercel](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions).
 4. Settings → Domains: xác nhận `portal.csatoj.vn` hợp lệ và HTTPS hoạt động. Giữ DNS website hiện có nếu đang đúng; bản ghi gửi email sẽ cấu hình riêng.
 5. Kiểm tra giới hạn Functions đáp ứng route cron `maxDuration=60` và form tư vấn `maxDuration=30`; giữ Node.js runtime cho xử lý avatar bằng sharp. Không cần volume/ổ đĩa bền vững, SMTP server hay biến đổi ảnh Supabase.
 6. Chọn gói phù hợp hoạt động trung tâm. Hobby dành cho sử dụng cá nhân phi thương mại; không lấy việc lịch cron chạy được làm bằng chứng gói phù hợp. [Điều kiện Hobby](https://vercel.com/docs/plans/hobby).
@@ -78,7 +78,7 @@ Trong SQL Editor đúng project, kiểm tra chỉ đọc:
 SELECT version FROM csat_internal.schema_migrations ORDER BY version;
 ```
 
-Lần kiểm chứng gần nhất ngày 24/09 ghi nhận 05–17 và 20; 18/19/21/22 còn thiếu. **Ngày 01/10 chỉ cập nhật tài liệu, chưa kiểm tra lại production**. Nếu kết quả khác, dựa vào kết quả thực. Nếu chưa có registry hoặc thiếu migration nền, dừng đối chiếu quy trình khởi tạo; không chạy ngẫu nhiên migration 18 trở đi.
+Bằng chứng production có ngày và các migration còn thiếu xem PROJECT_STATUS. Đối chiếu lại trước thực hiện; nếu kết quả khác, dựa vào kết quả thực. Nếu chưa có registry hoặc thiếu migration nền, dừng đối chiếu quy trình khởi tạo; không chạy ngẫu nhiên migration 18 trở đi.
 
 Tạo backup có thể phục hồi và lưu số lượng tổng hợp các dữ liệu liên quan trước khi chạy SQL. Backup database không chứa byte ảnh trong Storage; cần sao lưu tệp riêng sau khi dùng avatar. Không mặc định mọi gói đều có backup/PITR giống nhau. [Supabase backups](https://supabase.com/docs/guides/platform/backups).
 
@@ -90,7 +90,7 @@ Chỉ chạy các file còn thiếu, từng file và kiểm chứng ngay sau đ�
 |---|---|---|
 | 18 | `20260913_18_consultations.sql` | `20260913_consultations.sql` |
 | 19 | `20260914_19_email_operations.sql` | `20260914_email_operations.sql` |
-| 20 (đã ghi nhận áp dụng 24/09; không chạy lại) | `20260922_20_curriculum_frameworks.sql` | `20260922_curriculum_frameworks.sql` |
+| 20 (đã ghi nhận áp dụng; không chạy lại) | `20260922_20_curriculum_frameworks.sql` | `20260922_curriculum_frameworks.sql` |
 | 21 | `20260922_21_parent_email_completion.sql` | `20260922_parent_email_completion.sql` |
 | 22 | `20260923_22_tutor_profiles.sql` | `20260923_tutor_profiles.sql` |
 

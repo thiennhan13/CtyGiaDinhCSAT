@@ -1,56 +1,68 @@
 /* Poster colors are local course tokens, independent of the site's brand palette. */
-.csat-public .rm-editorial-class,.csat-public .rm-course-page{--course-tone:#265d9b;--course-tone-soft:#e4f0f8;--stage-violet:#764187;--stage-teal:#146b60;--stage-gold:#865515;--stage-coral:#a44430}
+.csat-public .rm-editorial-class,.csat-public .rm-course-page{--course-tone:#265d9b;--course-tone-soft:#e4f0f8;--roadmap-tone:var(--course-tone);--stage-violet:#764187;--stage-teal:#146b60;--stage-gold:#865515;--stage-coral:#a44430}
 .csat-public .rm-class-b,.csat-public .rm-detail-b{--course-tone:#713b7d;--course-tone-soft:#f0e5f4}
 .csat-public .rm-class-c,.csat-public .rm-detail-c{--course-tone:#a44418;--course-tone-soft:#fff0d9}
-.csat-public .rm-class-e,.csat-public .rm-class-k,.csat-public .rm-detail-e,.csat-public .rm-detail-k{--course-tone:#176b5d;--course-tone-soft:#e3f4e9}
-.dark .csat-public .rm-editorial-class,.dark .csat-public .rm-course-page{--course-tone:#98cef4;--course-tone-soft:#18364b;--stage-violet:#dfb5ee;--stage-teal:#9ce8d9;--stage-gold:#ffda99;--stage-coral:#ffc1a4}
+.csat-public .rm-class-k,.csat-public .rm-detail-k{--course-tone:#176b5d;--course-tone-soft:#e3f4e9}
+.dark .csat-public .rm-editorial-class,.dark .csat-public .rm-course-page{--course-tone:#98cef4;--course-tone-soft:#18364b;--roadmap-tone:var(--course-tone);--stage-violet:#dfb5ee;--stage-teal:#9ce8d9;--stage-gold:#ffda99;--stage-coral:#ffc1a4}
 .dark .csat-public .rm-class-b,.dark .csat-public .rm-detail-b{--course-tone:#dca9e5;--course-tone-soft:#3c2543}
 .dark .csat-public .rm-class-c,.dark .csat-public .rm-detail-c{--course-tone:#ffc287;--course-tone-soft:#412a1c}
-.dark .csat-public .rm-class-k,.dark .csat-public .rm-detail-e,.dark .csat-public .rm-detail-k{--course-tone:#9ae2cd;--course-tone-soft:#173c32}
-.csat-public .rm-editorial-class.rm-flagship{--course-tone:#a7ebd2;--course-tone-soft:#1e453b;--stage-violet:#dfb5ee;--stage-teal:#9ce8d9;--stage-gold:#ffda99;--stage-coral:#ffc1a4}
-.csat-public .rm-description-band{position:relative;isolation:isolate;overflow:clip;border:1px solid var(--line);background:var(--surface);padding:28px 32px 76px;margin-bottom:28px}
+.dark .csat-public .rm-class-k,.dark .csat-public .rm-detail-k{--course-tone:#9ae2cd;--course-tone-soft:#173c32}
+.csat-public .rm-description-band{position:relative;isolation:isolate;overflow:clip;border:1px solid var(--line);background:var(--surface);padding:28px 32px;margin-bottom:28px}
 .csat-public .rm-description-band>.rm-course-heading-row,.csat-public .rm-description-band>.rm-editorial-intro,.csat-public .rm-description-band>.rm-audience-panel{position:relative;z-index:1;width:68%;max-width:900px}
 .csat-public .rm-description-band>.rm-course-heading-row{border-bottom:0;padding-bottom:0}
 .csat-public .rm-description-band>.rm-editorial-intro{display:block;margin-block:24px}
 .csat-public .rm-description-band>.rm-editorial-intro h3{color:var(--course-tone);max-width:750px;font-size:clamp(27px,3.2vw,43px)}
 .csat-public .rm-description-band>.rm-editorial-intro>p{margin-top:16px}
-.csat-public .rm-description-band>.rm-audience-panel{display:block;padding:0;border:0;background:transparent}
+.csat-public .rm-description-band>.rm-audience-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:0;border:0;background:transparent}
 .csat-public .rm-description-band .rm-audience-panel h3{color:var(--course-tone)}
 .csat-public .rm-description-band .rm-audience-panel p{margin-top:10px;max-width:800px}
-.csat-public .rm-description-band .rm-focus-tags{margin-top:18px}
+.csat-public .rm-description-band>.rm-audience-panel .rm-focus-tags{grid-column:1/-1;grid-row:auto;align-content:normal;margin-top:4px}
+.csat-public .rm-description-band .rm-property{padding:16px 18px;border:1px solid #19395225;background:#dfedf9;color:#193952;min-width:0}
+.csat-public .rm-description-band .rm-property-foundation{background:#ffedcd;color:#614321;border-color:#61432125}
+.csat-public .rm-description-band .rm-property h3,.csat-public .rm-description-band .rm-property p{color:inherit}
+.csat-public .rm-description-band .rm-property h3{margin-top:0}
+.csat-public .rm-description-band .rm-heading-facts>span{padding:7px 10px;background:#d5e3ff;color:#243e78;border:1px solid #243e7833}
+.csat-public .rm-description-band .rm-heading-facts>span:nth-child(2){background:#c8efd9;color:#164531;border-color:#16453133}
+.csat-public .rm-description-band .rm-heading-facts>span:nth-child(3){background:#ffe0b0;color:#6b3514;border-color:#6b351433}
 .csat-public .rm-description-band .rm-course-name h2{color:var(--course-tone)}
-.csat-public .rm-background-poster{position:absolute;right:0;inset-block:0;width:62%;height:100%;display:block;z-index:0}
-.csat-public .rm-background-poster>img{width:100%;height:100%;object-fit:cover;object-position:right center;opacity:.3;mask-image:linear-gradient(90deg,transparent 0%,#0008 40%,#000 80%)}
+.csat-public .rm-background-poster{position:absolute;right:0;inset-block:0;width:62%;height:100%;display:block;z-index:0;overflow:hidden}
+.csat-public .rm-background-poster>img{width:100%;height:100%;object-fit:cover;object-position:right center;transform:scale(1.1);transform-origin:center;opacity:.82;mask-image:linear-gradient(90deg,transparent 0%,#0008 40%,#000 80%)}
+.dark .csat-public .rm-background-poster>img{opacity:.35}
 .csat-public .rm-overview-body{grid-template-columns:1fr}
-.csat-public .rm-overview-roadmap>.eyebrow{color:var(--course-tone)}
-.csat-public .rm-editorial-class .course-knowledge>ol>li{--stage-hue:var(--course-tone);border-top-color:var(--stage-hue);background:color-mix(in srgb,var(--stage-hue) 6%,var(--surface))}
-.csat-public .rm-editorial-class .course-knowledge>ol>li:nth-child(3n+2){--stage-hue:var(--stage-violet)}
-.csat-public .rm-editorial-class .course-knowledge>ol>li:nth-child(3n){--stage-hue:var(--stage-teal)}
-.csat-public .rm-editorial-class .course-knowledge>ol>li:nth-child(4){--stage-hue:var(--stage-gold)}
-.csat-public .rm-editorial-class .course-knowledge>ol>li:nth-child(6){--stage-hue:var(--stage-coral)}
+.csat-public .rm-overview-roadmap>.eyebrow{color:var(--roadmap-tone)}
+.csat-public .rm-editorial-class .course-knowledge>ol>li{--stage-hue:var(--roadmap-tone);--roadmap-tint:8%;border-top-color:var(--stage-hue);background:color-mix(in srgb,var(--stage-hue) var(--roadmap-tint),var(--surface))}
 .csat-public .rm-editorial-class .course-knowledge h3,.csat-public .rm-editorial-class .knowledge-index{color:var(--stage-hue)}
-.csat-public .rm-editorial-class .knowledge-tags>li{background:color-mix(in srgb,var(--stage-hue) 10%,var(--surface));border-color:color-mix(in srgb,var(--stage-hue) 35%,var(--line));color:var(--ink)}
-.csat-public .rm-class-a .knowledge-tags>li,.csat-public .rm-class-a .rm-focus-tags>li{background:#c7edf3;color:#153f69;border-color:#397d9a55;font-weight:700}
-.csat-public .rm-class-a .knowledge-tags>li:nth-child(3n+2),.csat-public .rm-class-a .rm-focus-tags>li:nth-child(3n+2){background:#ffe0b0;color:#6b3514;border-color:#ad6a2855}
-.csat-public .rm-class-a .knowledge-tags>li:nth-child(3n),.csat-public .rm-class-a .rm-focus-tags>li:nth-child(3n){background:#e6d6f1;color:#582975;border-color:#8f659a55}
-.csat-public .rm-flagship .rm-description-band{background:#1c2820}
+.csat-public .rm-editorial-class .knowledge-tags>li,.csat-public .rm-editorial-class .rm-focus-tags>li{--chip-bg:#c7edf3;--chip-ink:#153f69;background:var(--chip-bg);color:var(--chip-ink);border-color:color-mix(in srgb,var(--chip-ink) 25%,transparent);font-weight:650}
+.csat-public .rm-editorial-class .knowledge-tags>li:nth-child(6n+2),.csat-public .rm-editorial-class .rm-focus-tags>li:nth-child(6n+2){--chip-bg:#ffe0b0;--chip-ink:#6b3514}
+.csat-public .rm-editorial-class .knowledge-tags>li:nth-child(6n+3),.csat-public .rm-editorial-class .rm-focus-tags>li:nth-child(6n+3){--chip-bg:#e6d6f1;--chip-ink:#582975}
+.csat-public .rm-editorial-class .knowledge-tags>li:nth-child(6n+4),.csat-public .rm-editorial-class .rm-focus-tags>li:nth-child(6n+4){--chip-bg:#c8efd9;--chip-ink:#164531}
+.csat-public .rm-editorial-class .knowledge-tags>li:nth-child(6n+5),.csat-public .rm-editorial-class .rm-focus-tags>li:nth-child(6n+5){--chip-bg:#f8d6dd;--chip-ink:#712743}
+.csat-public .rm-editorial-class .knowledge-tags>li:nth-child(6n),.csat-public .rm-editorial-class .rm-focus-tags>li:nth-child(6n){--chip-bg:#d5e3ff;--chip-ink:#243e78}
+.csat-public .rm-editorial-class .knowledge-skill{padding:12px 14px;background:#e6f3e9;color:#244735;border:1px solid #24473525}
+.csat-public .rm-editorial-class .knowledge-skill strong{color:inherit}
 .csat-public .rm-flagship .rm-description-band>.rm-course-heading-row,.csat-public .rm-flagship .rm-description-band>.rm-editorial-intro,.csat-public .rm-flagship .rm-description-band>.rm-audience-panel{width:90%;margin-inline:auto}
-.csat-public .rm-flagship .rm-background-poster>img{opacity:.18}
+.csat-public .rm-flagship .rm-background-poster{inset:0;width:100%}
 .csat-public .rm-flagship .rm-description-band .rm-course-name h2,.csat-public .rm-flagship .rm-description-band>.rm-editorial-intro h3{color:var(--course-tone)}
 .csat-public .rm-flagship .rm-description-band>.rm-audience-panel{text-align:left}
-.csat-public .rm-flagship .course-knowledge>ol>li{background:#153f36;--stage-hue:#b9f3df;border-top-color:#b9f3df}
-.csat-public .rm-flagship .course-knowledge>ol>li:nth-child(2){background:#48321d;--stage-hue:#ffdc9d;border-top-color:#ffdc9d}
-.csat-public .rm-flagship .course-knowledge>ol>li:nth-child(3){background:#21354b;--stage-hue:#b8dcff;border-top-color:#b8dcff}
-.csat-public .rm-flagship .course-knowledge>ol>li>p{color:#f0f6ee}
-.csat-public .rm-flagship .rm-focus-tags>li{background:#bcebd8;color:#173a2e;border-color:#bcebd8;font-weight:700}
-.csat-public .rm-flagship .rm-focus-tags>li:nth-child(3n+2){background:#ffdda0;color:#583814;border-color:#ffdda0}
-.csat-public .rm-flagship .rm-focus-tags>li:nth-child(3n){background:#c4e2ff;color:#1c3653;border-color:#c4e2ff}
 .csat-public .rm-course-page .rm-detail-pathway>h2{color:var(--course-tone)}
 .csat-public .rm-course-page .rm-pathway-grid>li{--stage-hue:var(--course-tone);border-top-color:var(--stage-hue)}
 .csat-public .rm-course-page .rm-pathway-grid>li:nth-child(2){--stage-hue:var(--stage-violet)}
 .csat-public .rm-course-page .rm-pathway-grid>li:nth-child(3){--stage-hue:var(--stage-teal)}
 .csat-public .rm-course-page .rm-pathway-grid h3,.csat-public .rm-course-page .rm-pathway-grid .eyebrow{color:var(--stage-hue)}
-@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){.csat-public .rm-background-poster:hover>img{animation:rm-poster-response 500ms ease-out both}}
-@media(max-width:900px){.csat-public .rm-description-band{padding:24px 24px 76px}.csat-public .rm-description-band>.rm-course-heading-row,.csat-public .rm-description-band>.rm-editorial-intro,.csat-public .rm-description-band>.rm-audience-panel{width:82%}.csat-public .rm-background-poster{width:80%}}
-@media(max-width:600px){.csat-public .rm-description-band{padding:20px 16px 70px}.csat-public .rm-description-band>.rm-course-heading-row,.csat-public .rm-description-band>.rm-editorial-intro,.csat-public .rm-description-band>.rm-audience-panel,.csat-public .rm-flagship .rm-description-band>.rm-course-heading-row,.csat-public .rm-flagship .rm-description-band>.rm-editorial-intro,.csat-public .rm-flagship .rm-description-band>.rm-audience-panel{width:100%}.csat-public .rm-background-poster{width:100%}.csat-public .rm-background-poster>img{opacity:.12;mask-image:linear-gradient(90deg,#0002,#000)}.csat-public .rm-description-band>.rm-editorial-intro h3{font-size:28px}.csat-public .rm-flagship .rm-description-band>.rm-editorial-intro h3{font-size:30px}.csat-public .rm-flagship .rm-background-poster>img{opacity:.1}}
-@media(prefers-reduced-motion:reduce){.csat-public .rm-background-poster>img{animation:none!important;transform:none!important}}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){.csat-public .rm-background-poster:hover>img{animation:rm-background-response 500ms ease-out both}}
+@media(max-width:900px){.csat-public .rm-description-band{padding:24px}.csat-public .rm-description-band>.rm-course-heading-row,.csat-public .rm-description-band>.rm-editorial-intro,.csat-public .rm-description-band>.rm-audience-panel{width:82%}.csat-public .rm-background-poster{width:80%}}
+@media(max-width:600px){.csat-public .rm-description-band{padding:20px 16px}.csat-public .rm-description-band>.rm-course-heading-row,.csat-public .rm-description-band>.rm-editorial-intro,.csat-public .rm-description-band>.rm-audience-panel,.csat-public .rm-flagship .rm-description-band>.rm-course-heading-row,.csat-public .rm-flagship .rm-description-band>.rm-editorial-intro,.csat-public .rm-flagship .rm-description-band>.rm-audience-panel{width:100%}.csat-public .rm-description-band>.rm-audience-panel{grid-template-columns:1fr}.csat-public .rm-background-poster{width:100%}.csat-public .rm-background-poster>img{opacity:.2;mask-image:linear-gradient(90deg,#0002,#000)}.csat-public .rm-description-band>.rm-editorial-intro h3{font-size:28px}.csat-public .rm-flagship .rm-description-band>.rm-editorial-intro h3{font-size:30px}.csat-public .rm-flagship .rm-background-poster>img{opacity:.16}}
+@media(prefers-reduced-motion:reduce){.csat-public .rm-background-poster>img{animation:none!important;transform:scale(1.1)!important}}
+
+/* One hue per roadmap; only the tint changes between steps. */
+.csat-public .rm-editorial-class .course-knowledge>ol>li:nth-child(3n+2){--roadmap-tint:14%}
+.csat-public .rm-editorial-class .course-knowledge>ol>li:nth-child(3n){--roadmap-tint:20%}
+.csat-public .rm-editorial-class .course-knowledge .knowledge-tags>li:nth-child(n){background:color-mix(in srgb,var(--stage-hue) 12%,var(--surface));color:var(--ink);border-color:color-mix(in srgb,var(--stage-hue) 35%,var(--line))}
+.csat-public .rm-editorial-class .course-knowledge .knowledge-skill{background:color-mix(in srgb,var(--stage-hue) 18%,var(--surface));color:var(--ink);border-color:color-mix(in srgb,var(--stage-hue) 35%,var(--line))}
+@keyframes rm-background-response{0%,100%{transform:scale(1.1)}30%{transform:translateY(-3px) rotate(-1.2deg) scale(1.1)}65%{transform:translateY(-2px) rotate(.7deg) scale(1.1)}}
+
+/* One short entrance per section; no cover wipe or scrolling image effect. */
+.csat-public .roadmap-overview .rm-section-reveal{--reveal-x:0px;--reveal-y:16px}
+.csat-public .roadmap-overview .rm-section-reveal[data-reveal-variant=left]{--reveal-x:-18px;--reveal-y:0px}
+.csat-public .roadmap-overview .rm-section-reveal[data-reveal-variant=right]{--reveal-x:18px;--reveal-y:0px}
+@media(prefers-reduced-motion:no-preference){.csat-public .roadmap-overview .rm-section-reveal:not([data-reveal-variant=wipe]).reveal-play{animation-duration:520ms}}

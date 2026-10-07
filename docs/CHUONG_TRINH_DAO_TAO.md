@@ -1,20 +1,20 @@
 # Chương trình đào tạo CSAT
 
-Bản tiếp nhận: 22/09/2026. Nguồn: `Danh sách kiến thức (1).xlsx` do trung tâm cung cấp. Danh mục máy đọc: `lib/learning-curriculum-20260922.json`.
+Nguồn: `Danh sách kiến thức (1).xlsx` do trung tâm cung cấp. Danh mục máy đọc: `lib/learning-curriculum-20260922.json`.
 
-> Xác nhận 23/09/2026: các lớp hiện có mặc định Cơ bản toàn bộ A+B; Nâng cao toàn bộ C+D. [Kết quả đối chiếu và kế hoạch áp dụng](CLASS_CURRICULUM_ROLLOUT_20260923.md). Migration 20 đã áp dụng production lúc 00:49 ngày 24/09/2026; các lớp thuộc hai chương trình đã nhận khung mới.
+> Quản lý hiện hành: Cơ bản mặc định toàn bộ A+B; Nâng cao toàn bộ C+D. Khung và snapshot đã có; trạng thái triển khai xem [PROJECT_STATUS](PROJECT_STATUS.md), căn cứ chuyển khung xem [hồ sơ](CLASS_CURRICULUM_ROLLOUT_20260923.md). Không chạy lại migration 20 từ tài liệu này.
 
-## Catalog công khai — cập nhật 05/10/2026
+## Catalog công khai
 
 Theo xác nhận mới của trung tâm, website giới thiệu năm khóa **A, B, C, E, K**. [Catalog và thiết kế tích hợp](PUBLIC_COURSE_CATALOG.md) là nơi đối chiếu tên khóa, nguồn nội dung và hợp đồng dự kiến cho form. Đây là cập nhật nội dung website và thiết kế hệ thống; **chưa chuyển đổi lớp, template hoặc dữ liệu production**.
 
 - **A — Nhập môn:** giữ A01–A09, 9 chủ đề thuộc khung Cơ bản.
 - **B — Lập trình thi đấu cơ bản:** giữ B01–B15, 15 chủ đề thuộc khung Cơ bản. Cơ bản mặc định vẫn A+B, tổng cộng 24 chủ đề/7 chặng.
-- **C — Lập trình thi đấu nâng cao:** giữ toàn bộ C+D, 19 chủ đề/6 chặng. Không thay danh mục đang được dùng cho các lớp Nâng cao.
-- **E — Chủ lực:** thi tuyển đầu vào riêng từ lớp C; học sinh cần kiến thức khó hơn, hướng đến thứ hạng cao tại HSG Tỉnh và tuyển sinh chuyên Tin. Sĩ số 3–4 học sinh, 2 giờ/buổi, lịch theo thành viên lớp. Chưa có danh mục giáo trình hoặc học phí được duyệt; không sao chép C+D làm giáo trình E.
+- **C — Lập trình thi đấu nâng cao:** hai phần C/D dùng tên chung C cho website và các lớp nâng cao tương lai. Giữ đủ 19 chủ đề/6 chặng, mã nguồn C01–D07. Chỉ cập nhật tên công khai và docs; chưa đổi hiện trạng lớp trên trang gia sư/admin, template, enum hoặc dữ liệu.
+- **E — Chủ lực:** chọn lọc từ lớp C qua thi tuyển riêng; theo định hướng đã duyệt hướng chuẩn chuyên Tin, thứ hạng cao trong lập trình thi đấu, phát triển thuật toán/tư duy toán học/giải quyết vấn đề. Ba trọng tâm gồm tri thức-phương pháp, đội ngũ-môi trường và bài tập-cọ xát. Sĩ số 3–4 học sinh, 2 giờ/buổi, lịch theo thành viên lớp. Chưa có danh mục giáo trình hoặc học phí được duyệt; không sao chép C+D làm giáo trình E.
 - **K — Kèm riêng:** học 1–1 hoặc nhóm đăng ký riêng, chọn/phối nội dung từ các chương trình theo nhu cầu. Thiết kế tương lai cần giữ nguồn, phiên bản và lịch sử của nội dung được lấy; không tự cập nhật đè khi chương trình nguồn thay đổi.
 
-Khóa tuyển sinh, chương trình kiến thức và hình thức học là các khái niệm khác nhau. E không phải PreVOI. PreVOI giữ riêng trong quản lý lớp gia sư; yêu cầu tương lai chỉ gồm các lớp loại này cần được đặc tả trước khi thay enum/default hoặc chuyển lớp thật. E không làm đổi C+D thành giáo trình HSGQG; K tùy chỉnh không đồng nghĩa HSGQG. Các mốc vận hành dưới đây được giữ để đọc lịch sử, không phải lệnh cập nhật lại database.
+Khóa tuyển sinh, chương trình kiến thức và hình thức học là các khái niệm khác nhau. E không phải PreVOI. PreVOI giữ riêng trong quản lý lớp gia sư; yêu cầu tương lai chỉ gồm các lớp loại này cần được đặc tả trước khi thay enum/default hoặc chuyển lớp thật. E không làm đổi C+D thành giáo trình HSGQG; K tùy chỉnh không đồng nghĩa HSGQG. Danh mục dưới đây mô tả chương trình, không phải lệnh cập nhật database.
 
 ## Phạm vi đã xác nhận
 
@@ -27,7 +27,7 @@ Khóa tuyển sinh, chương trình kiến thức và hình thức học là cá
 
 ## Định hướng phát triển trên cổng phụ huynh
 
-Theo yêu cầu trung tâm ngày 22/09/2026:
+Theo yêu cầu trung tâm:
 
 | Chương trình | Định hướng hiện tại | Hướng phát triển |
 |---|---|---|

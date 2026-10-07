@@ -110,6 +110,8 @@ database/tests/.runtime/
 /public/videos/
 /public/images/3D/
 /public/images/tutors/
+/public/images/students/
+/public/images/courses/
 /public/images/3d-code.svg
 /public/images/devpad.svg
 /public/images/light-bulb.svg
