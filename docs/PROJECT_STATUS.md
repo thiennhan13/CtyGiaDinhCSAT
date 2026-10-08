@@ -6,14 +6,16 @@ Rà soát tài liệu: **07/10/2026**. Tài liệu này duy trì trạng thái v
 
 Ưu tiên hoàn thiện frontend công khai theo chỉ dẫn của chủ trung tâm. Backend/API, schema và logic vận hành có backlog riêng; thay đổi website không tự chuyển đổi lớp hoặc bật tiếp nhận/gửi thư.
 
-Working tree trên main chứa thay đổi frontend và docs chưa commit sau mã đã push 5f7f93d. Đây là thông tin local, phải kiểm tra lại Git khi tiếp nhận. Chưa xác minh CI/deployment mới; kết quả build local không chứng minh production đã cập nhật.
+Đã biên soạn đủ **54 bài cho 43 chủ đề A/B/C** theo kế hoạch đã duyệt; E/K bổ sung sau. Giữ trang phụ huynh tóm tắt; chỉ mở bài thuộc giáo án chuẩn đã công bố trong phạm vi phiên. Bài có bảng/sơ đồ/code với namespace std ngầm định, hai câu tự kiểm tra mở đáp án, nguồn đọc thêm ngắn và video liên quan đã xác minh. Nội dung vẫn lưu Markdown trong repo; đã chốt không dùng DB/CMS cho nội dung. Renderer import riêng C++/theme, cache phần thân bài trên worker và vẫn kiểm tra quyền mỗi request. Migration 23 thêm số buổi lớp để hiển thị chặng định hướng đã áp production 08/10/2026, không kéo theo email/avatar. Chi tiết và số liệu dung lượng ở [chuyên đề phụ huynh](PARENT_TOPICS.md).
+
+HEAD local hiện là 04efbc6 (StudentPage CI/CD); working tree có thay đổi bỏ nhãn ở tổng quan lộ trình và thư viện chuyên đề phụ huynh, chưa commit. Đang phát hành qua GitHub/Vercel theo yêu cầu; kết quả local không chứng minh production đã cập nhật.
 
 ## Frontend hiện có
 
 | Phần | Trạng thái mã hiện tại | Việc còn lại |
 |---|---|---|
 | Giới thiệu | Hero/đội ngũ, bốn lý do học thi đấu, hệ sinh thái terminal bốn nhánh, sáu bước buổi học, phụ huynh và tư vấn | Hoàn thiện tiếp theo góp ý; không thêm chỉ số chưa có nguồn |
-| Tìm hiểu lộ trình | Năm lớp A/B/C/E/K, selector, ảnh nền tĩnh, tag, roadmap; E nổi bật trong một khối, K ba ô ngang khi đủ chỗ | Nội dung mới phải bám catalog/giáo trình; không phục hồi A+B công khai |
+| Tìm hiểu lộ trình | Năm lớp A/B/C/E/K, selector, ảnh nền tĩnh, tag, roadmap; A/B/C giữ các ô nội dung học, bỏ dòng “Kiến thức nối tiếp · Tư duy phát triển”; E nổi bật trong một khối, K ba ô ngang khi đủ chỗ | Nội dung mới phải bám catalog/giáo trình; không phục hồi A+B công khai |
 | Chi tiết lớp | Poster flexible, breadcrumb một hàng, ba khối facts, chặng editorial có mũi tên; mục tiêu cuối khoá trước tư vấn, blob theo lớp | Tiếp tục UI theo chỉ dẫn; giáo trình chi tiết E chưa được cung cấp |
 | Đăng ký học | Bố cục thẻ 3/2/1 cột, ảnh mở được, khóa quan tâm mặc định theo trang lớp; form xem lại/sao chép | Chưa nối API tư vấn; học phí E và nội dung tùy chỉnh K trao đổi cùng CSAT |
 | Thành tích | Bố cục 3 đã duyệt, HTML tĩnh, 15 mục có căn cứ và WebP responsive; ảnh vuông cạnh nhãn, lưới 3/2/1, hero/art co giãn | Hai poster trùng tên/trường chờ xác nhận; chưa có quản trị database |
@@ -28,21 +30,22 @@ Các kết quả dưới đây thuộc mã local; không phải số liệu prod
 | Phạm vi | Môi trường và kết quả |
 |---|---|
 | Runtime hiện hành | Node.js 24.19.0: TypeScript, lint strict và build 70 trang với placeholder Supabase/email tắt đạt; cài sạch `npm ci` và build lại đạt. .nvmrc/engines/CI dùng 24 |
+| Chuyên đề phụ huynh, local 08/10/2026 | Node 24.19.0/Next16.3.8: guard 525 tệp, 11/11 repo tests, 243/243 database/API không skip, typecheck/lint strict/build đạt. 54 Markdown trong Next tracing; 89 khối C++ compile đạt, chạy thuật toán thực đối chiếu độc lập đạt. Edge 20 nhóm/3.600 assertions, HTML nội bộ toàn thư viện ngoài Git. Phạm vi, số liệu và giới hạn tại [chuyên đề](PARENT_TOPICS.md) |
 | Thành tích hiện hành | Browser bản build loopback: 80 bố cục / 1.594 assertion; 320–1920 px, hai theme/hai motion, no-JS, ảnh vuông, art tăng 10%/căn tâm, hover, navigation/history; đã xem ảnh desktop/mobile |
 | Chi tiết lớp | QA responsive nền: 135 bố cục / 1.134 assertion; chỉnh thứ tự mục tiêu/câu lịch/blob: 75 bố cục / 992 assertion. Bao gồm ngang/dọc, no-JS, bàn phím, curriculum A9/B15/C19 |
 | Tổng quan lộ trình | Hồi quy 12 bố cục / 657 assertion: client navigation/CSS load order, ảnh/hashtag/reveal/điều hướng mục |
 | Bộ nghiệp vụ nền | Node 24.19.0: 238/238 database/API, không skip, gồm PostgreSQL native/concurrency/restore trên DB tách biệt. Đã bỏ 18 lượt chạy lặp do import helper; giữ đủ ca kiểm thử gốc |
 | Tài nguyên Thành tích | Tải đủ 15 ảnh ở DPR2: 375 px 218.028 byte; 1440 px 526.262 byte, không gồm HTML/CSS/font. Không đo lưu lượng người dùng thực |
 
-Rà soát chuẩn bị phát hành: Node 24.19.0, guard 450 tệp không phát hiện lỗi, liên kết Markdown hợp lệ, 6/6 test guard và diff check đạt. Public smoke local trên Edge: 40 nhóm / 32 bố cục, 477 assertion giao diện đạt; không lỗi JS/asset/request ghi. Theo quyết định chủ trung tâm, đã gỡ Chromium thử nghiệm khỏi local; local dùng Edge, CI dùng Chromium riêng trên runner. CI bổ sung Playwright khóa version/Chromium smoke, lint strict; chưa chạy workflow trên GitHub. Script preview giữ môi trường provider, dùng placeholder và tắt gửi. Không kiểm tra production, commit/push hoặc deploy trong lượt này.
+Rà soát chuẩn bị phát hành: Node 24.19.0, guard 450 tệp không phát hiện lỗi, liên kết Markdown hợp lệ, 6/6 test guard và diff check đạt. Public smoke local trên Edge: 40 nhóm / 32 bố cục, 477 assertion giao diện đạt; không lỗi JS/asset/request ghi. Theo quyết định chủ trung tâm, đã gỡ Chromium thử nghiệm khỏi local; local dùng Edge, CI dùng Chromium riêng trên runner. CI bổ sung Playwright khóa version/Chromium smoke, lint strict và private topics. CI trước phát hành lỗi do kiểm tra option trước khi portal mount; đã thêm đợi hiển thị, smoke Edge mới đạt. Kết quả CI phát hành được cập nhật sau push. Script preview giữ môi trường provider, dùng placeholder và tắt gửi. Không kiểm tra production, commit/push hoặc deploy trong lượt này.
 
 Báo cáo/ảnh QA giữ trong scratch ngoài Git; các đường dẫn đó chỉ là dấu vết trên máy, không là dependency onboarding. Không có JS/asset lỗi hoặc request ghi không mong muốn trong các nhóm browser nêu trên. Sau thay đổi mới phải chạy kiểm tra phù hợp; không cộng dồn số assertion thành chứng nhận toàn hệ thống.
 
 ## Production đã biết
 
-**Lần đọc production gần nhất: 01/10/2026, chỉ đọc. Chưa đối chiếu lại.** Giữ một mốc này để tránh hiểu kết quả local là trạng thái triển khai hiện tại.
+**Đối chiếu production gần nhất: 08/10/2026.** Đã áp migration 23 trong phạm vi phát hành chuyên đề; deployment ứng dụng đang chuẩn bị. Giữ một mốc này để tránh hiểu kết quả local là trạng thái triển khai hiện tại.
 
-- Registry ghi nhận 05–17 và 20; còn thiếu 18/19/21/22.
+- Registry ghi nhận 05–17, 20 và 23; còn thiếu 18/19/21/22.
 - Chưa có bảng tư vấn/đối soát email/vòng đời avatar đầy đủ; hồ sơ mở rộng và RPC phụ huynh chưa đủ trường mới.
 - Chưa có bucket tutor-avatars; email tháng tắt, chưa cấu hình đầy đủ người nhận tổng hợp admin.
 - RLS bật ở bảng public thường; vẫn cần kiểm tra policy/RPC và xác minh danh tính phụ huynh.
@@ -64,7 +67,7 @@ Phải xác minh lại registry, cấu trúc, grants và deployment trước ph�
 |---|---|---|
 | SEC-01 | Mật khẩu khởi tạo gia sư đang là số điện thoại | Duyệt và kiểm chứng luồng mời/reset, secret ngẫu nhiên, xử lý tài khoản cũ; không reset/gửi hàng loạt ngoài quyền |
 | SEC-02 | Tra cứu phụ huynh chưa chứng minh sở hữu số | Duyệt xác minh danh tính, chống dò/thu hồi phiên/kiểm tra liên kết, kế hoạch chuyển đổi người dùng |
-| DB-01 | Schema tương thích bản deploy | Đối chiếu lại; nếu trạng thái còn như trên thì 18 → 19 → 21 → 22, không chạy lại 20; backup/restore, verification, grants/RLS và smoke theo vai trò |
+| DB-01 | Schema tương thích bản deploy | Đối chiếu lại; nếu trạng thái còn như trên thì 18 → 19 → 21 → 22 cho phần email/hồ sơ, không chạy lại 20/23; backup/restore, verification, grants/RLS và smoke theo vai trò |
 | PROFILE-01 | Hồ sơ/avatar gia sư thật | Bucket/policy và thử upload/thay/gỡ/lỗi DB–Storage trên staging; không mất hoặc xóa ảnh đang dùng |
 | PARENT-01 | Nghiệm thu cổng phụ huynh | Published, nhiều con/lớp, nhận xét/đính chính, phí null/đã chốt/tạm tính/hoàn, mobile/dark/keyboard/print |
 | MAIL-01 | Thư tổng hợp admin mới bị tuổi đợt cũ làm quá hạn | Tính hạn theo vòng đời loại thư; thử đợt >7 ngày và qua tháng |

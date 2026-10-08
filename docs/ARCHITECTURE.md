@@ -93,6 +93,10 @@ Tên đầy đủ, kiểu và chữ ký hàm phải đọc SQL hiện hành; `ty
 
 **Phụ huynh:** lookup hợp lệ → RPC `parent_learning_portal` kiểm tra học sinh thuộc liên kết → JSON do `lib/parent-learning.ts` định nghĩa → `ParentPortalView`. Thứ tự: học sinh → nhận xét → lộ trình → định hướng → buổi học → CSATOJ → gia sư/học phí. Thẻ gia sư gộp theo tutor ID, không lộ liên hệ riêng. Logo bên trái, shell/menu riêng.
 
+**Chuyên đề phụ huynh:** danh mục có kiểu `lib/parent-topics.ts` ghép metadata trong `lib/parent-topic-catalog/` với 54 Markdown cho 43 mã tại `content/parent-topics/`, chỉ trên khung chuẩn và giáo án hiệu lực đã công bố. `/parents/chuyen-de/[slug]` kiểm tra lookup, học sinh, lớp và topic qua RPC ở máy chủ rồi mới đọc toàn văn; SSR private/no-store/noindex, không chung catalog bài đăng công khai. Markdown không HTML/MDX, Shiki server-only tạo các token code; quy ước blockquote câu hỏi được chuyển thành native disclosure bằng `lib/parent-topic-questions.ts`. Client chỉ nhận bài được phép đọc và thao tác sao chép. Next file tracing đóng gói Markdown. [Quyết định và giới hạn](PARENT_TOPICS.md).
+
+Migration 23 bổ sung `class_progress?` theo toàn bộ session completed đã kết thúc của lớp được phép xem. UI suy ra chặng định hướng theo giáo án hiệu lực, không phụ thuộc tháng hoặc nghỉ riêng, không ghi trạng thái thành thạo. Thiếu aggregate fallback chặng gia sư công bố, không biến thành zero. Chưa áp production.
+
 **Ảnh gia sư:** form multipart → API kiểm tra ownership/revision → Sharp kiểm tra ảnh, xoay/cắt 512×512, WebP ≤200 KiB → Storage → RPC lưu profile → dọn ảnh cũ sau thành công. `tutor_avatar_assets` theo dõi vòng đời để xử lý kết quả ghi không chắc chắn. Bucket public để xem, client không được ghi trực tiếp.
 
 **Backend tư vấn/email:** endpoint tư vấn lưu request và outbox cùng transaction → thử gửi nếu cờ Production bật → lưu kết quả provider. Form công khai mới chưa gọi endpoint này; cần adapter và nghiệm thu khi nối. Nhắc tháng gộp một thư/gia sư; admin xem hàng đợi, reconcile và xử lý ngoại lệ. Lịch trong `vercel.json` là `0 1 28 * *` UTC (08:00 Việt Nam). Mã có lease, retry, idempotency; MAIL-01/02 vẫn cần sửa trước bật. Không có scheduler retry riêng.
@@ -125,3 +129,5 @@ Cấu trúc hiện tại phù hợp với một ứng dụng Next.js phục vụ
 - CI có database test và public browser smoke dùng dependency đã khóa. Tiếp tục chuẩn hóa môi trường thử cho Portal và nghiệm thu staging trước khi coi quy trình phát hành đã hoàn chỉnh.
 
 Tiêu chí sau mỗi đợt tách module: hành vi và quyền không đổi, lịch sử được bảo toàn, kiểm thử liên quan đạt và thành viên mới tìm được nơi sửa một nghiệp vụ mà không phải dò nhiều cách triển khai song song.
+
+Renderer chuyên đề giữ nội dung Markdown trong repo theo quyết định đã chốt. Shiki import riêng C++/github-dark, dùng chung highlighter; cache thân bài/mục lục tối đa 54 nội dung trên worker. Header, ngữ cảnh học sinh–lớp và kết quả RPC không được cache chung; route xác thực/kiểm tra bản công bố mỗi lần đọc rồi mới gọi renderer. Xem [chuyên đề phụ huynh](PARENT_TOPICS.md).

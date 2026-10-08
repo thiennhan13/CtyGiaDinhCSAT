@@ -1,0 +1,19 @@
+[
+  {"slug":"b09-modulo","topicCode":"B09","order":1,"title":"Modulo: giữ lại thông tin về số dư","excerpt":"Từ chu kỳ đến đồng dư: rút gọn phép tính, chuẩn hóa số âm và kiểm soát kết quả trung gian."},
+  {"slug":"b09-luy-thua-nhanh","topicCode":"B09","order":2,"title":"Lũy thừa nhanh: bình phương và nhân","excerpt":"Chia đôi số mũ, chọn các lũy thừa cần dùng và giải thích điều được giữ nguyên sau mỗi lượt."},
+  {"slug":"b09-doi-he-co-so","topicCode":"B09","order":3,"title":"Đổi hệ cơ số: giá trị và cách biểu diễn","excerpt":"Lấy chữ số bằng thương và số dư; đọc một biểu diễn theo trọng số mà không cần tính lũy thừa số thực."},
+  {"slug":"b09-nhan-chia-doi","topicCode":"B09","order":4,"title":"Nhân bằng chia đôi và nhân đôi","excerpt":"Biến tích thành những phép cộng modulo có kiểm soát, tránh tràn khi modulo lớn."},
+  {"slug":"b10-vector","topicCode":"B10","order":1,"title":"Vector: tổ chức một dãy có thể thay đổi","excerpt":"Lưu dữ liệu cần dùng, phân biệt độ dài với sức chứa và chọn thao tác theo chi phí."},
+  {"slug":"b11-pair-struct","topicCode":"B11","order":1,"title":"Pair và struct: giữ thông tin trong cùng bản ghi","excerpt":"Ghép các trường liên quan, đặt tên dữ liệu và giữ vị trí gốc khi thay đổi thứ tự."},
+  {"slug":"b12-map","topicCode":"B12","order":1,"title":"Map: tìm và thống kê theo khóa","excerpt":"Lưu những khóa thực sự xuất hiện, gắn giá trị với khóa và phân biệt truy vấn với thao tác thêm."},
+  {"slug":"b13-sap-xep-comparator","topicCode":"B13","order":1,"title":"Sắp xếp và comparator: xây một thứ tự rõ ràng","excerpt":"Từ chọn, chèn đến sort: diễn đạt quy tắc nhiều trường và kiểm tra comparator nhất quán."},
+  {"slug":"b14-tim-kiem-nhi-phan","topicCode":"B14","order":1,"title":"Tìm kiếm nhị phân trên dãy đã sắp xếp","excerpt":"Dùng tính thứ tự để thu hẹp phạm vi tìm kiếm; phân biệt tìm phần tử với tìm vị trí chèn."},
+  {"slug":"b15-xu-ly-xau","topicCode":"B15","order":1,"title":"Xử lý xâu: chuẩn hóa và khám phá đối xứng","excerpt":"Tách từ, thống nhất cách viết và mở rộng quanh tâm để tìm, đếm các đoạn palindrome."},
+  {"slug":"c01-cong-don-mot-chieu","topicCode":"C01","order":1,"title":"Mảng cộng dồn một chiều: tính tổng đoạn","excerpt":"Lưu phần tính toán dùng chung để trả lời nhiều truy vấn tổng đoạn mà không cộng lại từng phần tử."},
+  {"slug":"c01-cong-don-hai-chieu","topicCode":"C01","order":2,"title":"Mảng cộng dồn hai chiều: tính tổng hình chữ nhật","excerpt":"Mở rộng tổng đầu dãy thành tổng vùng; giải thích phép cộng trừ để loại phần thừa trên ma trận."},
+  {"slug":"c02-mang-hieu","topicCode":"C02","order":1,"title":"Mảng hiệu: ghi thay đổi tại hai ranh giới","excerpt":"Xử lý nhiều cập nhật đoạn bằng dấu bắt đầu, dấu kết thúc và một lượt cộng dồn khôi phục."},
+  {"slug":"c03-hai-con-tro-cua-so","topicCode":"C03","order":1,"title":"Hai con trỏ và cửa sổ trượt","excerpt":"Dịch cận theo quan hệ đơn điệu, duy trì thông tin đoạn và chứng minh tổng số bước tuyến tính."},
+  {"slug":"c04-vector-pair-unique","topicCode":"C04","order":1,"title":"Dữ liệu tuyến tính: vector, pair và unique","excerpt":"Tổ chức dãy, đưa dữ liệu trùng về cạnh nhau và phân biệt ranh giới mới với kích thước container."},
+  {"slug":"c05-set-map-mang-dem","topicCode":"C05","order":1,"title":"Set, map và mảng đếm: chọn cách tổ chức khóa","excerpt":"So sánh miền giá trị, thứ tự và số lần xuất hiện để chọn cấu trúc phù hợp cho tìm kiếm, thống kê."},
+  {"slug":"c06-queue-deque-stack","topicCode":"C06","order":1,"title":"Hàng đợi, ngăn xếp và hàng đợi hai đầu","excerpt":"Mô tả thứ tự xử lý, theo dõi các việc chưa kết thúc và giữ trạng thái khi mô phỏng."}
+]

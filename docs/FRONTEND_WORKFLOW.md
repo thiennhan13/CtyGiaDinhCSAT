@@ -20,6 +20,7 @@ Dùng **Node.js 24** cho local, CI và deploy theo quyết định chủ trung t
 | Thành tích/bài đăng | [PUBLIC_ACHIEVEMENTS](PUBLIC_ACHIEVEMENTS.md), [PUBLIC_POSTS](PUBLIC_POSTS.md) |
 | Motion/ảnh/dialog/select | PublicMotion/PublicFeedback/CoursePosterPreview/PublicSelect; [motion workflow](UI_MOTION_WORKFLOW.md) |
 | Cổng phụ huynh | app/parents/, components/learning/ParentShell.tsx, ParentPortalView.tsx; contract lib/parent-learning.ts |
+| Bài chuyên đề phụ huynh | [Quyết định và quyền đọc](PARENT_TOPICS.md), lib/parent-topics.ts, content/parent-topics/; route private không dùng PublicShell |
 | Hồ sơ gia sư | app/tutor/profile/, components/tutors/TutorProfileEditor.tsx, TutorProfileCard.tsx |
 | Admin/gia sư nghiệp vụ | app/admin/, app/tutor/, features/; đọc query/action/API/RPC tương ứng |
 

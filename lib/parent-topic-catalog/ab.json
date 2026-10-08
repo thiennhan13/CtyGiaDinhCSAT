@@ -1,0 +1,121 @@
+[
+  {
+    "slug": "a01-moi-truong-nhap-xuat",
+    "topicCode": "A01",
+    "order": 1,
+    "title": "Môi trường lập trình và nhập xuất dữ liệu",
+    "excerpt": "Từ dữ liệu của đề đến kết quả: viết, biên dịch, chạy và kiểm tra chương trình; sử dụng cin, cout và tệp đúng yêu cầu."
+  },
+  {
+    "slug": "a02-kieu-du-lieu-toan-tu",
+    "topicCode": "A02",
+    "order": 1,
+    "title": "Kiểu dữ liệu, ép kiểu và toán tử",
+    "excerpt": "Chọn kiểu số theo giới hạn, phân biệt chia nguyên với chia thực và kiểm tra thứ tự phép tính cùng giá trị trung gian."
+  },
+  {
+    "slug": "a03-cau-truc-re-nhanh",
+    "topicCode": "A03",
+    "order": 1,
+    "title": "Cấu trúc rẽ nhánh: lựa chọn theo điều kiện",
+    "excerpt": "Chuyển quy tắc thành các trường hợp đủ và rõ; hiểu thứ tự if, else if, switch và kiểm tra dữ liệu sát ngưỡng."
+  },
+  {
+    "slug": "a04-cau-truc-lap",
+    "topicCode": "A04",
+    "order": 1,
+    "title": "Cấu trúc lặp: điều khiển những thao tác lặp lại",
+    "excerpt": "Theo dõi trạng thái ban đầu, điều kiện dừng và bước cập nhật qua for, while và vòng lặp lồng nhau."
+  },
+  {
+    "slug": "a05-mang-mot-chieu",
+    "topicCode": "A05",
+    "order": 1,
+    "title": "Mảng một chiều: duyệt và thống kê dữ liệu",
+    "excerpt": "Phân biệt vị trí với giá trị; giữ tổng, số lượng và giá trị lớn nhất hoặc nhỏ nhất trong một lượt duyệt."
+  },
+  {
+    "slug": "a06-dao-chen-xoa-mang",
+    "topicCode": "A06",
+    "order": 1,
+    "title": "Đảo, chèn và xóa phần tử trong mảng",
+    "excerpt": "Chọn hướng di chuyển để không ghi đè dữ liệu; theo dõi độ dài, sức chứa và trạng thái sau từng bước."
+  },
+  {
+    "slug": "a07-mang-hai-chieu",
+    "topicCode": "A07",
+    "order": 1,
+    "title": "Mảng hai chiều: hàng, cột, đường chéo và phép xoay",
+    "excerpt": "Mô tả ô bằng tọa độ, duyệt đúng cận và suy ra vị trí mới khi xoay bảng; kiểm tra trên bảng chữ nhật."
+  },
+  {
+    "slug": "a08-ham-tham-tri-tham-chieu",
+    "topicCode": "A08",
+    "order": 1,
+    "title": "Hàm: tham trị, tham chiếu và phạm vi biến",
+    "excerpt": "Chia chương trình thành nhiệm vụ rõ; hiểu dữ liệu đi vào hàm, kết quả trả về và khi nào biến tại nơi gọi thay đổi."
+  },
+  {
+    "slug": "a09-xau-ky-tu-co-ban",
+    "topicCode": "A09",
+    "order": 1,
+    "title": "Xâu ký tự cơ bản: đọc và xử lý văn bản",
+    "excerpt": "Đọc một từ hoặc cả dòng, duyệt ký tự ASCII và sử dụng các thao tác xâu với chỉ số, độ dài và điều kiện rõ ràng."
+  },
+  {
+    "slug": "b01-vet-can-phuong-an",
+    "topicCode": "B01",
+    "order": 1,
+    "title": "Vét cạn: duyệt đủ phương án, đếm đúng điều kiện",
+    "excerpt": "Sinh mỗi cặp hoặc bộ vị trí một lần, kiểm tra không thiếu và không trùng, rồi đối chiếu số phương án với giới hạn."
+  },
+  {
+    "slug": "b02-mang-thong-ke",
+    "topicCode": "B02",
+    "order": 1,
+    "title": "Mảng thống kê: đếm theo giá trị",
+    "excerpt": "Lưu số lần xuất hiện trong miền nhỏ, xử lý tần suất bằng nhau và phân biệt độ dài dãy với kích thước bảng đếm."
+  },
+  {
+    "slug": "b03-so-chinh-phuong",
+    "topicCode": "B03",
+    "order": 1,
+    "title": "Số chính phương: tìm căn nguyên và kiểm tra chính xác",
+    "excerpt": "Dùng căn bậc hai để tìm ứng viên rồi kiểm tra bằng số nguyên; xử lý số 0, sai số và nguy cơ bình phương vượt giới hạn."
+  },
+  {
+    "slug": "b04-nguyen-to-dem-uoc",
+    "topicCode": "B04",
+    "order": 1,
+    "title": "Kiểm tra nguyên tố và đếm ước theo cặp",
+    "excerpt": "Khai thác cặp d và n/d để chỉ thử đến căn, phân biệt dừng sớm với đếm đủ và xử lý cặp ước bằng nhau."
+  },
+  {
+    "slug": "b05-sang-nguyen-to",
+    "topicCode": "B05",
+    "order": 1,
+    "title": "Sàng Eratosthenes: chuẩn bị bảng số nguyên tố",
+    "excerpt": "Loại các bội để trả lời nhiều câu hỏi trong một miền; giải thích mốc bình phương, cận căn và chi phí tiền xử lý."
+  },
+  {
+    "slug": "b06-euclid-ucln-bcnn",
+    "topicCode": "B06",
+    "order": 1,
+    "title": "Thuật toán Euclid: ước chung và bội chung",
+    "excerpt": "Theo dõi phép lấy dư giữ nguyên tập ước chung, tính BCNN an toàn trong giới hạn và áp dụng vào chia đều hoặc chu kỳ."
+  },
+  {
+    "slug": "b07-phan-tich-thua-so-nguyen-to",
+    "topicCode": "B07",
+    "order": 1,
+    "title": "Phân tích thừa số nguyên tố: đọc cấu trúc của một số",
+    "excerpt": "Lấy hết từng thừa số nhỏ, xác định phần còn lại và dùng các số mũ để suy ra số lượng ước hoặc tính chính phương."
+  },
+  {
+    "slug": "b08-cong-thuc-legendre",
+    "topicCode": "B08",
+    "order": 1,
+    "title": "Công thức Legendre: đếm nguyên tố trong giai thừa",
+    "excerpt": "Đếm từng lớp bội thay vì tính giai thừa; hiểu đóng góp bổ sung, cách chia liên tiếp và số chữ số 0 cuối."
+  }
+]

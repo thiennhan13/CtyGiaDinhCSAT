@@ -14,7 +14,7 @@ Theo xác nhận mới của trung tâm, website giới thiệu năm khóa **A, 
 - **E — Chủ lực:** chọn lọc từ lớp C qua thi tuyển riêng; theo định hướng đã duyệt hướng chuẩn chuyên Tin, thứ hạng cao trong lập trình thi đấu, phát triển thuật toán/tư duy toán học/giải quyết vấn đề. Ba trọng tâm gồm tri thức-phương pháp, đội ngũ-môi trường và bài tập-cọ xát. Sĩ số 3–4 học sinh, 2 giờ/buổi, lịch theo thành viên lớp. Chưa có danh mục giáo trình hoặc học phí được duyệt; không sao chép C+D làm giáo trình E.
 - **K — Kèm riêng:** học 1–1 hoặc nhóm đăng ký riêng, chọn/phối nội dung từ các chương trình theo nhu cầu. Thiết kế tương lai cần giữ nguồn, phiên bản và lịch sử của nội dung được lấy; không tự cập nhật đè khi chương trình nguồn thay đổi.
 
-Khóa tuyển sinh, chương trình kiến thức và hình thức học là các khái niệm khác nhau. E không phải PreVOI. PreVOI giữ riêng trong quản lý lớp gia sư; yêu cầu tương lai chỉ gồm các lớp loại này cần được đặc tả trước khi thay enum/default hoặc chuyển lớp thật. E không làm đổi C+D thành giáo trình HSGQG; K tùy chỉnh không đồng nghĩa HSGQG. Danh mục dưới đây mô tả chương trình, không phải lệnh cập nhật database.
+Khóa tuyển sinh, chương trình kiến thức và hình thức học là các khái niệm khác nhau. Không đổi tên lớp quản lý PreVOI thành khóa tuyển sinh E. Theo kế hoạch chuyên đề phụ huynh đã duyệt, PreVOI sẽ dùng bộ giáo án E, lớp chưa có giáo án dùng K trong đợt bổ sung sau; chưa tạo nội dung E/K, thay enum/default hoặc chuyển lớp thật. E không làm đổi C+D thành giáo trình HSGQG; K tùy chỉnh không đồng nghĩa HSGQG. Danh mục dưới đây mô tả chương trình, không phải lệnh cập nhật database. [Bài chuyên đề và quy ước chỉ báo chặng](PARENT_TOPICS.md) giữ nguyên mã, thứ tự và tóm tắt của khung này.
 
 ## Phạm vi đã xác nhận
 

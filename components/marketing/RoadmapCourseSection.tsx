@@ -31,7 +31,7 @@ export function RoadmapCourseSection({ code, chapter, href }: { code: PublicCour
         <aside className="rm-audience-panel"><div className="rm-property rm-property-audience"><h3>Đối tượng</h3><p>{course.audience}</p></div><div className="rm-property rm-property-foundation"><h3>{code === 'K' ? 'Trọng tâm định hướng' : 'Nền tảng để phát triển'}</h3><p>{content.foundation}</p></div>{code === 'K' && <ul className="rm-focus-tags">{content.focusTags.map(tag => <li key={tag}>{tag}</li>)}</ul>}</aside>
       </div>
       <div className="rm-overview-body">
-        <div className="rm-overview-roadmap"><p className="eyebrow">{code === 'K' ? 'Một hướng học từ nhu cầu cụ thể' : 'Kiến thức nối tiếp · Tư duy phát triển'}</p><CourseKnowledge code={code} /></div>
+        <div className="rm-overview-roadmap">{code === 'K' && <p className="eyebrow">Một hướng học từ nhu cầu cụ thể</p>}<CourseKnowledge code={code} /></div>
       </div>
       <div className="rm-class-actions"><Link className="btn" href={href}>Khám phá nội dung lớp {code} <ArrowRight aria-hidden="true" size={18}/></Link><Link className="text-link rm-enrollment-link" href={enrollmentHref(code)}>Đăng ký lớp {code} <ArrowUpRight aria-hidden="true" size={16}/></Link></div>
     </Reveal>

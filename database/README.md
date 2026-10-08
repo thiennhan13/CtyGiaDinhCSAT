@@ -8,7 +8,7 @@ Migration là bản SQL thay đổi cấu trúc, quyền/RPC hoặc dữ liệu 
 SELECT version FROM csat_internal.schema_migrations ORDER BY version;
 ```
 
-Registry bắt đầu từ 05; thiếu dòng 01–04 không có nghĩa phải chạy lại. Tại lần xác minh 24/09/2026 có 05–17 và 20, còn thiếu 18/19/21/22. Phải đọc lại trạng thái trước lần thao tác mới.
+Registry bắt đầu từ 05; thiếu dòng 01–04 không có nghĩa phải chạy lại. Tại lần xác minh 08/10/2026 có 05–17, 20 và 23, còn thiếu 18/19/21/22. Phải đọc lại trạng thái trước lần thao tác mới.
 
 ## Bản đồ các nhóm migration
 
@@ -23,16 +23,17 @@ Registry bắt đầu từ 05; thiếu dòng 01–04 không có nghĩa phải ch
 | 20 | Khung A/B/C/D đã duyệt, snapshot và chuyển các lớp hiện có |
 | 21 | Hoàn thiện email + phí từng buổi trong JSON phụ huynh; còn MAIL-01/02 |
 | 22 | Hồ sơ/avatar gia sư, revision, quyền, audit, JSON phụ huynh |
+| 23 | Aggregate số buổi completed của lớp cho chỉ báo chặng phụ huynh; đã áp production 08/10/2026 |
 
-20 chỉ phụ thuộc 17, nên có thể có 20 trong khi 18/19 chưa áp dụng. 21 cần 19 và 20; 22 cần 21. Với trạng thái cũ nêu trên: **18 → 19 → 21 → 22**, bỏ qua 20. Không chỉnh migration đã phát hành; sửa bằng migration mới sau số cuối thực tế.
+20 chỉ phụ thuộc 17, nên có thể có 20 trong khi 18/19 chưa áp dụng. 21 cần 19 và 20; 22 cần 21; 23 chỉ cần 20 và bảo toàn các trường 21/22 nếu có. Có thể phát hành 23 độc lập; kiểm thử xác nhận 21/22 áp sau vẫn giữ aggregate. Với trạng thái hiện tại, phần email/hồ sơ còn lại là **18 → 19 → 21 → 22**, bỏ qua 20/23 và xác minh lại trước thao tác. Không chỉnh migration đã phát hành; sửa bằng migration mới sau số cuối thực tế.
 
 ## Khởi tạo database thử mới
 
 Dùng project Supabase thử **trống**, có schema Auth và roles chuẩn. Không chạy trên production hoặc project chứa dữ liệu cần giữ.
 
-1. Đọc `CSAT_master_schema.sql`: hiện là baseline tổng hợp **đến 10**, không phải schema mới nhất đến 22.
+1. Đọc `CSAT_master_schema.sql`: hiện là baseline tổng hợp **đến 10**, không phải schema mới nhất đến 23.
 2. Chạy baseline một lần trên project trống; kiểm tra registry 05–10. Không chạy lại 01–10 sau đó.
-3. Áp dụng lần lượt 11–22, xem precondition đầu từng file và verification tương ứng. `upgrade-learning-portal.sql` là gói lịch sử 11–15; chỉ chọn gói hoặc từng file, không cả hai.
+3. Áp dụng lần lượt 11–23, xem precondition đầu từng file và verification tương ứng. `upgrade-learning-portal.sql` là gói lịch sử 11–15; chỉ chọn gói hoặc từng file, không cả hai. Migration 23 được kiểm chứng bằng `tests/parent-class-progress.test.cjs` trên database thử.
 4. Tạo tài khoản và fixture giả qua luồng được phép; không seed dump production. Bucket avatar/policy là bước Supabase Storage riêng sau 22.
 5. Kiểm tra API/RLS theo vai trò và UI. Bộ test cục bộ có Auth helper giả, không thay thế Supabase thật.
 

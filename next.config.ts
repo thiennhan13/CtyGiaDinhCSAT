@@ -2,6 +2,9 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  outputFileTracingIncludes: {
+    '/parents/chuyen-de/*': ['./content/parent-topics/*.md'],
+  },
   typescript: {
     ignoreBuildErrors: false,
   },

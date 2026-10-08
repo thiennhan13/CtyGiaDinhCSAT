@@ -21,6 +21,7 @@ Mục tiêu hiện tại: hoàn thiện frontend theo chỉ dẫn của chủ tr
 | K là kèm riêng hoặc nhóm riêng, chọn nội dung đã duyệt; không mặc định HSGQG | [Catalog](PUBLIC_COURSE_CATALOG.md) |
 | Các form công khai chỉ kiểm tra, xem lại, sao chép và chủ động liên hệ; chưa nối API hoặc gửi thư | [Website](PUBLIC_WEBSITE.md) |
 | Thành tích dùng bố cục 3 nhãn cạnh ảnh, dữ liệu riêng và trang tĩnh; chỉ công bố nguồn đã xác minh | [Thành tích](PUBLIC_ACHIEVEMENTS.md) |
+| Trang phụ huynh giữ tóm tắt, thêm bài chuyên đề private; đã duyệt kế hoạch nhân rộng 43 chủ đề/54 bài. Mỗi bài có hai câu hỏi mở đáp án, nguồn đọc thêm ngắn và code gọn với namespace std ngầm định, không in khai báo. Giữ Markdown trong repo, không triển khai database/CMS nội dung. PreVOI dùng giáo án E và lớp chưa có giáo án dùng K trong đợt bổ sung sau; không tự chuyển dữ liệu lớp | [Chuyên đề phụ huynh](PARENT_TOPICS.md) |
 | Không dùng font KVANT cho chữ UI; A/B/C/E/K và sơ đồ E dùng font menu Archivo. Logo SVG giữ nét gốc | [Design system](PUBLIC_UI_DESIGN_SYSTEM.md) |
 | Dùng Node.js 24 cho local, CI và deploy; kiểm tra phiên bản thật, không suy trạng thái hosted từ local | [Tiến độ](PROJECT_STATUS.md) |
 

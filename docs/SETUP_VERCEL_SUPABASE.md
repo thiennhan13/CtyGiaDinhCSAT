@@ -10,9 +10,9 @@ Sau deploy được phép: kiểm tra `/`, `/lo-trinh`, các lớp A/B/C/E/K, `/
 
 Đây là hướng dẫn thực hiện, không xác nhận đã áp dụng trên production. Trạng thái và ngày kiểm chứng môi trường chỉ duy trì tại [PROJECT_STATUS](PROJECT_STATUS.md); mọi tác động thật cần quyền phù hợp.
 
-Dùng tài liệu này làm đầu mối cấu hình cho bản kết hợp đến migration 22. Các tài liệu phát hành trước giữ vai trò lịch sử; không dùng riêng chuỗi migration 18–19 hoặc 18–21 cho bản ứng dụng mới. Danh sách việc sau này: [FUTURE_INTEGRATIONS.md](FUTURE_INTEGRATIONS.md).
+Dùng tài liệu này làm đầu mối cấu hình cho bản kết hợp đến migration 23. Các tài liệu phát hành trước giữ vai trò lịch sử; không dùng riêng chuỗi migration 18–19 hoặc 18–21 cho bản ứng dụng mới. Danh sách việc sau này: [FUTURE_INTEGRATIONS.md](FUTURE_INTEGRATIONS.md).
 
-> Đối chiếu registry/cấu trúc/grants thực trước phát hành. Migration 20 đã được ghi nhận áp dụng; không chạy lại hoặc suy từ số lớn nhất rằng các migration trước đó đều có. Xem trạng thái production trong PROJECT_STATUS.
+> Đối chiếu registry/cấu trúc/grants thực trước phát hành. Migration 20 và 23 đã được ghi nhận áp dụng; không chạy lại hoặc suy từ số lớn nhất rằng các migration trước đó đều có. Xem trạng thái production trong PROJECT_STATUS.
 
 ## 1. Chọn trạng thái phát hành lúc chưa có email/API
 
@@ -93,6 +93,9 @@ Chỉ chạy các file còn thiếu, từng file và kiểm chứng ngay sau đ�
 | 20 (đã ghi nhận áp dụng; không chạy lại) | `20260922_20_curriculum_frameworks.sql` | `20260922_curriculum_frameworks.sql` |
 | 21 | `20260922_21_parent_email_completion.sql` | `20260922_parent_email_completion.sql` |
 | 22 | `20260923_22_tutor_profiles.sql` | `20260923_tutor_profiles.sql` |
+| 23 (đã áp; không chạy lại) | `20261008_23_parent_class_progress.sql` | `tests/parent-class-progress.test.cjs`; đối chiếu RPC/grants và dữ liệu tổng hợp |
+
+23 chỉ phụ thuộc 20; có thể triển khai aggregate phụ huynh độc lập với email/avatar. 18 → 19 → 21 → 22 là phần còn lại; không lặp 20/23.
 
 Không chạy lại migration đã có, không chạy master schema/reset lên database có dữ liệu. Migration 20 chuyển khung kiến thức lớp và lưu snapshot/lịch sử; đối chiếu Cơ bản A/B/A+B, Nâng cao C+D, bản nháp/công bố và chặng cần xác nhận. Không tự chuyển Luyện thi tùy chỉnh thành HSGQG.
 

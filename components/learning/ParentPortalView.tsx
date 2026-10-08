@@ -8,6 +8,9 @@ import { ParentAttendance } from './ParentAttendance';
 import { ParentShell } from './ParentShell';
 import { ParentDevelopment } from './ParentDevelopment';
 import { ParentContact } from '@/app/parents/portal-actions';
+import { effectiveStages } from '@/lib/curriculum';
+import { resolveParentCurriculumProgress } from '@/lib/parent-curriculum-progress';
+import { articlesForTopic, isParentTopicFramework, parentTopicHref } from '@/lib/parent-topics';
 
 const money = (value:number|null) => value === null ? 'Chưa đủ dữ liệu' : new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND',maximumFractionDigits:0}).format(value);
 const card='parent-card';
@@ -25,7 +28,15 @@ export function ParentPortalView({portal}:{portal:ParentLearningData}){
     <div className="mt-5 flex flex-wrap gap-3 print:hidden">{portal.reviewPage>0 && <Link className="csat-btn text-xs" href={query(portal.reviewPage-1)}>Mới hơn</Link>}{(portal.reviewPage+1)*12<portal.reviewCount && <Link className="csat-btn text-xs" href={query(portal.reviewPage+1)}>Nhận xét trước đó</Link>}</div>
    </section>
    <section id="roadmap" className={card}><h2 className="mb-5 text-2xl font-extrabold">Lộ trình và trọng tâm học tập</h2>
-    {portal.plans.filter(p=>p.kind==='class').map(p=><article key={p.class_id} className="mb-7 space-y-4 last:mb-0"><h3 className="text-xl font-bold text-primary">{p.class_name}</h3><Roadmap body={p.body} template={p.template}/></article>)}
+    {portal.plans.filter(p=>p.kind==='class').map(p=>{
+      const progress=resolveParentCurriculumProgress(p.template,p.body,portal.class_progress?.find(item=>item.class_id===p.class_id));
+      const articleLinks:Record<string,string>={};
+      if(p.published_at&&isParentTopicFramework(p.template,p.body))for(const stage of effectiveStages(p.template,p.body))for(const lesson of stage.lessons){
+        const first=lesson.code?articlesForTopic(lesson.code)[0]:undefined;
+        if(first&&lesson.code)articleLinks[lesson.code]=parentTopicHref(first.slug,{student:student.student_id,classId:p.class_id,month:portal.month,page:portal.reviewPage});
+      }
+      return <article key={p.class_id} className="mb-7 space-y-4 last:mb-0"><h3 className="text-xl font-bold text-primary">{p.class_name}</h3><Roadmap body={p.body} template={p.template} progress={progress} articleLinks={articleLinks}/></article>;
+    })}
     {!portal.plans.some(p=>p.kind==='class') && <p className="text-sm leading-7 text-muted-foreground">Gia sư chưa công bố lộ trình lớp. Thông tin sẽ được bổ sung sau khi xác nhận chương trình và mục tiêu học.</p>}
     {portal.plans.filter(p=>p.kind==='student').map(p=><article key={p.class_id} className="mt-6 space-y-3 rounded-xl bg-accent p-5"><h3 className="font-bold">Trọng tâm riêng · {p.class_name}</h3><p className="whitespace-pre-wrap text-sm leading-7">{p.body.goal}</p><div className="flex flex-wrap gap-2">{p.body.focus_tags.map(id=><span className="rounded-lg border bg-card p-2 text-xs" key={id}>{getReviewTag(id)?.label || id}</span>)}</div>{p.body.next_step && <p className="whitespace-pre-wrap text-sm leading-7"><strong>Bước tiếp theo: </strong>{p.body.next_step}</p>}</article>)}
    </section>

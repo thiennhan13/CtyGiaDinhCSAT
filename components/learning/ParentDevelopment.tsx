@@ -24,14 +24,14 @@ const directions = {
       {
         label: 'Định hướng hiện tại',
         title: 'HSG Tỉnh cấp THPT',
-        content: 'Khung C + D kết nối kỹ thuật trên mảng, cấu trúc dữ liệu, đệ quy, chia để trị, quay lui, tham lam, tìm kiếm trên đáp án, băm và quy hoạch động. Con luyện chọn thuật toán theo đặc điểm bài toán và giới hạn dữ liệu.',
+        content: 'Chương trình C kết nối kỹ thuật trên mảng, cấu trúc dữ liệu, đệ quy, chia để trị, quay lui, tham lam, tìm kiếm trên đáp án, băm và quy hoạch động. Con luyện chọn thuật toán theo đặc điểm bài toán và giới hạn dữ liệu.',
         next: 'Trọng tâm rèn luyện: so sánh các cách giải, giải thích tính đúng đắn, đánh giá độ phức tạp và cải thiện chương trình từ kết quả kiểm thử.',
       },
       {
         label: 'Hướng mở rộng · Bổ sung chương trình',
         title: 'HSG Quốc gia',
         content: 'Từ nền tảng Nâng cao, hướng tới việc phân tích bài toán sâu hơn, phối hợp nhiều kỹ thuật và rèn khả năng tự tìm lời giải. Gia sư cùng học sinh xem lại bài làm để xác định kiến thức cần củng cố và chuyên đề cần học tiếp.',
-        next: 'Chương trình HSG Quốc gia sẽ được bổ sung và công bố riêng sau khi trung tâm duyệt. Khung C + D hiện tại là nền tảng để phát triển tiếp.',
+        next: 'Chương trình HSG Quốc gia sẽ được bổ sung và công bố riêng sau khi trung tâm duyệt. Chương trình C hiện tại là nền tảng để phát triển tiếp.',
       },
     ],
   },

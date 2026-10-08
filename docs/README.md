@@ -30,6 +30,7 @@ Giữ hồ sơ có giá trị nghiệp vụ/verification, không nạp mặc đ�
 
 - [Hồ sơ gia sư](TUTOR_PROFILES_20260923.md), [chuyển khung chương trình](CLASS_CURRICULUM_ROLLOUT_20260923.md).
 - [Cổng phụ huynh](PARENT_PORTAL_CURRICULUM_20260922.md), [phát hành parent/email](RELEASE_PARENT_EMAIL_20260922.md).
+- [Chuyên đề phụ huynh: 43 chủ đề/54 bài và quyền đọc](PARENT_TOPICS.md), [nguồn tham khảo và kiểm chứng](PARENT_TOPIC_RESEARCH.md).
 - [Tư vấn](PUBLIC_SITE_AND_CONSULTATIONS_20260913.md), [kế hoạch email](EMAIL_ROLLOUT_PLAN_20260914.md), [setup email cũ](EMAIL_VERCEL_SETUP_20260914.md).
 - [Ngày/điểm danh](CHANGES_20260906_DATE_ATTENDANCE.md), [CHANGELOG](../CHANGELOG.md).
 - Database UPDATE/ACCOUNTING_UPGRADE/LEARNING_PORTAL_DEPLOYMENT/POST_UPGRADE_CHECK: bối cảnh migration; dùng database README và verification hiện hành trước thực thi.

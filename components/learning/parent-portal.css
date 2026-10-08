@@ -9,6 +9,10 @@
 
 .parent-attendance-table th{position:relative}
 
+.parent-portal .parent-read-topic{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;width:fit-content;max-width:100%;margin-top:12px;padding:8px 12px;border:1.5px solid var(--foreground);border-radius:6px;background:var(--card);box-shadow:2px 2px 0 var(--foreground);font-size:12px;font-weight:750;text-decoration:none}
+.parent-portal .parent-read-topic:hover{background:var(--accent)}
+.parent-portal .parent-read-topic:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+
 @media print{.parent-portal .roadmap-detail{display:block!important}.parent-portal .roadmap-detail>div{display:none!important}.parent-portal .roadmap-focus{background:white!important;color:#111!important;margin-bottom:12px}}
 
 .parent-portal a{color:var(--primary)}.parent-portal .parent-profile-goal a{color:white}.parent-portal .parent-sidebar nav>a[aria-current]{color:var(--primary-foreground)}.parent-portal .roadmap-stage:not([aria-pressed=true]){background:var(--card);color:var(--foreground)}
@@ -28,6 +32,7 @@
 
 .parent-session-dialog{--border:#d6d6ca;--muted-foreground:#66665e;background:#fffefa;border:1.5px solid #191917;box-shadow:3px 3px 0 #191917}.dark .parent-session-dialog{--border:#4c5147;--muted-foreground:#bfc2b5;background:#222520;color:#f4f3eb;border-color:#4c5147}.parent-session-dialog button:focus-visible{outline:3px solid #2b50e0;outline-offset:2px}@media(prefers-reduced-motion:reduce){.parent-session-dialog{animation:none!important;transition:none!important}}
 /* Shared public navigation; preserve the private report and its account actions. */
+.parent-portal .contact-dock{display:none}
 .parent-portal .public-header-only{margin-top:-16px}
 .parent-portal .public-header-only .wrap{width:100%;max-width:1470px}
 .parent-session-toolbar{max-width:1470px;margin:6px auto 0;display:flex;align-items:center;gap:18px;padding:8px 4px;border-bottom:1px solid var(--border)}

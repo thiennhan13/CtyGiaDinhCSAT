@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54329
       NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key-for-ci-build-only
       SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key-for-ci-build-only
       CRON_SECRET: placeholder-cron-secret-for-ci-only
@@ -81,6 +81,11 @@ jobs:
             exit 1
           fi
           npm run test:public
+
+      - name: Private parent topics, access and reading experience
+        env:
+          CSAT_BROWSER_CHANNEL: chromium
+        run: node scripts/run-parent-topics-ui.cjs
 
   postgres:
     name: PostgreSQL 17 (Windows, Node 24)

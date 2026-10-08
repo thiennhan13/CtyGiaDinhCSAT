@@ -58,7 +58,7 @@ Mở đầu bằng tiêu đề/art terminal trước bốn ảnh góc khuyết �
 
 Ảnh A/B/C.jpg, E.jpg và Custom.jpg cho K dùng bản WebP tối ưu ở catalog. Ảnh nằm dưới nền tên/miêu tả, không tràn xuống kiến thức; zoom 110% để hover không lộ viền. Vị trí absolute không bị CSS trigger ghi đè khi chuyển route. Tổng quan không cho click mở ảnh, không link/button/tabindex/dialog hoặc nút Xem ảnh lớp. Không parallax, sticky hoặc di chuyển ảnh theo cuộn; hover phản hồi ảnh/bóng hữu hạn, reduced motion tắt.
 
-A/B/C bỏ tiêu đề phụ và dải thuật toán ngay dưới giới thiệu. Kiến thức nối tiếp · Tư duy phát triển giữ tên chặng và tag thuật toán theo đúng thứ tự; không mô tả kỹ năng phía dưới hoặc nhãn Tư duy rèn luyện. Các ô roadmap dùng một hue với đậm nhạt khác nhau; phần tính chất/đối tượng có thể phối nhiều màu, rõ tương phản. Nhãn Nền tảng để phát triển được giữ.
+A/B/C bỏ tiêu đề phụ và dải thuật toán ngay dưới giới thiệu. Phần nội dung học giữ tên chặng và tag thuật toán theo đúng thứ tự, không hiển thị dòng “Kiến thức nối tiếp · Tư duy phát triển”; không mô tả kỹ năng phía dưới hoặc nhãn Tư duy rèn luyện. Các ô roadmap dùng một hue với đậm nhạt khác nhau; phần tính chất/đối tượng có thể phối nhiều màu, rõ tương phản. Nhãn Nền tảng để phát triển được giữ.
 
 Hashtag chỉ A/B/C, góc phải ảnh và không chèn chữ; E/K không có hashtag. K: ba ô Một hướng học từ nhu cầu cụ thể cùng hàng trên 600 px, dọc khi hẹp. Heading lớp và heading tư vấn không có glyph.
 

@@ -26,7 +26,7 @@ Form tư vấn công khai **chưa gọi** backend request/outbox. Luồng endpoi
 ## Database và dữ liệu đang vận hành
 
 1. Đọc [database README](../database/README.md), migration precondition, caller/RPC và test liên quan. Kiểm tra môi trường bằng registry **và** cấu trúc/grants/verification; không chỉ lấy số migration lớn nhất.
-2. Mã hiện có migration 01–22. Lần đọc production 01/10 ghi nhận 05–17 và 20; cần đối chiếu lại trước phát hành. Nếu vẫn giữ trạng thái đó, chuỗi còn lại là 18 → 19 → 21 → 22; không chạy lại 20. Registry không ghi 01–04 không có nghĩa cần chạy chúng lại.
+2. Mã hiện có migration 01–23. Production 08/10/2026 ghi nhận 05–17, 20 và 23; còn 18 → 19 → 21 → 22 cho email/hồ sơ. Không chạy lại 20/23. Migration 23 chỉ cần 20, bổ sung aggregate đọc số buổi lớp và bảo toàn projection/quyền; 21/22 áp sau vẫn giữ aggregate. Registry không ghi 01–04 không có nghĩa cần chạy chúng lại.
 3. Dùng database thử tách biệt và fixture giả; kiểm thử nâng cấp cùng chuỗi, bảo toàn lịch sử, draft/published, quyền và concurrency khi có tranh chấp. Migration đã phát hành giữ nguyên; sửa bằng migration mới sau số cuối thực tế lúc làm.
 4. Không chạy master schema hoặc gói upgrade lịch sử trên DB đã có dữ liệu. Baseline master hiện đến 10; khởi tạo project trống làm theo database README, không coi master là schema mới nhất.
 5. Maintenance dữ liệu phải có căn cứ, phạm vi, preview, guard/audit và quyền. Script bổ sung số phụ huynh từ số học sinh là thao tác một lần, không phải quy tắc tự động cho hồ sơ mới.
