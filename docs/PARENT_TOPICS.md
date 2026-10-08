@@ -2,9 +2,9 @@
 
 ## Quyết định và phạm vi
 
-Trang phụ huynh giữ tóm tắt, định hướng và chặng lớp ngay sau nhận xét. Nút **Đọc chuyên đề** mở bài riêng trong Portal. Thư viện đủ 43 chủ đề A9/B15/C19 khi hoàn thiện, dự kiến 54 bài: B09 bốn bài; C01 hai; C07 ba; C09/C11/D03/D06/D07 mỗi chủ đề hai; còn lại một. Series không tăng số chủ đề hoặc quy định thêm số buổi.
+Trang phụ huynh giữ tóm tắt, định hướng và chặng lớp ngay sau nhận xét. Nút **Đọc chuyên đề** mở bài riêng trong Portal. Thư viện đủ 43 chủ đề A9/B15/C19, gồm 54 bài: B09 bốn bài; C01 hai; C07 ba; C09/C11/D03/D06/D07 mỗi chủ đề hai; còn lại một. Series không tăng số chủ đề hoặc quy định thêm số buổi.
 
-Bộ mẫu A04, B14, C01 và D03 đã được chủ trung tâm duyệt kế hoạch để nhân rộng, kèm quy tắc biên tập mới. Thư viện triển khai đủ 54 bài cho 43 chủ đề; E/K vẫn bổ sung sau. Đây là nội dung và mã local, chưa phát hành production.
+Bộ mẫu A04, B14, C01 và D03 đã được chủ trung tâm duyệt kế hoạch để nhân rộng, kèm quy tắc biên tập mới. Thư viện triển khai đủ 54 bài cho 43 chủ đề; E/K vẫn bổ sung sau. Mã ứng dụng 3b3258d đã phát hành production 08/10/2026; bằng chứng và giới hạn nghiệm thu tại PROJECT_STATUS.
 
 VNOI là nguồn tham khảo cách lập luận; USACO Guide/Viblo đối chiếu kỹ thuật; CS50 hỗ trợ nhập môn. Nội dung, ví dụ và code được viết riêng. Tư duy và Nội dung học mỗi phần 3–5 ý, tiếp nối bằng bài toán, nhận xét, cách giải, tính đúng, code/mã giả, độ phức tạp, trường hợp biên và thực hành. Tiếng Việt mạch lạc, giải nghĩa thuật ngữ, không ghi phiên bản C++ trên bài. Code trọng tâm viết thoáng; ngầm hiểu namespace std, không hiển thị dòng khai báo hoặc tiền tố `std::`. Giữ giả thiết đầu vào và giải thích ngữ cảnh của đoạn mã; khung biên dịch kiểm chứng bổ sung namespace này.
 

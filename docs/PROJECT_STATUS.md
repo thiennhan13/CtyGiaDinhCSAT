@@ -1,6 +1,6 @@
 # Trạng thái hiện tại và việc tiếp theo
 
-Rà soát tài liệu: **07/10/2026**. Tài liệu này duy trì trạng thái và bằng chứng; quyết định thiết kế ở [design system](PUBLIC_UI_DESIGN_SYSTEM.md), nghiệp vụ tuyển sinh ở [catalog](PUBLIC_COURSE_CATALOG.md). Không nối thêm nhật ký theo từng lượt chỉnh UI.
+Rà soát tài liệu: **08/10/2026**. Tài liệu này duy trì trạng thái và bằng chứng; quyết định thiết kế ở [design system](PUBLIC_UI_DESIGN_SYSTEM.md), nghiệp vụ tuyển sinh ở [catalog](PUBLIC_COURSE_CATALOG.md). Không nối thêm nhật ký theo từng lượt chỉnh UI.
 
 ## Phạm vi đang làm
 
@@ -8,7 +8,7 @@ Rà soát tài liệu: **07/10/2026**. Tài liệu này duy trì trạng thái v
 
 Đã biên soạn đủ **54 bài cho 43 chủ đề A/B/C** theo kế hoạch đã duyệt; E/K bổ sung sau. Giữ trang phụ huynh tóm tắt; chỉ mở bài thuộc giáo án chuẩn đã công bố trong phạm vi phiên. Bài có bảng/sơ đồ/code với namespace std ngầm định, hai câu tự kiểm tra mở đáp án, nguồn đọc thêm ngắn và video liên quan đã xác minh. Nội dung vẫn lưu Markdown trong repo; đã chốt không dùng DB/CMS cho nội dung. Renderer import riêng C++/theme, cache phần thân bài trên worker và vẫn kiểm tra quyền mỗi request. Migration 23 thêm số buổi lớp để hiển thị chặng định hướng đã áp production 08/10/2026, không kéo theo email/avatar. Chi tiết và số liệu dung lượng ở [chuyên đề phụ huynh](PARENT_TOPICS.md).
 
-HEAD local hiện là 04efbc6 (StudentPage CI/CD); working tree có thay đổi bỏ nhãn ở tổng quan lộ trình và thư viện chuyên đề phụ huynh, chưa commit. Đang phát hành qua GitHub/Vercel theo yêu cầu; kết quả local không chứng minh production đã cập nhật.
+Mã ứng dụng `3b3258d` đã commit/push và Vercel báo Production success 08/10/2026: [deployment](https://cty-gia-dinh-csat-l4ebi3yul-thiennhan13s-projects.vercel.app), domain [portal.csatoj.vn](https://portal.csatoj.vn). Thư viện 54 bài và renderer đã phát hành; E/K vẫn chờ nội dung. CI phát hành [GitHub Actions](https://github.com/thiennhan13/CtyGiaDinhCSAT/actions/runs/37751875033) đã xanh: Quality Node24 (build, public smoke, private topics) và PostgreSQL17/Node24. Kết quả kiểm tra thật và giới hạn bên dưới.
 
 ## Frontend hiện có
 
@@ -37,13 +37,13 @@ Các kết quả dưới đây thuộc mã local; không phải số liệu prod
 | Bộ nghiệp vụ nền | Node 24.19.0: 238/238 database/API, không skip, gồm PostgreSQL native/concurrency/restore trên DB tách biệt. Đã bỏ 18 lượt chạy lặp do import helper; giữ đủ ca kiểm thử gốc |
 | Tài nguyên Thành tích | Tải đủ 15 ảnh ở DPR2: 375 px 218.028 byte; 1440 px 526.262 byte, không gồm HTML/CSS/font. Không đo lưu lượng người dùng thực |
 
-Rà soát chuẩn bị phát hành: Node 24.19.0, guard 450 tệp không phát hiện lỗi, liên kết Markdown hợp lệ, 6/6 test guard và diff check đạt. Public smoke local trên Edge: 40 nhóm / 32 bố cục, 477 assertion giao diện đạt; không lỗi JS/asset/request ghi. Theo quyết định chủ trung tâm, đã gỡ Chromium thử nghiệm khỏi local; local dùng Edge, CI dùng Chromium riêng trên runner. CI bổ sung Playwright khóa version/Chromium smoke, lint strict và private topics. CI trước phát hành lỗi do kiểm tra option trước khi portal mount; đã thêm đợi hiển thị, smoke Edge mới đạt. Kết quả CI phát hành được cập nhật sau push. Script preview giữ môi trường provider, dùng placeholder và tắt gửi. Không kiểm tra production, commit/push hoặc deploy trong lượt này.
+Rà soát chuẩn bị phát hành: Node 24.19.0, guard 450 tệp không phát hiện lỗi, liên kết Markdown hợp lệ, 6/6 test guard và diff check đạt. Public smoke local trên Edge: 40 nhóm / 32 bố cục, 477 assertion giao diện đạt; không lỗi JS/asset/request ghi. Theo quyết định chủ trung tâm, đã gỡ Chromium thử nghiệm khỏi local; local dùng Edge, CI dùng Chromium riêng trên runner. CI bổ sung Playwright khóa version/Chromium smoke, lint strict và private topics. CI trước phát hành lỗi do kiểm tra option trước khi portal mount; đã thêm đợi hiển thị, smoke Edge mới đạt. CI mã ứng dụng 3b3258d đã chạy thành công trên GitHub, gồm private topics và PostgreSQL native. Script preview giữ môi trường provider, dùng placeholder và tắt gửi. Smoke phát hành mới: Edge public 40 nhóm/478 assertions đạt. Không dùng kết quả này để suy nghiệm thu toàn bộ nghiệp vụ production.
 
 Báo cáo/ảnh QA giữ trong scratch ngoài Git; các đường dẫn đó chỉ là dấu vết trên máy, không là dependency onboarding. Không có JS/asset lỗi hoặc request ghi không mong muốn trong các nhóm browser nêu trên. Sau thay đổi mới phải chạy kiểm tra phù hợp; không cộng dồn số assertion thành chứng nhận toàn hệ thống.
 
 ## Production đã biết
 
-**Đối chiếu production gần nhất: 08/10/2026.** Đã áp migration 23 trong phạm vi phát hành chuyên đề; deployment ứng dụng đang chuẩn bị. Giữ một mốc này để tránh hiểu kết quả local là trạng thái triển khai hiện tại.
+**Đối chiếu production gần nhất: 08/10/2026.** Đã áp migration 23 và phát hành ứng dụng `3b3258d` theo yêu cầu của chủ trung tâm. Giữ một mốc này để tránh hiểu kết quả local là trạng thái triển khai hiện tại.
 
 - Registry ghi nhận 05–17, 20 và 23; còn thiếu 18/19/21/22.
 - Chưa có bảng tư vấn/đối soát email/vòng đời avatar đầy đủ; hồ sơ mở rộng và RPC phụ huynh chưa đủ trường mới.
@@ -51,14 +51,16 @@ Báo cáo/ảnh QA giữ trong scratch ngoài Git; các đường dẫn đó ch�
 - RLS bật ở bảng public thường; vẫn cần kiểm tra policy/RPC và xác minh danh tính phụ huynh.
 - Nền quản lý/điểm danh/kế toán và khung A+B/C+D đã có; không chạy lại migration 20 hoặc suy ra registry thiếu 01–04 thì phải nạp lại.
 
-Phải xác minh lại registry, cấu trúc, grants và deployment trước phát hành. Không dùng tài liệu rollout cũ làm lệnh thực thi.
+Smoke production 08/10/2026: 10 route công khai trả HTTP200, 6 bố cục Edge (375/1440px) không lỗi JS, ảnh lỗi, tràn ngang hoặc request ghi. Bài private chuyển về login khi thiếu phiên; cookie giả không có phiên bị từ chối, không trả thân bài, giữ private/no-store/noindex và ngoài sitemap. Không tra cứu số điện thoại hoặc tải hồ sơ thật để QA. Luồng phụ huynh hợp lệ, nhiều con/lớp và bản in được kiểm chứng bằng fixture local/CI; chưa nghiệm thu lại bằng tài khoản thật trên production.
+
+Migration23: snapshot cấu trúc/quyền RPC và SQL rollback nằm trong scratch ngoài Git; không tải backup hồ sơ. Transaction kiểm tra projection cũ được giữ nguyên, các bảng ứng dụng giữ số lượng bản ghi, quyền service-only và phiên sai vẫn bị từ chối trước commit. 25 giáo án công bố hiện có khớp khung chuẩn (12 basic/13 advanced), chỉ đối chiếu tổng hợp. Phần email/avatar chưa được triển khai theo chuỗi18/19/21/22. Đối chiếu lại trước đợt thay đổi tiếp; không dùng rollout cũ làm lệnh mặc định.
 
 ## Quyết định và nội dung còn chờ
 
 - Hai poster Thành tích bắt đầu 791129869 (vest) và 791684061 (áo tốt nghiệp) có cùng tên/trường nhưng chân dung khác nhau. Cả hai chưa đưa vào runtime; cần chủ trung tâm chọn ảnh hoặc xác nhận hai học sinh khác nhau.
 - E chưa có danh mục giáo trình/học phí được duyệt; giữ ba trọng tâm định hướng, không tự bổ sung.
 - API CSATOJ và quản trị bài viết/thành tích chưa triển khai. Backend tư vấn đã có; chưa triển khai hợp đồng intake mở rộng và kết nối form public. Hợp đồng intake mới và cơ chế K chọn nguồn chéo chương trình là đề xuất kỹ thuật chờ duyệt, không phải quyết định triển khai.
-- Đã chốt Node.js 24 cho local, CI và deploy; chưa xác minh runtime hosted. E xét năng lực và bài thi riêng, không bắt buộc học xong C.
+- Đã chốt Node.js 24 cho local, CI và deploy; CI sử dụng Node24; runtime production khai báo 24.x qua engines, chưa đọc riêng phiên bản patch của Function hosted. E xét năng lực và bài thi riêng, không bắt buộc học xong C.
 - Theo quyết định chủ trung tâm, giữ nguyên route đăng ký trong đợt này; việc phân loại public route và bỏ truy vấn xác thực không cần thiết được xem lại cùng đợt cập nhật đăng ký tiếp theo. Đã xử lý theo duyệt: đồng bộ ignore/guard ảnh nguồn courses/students, bỏ 18 lượt test chạy lặp, sửa đoạn định hướng E cũ và chuyển WebP E-v2 không dùng ra kho nội bộ. Ảnh nguồn giữ nguyên trên máy.
 
 ## Backlog backend và phát hành
@@ -73,9 +75,9 @@ Phải xác minh lại registry, cấu trúc, grants và deployment trước ph�
 | MAIL-01 | Thư tổng hợp admin mới bị tuổi đợt cũ làm quá hạn | Tính hạn theo vòng đời loại thư; thử đợt >7 ngày và qua tháng |
 | MAIL-02 | Retry sau worker crash chưa giữ đủ khoảng cách | Lưu mốc claim/reclaim; thử 3–5 phút, lease cũ không ghi đè lease mới |
 | MAIL-03 | Resend/cấu hình gửi | Domain verified, key server-only, gửi tắt mặc định; mẫu giả được phép, phân biệt accepted và thực nhận |
-| OPS-01 | Workflow nhóm/runtime/phát hành | Đồng bộ lựa chọn Node với CI/engines/host; CI hosted xanh, ruleset/reviewer, Preview không dùng secret production |
+| OPS-01 | Workflow nhóm/runtime/phát hành | Đồng bộ lựa chọn Node với CI/engines/host; CI 3b3258d hosted đã xanh; tiếp tục xác minh ruleset/reviewer và Preview không dùng secret production |
 | ARCH-01 | Chuẩn hóa module theo luồng | Tách trang quản lý lớp lớn; nhất quán query/action/validation, giữ hợp đồng và test trước/sau |
-| QA-01 | Nghiệm thu browser QA dùng chung | Public runner đã khóa Playwright và có smoke trong CI; cần kết quả GitHub thực, tiếp tục chuẩn hóa runner Portal/fixture và QA staging |
+| QA-01 | Nghiệm thu browser QA dùng chung | Public runner đã khóa Playwright và có smoke trong CI; public/private topic smoke đã xanh trên GitHub; tiếp tục chuẩn hóa các runner Portal còn lại và QA staging |
 | DATA-01 | Đối soát lịch sử/liên hệ | Kho nội bộ, chứng cứ/quyền/audit cho từng sửa; không tự sửa hàng loạt |
 | OJ-01 | API CSATOJ | Mapping ID, quyền, timeout/cache/rate limit; thiếu là null, ranking không suy thành năng lực |
 | CONTENT-01 | Giáo trình mở rộng | Nội dung trung tâm duyệt, version mới; tách định hướng khỏi giáo trình chính thức |
