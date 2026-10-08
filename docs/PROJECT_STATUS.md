@@ -12,6 +12,8 @@ Mã ứng dụng `3b3258d` đã commit/push và Vercel báo Production success 0
 
 ## Frontend hiện có
 
+Favicon bo góc đã cập nhật trong mã local: SVG và PNG/ICO, giữ logo CSAT, metadata đổi phiên bản URL để làm mới cache. Node24: typecheck, lint phần sửa, guard/diff và Edge kiểm tra metadata/tải đủ ba định dạng đạt; góc PNG và ba frame ICO trong suốt. Chưa phát hành thay đổi favicon lên production; không chạy lại build/database cho thay đổi tài nguyên này.
+
 | Phần | Trạng thái mã hiện tại | Việc còn lại |
 |---|---|---|
 | Giới thiệu | Hero/đội ngũ, bốn lý do học thi đấu, hệ sinh thái terminal bốn nhánh, sáu bước buổi học, phụ huynh và tư vấn | Hoàn thiện tiếp theo góp ý; không thêm chỉ số chưa có nguồn |

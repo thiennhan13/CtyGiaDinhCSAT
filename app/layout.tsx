@@ -18,8 +18,9 @@ export const metadata: Metadata = {
   description: 'Hệ thống Quản lý Gia sư CSAT',
   icons: {
     icon: [
-      { url: '/icon/favicon.ico' },
-      { url: '/icon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon/favicon.ico?v=rounded-1' },
+      { url: '/icon/favicon-32x32.png?v=rounded-1', sizes: '32x32', type: 'image/png' },
+      { url: '/icon/favicon.svg?v=rounded-1', sizes: 'any', type: 'image/svg+xml' },
     ],
     apple: [
       { url: '/icon/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },

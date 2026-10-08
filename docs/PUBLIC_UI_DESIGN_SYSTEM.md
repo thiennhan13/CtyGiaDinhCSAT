@@ -23,6 +23,8 @@ Không tự thay nhận diện bằng mẫu của skill. design định hướng
 
 Nét KVANT trong logo/watermark SVG không phải font chữ UI. Dark mode có mặt kem nhỏ bảo vệ logo, không tự đảo màu logo. Giữ nội dung/ảnh gia sư đã duyệt; không suy thành thành tích trung tâm.
 
+Favicon trên tab giữ logo CSAT dạng path và nền kem bo góc; góc ngoài trong suốt. Nguồn `public/icon/favicon.svg`, PNG 32px và ICO 16/32/48px là bản dẫn xuất. Metadata có phiên bản URL để trình duyệt lấy bản mới khi favicon thay đổi.
+
 ## Hình khối, typography và khả năng đọc
 
 - Thẻ mới theo neobrutalism dùng viền 2–3 px và bóng cứng lệch 4–5 px; góc nhỏ/vuông/cắt góc theo component. Không thêm tilt hoặc hover nhấc mạnh khiến thẻ thông tin giống nút.
