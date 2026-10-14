@@ -4,9 +4,9 @@ Tài liệu này duy trì trạng thái và bằng chứng; quyết định thi�
 
 ## Phạm vi đang làm
 
-Ưu tiên kiểm chứng ba luồng backend đã được duyệt: đăng ký public qua intake v2 không outbox/email; mã chương trình A/B/AB/C/E/PREVOI/K (AB hiển thị A+B); Supabase Auth phụ huynh bằng phone/password với cấp tài khoản có đối soát. Production đã có migration18/24/25/26 và đã cấp 44 tài khoản phụ huynh theo ủy quyền; ứng dụng backend mới chưa deploy. Giữ tên lớp, giáo án, nháp/công bố, C01–D07/scope CD và lịch sử tài chính. PreVOI/HSGQG/Ôn thi VOI dùng giáo án riêng, không E.
+Ưu tiên kiểm chứng ba luồng backend đã được duyệt: đăng ký public qua intake v2 không outbox/email; mã chương trình A/B/AB/C/E/PREVOI/K (AB hiển thị A+B); Supabase Auth phụ huynh bằng phone/password với cấp tài khoản có đối soát. Production đã có migration18/24/25/26 và đã cấp 44 tài khoản phụ huynh theo ủy quyền; ứng dụng tại commit 731174b đã có deployment Ready trên Vercel (14/10/2026). Giữ tên lớp, giáo án, nháp/công bố, C01–D07/scope CD và lịch sử tài chính. PreVOI/HSGQG/Ôn thi VOI dùng giáo án riêng, không E.
 
-Chưa có Supabase staging; người dùng đã chốt **nghiệm thu còn chờ**. Người dùng tự chạy SQL và sau đó ủy quyền cấp tài khoản thật, đối soát ngày 14/10/2026; chưa ủy quyền deploy trong lượt này. Migration26 đã đóng lookup chỉ bằng số và thu hồi phiên cũ, nên cần tiếp tục phát hành ứng dụng tương thích trước khi mở lại đăng nhập phụ huynh; email tắt.
+Chưa có Supabase staging; người dùng đã chốt **nghiệm thu còn chờ**. Người dùng đã ủy quyền hoàn thiện và bật tiếp nhận production, giữ đăng ký/tư vấn chung bảng và email tắt. Vercel dashboard ngày 14/10/2026 xác nhận deployment `731174b` Ready trên domain chính; bản nâng cấp trang tiếp nhận bên dưới còn chờ phát hành. Người dùng tự cấu hình cờ tiếp nhận và khóa băm nguồn trên Vercel.
 
 | Backend trong mã | Điều kiện còn lại |
 |---|---|
@@ -34,6 +34,8 @@ Favicon bo góc đã cập nhật trong mã local: SVG và PNG/ICO, giữ logo C
 | Liên lạc | Switch Phụ huynh/Gia sư dùng handler hiện hành; không dock/lời mời học liệu tại login | Giới hạn xác thực thuộc SEC-01/02, không được coi sửa UI là đã giải quyết |
 
 ## Bằng chứng kiểm chứng
+
+Trang tiếp nhận đã có menu riêng, tổng hợp trạng thái, tìm tên/số điện thoại, lọc khóa/nguồn/ngày theo giờ Việt Nam, dialog chi tiết và xử lý xung đột revision. Zalo dùng 0917791599 qua cấu hình chung, không đổi số gọi điện hoặc hồ sơ. Node24 local: 261/261 database/API, 11/11 repo, typecheck, lint strict, build và guard đạt; Edge 375/768/1440: 6 nhóm/100 assertions (gửi lại, mã đơn, bộ lọc, dialog, conflict, bàn phím); public/no-JS 2 nhóm/67 assertions. Chỉ dùng fixture giả. Đối soát production chỉ đọc 14/10/2026: migration18/24, hai RPC và RLS đã có; bảng đơn chưa có bản ghi. Chưa gửi đơn thật hoặc nghiệm thu phiên admin production; chờ cấu hình HASH_KEY/cờ và phát hành bản nâng cấp. Không có migration mới.
 
 Đã sửa lỗi môi trường CI của các test API: `APP_ORIGIN` loopback chỉ đặt ở bước build/public smoke, ba bộ test API khai báo origin fixture riêng. Test proxy kiểm tra riêng trường hợp không cấu hình origin; bổ sung hồi quy ưu tiên origin cấu hình và chặn nguồn ngoài/missing Origin/cross-site. Giữ nguyên kiểm tra bảo mật runtime. Node24.19.0 local: database/API 258/258 với origin CI cũ, repo 11/11, ba bộ API 35/35 khi không có origin bên ngoài, typecheck và lint strict đạt. Các ca ghi tệp tạm/git init/PostgreSQL bị sandbox Windows chặn đã chạy lại ngoài sandbox và đạt, không skip. Chưa chạy lại build/browser hoặc GitHub Actions cho bản sửa cấu hình này; không thao tác production.
 

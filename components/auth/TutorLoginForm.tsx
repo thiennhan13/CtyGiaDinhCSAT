@@ -1,4 +1,5 @@
 'use client';
+import { publicZaloUrl } from '@/lib/public-contact';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
@@ -66,7 +67,7 @@ export function TutorLoginForm() {
           <Label htmlFor="tutor-password" className="text-sm font-semibold text-foreground">
             Mật khẩu
           </Label>
-          <a href="https://zalo.me/0916246867" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-primary hover:underline">Hỗ trợ đăng nhập</a>
+          <a href={publicZaloUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-primary hover:underline">Hỗ trợ đăng nhập</a>
         </div>
         <div className="relative">
           <Input

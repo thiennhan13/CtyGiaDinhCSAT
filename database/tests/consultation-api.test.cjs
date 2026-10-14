@@ -5,7 +5,7 @@ function load(relative,s={}){const filename=path.join(root,relative),m=new Modul
  if(name==='server-only')return {};
  if(name==='next/server')return {NextResponse:{json:(b,o)=>Response.json(b,o)}};
  if(name==='@/lib/supabase/service')return {createAdminClient:()=>({rpc:(name,args)=>{(s.calls??=[]).push({name,args});const result=Promise.resolve(s.rpc?s.rpc(name,args):{data:args.p_id,error:s.dbError});result.abortSignal=()=>result;return result;}})};
- if(name==='@/lib/business-api')return {businessSession:async()=>({response:Response.json({error:'denied'},{status:s.denied||403})}),businessError:()=>Response.json({error:'error'},{status:500})};
+ if(name==='@/lib/business-api')return {businessSession:async()=>s.adminDb?{supabase:s.adminDb}:{response:Response.json({error:'denied'},{status:s.denied||403})},businessError:()=>Response.json({error:'error'},{status:500})};
  if(name==='@/lib/consultation-email'&&s.mockMail)return {consultationMailPayload:()=>({to:['csattutor@gmail.com'],subject:'test',text:'test'}),sendConsultationEmail:async()=>{s.sent=true;if(s.mailError)throw Error('fake');}};
  if(name.startsWith('@/lib/'))return load(name.slice(2)+'.ts',s);
  if(name.startsWith('./')&&name.endsWith('.json'))return require(path.join(path.dirname(filename),name));
@@ -22,3 +22,28 @@ test('mail is disabled locally and on preview even with keys; payload has fixed 
 test('provider timeout stays failed and accepted responses use stable idempotency key with frozen payload',async()=>{env();process.env.VERCEL_ENV='production';process.env.CONSULTATIONS_EMAIL_ENABLED='true';process.env.RESEND_API_KEY='test-only';process.env.CSAT_EMAIL_FROM='sender@example.test';const original=global.fetch;try{const s={rpc:(name)=>({data:name==='claim_consultation_email'?{lease_id:'fake-lease',payload:{from:'frozen@example.test',to:['csattutor@gmail.com'],text:'synthetic'}}:true})},mail=load('lib/consultation-email.ts',s);let options;global.fetch=async(url,o)=>{options=o;return Response.json({id:'test-provider'});};assert.equal((await mail.sendConsultationEmail(input().request_id)).state,'accepted');assert.equal(options.headers['Idempotency-Key'],'csat-consultation-'+input().request_id);assert.equal(JSON.parse(options.body).from,'frozen@example.test');global.fetch=async()=>{throw Error('fake timeout');};assert.equal((await mail.sendConsultationEmail(input().request_id)).state,'failed');assert.equal(s.calls.at(-1).args.p_error,'transport_uncertain');}finally{global.fetch=original;delete process.env.CONSULTATIONS_EMAIL_ENABLED;delete process.env.VERCEL_ENV;}});
 
 test('intake requires the database to confirm the saved request ID',async()=>{env();const s={rpc:()=>({data:null,error:null})};assert.equal((await load('app/api/consultations/route.ts',s).POST(request())).status,503);});
+
+function adminFixture(failedIndex=-1) {
+ const queries=[];
+ return {queries,adminDb:{from(table){const index=queries.length,steps=[['from',table]];queries.push(steps);const chain={};
+  for(const method of ['select','order','range','eq','like','ilike','gte','lt','is'])chain[method]=(...args)=>{steps.push([method,...args]);return chain;};
+  chain.then=(resolve,reject)=>Promise.resolve({data:index===0?[]:null,count:index===0?0:3,error:index===failedIndex?{code:'offline'}:null}).then(resolve,reject);return chain;
+ }}};
+}
+const listRequest=query=>new Request('https://portal.example.test/api/admin/consultations?'+new URLSearchParams(query));
+test('admin intake filters use bounded pagination, normalized phone, source and Vietnam date boundaries',async()=>{
+ const s=adminFixture(),r=await load('app/api/admin/consultations/route.ts',s).GET(listRequest({q:'+84 912-345-678',status:'new',course:'K',source:'roadmap',from:'2026-10-01',to:'2026-10-14',offset:'50'}));
+ assert.equal(r.status,200);assert.equal(r.headers.get('cache-control'),'private, no-store');
+ const steps=s.queries[0];for(const expected of [['range',50,99],['eq','status','new'],['eq','data->>course','K'],['like','data->>source_path','/lo-trinh%'],['ilike','data->>phone','%0912345678%'],['gte','created_at','2026-10-01T00:00:00+07:00'],['lt','created_at','2026-10-14T17:00:00.000Z']])assert.ok(steps.some(step=>JSON.stringify(step)===JSON.stringify(expected)),JSON.stringify(expected));
+ const body=await r.json();assert.equal(body.completedCount,3);assert.equal(s.queries.length,4);assert.ok(s.queries.slice(1).every(steps=>!steps.some(step=>step[0]==='ilike'||step[0]==='gte')),'Summary covers all requests, not only filtered results');
+});
+test('admin intake rejects malformed dates, reversed dates, expressions and unbounded filters before querying',async()=>{
+ for(const query of [{q:'x%,status.eq.new'},{q:'a'.repeat(101)},{from:'2026-02-30'},{from:'2026-11-01',to:'2026-10-01'},{offset:'-1'},{offset:'Infinity'},{status:'unknown'},{source:'external'},{course:'D'}]){
+  const s=adminFixture();assert.equal((await load('app/api/admin/consultations/route.ts',s).GET(listRequest(query))).status,422);assert.equal(s.queries.length,0);
+ }
+});
+test('admin intake preserves Unicode search and legacy source; summary failures do not masquerade as zero',async()=>{
+ const s=adminFixture();assert.equal((await load('app/api/admin/consultations/route.ts',s).GET(listRequest({q:'Nguyễn An',source:'legacy'}))).status,200);
+ assert.ok(s.queries[0].some(step=>step[0]==='ilike'&&step[2]==='%Nguyễn An%'));assert.ok(s.queries[0].some(step=>step[0]==='is'&&step[1]==='data->>source_path'&&step[2]===null));
+ for(const index of [0,1,2,3])assert.equal((await load('app/api/admin/consultations/route.ts',adminFixture(index)).GET(listRequest({}))).status,500);
+});

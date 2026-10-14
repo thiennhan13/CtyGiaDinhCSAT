@@ -1,6 +1,6 @@
 # Bàn giao ba luồng backend
 
-Phạm vi mã hiện tại: tiếp nhận đăng ký public, phân loại chương trình lớp và tài khoản phụ huynh bằng số điện thoại/mật khẩu. Kiểm chứng local đã đạt theo bảng cuối tài liệu; **chưa nghiệm thu end-to-end staging/production** vì chưa có project Supabase staging. Người dùng đã tự chạy SQL 18/24/25/26; theo ủy quyền tiếp theo đã cấp 44 Auth parent và đối soát production ngày 14/10/2026. Ứng dụng backend mới chưa deploy.
+Phạm vi mã hiện tại: tiếp nhận đăng ký public, phân loại chương trình lớp và tài khoản phụ huynh bằng số điện thoại/mật khẩu. Kiểm chứng local đã đạt theo bảng cuối tài liệu; **chưa nghiệm thu end-to-end staging/production** vì chưa có project Supabase staging. Người dùng đã tự chạy SQL 18/24/25/26; theo ủy quyền tiếp theo đã cấp 44 Auth parent và đối soát production ngày 14/10/2026. Vercel dashboard ngày 14/10/2026 xác nhận commit 731174b đã Ready; bản nâng cấp trang nhận đơn còn chờ phát hành và cấu hình tiếp nhận bởi người dùng.
 
 ## Hợp đồng đã triển khai trong mã
 
@@ -11,6 +11,12 @@ Phạm vi mã hiện tại: tiếp nhận đăng ký public, phân loại chươ
 | Phụ huynh | Supabase Auth phone/password, role parent và liên kết `parent_accounts.auth_uid`. Phiên Portal 12 giờ gắn Auth user/session; kiểm tra Auth, cookie hash, phiên DB và parent–student links. Đổi mật khẩu tự chọn tại `/parents/account`, cần mật khẩu hiện tại; thành công thu hồi phiên và yêu cầu đăng nhập lại. Admin/gia sư dùng API login riêng, role được kiểm tra máy chủ. |
 
 A/B/AB dùng basic với phần tương ứng, C dùng advanced C+D; giữ C01–D07/scope CD. PREVOI (PreVOI/HSGQG/Ôn thi VOI) dùng chương trình `voi` và giáo án riêng, **không dùng E**. E và K dùng `custom`; chưa có giáo trình E hoặc cơ chế K phối nguồn chéo chương trình được duyệt. Đổi nhãn chương trình không thay nội dung giáo án đã công bố. Lớp mới tiếp tục theo luồng nháp/công bố của RPC, không tạo nội dung đào tạo giả.
+
+## Tiếp nhận đăng ký và tư vấn
+
+Hai luồng tiếp tục lưu chung `consultation_requests`, phân biệt nguồn gửi bằng `data.source_path`, không suy trạng thái đã nhập học từ nguồn form. `/admin/consultations` là mục menu riêng “Đăng ký & tư vấn”: tổng hợp ba trạng thái toàn danh sách, tìm tên/số điện thoại, lọc khóa/nguồn/ngày theo giờ Việt Nam, phân trang 50 đơn. Chi tiết mở trong dialog, có gọi điện/sao chép số và lịch sử xử lý. Khi xung đột revision phải tải lại trước khi ghi tiếp. Chỉ admin được đọc/cập nhật; lỗi truy vấn thống kê không bị hiển thị thành số 0.
+
+Đợt hoàn thiện này không đổi schema, không tạo học sinh hoặc xếp lớp từ đơn, không thêm ghi chú nội bộ/phân công người xử lý. Email trung tâm bổ sung sau: đơn v2 chưa tạo outbox, nên không chỉ bật cờ email cũ. Lưu đơn độc lập với gửi thư.
 
 ## Cấp tài khoản có đối soát
 

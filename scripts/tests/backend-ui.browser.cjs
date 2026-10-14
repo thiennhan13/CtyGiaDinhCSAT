@@ -115,31 +115,43 @@ module.exports = async function backendUi({ context, origin, run, check, output 
   for (const width of widths) await run('backend admin intake filters and revision conflict ' + width, async () => {
     const c = await context('valid', { viewport: { width, height: 900 } }, 'admin'), p = await c.newPage();
     try {
-      const requests = [], row = { request_id: '30000000-0000-4000-8000-000000000001', data: { name: 'Liên hệ dữ liệu giả', phone: '0912345678', role: 'parent', course: 'K', level: 'thcs', message: 'Nhu cầu kiểm thử.', source_path: '/dang-ky-hoc' }, status: 'new', revision: 0, created_at: '2026-10-13T01:00:00Z', consultation_status_history: [] };
+      const requests = [], row = { request_id: '30000000-0000-4000-8000-000000000001', data: { name: 'Liên hệ dữ liệu giả', phone: '0912345678', role: 'parent', course: 'K', level: 'thcs', message: 'Nhu cầu kiểm thử.', source_path: '/dang-ky-hoc' }, status: 'new', revision: 1, created_at: '2026-10-13T01:00:00Z', consultation_status_history: [] };
       let writes = 0;
       await p.route(origin + '/api/admin/consultations**', async route => {
         const request = route.request();
-        if (request.method() === 'GET') { requests.push(new URL(request.url()).searchParams); return json(route, 200, { data: [row], total: 1 }); }
-        const body = request.postDataJSON(); writes++; check(body.revision === 0 && body.status === 'contacted', 'Status mutation carries known revision');
+        if (request.method() === 'GET') { requests.push(new URL(request.url()).searchParams); return json(route, 200, { data: [row], total: 1, newCount: 1, contactedCount: 0, completedCount: 0 }); }
+        const body = request.postDataJSON(); writes++; check(body.revision === 1 && body.status === 'contacted', 'Status mutation carries known revision');
         await pause(); if (writes === 1) return json(route, 409, { error: 'Đơn đã thay đổi. Hãy tải lại.' });
-        row.status = 'contacted'; row.revision = 1; return json(route, 200, { ok: true });
+        row.status = 'contacted'; row.revision = 2; return json(route, 200, { ok: true });
       });
       await p.goto(origin + '/admin/consultations', { waitUntil: 'networkidle' });
       await p.getByRole('heading', { name: 'Liên hệ dữ liệu giả' }).waitFor();
       await p.getByRole('combobox').nth(0).selectOption('new');
       await Promise.all([p.waitForResponse(r => r.url().includes('/api/admin/consultations?') && r.url().includes('course=K')), p.getByRole('combobox').nth(1).selectOption('K')]);
       check(requests.some(q => q.get('status') === 'new' && q.get('course') === 'K'), 'Status and course filters reach list API');
+      await p.getByLabel('Tên hoặc số điện thoại').fill('Nguyễn An');
+      await Promise.all([p.waitForResponse(r => r.url().includes('/api/admin/consultations?') && new URL(r.url()).searchParams.get('q') === 'Nguyễn An'), p.getByRole('button', { name: 'Tìm kiếm', exact: true }).click()]);
+      await p.getByLabel('Nguồn gửi', { exact: true }).selectOption('enrollment');
+      await p.getByLabel('Từ ngày', { exact: true }).fill('2026-10-01');
+      await Promise.all([p.waitForResponse(r => r.url().includes('to=2026-10-14')), p.getByLabel('Đến ngày', { exact: true }).fill('2026-10-14')]);
+      check(requests.some(q => q.get('source') === 'enrollment' && q.get('from') === '2026-10-01' && q.get('to') === '2026-10-14'), 'Source and inclusive day filters reach API');
+      await layout(p, 'backend-admin-intake', width);
+      await p.getByRole('button', { name: 'Xem đơn của Liên hệ dữ liệu giả' }).click();
       const status = p.getByLabel('Trạng thái của Liên hệ dữ liệu giả');
-      await status.selectOption('contacted'); check(await status.isDisabled(), 'Status write blocks duplicate changes');
-      await p.getByRole('alert').filter({ hasText: 'Đơn đã thay đổi.' }).waitFor(); check(await status.inputValue() === 'new', 'Conflict preserves server status');
-      await p.getByRole('button', { name: 'Tải lại' }).click(); await p.getByRole('heading', { name: 'Liên hệ dữ liệu giả' }).waitFor();
-      await status.selectOption('contacted'); await p.getByRole('status').filter({ hasText: 'Đã cập nhật' }).waitFor();
-      check(await status.inputValue() === 'contacted', 'Successful update reloads server status');
+      await status.selectOption('contacted'); await p.getByRole('button', { name: 'Lưu trạng thái' }).click(); check(await status.isDisabled(), 'Status write blocks duplicate changes');
+      await p.getByRole('alert').filter({ hasText: 'Đơn đã thay đổi.' }).waitFor(); check(await p.getByRole('button', { name: 'Lưu trạng thái' }).count() === 0, 'Conflict requires refresh before another write');
+      await p.getByRole('button', { name: 'Tải lại thông tin đơn' }).click(); await status.waitFor();
+      await status.selectOption('contacted'); await p.getByRole('button', { name: 'Lưu trạng thái' }).click(); await p.getByRole('status').filter({ hasText: 'Đã cập nhật' }).waitFor();
+      await p.getByRole('dialog').waitFor({ state: 'hidden' });
       check(await p.getByRole('button', { name: 'Trang sau' }).isDisabled(), 'Single result disables next page');
+      await p.getByRole('button', { name: 'Xem đơn của Liên hệ dữ liệu giả' }).click();
+      check(await status.inputValue() === 'contacted', 'Successful update reloads server status');
       await p.getByText('Nguồn và lịch sử xử lý', { exact: true }).click();
       check(await p.getByText('Hồ sơ cũ chưa ghi nhận trường đồng ý lưu thông tin.', { exact: true }).isVisible(), 'Legacy intake never invents recorded consent');
       check(!p.url().includes('0912345678'), 'List URL does not carry contact data');
-      await layout(p, 'backend-admin-intake', width);
+      await layout(p, 'backend-admin-intake-detail', width);
+      await p.keyboard.press('Escape'); await p.getByRole('dialog').waitFor({ state: 'hidden' });
+      check(await p.getByRole('button', { name: 'Xem đơn của Liên hệ dữ liệu giả' }).evaluate(e => e === document.activeElement), 'Closing detail restores keyboard focus');
     } finally { await c.close(); }
   });
   for (const width of widths) await run('backend admin program mapping and conflict ' + width, async () => {

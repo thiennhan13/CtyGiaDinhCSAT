@@ -1,4 +1,5 @@
 'use client';
+import { publicZaloUrl } from '@/lib/public-contact';
 
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { ArrowRight, ArrowUpRight, Check, Copy, Pencil } from 'lucide-react';
@@ -116,6 +117,6 @@ export function PublicConsultation({ kind = 'consultation', context = '', defaul
         <p role="status" className="intake-note">{copyState === 'copied' ? 'Đã sao chép. Hãy dán vào cuộc trò chuyện với CSAT để gửi.' : copyState === 'failed' ? 'Trình duyệt chưa cho phép sao chép. Nội dung đã được chọn; bạn có thể sao chép thủ công.' : ''}</p>
       </section>}
     </> : <p>Chia sẻ nhu cầu học tập hoặc tài liệu bạn đang tìm cùng đội ngũ CSAT.</p>}
-    <div className="intake-contact-links"><a className="text-link" href="https://zalo.me/0916246867" target="_blank" rel="noopener noreferrer">Nhắn qua Zalo <ArrowUpRight size={17} aria-hidden="true" /></a><a className="text-link" href="https://www.facebook.com/csat.tutor" target="_blank" rel="noopener noreferrer">Nhắn qua Facebook <ArrowUpRight size={17} aria-hidden="true" /></a></div>
+    <div className="intake-contact-links"><a className="text-link" href={publicZaloUrl} target="_blank" rel="noopener noreferrer">Nhắn qua Zalo <ArrowUpRight size={17} aria-hidden="true" /></a><a className="text-link" href="https://www.facebook.com/csat.tutor" target="_blank" rel="noopener noreferrer">Nhắn qua Facebook <ArrowUpRight size={17} aria-hidden="true" /></a></div>
   </div>;
 }

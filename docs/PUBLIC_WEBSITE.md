@@ -23,6 +23,8 @@ Tên component/CSS không có tiền tố nằm trong components/marketing/. CSS
 
 ## Nguồn dữ liệu và trách nhiệm
 
+Zalo trung tâm dùng số **0917791599**, khai báo tại `lib/public-contact.ts` và tái sử dụng cho website/đăng nhập. Đây là thay đổi riêng kênh Zalo, không thay số điện thoại liên lạc hoặc hồ sơ cá nhân. Portal tương thích với URL Zalo trung tâm cũ trong cấu hình database, chuyển liên kết hiển thị sang số mới mà không sửa lịch sử/migration đã phát hành.
+
 | Nguồn | Sở hữu |
 |---|---|
 | lib/public-courses.ts | Mã A/B/C/E/K, tên, đối tượng, giá, thời lượng/sĩ số, ảnh, hashtag, bước giới thiệu |

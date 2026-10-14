@@ -48,7 +48,7 @@ async function main(){
  }
  await run('no-JS reading and contact fallback',async()=>{
   const c=await browser.newContext({javaScriptEnabled:false,viewport:{width:375,height:900}});await secure(c);const p=await c.newPage();
-  for(const route of ['/dang-ky-hoc','/','/hoc-lieu-mien-phi','/lo-trinh','/lo-trinh/e','/lo-trinh/k']){await go(p,route);check(await p.locator('h1').isVisible(),'no-JS title');check((await p.locator('main').innerText()).length>300,'no-JS content');check(await p.locator('form input[name=phone]').count()===0,'No-JS intake has no submitting form');check(await p.locator('a[href="https://zalo.me/0916246867"]').count()>0,'No-JS contact fallback');await p.locator('.nav-roadmap summary').click();check(await p.locator('.nav-links a[href="/lo-trinh"]').isVisible(),'No-JS native disclosure expands navigation');check(await p.locator('.nav-roadmap-panel a').count()===6,'No-JS overview and five courses');}
+  for(const route of ['/dang-ky-hoc','/','/hoc-lieu-mien-phi','/lo-trinh','/lo-trinh/e','/lo-trinh/k']){await go(p,route);check(await p.locator('h1').isVisible(),'no-JS title');check((await p.locator('main').innerText()).length>300,'no-JS content');check(await p.locator('form input[name=phone]').count()===0,'No-JS intake has no submitting form');check(await p.locator('a[href="https://zalo.me/0917791599"]').count()>0,'No-JS contact fallback');await p.locator('.nav-roadmap summary').click();check(await p.locator('.nav-links a[href="/lo-trinh"]').isVisible(),'No-JS native disclosure expands navigation');check(await p.locator('.nav-roadmap-panel a').count()===6,'No-JS overview and five courses');}
   await shot(p,'no-js-k-375');await c.close();
  });
  const context=await browser.newContext({viewport:{width:1440,height:900},colorScheme:'light',reducedMotion:'no-preference'});await secure(context);const page=await context.newPage();
@@ -499,7 +499,7 @@ async function main(){
   check(await page.locator('.practice-video').count()===1,'Optimized video preserved');
   check(await invite.count()===0,'No invitation on destination');
   await page.locator('.oj-tabs button').nth(1).click();check(await page.locator('#oj-practice-1').isVisible(),'Practice step switches');
-  for(const href of ['mailto:csattutor@gmail.com','https://zalo.me/0916246867','https://www.facebook.com/csat.tutor','https://www.tiktok.com/@csat.tutor'])check(await page.locator('.footer-contact a[href="'+href+'"]').count()===1,'Official contact '+href);
+  for(const href of ['mailto:csattutor@gmail.com','https://zalo.me/0917791599','https://www.facebook.com/csat.tutor','https://www.tiktok.com/@csat.tutor'])check(await page.locator('.footer-contact a[href="'+href+'"]').count()===1,'Official contact '+href);
   await page.emulateMedia({reducedMotion:'reduce'});await page.reload({waitUntil:'networkidle'});
   await page.locator('.practice-video').scrollIntoViewIfNeeded();await page.waitForTimeout(150);
   check(await page.locator('.practice-video video').evaluate(v=>v.paused&&!v.getAttribute('src')),'Reduced motion does not autoplay video');

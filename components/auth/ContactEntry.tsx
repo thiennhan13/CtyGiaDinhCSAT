@@ -1,4 +1,5 @@
 'use client';
+import { publicZaloUrl } from '@/lib/public-contact';
 
 import { useSearchParams } from 'next/navigation';
 import { BookOpen, MessageCircle, Route, Users } from 'lucide-react';
@@ -40,7 +41,7 @@ export function ContactEntry({ initialRole = 'parent' }: { initialRole?: EntryRo
           <div id="entry-parent" hidden={role !== 'parent'}><p className="contact-form-intro">Theo dõi nhận xét, nội dung học và học phí của con.</p><ParentLoginForm/></div>
           <div id="entry-tutor" hidden={role !== 'tutor'}><p className="contact-form-intro">Dành cho gia sư và quản trị viên của trung tâm.</p><TutorLoginForm/></div>
         </div>
-        <p className="contact-entry-help">Cần hỗ trợ? <a href="https://zalo.me/0916246867" target="_blank" rel="noopener noreferrer">Nhắn CSAT qua Zalo ↗</a></p>
+        <p className="contact-entry-help">Cần hỗ trợ? <a href={publicZaloUrl} target="_blank" rel="noopener noreferrer">Nhắn CSAT qua Zalo ↗</a></p>
         <noscript><style>{'.contact-entry-forms,.contact-role-switch{display:none!important}'}</style><p>Vui lòng bật JavaScript để đăng nhập, hoặc liên hệ CSAT để được hỗ trợ.</p></noscript>
       </section>
     </main>
