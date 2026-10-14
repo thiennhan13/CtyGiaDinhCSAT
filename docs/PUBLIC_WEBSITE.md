@@ -65,7 +65,9 @@ Chi tiết/đăng ký cho mở poster với nút đóng/Escape/trả focus; khô
 
 ## Đăng ký, học liệu và ranh giới backend
 
-PublicConsultation đăng ký/tư vấn: nhập → validate/consent → xem lại/chỉnh → chủ động gửi `/api/consultations`. Chỉ báo tiếp nhận khi API lưu thành công; lỗi giữ bản nhập để thử lại. Học liệu giữ nhập → xem lại → sao chép → chủ động liên hệ, chưa gửi tài liệu tự động.
+PublicConsultation đăng ký/tư vấn: nhập → validate/consent → Đăng kí ngay → gửi `/api/consultations`. Chỉ báo tiếp nhận khi API lưu thành công; lỗi giữ bản nhập để thử lại. Học liệu giữ nhập → xem lại → sao chép → chủ động liên hệ, chưa gửi tài liệu tự động.
+
+Riêng trang Đăng ký học, đơn được căn giữa dưới tiêu đề “Chọn lớp cùng CSAT TUTOR!”, bỏ tiêu đề phụ, chỉ dẫn đánh số và chú thích dưới nút gửi. Chiều ngang desktop tăng khoảng 15% so với đơn trong bố cục hai cột trước đó; tablet/điện thoại co theo màn hình. Khóa quan tâm vẫn nhận mặc định từ liên kết lớp và cho phép đổi.
 
 Vai trò còn Phụ huynh/Học sinh; cấp học Tiểu học/THCS/THPT. Không Sinh viên, Đại học, cấp học Trao đổi thêm hoặc mục tiêu HSG Quốc gia. Thành tích HSGQG thật của gia sư vẫn hợp lệ, không liên quan tùy chọn form.
 
@@ -88,3 +90,7 @@ Văn phong học thuật phổ thông, tự nhiên và có mạch lập luận; 
 Không tạo thành tích, số liệu, giá, lịch contest hoặc cam kết đầu ra. Gia sư và thành tích học sinh chỉ dùng nguồn được duyệt; không biến danh hiệu cá nhân thành kết quả toàn trung tâm.
 
 Preview/QA theo [frontend workflow](FRONTEND_WORKFLOW.md). Kiểm tra UI Next.js thật, dữ liệu giả, desktop/mobile/ngang/dọc, light/dark, bàn phím, no-JS/reduced motion, client navigation và history; đặc biệt CSS load order của ảnh nền. Không lấy bản HTML đã duyệt làm bằng chứng tích hợp. Cập nhật trạng thái tại PROJECT_STATUS, không nối nhật ký lặp vào tài liệu này.
+
+## Gửi đăng ký trực tiếp
+
+Form đăng ký và tư vấn dùng nút **Đăng kí ngay**: kiểm tra trường bắt buộc và đồng ý, rồi gửi API ngay, không có bước xem lại. Checkbox/chữ đồng ý dùng bố cục hai cột, tự xuống dòng và tách khỏi nút gửi. Đang gửi khóa trường/nút; lỗi giữ dữ liệu và mã yêu cầu khi thử lại cùng nội dung; nội dung thay đổi dùng mã mới. Chỉ báo tiếp nhận sau phản hồi lưu thành công, sau đó ẩn form để tránh gửi lại. Form học liệu vẫn xem lại/sao chép/liên hệ và không tự gửi.

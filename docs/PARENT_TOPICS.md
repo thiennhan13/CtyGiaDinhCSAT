@@ -1,5 +1,8 @@
 # Chuyên đề học tập dành cho phụ huynh
 
+**Quyết định hiện hành:** phụ huynh tra cứu chỉ bằng số điện thoại, không mật khẩu/OTP/Auth; gia sư/admin giữ Auth. Migration27 thay luồng của 26, dùng chung giới hạn thử đăng nhập lưu trong DB. Xem [tra cứu bằng số điện thoại](PARENT_PHONE_ACCESS.md) để chuyển đổi và hiểu giới hạn danh tính. Bằng chứng Auth/26 bên dưới là lịch sử, không phải hướng triển khai tiếp.
+
+
 ## Quyết định và phạm vi
 
 Trang phụ huynh giữ tóm tắt, định hướng và chặng lớp ngay sau nhận xét. Nút **Đọc chuyên đề** mở bài riêng trong Portal. Thư viện đủ 43 chủ đề A9/B15/C19, gồm 54 bài: B09 bốn bài; C01 hai; C07 ba; C09/C11/D03/D06/D07 mỗi chủ đề hai; còn lại một. Series không tăng số chủ đề hoặc quy định thêm số buổi.

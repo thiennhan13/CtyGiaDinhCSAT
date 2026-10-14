@@ -8,7 +8,7 @@ CSAT xây dựng website giới thiệu, tuyển sinh và Portal theo dõi việ
 
 ## Định hướng hiện tại
 
-Hoàn thiện ba luồng backend đã duyệt: tiếp nhận đăng ký, phân loại chương trình lớp và tài khoản phụ huynh bằng số điện thoại/mật khẩu. Mã đã kiểm chứng local; production đã có migration18/24/25/26 và cấp 44 tài khoản phụ huynh theo ủy quyền. Chưa có staging Supabase; ứng dụng đã phát hành và bật nhận đơn, còn nghiệm thu đơn hợp lệ đến admin và đăng nhập/đổi mật khẩu thật. Xem [bàn giao backend](docs/BACKEND_COMPLETION.md). Website giữ **neobrutalism và playful edtech**, Archivo, logo và palette đã duyệt theo [quy định thiết kế](docs/PUBLIC_UI_DESIGN_SYSTEM.md).
+Hoàn thiện ba luồng backend đã duyệt: tiếp nhận đăng ký, phân loại chương trình lớp và tra cứu phụ huynh chỉ bằng số điện thoại. Mã đã kiểm chứng local; production đã có migration18/24/25/26 và cấp 44 tài khoản phụ huynh theo ủy quyền. Chưa có staging Supabase; ứng dụng đã phát hành và bật nhận đơn, còn nghiệm thu đơn hợp lệ đến admin. Quyết định mới bỏ mật khẩu/Auth phụ huynh được thực hiện bằng migration27 và ứng dụng tương thích, chưa phát hành; xem [luồng phụ huynh](docs/PARENT_PHONE_ACCESS.md). Xem [bàn giao backend](docs/BACKEND_COMPLETION.md). Website giữ **neobrutalism và playful edtech**, Archivo, logo và palette đã duyệt theo [quy định thiết kế](docs/PUBLIC_UI_DESIGN_SYSTEM.md).
 
 Catalog công khai có **A/B/C/E/K**: A nhập môn, B thi đấu cơ bản, C nâng cao, E CHỦ LỰC xét đủ năng lực và đạt bài thi riêng (không bắt buộc học xong C), K kèm riêng/tùy chọn. C là tên chung cho toàn bộ C/D và các lớp nâng cao tương lai; giữ A9/B15/C19, mã C01–D07/scope CD. Quản lý hiện hành vẫn mặc định Cơ bản A+B, Nâng cao C+D; không tự chuyển lớp cũ.
 

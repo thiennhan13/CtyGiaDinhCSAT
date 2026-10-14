@@ -1,6 +1,6 @@
 # Tiếp nhận công việc CSAT
 
-Mục tiêu hiện tại: kiểm chứng và bàn giao ba luồng backend đã duyệt: đăng ký, phân loại chương trình và Auth phụ huynh. Chưa có staging Supabase; nghiệm thu thật còn chờ. Đọc [BACKEND_COMPLETION](BACKEND_COMPLETION.md) trước rollout. Đây là điểm bắt đầu cho agent, không phải nhật ký hội thoại.
+Mục tiêu hiện tại: kiểm chứng và bàn giao ba luồng backend đã duyệt: đăng ký, phân loại chương trình và tra cứu số điện thoại phụ huynh. Chưa có staging Supabase; nghiệm thu thật còn chờ. Đọc [BACKEND_COMPLETION](BACKEND_COMPLETION.md) trước rollout. Đây là điểm bắt đầu cho agent, không phải nhật ký hội thoại.
 
 ## Thứ tự đọc
 
@@ -22,7 +22,7 @@ Mục tiêu hiện tại: kiểm chứng và bàn giao ba luồng backend đã d
 | Form đăng ký dùng API/RPC intake v2 trong mã mới; không outbox/email. Học liệu giữ luồng xem lại/sao chép/liên hệ | [Website](PUBLIC_WEBSITE.md) |
 | Thành tích dùng bố cục 3 nhãn cạnh ảnh, dữ liệu riêng và trang tĩnh; chỉ công bố nguồn đã xác minh | [Thành tích](PUBLIC_ACHIEVEMENTS.md) |
 | Trang phụ huynh giữ tóm tắt và 43 chủ đề/54 bài private; Markdown trong repo, không DB/CMS. PreVOI/HSGQG/Ôn thi VOI dùng giáo án riêng, không E; không tự chuyển giáo án lớp cũ | [Chuyên đề phụ huynh](PARENT_TOPICS.md) |
-| Quản lý có A/B/AB/C/E/PREVOI/K, AB hiển thị A+B. Phụ huynh dùng Supabase Auth phone/password, cấp riêng cho con đang học trong lớp active, đổi mật khẩu tùy chọn | [Bàn giao backend](BACKEND_COMPLETION.md) |
+| Quản lý có A/B/AB/C/E/PREVOI/K, AB hiển thị A+B. Phụ huynh chỉ tra cứu bằng số điện thoại đã liên kết, không mật khẩu/Auth; migration27 và chống spam chung theo [quyết định hiện hành](PARENT_PHONE_ACCESS.md) | [Bàn giao backend](BACKEND_COMPLETION.md) |
 | Không dùng font KVANT cho chữ UI; A/B/C/E/K và sơ đồ E dùng font menu Archivo. Logo SVG giữ nét gốc | [Design system](PUBLIC_UI_DESIGN_SYSTEM.md) |
 | Dùng Node.js 24 cho local, CI và deploy; kiểm tra phiên bản thật, không suy trạng thái hosted từ local | [Tiến độ](PROJECT_STATUS.md) |
 

@@ -385,15 +385,14 @@ async function main(){
   await page.emulateMedia({reducedMotion:'no-preference'});
  });
  await run('contact entry role switch and mocked authentication errors',async()=>{
-  const c=await browser.newContext({viewport:{width:1440,height:900}});await secure(c);const p=await c.newPage();let parentCalls=0,rateCalls=0,tokenCalls=0;
+  const c=await browser.newContext({viewport:{width:1440,height:900}});await secure(c);const p=await c.newPage();let parentCalls=0,rateCalls=0;
   await c.route('**/api/parents/auth',async route=>{parentCalls++;check(route.request().postDataJSON().phone==='0912345678','Existing normalized parent payload');await route.fulfill({status:403,json:{error:'Số điện thoại chưa được mở tra cứu.'}});});
-  await c.route('**/api/auth/rate-limit',async route=>{rateCalls++;await route.fulfill({status:200,json:{ok:true}});});
-  await c.route('http://127.0.0.1:54321/auth/v1/token**',async route=>{tokenCalls++;const payload=route.request().postDataJSON();check(payload.email==='tutor@example.test'&&payload.password==='fake-test-password','Existing tutor password flow');await route.fulfill({status:400,json:{error:'invalid_grant',error_description:'Invalid login credentials',msg:'Invalid login credentials'}});});
+  await c.route('**/api/auth/login',async route=>{rateCalls++;const payload=route.request().postDataJSON();check(payload.email==='tutor@example.test'&&payload.password==='fake-test-password','Staff credentials sent to server endpoint');await route.fulfill({status:401,json:{error:'Email hoặc mật khẩu không chính xác.'}});});
   await go(p,'/login');check(await p.locator('.contact-dock').count()===0,'Contact entry omits dock and materials notice');await p.setViewportSize({width:375,height:900});check(await p.locator('.contact-dock').count()===0,'Mobile contact entry omits floating contacts');await p.setViewportSize({width:1440,height:900});check(await p.locator('#entry-parent').isVisible(),'Parent default');check(!await p.locator('#entry-tutor').isVisible(),'Tutor form initially hidden');
-  await p.locator('#parent-phone').fill('+84 912 345 678');await p.getByRole('button',{name:'Tra cứu thông tin'}).click();await p.locator('#entry-parent').getByRole('alert').waitFor();check(parentCalls===1,'Parent endpoint used once');
+  await p.locator('#parent-phone').fill('+84 912 345 678');await p.getByRole('button',{name:'Đăng nhập',exact:true}).click();await p.locator('#entry-parent').getByRole('alert').waitFor();check(parentCalls===1,'Parent endpoint used once');
   await p.getByRole('radio',{name:'Gia sư / Admin',exact:true}).check();check(await p.locator('#entry-tutor').isVisible(),'Switch exposes tutor form');check(!await p.locator('#entry-parent').isVisible(),'Parent form hidden');
   await p.locator('#tutor-email').fill('tutor@example.test');await p.locator('#tutor-password').fill('fake-test-password');await p.getByRole('button',{name:'Hiện mật khẩu',exact:true}).click();check(await p.locator('#tutor-password').getAttribute('type')==='text','Accessible password toggle');await p.getByRole('button',{name:'Ẩn mật khẩu',exact:true}).click();
-  await p.getByRole('button',{name:'Đăng nhập hệ thống'}).click();await p.locator('#entry-tutor').getByRole('alert').waitFor();check((await p.locator('#entry-tutor').getByRole('alert').innerText()).includes('Email hoặc mật khẩu không chính xác'),'Existing tutor error translated');check(rateCalls===1&&tokenCalls===1,'Rate limit before token request');
+  await p.getByRole('button',{name:'Đăng nhập hệ thống'}).click();await p.locator('#entry-tutor').getByRole('alert').waitFor();check((await p.locator('#entry-tutor').getByRole('alert').innerText()).includes('Email hoặc mật khẩu không chính xác'),'Existing tutor error translated');check(rateCalls===1,'Staff uses rate-limited server login');
   await p.getByRole('radio',{name:'Phụ huynh',exact:true}).check();check(await p.locator('#parent-phone').inputValue()==='+84 912 345 678','Role switch preserves typed parent value');check(!p.url().includes('0912')&&!p.url().includes('example'),'No login details in URL');
   const radio=p.getByRole('radio',{name:'Phụ huynh',exact:true});await radio.focus();await p.keyboard.press('ArrowRight');check(await p.getByRole('radio',{name:'Gia sư / Admin',exact:true}).isChecked(),'Keyboard changes role');
   await go(p,'/login?role=tutor');check(await p.locator('#entry-tutor').isVisible(),'Direct tutor URL works');await p.locator('.nav-links a[href="/login"]').click();await p.locator('#entry-parent').waitFor({state:'visible'});check(new URL(p.url()).search==='','Client navigation resets entry selection');await go(p,'/tutor');check(new URL(p.url()).pathname==='/login'&&new URL(p.url()).searchParams.get('role')==='tutor','Legacy tutor entry redirects to common page');
@@ -576,10 +575,9 @@ async function main(){
    }
   }
   await go(page,'/dang-ky-hoc?course=C#thong-tin');const form=page.locator('.public-intake form');
-  await form.locator('[name=consent]').check();await form.locator('[name=name]').fill('Phụ huynh kiểm thử');await form.locator('[name=phone]').fill('0912345678');
-  await form.getByRole('button',{name:'Kiểm tra thông tin'}).click();check((await page.locator('.intake-review textarea').inputValue()).includes('Khóa quan tâm: C —'),'Default is included in review');
-  await page.getByRole('button',{name:'Chỉnh lại',exact:true}).click();await choose(page,form,'course','B — Thi đấu cơ bản');
-  await form.getByRole('button',{name:'Kiểm tra thông tin'}).click();check((await page.locator('.intake-review textarea').inputValue()).includes('Khóa quan tâm: B —'),'User can override default');
+  check((await form.locator('[data-select-name=course]').innerText()).startsWith('C —'),'Default course selected');
+  await choose(page,form,'course','B — Thi đấu cơ bản');check((await form.locator('[data-select-name=course]').innerText()).startsWith('B —'),'User can override default');
+  check(await form.getByRole('button',{name:'Đăng kí ngay',exact:true}).count()===1,'Registration sends directly');
   await go(page,'/dang-ky-hoc?course=untrusted&phone=0912345678');check((await page.locator('.public-intake [data-select-name=course]').innerText()).includes('Cần tư vấn thêm'),'Unknown course safely falls back');check(!(await page.locator('main').innerText()).includes('0912345678'),'Free text query never becomes contact data');
   for(const width of [375,768,1440])for(const theme of ['light','dark']){
    await page.setViewportSize({width,height:900});await page.addInitScript(t=>localStorage.setItem('theme',t),theme);await go(page,'/dang-ky-hoc');
@@ -591,7 +589,7 @@ async function main(){
  await run('frontend forms validate review edit copy without requests',async()=>{
   const requests=[];page.on('request',r=>{if(r.url().includes('/api/consultations'))requests.push(r.method());});
   await page.addInitScript(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async value=>{window.__copied=value;}}}));
-  for(const route of ['/hoc-lieu-mien-phi','/lo-trinh?course=C&level=thcs&goal=province&background=practice&show=1#tu-van']){
+  for(const route of ['/hoc-lieu-mien-phi']){
    await page.setViewportSize({width:375,height:900});await go(page,route);const form=page.locator('.public-intake form');await form.waitFor();
    await form.locator('[data-select-name=course]').click();await page.getByRole('option').nth(5).waitFor();check(await page.getByRole('option').count()===6,'Five courses plus advice');await page.keyboard.press('Escape');
    if(route!=='/hoc-lieu-mien-phi')await form.locator('[name=consent]').check();await form.locator('[name=name]').fill('Phụ huynh kiểm thử');await form.locator('[name=phone]').fill('123');await form.getByRole('button',{name:'Kiểm tra thông tin'}).click();check(await form.getByRole('alert').isVisible(),'Invalid phone blocked');check(await page.locator('.intake-review').count()===0,'Invalid form does not advance');

@@ -43,3 +43,5 @@ Prototype, nguồn thiết kế/Excel, screenshot QA, backup và dữ liệu th�
 Mỗi tài liệu có một trách nhiệm; đổi quyết định thì cập nhật nguồn chuẩn và nơi dẫn chiếu, không nối thêm đoạn cập nhật mâu thuẫn. Xóa mô tả phương án hết hiệu lực khỏi nguồn hiện hành, giữ lịch sử ở Git/hồ sơ cần thiết. Ngày năm học/thành tích, tên migration và bằng chứng môi trường vẫn giữ khi có ý nghĩa.
 
 Nếu tài liệu mâu thuẫn, ưu tiên quyết định trực tiếp đã duyệt và đối chiếu mã/RPC/test/schema thật. Không mặc định file mới hơn là đã deploy; không suy chỉ dẫn production từ một ghi chú lịch sử.
+
+- [Tra cứu phụ huynh chỉ bằng số điện thoại](PARENT_PHONE_ACCESS.md): quyết định hiện hành, giới hạn danh tính, chống spam chung và migration27.

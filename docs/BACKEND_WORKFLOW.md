@@ -1,5 +1,8 @@
 # Workflow backend
 
+**Quyết định hiện hành:** phụ huynh tra cứu chỉ bằng số điện thoại, không mật khẩu/OTP/Auth; gia sư/admin giữ Auth. Migration27 thay luồng của 26, dùng chung giới hạn thử đăng nhập lưu trong DB. Xem [tra cứu bằng số điện thoại](PARENT_PHONE_ACCESS.md) để chuyển đổi và hiểu giới hạn danh tính. Bằng chứng Auth/26 bên dưới là lịch sử, không phải hướng triển khai tiếp.
+
+
 Phạm vi: xác thực/phân quyền, API/Server Actions, read model, RPC, database, Storage, email và tích hợp. Đọc [ARCHITECTURE](ARCHITECTURE.md) để hiểu luồng; [PROJECT_STATUS](PROJECT_STATUS.md) là nguồn trạng thái và backlog; [SECURITY](../SECURITY.md) quy định dữ liệu/secret.
 
 ## Ranh giới và entry point
@@ -21,12 +24,12 @@ Quyết định tên gọi đã duyệt: hai phần C/D được giới thiệu 
 
 Trước khi sửa: xác định caller, input, RPC/bảng bị tác động, người được phép đọc/ghi, bản nháp/công bố và ca lỗi. Ghi rõ thay đổi tương thích hoặc adapter cần có; giữ chữ ký RPC khi chỉ bổ sung trường JSON. Thiếu dữ liệu trả `null` có nghĩa, không giả số liệu để đáp ứng layout.
 
-Form đăng ký trong mã mới gọi `/api/consultations` → `submit_registration` (24), không tạo outbox/email. Học liệu giữ luồng sao chép/liên hệ. Mã chương trình A/B/AB/C/E/PREVOI/K (25) và Auth phụ huynh (26) xem [BACKEND_COMPLETION](BACKEND_COMPLETION.md); AB hiển thị A+B, PREVOI dùng giáo án riêng, không E. API CSATOJ chưa triển khai: cần hợp đồng/mapping, kiểm tra liên kết, timeout/cache/rate limit; không gọi từ UI bằng key bí mật hoặc suy ra năng lực từ ranking.
+Form đăng ký trong mã mới gọi `/api/consultations` → `submit_registration` (24), không tạo outbox/email. Học liệu giữ luồng sao chép/liên hệ. Mã chương trình A/B/AB/C/E/PREVOI/K (25) và luồng phụ huynh (27, thay Auth26) xem [BACKEND_COMPLETION](BACKEND_COMPLETION.md); AB hiển thị A+B, PREVOI dùng giáo án riêng, không E. API CSATOJ chưa triển khai: cần hợp đồng/mapping, kiểm tra liên kết, timeout/cache/rate limit; không gọi từ UI bằng key bí mật hoặc suy ra năng lực từ ranking.
 
 ## Database và dữ liệu đang vận hành
 
 1. Đọc [database README](../database/README.md), migration precondition, caller/RPC và test liên quan. Kiểm tra môi trường bằng registry **và** cấu trúc/grants/verification; không chỉ lấy số migration lớn nhất.
-2. Mã hiện có migration 01–26. Production 14/10/2026 ghi nhận 05–18, 20 và 23–26; đã cấp và đối soát 44 Auth parent theo ủy quyền. Ba luồng đủ migration 18 → 24, 23 → 25 và 23 → 26; ứng dụng mới còn chờ deploy/nghiệm thu. Phần email/hồ sơ 19 → 21 → 22 giữ backlog riêng. Không chạy lại hoặc sửa migration đã phát hành; registry không ghi 01–04 không có nghĩa cần chạy chúng lại. Nếu áp 19/21/22 sau 24–26, kiểm thử schema kết hợp và quyền/projection trước.
+2. Mã hiện có migration 01–27. Production 14/10/2026 ghi nhận 05–18, 20 và 23–26; đã cấp và đối soát 44 Auth parent theo ủy quyền. Ba luồng đủ migration 18 → 24, 23 → 25 và 23 → 26; ứng dụng mới còn chờ deploy/nghiệm thu. Phần email/hồ sơ 19 → 21 → 22 giữ backlog riêng. Không chạy lại hoặc sửa migration đã phát hành; registry không ghi 01–04 không có nghĩa cần chạy chúng lại. Nếu áp 19/21/22 sau 24–26, kiểm thử schema kết hợp và quyền/projection trước.
 3. Dùng database thử tách biệt và fixture giả; kiểm thử nâng cấp cùng chuỗi, bảo toàn lịch sử, draft/published, quyền và concurrency khi có tranh chấp. Migration đã phát hành giữ nguyên; sửa bằng migration mới sau số cuối thực tế lúc làm.
 4. Không chạy master schema hoặc gói upgrade lịch sử trên DB đã có dữ liệu. Baseline master hiện đến 10; khởi tạo project trống làm theo database README, không coi master là schema mới nhất.
 5. Maintenance dữ liệu phải có căn cứ, phạm vi, preview, guard/audit và quyền. Script bổ sung số phụ huynh từ số học sinh là thao tác một lần, không phải quy tắc tự động cho hồ sơ mới.
@@ -38,7 +41,7 @@ Giữ lớp/tham gia/gia sư/đơn giá theo ngày hiệu lực, buổi học v�
 | Luồng | Quy tắc và điểm còn lại |
 |---|---|
 | Admin/gia sư Auth | Supabase Auth + role/ownership/phân công; SEC-01 cần thay mật khẩu khởi tạo từ số điện thoại và kế hoạch xử lý tài khoản cũ |
-| Phụ huynh | Supabase Auth phone/password → cookie/hash gắn user/session → RPC kiểm tra liên kết. Migration26 đóng login cũ ngay; cấp tài khoản và deploy trong bảo trì. SEC-02 còn thiếu chứng minh sở hữu số do mật khẩu chung/đổi tùy chọn |
+| Phụ huynh | Số điện thoại → phiên lookup → RPC kiểm tra liên kết, không Auth. Migration27 và app phải chuyển cùng đợt. SEC-02 mở vì không xác minh danh tính; chống spam chung theo PARENT_PHONE_ACCESS |
 | Nhận xét/lộ trình | Draft/published, revision và history; không tự công bố hay suy ra thành thạo |
 | Hồ sơ/avatar | Gia sư sở hữu/admin lưu hiển thị ngay; ngoại lệ thông tin nền chỉ admin. Ảnh Sharp 512×512 → Storage → RPC; lỗi giữ ảnh cũ, cleanup không xóa ảnh đang dùng |
 | Đăng ký | Intake v2 lưu request, không tạo outbox/email; admin đổi trạng thái có revision/audit. Giữ dữ liệu và hàng đợi của luồng tư vấn cũ |
@@ -61,6 +64,6 @@ Test API phải tự đặt `APP_ORIGIN` khớp origin fixture trong tiến trì
 
 Trước PR chạy thêm guard và guard tests theo [CONTRIBUTING](../CONTRIBUTING.md). Avatar phải thử Supabase Storage thật trong project thử, Auth phải thử luồng phù hợp, restore phải kiểm chứng trên môi trường tách biệt; mock/build không thay thế những bằng chứng đó.
 
-Production theo [runbook ba luồng](BACKEND_COMPLETION.md) và [setup](SETUP_VERCEL_SUPABASE.md): staging trước → backup/restore thử → preflight → bảo trì/schema → postflight → provisioning có đối soát → deploy tương thích với email tắt → smoke. Migration26 không tương thích login phụ huynh cũ; không để khoảng trống schema/deploy ngoài bảo trì. Người dùng tự chạy SQL production; chưa có staging nên nghiệm thu còn chờ. Không tự thao tác dashboard, cấp Auth thật, gửi thư, reset tài khoản hoặc push/deploy chỉ vì test xanh.
+Production theo [runbook ba luồng](BACKEND_COMPLETION.md) và [setup](SETUP_VERCEL_SUPABASE.md): staging trước → backup/restore thử → preflight → bảo trì/schema27 → verification27 → deploy tương thích với email tắt → smoke. Migration27 không tương thích app phụ huynh dùng Auth của 26; không để khoảng trống schema/deploy ngoài bảo trì. Người dùng tự chạy SQL production; chưa có staging nên nghiệm thu còn chờ. Không tự thao tác dashboard, cấp Auth thật, gửi thư, reset tài khoản hoặc push/deploy chỉ vì test xanh.
 
 Nếu lỗi, dừng gửi, giữ lịch sử/outbox và chọn phiên bản ứng dụng tương thích. Sửa dữ liệu bằng migration bù; không restore đè làm mất phát sinh mới. Cập nhật mục trạng thái tương ứng trong PROJECT_STATUS: phạm vi/mã, môi trường, bằng chứng, phần chưa chạy và điều kiện còn thiếu. Giữ ngày cho kiểm chứng môi trường; không nối nhật ký từng lượt sửa.

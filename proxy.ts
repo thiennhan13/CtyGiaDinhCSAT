@@ -7,7 +7,7 @@ export async function proxy(request: NextRequest) {
   if (path === '/dang-ky-hoc' || path === '/' || path === '/hoc-lieu-mien-phi' || path === '/thanh-tich' || path === '/gia-su' || path === '/bai-dang' || /^\/bai-dang\/[a-z0-9-]+$/.test(path) || path === '/lo-trinh' || /^\/lo-trinh\/(a|b|c|e|k|co-ban|nang-cao|advanced|basic|hsgqg|voi|prevoi|custom|tuy-chinh)$/.test(path) || path === '/sitemap.xml' || path === '/robots.txt' || path === '/api/consultations' || path === '/api/consultations/status' || path === '/api/cron/monthly-reviews') {
     return NextResponse.next({ request })
   }
-  if (path === '/login' || path === '/api/auth/login' || path.startsWith('/api/parents/')) {
+  if (path === '/login' || path === '/api/auth/login' || path.startsWith('/api/parents/') || path === '/parents' || path.startsWith('/parents/')) {
     const response = NextResponse.next({ request })
     response.headers.set('Cache-Control', 'private, no-store')
     response.headers.set('X-Robots-Tag', 'noindex, noarchive')
@@ -48,10 +48,6 @@ export async function proxy(request: NextRequest) {
     return response
   }
 
-  if (path === '/parents' || path.startsWith('/parents/')) {
-    supabaseResponse.headers.set('Cache-Control', 'private, no-store')
-    supabaseResponse.headers.set('X-Robots-Tag', 'noindex, noarchive')
-  }
   return supabaseResponse
 }
 

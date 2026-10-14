@@ -103,7 +103,7 @@ async function main() {
       if (!session) { res.writeHead(401); res.end(JSON.stringify({ message: 'Unknown synthetic Auth token.' })); return; }
       res.end(JSON.stringify(session.user)); return;
     }
-    if (!['/rest/v1/rpc/parent_learning_portal', '/rest/v1/rpc/parent_password_session_valid'].includes(req.url) || req.method !== 'POST') {
+    if (!['/rest/v1/rpc/parent_learning_portal', '/rest/v1/rpc/parent_phone_session_valid'].includes(req.url) || req.method !== 'POST') {
       report.unexpectedRequests.push({ surface: 'mock', path: req.url, method: req.method });
       res.writeHead(404); res.end(JSON.stringify({ message: 'Only the read-only parent RPC fixture exists.' })); return;
     }
@@ -111,8 +111,8 @@ async function main() {
       let body = ''; for await (const chunk of req) body += chunk;
       const args = JSON.parse(body);
       const mode = Object.keys(modes).find(key => modes[key].hash === args.p_token_hash);
-      if (req.url === '/rest/v1/rpc/parent_password_session_valid') {
-        res.end(JSON.stringify(!!mode && !['expired', 'revoked'].includes(mode) && args.p_auth_uid === ids.parent && args.p_session_id === ids.session)); return;
+      if (req.url === '/rest/v1/rpc/parent_phone_session_valid') {
+        res.end(JSON.stringify(!!mode && !['expired', 'revoked'].includes(mode))); return;
       }
       // Report only synthetic argument metadata, never cookies or token hashes.
       report.mockRequests.push({ mode: mode || 'unknown', student: args.p_student_id, month: args.p_month, page: args.p_review_page });
@@ -166,7 +166,7 @@ async function main() {
       result.on('page', page => page.on('pageerror', error => report.browserErrors.push(error.message)));
       if (mode) await result.addCookies([
         { name: 'csat_parent_lookup', value: modes[mode].token, domain: '127.0.0.1', path: '/', httpOnly: true, sameSite: 'Lax' },
-        { name: 'sb-127-auth-token', value: 'base64-' + Buffer.from(JSON.stringify(sessions[role])).toString('base64url'), domain: '127.0.0.1', path: '/', httpOnly: true, sameSite: 'Lax' },
+        ...(role === 'admin' ? [{ name: 'sb-127-auth-token', value: 'base64-' + Buffer.from(JSON.stringify(sessions[role])).toString('base64url'), domain: '127.0.0.1', path: '/', httpOnly: true, sameSite: 'Lax' }] : []),
       ]);
       return result;
     }
@@ -239,10 +239,10 @@ async function main() {
       await c.addCookies([{ name: 'csat_parent_lookup', value: 'malformed', domain: '127.0.0.1', path: '/' }]);
       await visit(p, articleUrl(...samples[0])); check(new URL(p.url()).pathname === '/login', 'Malformed cookie must redirect.');
       await c.addCookies([{ name: 'csat_parent_lookup', value: modes.valid.token, domain: '127.0.0.1', path: '/' }]);
-      await visit(p, articleUrl(...samples[0])); check(new URL(p.url()).pathname === '/login', 'Lookup token alone cannot replace verified Auth.');
+      await visit(p, articleUrl(...samples[0])); check(new URL(p.url()).pathname.includes('/parents/chuyen-de/'), 'Valid lookup opens article without Auth.');
       await c.close();
       const wrongRole = await context('valid', {}, 'admin'), adminPage = await wrongRole.newPage();
-      await visit(adminPage, articleUrl(...samples[0])); check(new URL(adminPage.url()).pathname === '/login', 'Non-parent Auth plus lookup token cannot read parent content.');
+      await visit(adminPage, articleUrl(...samples[0])); check(new URL(adminPage.url()).pathname.includes('/parents/chuyen-de/'), 'Independent lookup works alongside an existing staff session.');
       await wrongRole.close();
     });
     for (const mode of ['expired', 'revoked', 'excluded', 'old', 'withdrawn', 'draft', 'nullStudent']) await run('private article denied: ' + mode, async () => {

@@ -16,7 +16,7 @@ export default async function ParentPortal({searchParams}:{searchParams:Promise<
  if(!parsed.success)redirect('/parents');
  const {data,error}=await createAdminClient().rpc('parent_learning_portal',{p_token_hash:hash,p_student_id:parsed.data.student||null,p_month:parsed.data.month||null,p_review_page:parsed.data.page});
  if(error){
-  if(error.code==='42501')return <AccessMessage message="Phiên tra cứu đã hết hạn hoặc học sinh không còn được liên kết. Vui lòng đăng nhập lại bằng số điện thoại và mật khẩu." />;
+  if(error.code==='42501')return <AccessMessage message="Phiên tra cứu đã hết hạn hoặc học sinh không còn được liên kết. Vui lòng đăng nhập lại bằng số điện thoại đã đăng ký." />;
   return <AccessMessage message="Chưa tải được đầy đủ thông tin. Vui lòng thử lại sau hoặc liên hệ CSAT." />;
  }
  const portal=data as ParentLearningData;

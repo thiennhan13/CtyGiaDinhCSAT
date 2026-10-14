@@ -24,49 +24,64 @@ module.exports = async function backendUi({ context, origin, run, check, output 
       await form.locator('[name=name]').fill('Phụ huynh dữ liệu giả');
       await form.locator('[name=phone]').fill('0912345678');
       await form.locator('[name=message]').fill('Nhu cầu kiểm thử tổng hợp.');
-      await form.getByRole('button', { name: 'Kiểm tra thông tin' }).click();
-      check(await p.locator('.intake-review').count() === 0, 'Consent required before review');
+      const submit=form.getByRole('button', { name: 'Đăng kí ngay', exact: true });
+      await submit.click(); check(attempts.length === 0, 'Consent required before direct submission');
       await form.locator('[name=consent]').check();
-      await form.getByRole('button', { name: 'Kiểm tra thông tin' }).click();
-      const review = p.locator('.intake-review'); await review.waitFor();
-      check(attempts.length === 0, 'Review never submits automatically');
-      check(await review.locator('h3').evaluate(e => e === document.activeElement), 'Review heading receives focus');
-      const before = await review.locator('textarea').inputValue();
-      for (let i = 0; i < 2; i++) {
-        await review.getByRole('button', { name: 'Gửi đăng ký' }).click();
-        await review.getByRole('button', { name: 'Đang gửi…' }).waitFor();
-        check(await review.getByRole('button', { name: 'Đang gửi…' }).isDisabled(), 'Pending request disables send');
-        check(await review.getByRole('button', { name: 'Chỉnh lại' }).isDisabled(), 'Pending request disables edit');
-        await review.getByRole('alert').waitFor();
-        check(await review.locator('textarea').inputValue() === before, 'Failed submit preserves review');
-        if (i === 0) {
-          await review.getByRole('button', { name: 'Chỉnh lại' }).click();
-          check(await form.locator('[name=phone]').inputValue() === '0912345678', 'Edit preserves phone');
-          await form.getByRole('button', { name: 'Kiểm tra thông tin' }).click();
-        }
+      const consent=await form.locator('.intake-consent').boundingBox(), button=await submit.boundingBox();
+      check(consent.y+consent.height+12<=button.y, 'Consent and submit do not overlap');
+      const text=await form.locator('.intake-consent span').boundingBox(), checkbox=await form.locator('[name=consent]').boundingBox();
+      check(checkbox.x+checkbox.width<text.x && Math.abs(checkbox.y-text.y)<3, 'Consent checkbox aligns with text');
+      await layout(p, 'backend-registration-form', width);
+      await form.screenshot({path:path.join(output,'backend-registration-fields-'+width+'.png')});
+      for(let i=0;i<2;i++){
+        await submit.click();await form.getByRole('button',{name:'Đang gửi…'}).waitFor();
+        check(await form.getByRole('button',{name:'Đang gửi…'}).isDisabled(),'Sending disables submit');
+        check(await form.locator('[name=name]').isDisabled(),'Sending freezes payload');
+        await form.evaluate(el=>{el.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));});
+        await form.getByRole('alert').waitFor();
+        check(attempts.length===i+1,'Repeated submit while pending does not duplicate requests');
+        check(await form.locator('[name=phone]').inputValue()==='0912345678','Error retains input');
+        check(await p.locator('.intake-review').count()===0,'No review step before submission');
       }
-      check(attempts[0].request_id === attempts[1].request_id, 'Unchanged edit and retry preserve idempotency key');
+      check(attempts[0].request_id === attempts[1].request_id, 'Unchanged retry preserves idempotency key');
       check(attempts[0].schema_version === 2 && attempts[0].course === 'C' && attempts[0].consent === true, 'Versioned intake has course and consent');
-      await review.getByRole('button', { name: 'Chỉnh lại' }).click();
-      await form.locator('[name=message]').fill('Nhu cầu kiểm thử đã sửa.');
-      await form.getByRole('button', { name: 'Kiểm tra thông tin' }).click();
-      await review.getByRole('button', { name: 'Gửi đăng ký' }).click();
-      await review.getByRole('status').filter({ hasText: 'CSAT đã tiếp nhận' }).waitFor();
-      check(attempts[2].request_id !== attempts[1].request_id, 'Changed payload gets new idempotency key');
-      check(await review.getByRole('button', { name: 'Gửi đăng ký' }).count() === 0, 'Success removes send action');
-      check(!p.url().includes('0912345678') && !p.url().includes('Nhu'), 'Contact data stays out of navigation URL');
-      await layout(p, 'backend-registration', width);
-      await review.screenshot({ path: path.join(output, 'backend-registration-review-' + width + '.png') });
+      await form.locator('[name=message]').fill('Nhu cầu kiểm thử đã sửa.');await submit.click();
+      const success=p.locator('.intake-success');await success.getByRole('status').waitFor();
+      check(attempts[2].request_id !== attempts[1].request_id,'Changed payload gets new idempotency key');
+      check(await success.locator('h3').evaluate(e=>e===document.activeElement),'Success receives focus');
+      check(await form.isHidden(),'Success prevents resubmission');
+      check(!p.url().includes('0912345678'),'Contact stays out of URL');
+      await layout(p,'backend-registration',width);
     } finally { await c.close(); }
   });
-  for (const width of widths) await run('backend parent login and password errors ' + width, async () => {
+  for (const pathname of ['/lo-trinh', '/lo-trinh/a']) await run('backend consultation direct send ' + pathname, async () => {
+    const c=await context(null,{viewport:{width:375,height:900}}),p=await c.newPage();
+    try {
+      let calls=0;
+      await p.route(origin+'/api/consultations',async route=>{
+        calls++;const body=route.request().postDataJSON();check(body.source_path===pathname,'Shared form retains source');
+        if(pathname==='/lo-trinh/a')check(body.course==='A','Detail course stays selected');
+        return json(route,200,{ok:true});
+      });
+      await p.goto(origin+pathname,{waitUntil:'networkidle'});
+      const form=p.locator('.public-intake[data-intake-mode=registration] form');
+      await form.locator('[name=name]').fill('Liên hệ thử nghiệm');await form.locator('[name=phone]').fill('0912345678');
+      const submit=form.getByRole('button',{name:'Đăng kí ngay',exact:true});
+      await submit.click();check(calls===0,'Shared form requires consent');
+      await form.locator('[name=consent]').check();
+      const box=await form.locator('.intake-consent').boundingBox(),button=await submit.boundingBox();
+      check(box.y+box.height+12<=button.y,'Shared consent does not overlap button');
+      await submit.click();await p.locator('.intake-success').waitFor();check(calls===1,'One click sends shared consultation');
+    } finally {await c.close();}
+  });
+  for (const width of widths) await run('backend parent phone login and retired password ' + width, async () => {
     const c = await context(null, { viewport: { width, height: 900 } }), p = await c.newPage();
     try {
       let loginRequests = 0;
       const donor = await context('valid'); const loginCookies = await donor.cookies(); await donor.close();
       await p.route(origin + '/api/parents/auth', async route => {
         loginRequests++; const body = route.request().postDataJSON();
-        check(body.phone === '0912345678' && body.password === 'Fixture-password-123', 'Login sends synthetic credentials in POST body');
+        check(body.phone === '0912345678' && !('password' in body), 'Login sends synthetic credentials in POST body');
         await pause();
         if (loginRequests === 1) return json(route, 401, { error: 'Thông tin đăng nhập không đúng.' });
         await c.addCookies(loginCookies); return json(route, 200, { ok: true });
@@ -74,7 +89,7 @@ module.exports = async function backendUi({ context, origin, run, check, output 
       await p.goto(origin + '/login', { waitUntil: 'networkidle' });
       await p.locator('#parent-phone').fill('0912345678');
       const form = p.locator('form').filter({ has: p.locator('#parent-phone') });
-      await form.locator('input[type=password]').fill('Fixture-password-123');
+      check(await form.locator('input[type=password]').count() === 0, 'No parent password input');
       await form.getByRole('button', { name: 'Đăng nhập', exact: true }).focus(); await p.keyboard.press('Enter');
       await form.getByRole('button', { name: 'Đang đăng nhập…' }).waitFor();
       check(await form.getByRole('button', { name: 'Đang đăng nhập…' }).isDisabled(), 'Login pending disabled');
@@ -89,27 +104,10 @@ module.exports = async function backendUi({ context, origin, run, check, output 
     } finally { await c.close(); }
     const authenticated = await context('valid', { viewport: { width, height: 900 } }), page = await authenticated.newPage();
     try {
-      let passwordRequests = 0;
-      await page.route(origin + '/api/parents/password', async route => {
-        passwordRequests++; const body = route.request().postDataJSON();
-        check(body.current_password === 'Fixture-old-123' && body.password === 'Fixture-new-123', 'Password fields sent only in POST body');
-        await pause(); if (passwordRequests === 1) return json(route, 400, { error: 'Mật khẩu hiện tại chưa đúng.' });
-        await authenticated.clearCookies(); return json(route, 200, { ok: true });
-      });
       await page.goto(origin + '/parents/account', { waitUntil: 'networkidle' });
-      await page.locator('[name=current_password]').fill('Fixture-old-123');
-      await page.locator('[name=password]').fill('Fixture-new-123');
-      await page.locator('[name=confirmation]').fill('Fixture-new-123');
-      await page.getByRole('button', { name: 'Đổi mật khẩu', exact: true }).click();
-      await page.getByRole('button', { name: 'Đang lưu…' }).waitFor();
-      check(await page.getByRole('button', { name: 'Đang lưu…' }).isDisabled(), 'Password pending disabled');
-      await page.getByRole('alert').filter({ hasText: 'Mật khẩu hiện tại chưa đúng.' }).waitFor();
-      check(await page.locator('[name=password]').inputValue() === 'Fixture-new-123', 'Password validation failure retains fields');
-      check(await page.getByRole('button', { name: 'Đổi mật khẩu', exact: true }).isEnabled(), 'Password error enables retry');
-      await layout(page, 'backend-password', width);
-      await page.getByRole('button', { name: 'Đổi mật khẩu', exact: true }).click();
-      await page.waitForURL(url => url.pathname === '/login');
-      check(!page.url().includes('Fixture'), 'Successful password flow returns to login without secrets');
+      check(new URL(page.url()).pathname === '/parents', 'Old password page redirects to dashboard');
+      check(await page.getByRole('link', { name: 'Đổi mật khẩu' }).count() === 0, 'Password navigation removed');
+      await layout(page, 'backend-phone-dashboard', width);
     } finally { await authenticated.close(); }
   });
   for (const width of widths) await run('backend admin intake filters and revision conflict ' + width, async () => {

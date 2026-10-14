@@ -19,8 +19,8 @@ function Select({ name, label, full = false, defaultValue }: { name: keyof typeo
   return <PublicSelect name={name} label={label} full={full} defaultValue={defaultValue || choices[name][0]} options={choices[name].map(value => ({ value, label: value }))} />;
 }
 
-/** Review before explicit submission. Materials remain a copy/contact workflow. */
-export function PublicConsultation({ kind = 'consultation', context = '', defaultCourse }: { kind?: 'materials' | 'consultation'; context?: string; defaultCourse?: PublicCourseCode }) {
+/** Registration submits directly; materials retain their copy/contact review. */
+export function PublicConsultation({ kind = 'consultation', context = '', defaultCourse, showInstructions = true }: { kind?: 'materials' | 'consultation'; context?: string; defaultCourse?: PublicCourseCode; showInstructions?: boolean }) {
   const courseDefault = choices.course.find(value => value.startsWith(`${defaultCourse} —`));
   const [ready, setReady] = useState(false);
   const [review, setReview] = useState<string | null>(null);
@@ -31,22 +31,23 @@ export function PublicConsultation({ kind = 'consultation', context = '', defaul
   const reviewButton = useRef<HTMLButtonElement>(null);
   const restoreReviewFocus = useRef(false);
   const id = useId();
-  const [submission, setSubmission] = useState<IntakeInput | null>(null);
   const [sending, setSending] = useState(false);
   const [saved, setSaved] = useState(false);
+  const sendLock = useRef(false);
   const requestKey = useRef<{ body: string; id: string } | null>(null);
   useEffect(() => setReady(true), []);
   useLayoutEffect(() => {
-    if (review !== null) heading.current?.focus();
+    if (review !== null || saved) heading.current?.focus();
     else if (restoreReviewFocus.current) {
       // The form must be visible in the committed DOM before it can receive focus.
       restoreReviewFocus.current = false;
       reviewButton.current?.focus();
     }
-  }, [review]);
+  }, [review, saved]);
 
   function prepare(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (sendLock.current || saved) return;
     const data = new FormData(event.currentTarget);
     const value = (name: string) => String(data.get(name) || '').trim();
     const phone = parentPhoneSchema.safeParse(value('phone'));
@@ -65,7 +66,8 @@ export function PublicConsultation({ kind = 'consultation', context = '', defaul
       if (requestKey.current?.body !== signature) requestKey.current = { body: signature, id: crypto.randomUUID() };
       const parsed = intakeSchema.safeParse({ ...body, request_id: requestKey.current.id });
       if (!parsed.success) { setError('Vui lòng kiểm tra thông tin và đồng ý để CSAT lưu đơn, liên hệ tư vấn.'); return; }
-      setSubmission(parsed.data);
+      void send(parsed.data);
+      return;
     }
     setReview([
       kind === 'materials' ? 'CSAT — Yêu cầu tài liệu học tập' : 'CSAT — Tư vấn lộ trình học tập',
@@ -81,8 +83,9 @@ export function PublicConsultation({ kind = 'consultation', context = '', defaul
     try { await navigator.clipboard.writeText(review); setCopyState('copied'); }
     catch { setCopyState('failed'); summary.current?.focus(); summary.current?.select(); }
   }
-  async function send() {
-    if (!submission || sending || saved) return;
+  async function send(submission: IntakeInput) {
+    if (sendLock.current || saved) return;
+    sendLock.current = true;
     setSending(true); setError('');
     try {
       const response = await fetch('/api/consultations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(submission) });
@@ -90,14 +93,14 @@ export function PublicConsultation({ kind = 'consultation', context = '', defaul
       if (!response.ok || !result.ok) throw new Error(result.error || 'Chưa lưu được đơn. Vui lòng thử lại.');
       setSaved(true);
     } catch (e) { setError(e instanceof Error ? e.message : 'Kết nối bị gián đoạn. Thông tin vẫn được giữ để bạn thử lại.'); }
-    finally { setSending(false); }
+    finally { sendLock.current = false; setSending(false); }
   }
 
   return <div className="public-intake" data-intake-mode={kind === 'materials' ? 'frontend' : 'registration'}>
     {ready ? <>
-      <form hidden={review !== null} onSubmit={prepare} aria-label={kind === 'materials' ? 'Đăng ký nhận tài liệu' : 'Thông tin tư vấn học tập'} aria-describedby={`${id}-note`}>
-        <div className="intake-step mono">01 / CHIA SẺ CÙNG CSAT</div>
-        <div className="form-grid">
+      <form hidden={review !== null || saved} onSubmit={prepare} aria-busy={sending} aria-label={kind === 'materials' ? 'Đăng ký nhận tài liệu' : 'Thông tin tư vấn học tập'} aria-describedby={showInstructions ? `${id}-note` : undefined}>
+        {showInstructions && <div className="intake-step mono">01 / CHIA SẺ CÙNG CSAT</div>}
+        <fieldset disabled={sending} aria-label="Thông tin liên hệ và nhu cầu học tập" className="form-grid">
           <Select name="role" label="Bạn là" />
           <label className="field">Tên liên hệ *<input name="name" autoComplete="name" required minLength={2} maxLength={100} aria-describedby={error ? `${id}-error` : undefined} /></label>
           <label className="field">Số điện thoại *<input name="phone" type="tel" inputMode="tel" autoComplete="tel" required maxLength={30} aria-describedby={error ? `${id}-error` : undefined} /></label>
@@ -108,17 +111,20 @@ export function PublicConsultation({ kind = 'consultation', context = '', defaul
           <Select name="goal" label="Mục tiêu học tập" full />
           <Select name="background" label="Bạn đã học đến đâu?" full />
           <label className="field full">{kind === 'materials' ? 'Bạn muốn tìm tài liệu về nội dung nào?' : 'Bạn muốn trao đổi điều gì?'}<textarea name="message" maxLength={2000} rows={3} placeholder="Chia sẻ điều đang học, phần còn vướng hoặc lịch học mong muốn…" /></label>
-          {kind !== 'materials' && <><label className="full flex items-start gap-3 text-sm leading-6"><input className="mt-1 h-5 w-5 shrink-0" name="consent" type="checkbox" required /><span>Tôi đồng ý để CSAT lưu thông tin và liên hệ về nhu cầu học tập.</span></label><div hidden aria-hidden="true"><input name="website" tabIndex={-1} autoComplete="off" /></div></>}
-        </div>
+          {kind !== 'materials' && <><label className="full intake-consent"><input name="consent" type="checkbox" required /><span>Tôi đồng ý để CSAT lưu thông tin và liên hệ về nhu cầu học tập.</span></label><div hidden aria-hidden="true"><input name="website" tabIndex={-1} autoComplete="off" /></div></>}
+        </fieldset>
         <p id={`${id}-error`} className="form-feedback" role={error ? 'alert' : undefined}>{error}</p>
-        <button ref={reviewButton} type="submit" className="btn">Kiểm tra thông tin <ArrowRight size={18} aria-hidden="true" /></button>
-        <p id={`${id}-note`} className="intake-note">{kind === 'materials' ? 'Kiểm tra và sao chép thông tin để trao đổi cùng CSAT. Nội dung chỉ được giữ trong trang đang mở.' : 'Bạn sẽ được xem lại thông tin trước khi gửi đăng ký cho CSAT.'}</p>
+        <button ref={reviewButton} type="submit" className="btn intake-submit" disabled={sending}>{kind === 'materials' ? 'Kiểm tra thông tin' : sending ? 'Đang gửi…' : 'Đăng kí ngay'} <ArrowRight size={18} aria-hidden="true" /></button>
+        {showInstructions && <p id={`${id}-note`} className="intake-note">{kind === 'materials' ? 'Kiểm tra và sao chép thông tin để trao đổi cùng CSAT. Nội dung chỉ được giữ trong trang đang mở.' : 'CSAT sẽ liên hệ với bạn sau khi tiếp nhận đăng ký.'}</p>}
       </form>
+      {saved && <section className="intake-review intake-success" aria-labelledby={`${id}-success`}>
+        <h3 ref={heading} tabIndex={-1} id={`${id}-success`}>Cảm ơn bạn đã đăng ký!</h3>
+        <p role="status">CSAT đã tiếp nhận đăng ký. Đội ngũ sẽ liên hệ để trao đổi với bạn.</p>
+      </section>}
       {review !== null && <section className="intake-review" aria-labelledby={`${id}-review`}>
         <div className="intake-step mono">02 / KIỂM TRA THÔNG TIN</div>
         <h3 ref={heading} tabIndex={-1} id={`${id}-review`}>Sẵn sàng trao đổi cùng CSAT.</h3>
-        <p role="status">{saved ? 'CSAT đã tiếp nhận đăng ký. Đội ngũ sẽ liên hệ để trao đổi với bạn.' : kind === 'materials' ? 'Thông tin chưa được gửi. Bạn có thể sao chép nội dung bên dưới rồi nhắn cho đội ngũ gia sư.' : 'Thông tin chưa được gửi. Hãy kiểm tra lại trước khi gửi đăng ký.'}</p>
-        {kind !== 'materials' && !saved && <button type="button" className="btn" disabled={sending} onClick={send}>{sending ? 'Đang gửi…' : 'Gửi đăng ký'}<ArrowRight size={18} aria-hidden="true" /></button>}
+        <p role="status">Thông tin chưa được gửi. Bạn có thể sao chép nội dung bên dưới rồi nhắn cho đội ngũ gia sư.</p>
         {error && <p role="alert" className="form-feedback">{error}</p>}
         <label className="field">Nội dung của bạn<textarea ref={summary} readOnly value={review} rows={11} /></label>
         <div className="intake-review-actions"><button type="button" className="btn" onClick={copy}>{copyState === 'copied' ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}Sao chép nội dung</button>{!saved && <button type="button" className="text-link" disabled={sending} onClick={() => { restoreReviewFocus.current = true; setReview(null); setCopyState('idle'); }}><Pencil size={16} aria-hidden="true" />Chỉnh lại</button>}</div>

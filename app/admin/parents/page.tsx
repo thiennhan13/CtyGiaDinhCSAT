@@ -90,7 +90,7 @@ export default function ParentAccountsPage() {
 
   return <div className="space-y-6 max-w-6xl mx-auto">
     <div className="flex flex-wrap items-center justify-between gap-4">
-      <div><h1 className="font-heading text-2xl font-bold">Hồ sơ phụ huynh</h1><a className="ml-4 text-sm underline" href="/admin/parents/provisioning">Đối soát cấp tài khoản</a><a className="mt-3 inline-block text-sm text-primary underline" href="/admin/parents/import">Nhập hồ sơ từ danh sách học sinh</a>
+      <div><h1 className="font-heading text-2xl font-bold">Hồ sơ phụ huynh</h1><a className="ml-4 text-sm underline" href="/admin/parents/provisioning">Đối soát liên hệ</a><a className="mt-3 inline-block text-sm text-primary underline" href="/admin/parents/import">Nhập hồ sơ từ danh sách học sinh</a>
         <p className="text-sm text-muted-foreground mt-1">Quản lý liên hệ và liên kết các con. Tài khoản đăng nhập được cấp riêng sau khi đối soát.</p></div>
       <Button disabled={busy} onClick={() => openEditor()}>Đăng ký phụ huynh</Button>
     </div>

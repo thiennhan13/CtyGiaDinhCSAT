@@ -3,15 +3,15 @@ import { z } from 'zod';
 import { isSameOrigin } from '@/lib/parents';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/service';
-import { authAttemptKeys } from '@/lib/parent-auth';
+import { authAttemptKeys, readLoginBody } from '@/lib/login-security';
 const schema = z.object({ email: z.email().max(254).transform(v => v.toLowerCase()), password: z.string().min(1).max(128) }).strict();
-const reply = (body: object, status = 200) => NextResponse.json(body, { status, headers: { 'Cache-Control': 'private, no-store' } });
+const reply = (body: object, status = 200) => NextResponse.json(body, { status, headers: { 'Cache-Control': 'private, no-store', ...(status === 429 ? { 'Retry-After': '900' } : {}) } });
 export async function POST(request: Request) {
   if (!isSameOrigin(request)) return reply({ error: 'Nguồn yêu cầu không hợp lệ.' }, 403);
-  const input = schema.safeParse(await request.json().catch(() => null));
+  const input = schema.safeParse(await readLoginBody(request));
   if (!input.success) return reply({ error: 'Kiểm tra email và mật khẩu.' }, 422);
   try {
-    const limit = await createAdminClient().rpc('consume_auth_attempt', authAttemptKeys(request, input.data.email));
+    const limit = await createAdminClient().rpc('consume_auth_attempt', authAttemptKeys(request, 'staff:' + input.data.email));
     if (limit.error) return reply({ error: 'Chưa đăng nhập được. Vui lòng thử lại.' }, 503);
     if (!limit.data) return reply({ error: 'Vui lòng thử lại sau 15 phút.' }, 429);
     const db = await createClient();

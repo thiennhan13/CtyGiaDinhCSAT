@@ -160,6 +160,19 @@ test('PostgreSQL 17: concurrent accounting, learning drafts and email leases; ba
   const links=await Promise.all([value(a,'select link_parent_auth($1,$2,$3)',[id(880),id(880),'0987654321']),value(b,'select link_parent_auth($1,$2,$3)',[id(880),id(880),'0987654321'])]);
   assert.deepEqual(links,[true,true]);
 
+  // Migration 27: both entry points contend for the same durable source budget.
+  await a.exec('reset role');
+  await a.exec(fs.readFileSync(path.join(__dirname,'../migrations/20261014_27_parent_phone_access.sql'),'utf8'));
+  for(const worker of [a,b])await worker.exec('set role service_role');
+  const sharedSource='f'.repeat(64);
+  for(let n=1;n<=49;n++)assert.equal(await value(a,'select consume_auth_attempt($1,$2)',[sharedSource,n.toString(16).padStart(64,'0')]),true);
+  const sharedAttempts=await Promise.all([
+   value(a,'select start_parent_phone_session($1,$2,$3,$4)',['0987654321','7'.repeat(64),sharedSource,'8'.repeat(64)]),
+   value(b,'select consume_auth_attempt($1,$2)',[sharedSource,'9'.repeat(64)]),
+  ]);
+  assert.equal(Number(sharedAttempts[0]==='ok')+Number(sharedAttempts[1]===true),1);
+  assert.ok(['ok','rate_limited'].includes(sharedAttempts[0]));
+
   // Cold physical backup: copy only after a clean shutdown, then restore to a separate data directory.
   await Promise.all(clients.splice(0).map(c=>c.end()));
   await pg.stop();started=false;
@@ -168,6 +181,7 @@ test('PostgreSQL 17: concurrent accounting, learning drafts and email leases; ba
   execFileSync(path.join(binDir,'pg_ctl.exe'),['-D',restoredDir,'-l',path.join(runtime,'restore.log'),'-o','-h 127.0.0.1 -p '+config.port,'-w','-t','30','start'],{windowsHide:true,stdio:'ignore',timeout:40000});
   activeDataDir=restoredDir;started=true;
   const restored=await connect();
+  assert.equal(await value(restored,"select count(*)::int from csat_internal.schema_migrations where version='20261014_27'"),1);
   assert.equal(await value(restored,"select count(*)::int from csat_internal.schema_migrations where version in ('20260913_18','20260914_19','20260922_20','20260922_21','20260923_22')"),5);
   assert.equal(await value(restored,'select count(*)::int from public.billing_items'),3);
   assert.equal(await value(restored,'select count(*)::int from public.payment_events'),1);

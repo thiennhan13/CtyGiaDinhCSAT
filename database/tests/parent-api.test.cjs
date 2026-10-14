@@ -31,7 +31,7 @@ function client(s) {
         updateUserById:(uid,payload)=>call('reset',{uid,...payload},{error:s.resetError||null}),
       },
     },
-    rpc:(name,payload)=>call(name,payload,{data:s.rpcResults?.[name]??s.rpcData??(['consume_auth_attempt','start_parent_password_session','parent_password_session_valid'].includes(name)?true:'ok'),error:s.rpcError||null}),
+    rpc:(name,payload)=>call(name,payload,{data:s.rpcResults?.[name]??s.rpcData??(['consume_auth_attempt','parent_phone_session_valid'].includes(name)?true:'ok'),error:s.rpcError||null}),
     from(table) {
       const filters=[]; let single=false, mutation=null;
       const chain = {
@@ -53,6 +53,7 @@ function load(relative,s) {
   mod.require = name => {
     if(name==='@supabase/supabase-js') return {createClient:()=>client(s)};
     if(name==='server-only') return {};
+    if(name==='@/lib/login-security') return load('lib/login-security.ts',s);
     if(name==='@/lib/parent-auth') return load('lib/parent-auth.ts',s);
     if(name==='next/server') return {NextResponse:{json:(body,init)=>Response.json(body,init)}};
     if(name==='next/headers') return {cookies:async()=>({set:(...args)=>s.cookies.push(args),get:name=>s.cookieValues?.[name]?{value:s.cookieValues[name]}:undefined})};
@@ -107,35 +108,34 @@ test('admin edits existing links/active flag and cannot accidentally change phon
   assert.equal(did(s,'target').length,0);
 });
 
-test('password change requires a live parent session and current password, then revokes sessions',async()=>{
- const body={current_password:'synthetic-old',password:'synthetic-new',confirmation:'synthetic-new'};
- const no=state();assert.equal((await post(password,no,body)).status,401);
- const opts={user:{id:id(2),phone:'+84912345678',app_metadata:{role:'parent'}},cookieValues:{csat_parent_lookup:'a'.repeat(43)}};
- const wrong=state({...opts,passwordError:{message:'wrong'}});assert.equal((await post(password,wrong,body)).status,400);assert.equal(did(wrong,'revoke_parent_password_sessions').length,0);
- const s=state(opts);assert.equal((await post(password,s,body)).status,200);assert.deepEqual(did(s,'password')[0].payload,{password:body.password,current_password:body.current_password});assert.equal(did(s,'revoke_parent_password_sessions').length,1);assert.deepEqual(did(s,'logout').at(-1).payload,{scope:'global'});
+test('retired parent password endpoint never calls Auth or database',async()=>{
+ const s=state();assert.equal((await post(password,s,{current_password:'old',password:'new',confirmation:'new'})).status,410);assert.equal(s.calls.length,0);
  assert.equal((await post(manage,state(),{action:'reset_password',authUid:id(2)})).status,400);
 });
-test('phone and password creates Auth-bound HttpOnly session without exposing credentials',async()=>{
- const s=state({user:null});const response=await post(login,s,{phone:'0912345678',password:'synthetic-password'});
- assert.equal(response.status,200);assert.deepEqual(await response.json(),{success:true,redirectUrl:'/parents'});
- const cookie=s.cookies.find(c=>c[0]==='csat_parent_lookup');assert.match(cookie[1],/^[A-Za-z0-9_-]{43}$/);assert.equal(cookie[2].httpOnly,true);assert.equal(cookie[2].maxAge,43200);
- const payload=did(s,'start_parent_password_session')[0].payload;assert.equal(payload.p_auth_uid,id(2));assert.equal(payload.p_session_id,id(50));assert.equal(payload.p_token_hash,require('node:crypto').createHash('sha256').update(cookie[1]).digest('hex'));
- assert.equal(did(s,'start_parent_lookup').length,0);assert.equal(did(s,'login')[0].payload.phone,'+84912345678');
+
+test('registered phone creates a random HttpOnly lookup session without Auth',async()=>{
+ const s=state({user:null});const r=await post(login,s,{phone:'+84 912 345 678'});
+ assert.equal(r.status,200);assert.deepEqual(await r.json(),{success:true,redirectUrl:'/parents'});
+ const cookie=s.cookies.find(c=>c[0]==='csat_parent_lookup');assert.match(cookie[1],/^[A-Za-z0-9_-]{43}$/);assert.equal(cookie[2].httpOnly,true);assert.equal(cookie[2].sameSite,'lax');assert.equal(cookie[2].maxAge,43200);
+ const payload=did(s,'start_parent_phone_session')[0].payload;assert.equal(payload.p_phone,'0912345678');assert.equal(payload.p_token_hash,require('node:crypto').createHash('sha256').update(cookie[1]).digest('hex'));
+ for(const key of ['p_source','p_identity'])assert.match(payload[key],/^[a-f0-9]{64}$/);
+ for(const name of ['getUser','claims','login','start_parent_password_session','start_parent_lookup'])assert.equal(did(s,name).length,0);
 });
-test('phone-only, invalid credentials, revoked profile and durable rate limits fail closed',async()=>{
- for(const body of [{phone:'0912345678'},{phone:'bad',password:'synthetic'}])assert.equal((await post(login,state(),body)).status,400);
- for(const [overrides,status] of [[{rpcError:{code:'offline'}},503],[{loginError:{message:'wrong'}},401],[{rpcResults:{start_parent_password_session:false}},401],[{rpcResults:{consume_auth_attempt:false}},429]]){
-  const s=state(overrides),r=await post(login,s,{phone:'0912345678',password:'synthetic'});assert.equal(r.status,status);assert.equal(s.cookies.length,0);if(status===429)assert.equal(r.headers.get('retry-after'),'900');
+
+test('invalid input, unavailable DB, inactive contact and rate limits fail closed',async()=>{
+ for(const body of [{phone:'0912345678',password:'obsolete'},{phone:'bad'}])assert.equal((await post(login,state(),body)).status,400);
+ for(const [overrides,status] of [[{rpcError:{code:'offline'}},503],[{rpcResults:{start_parent_phone_session:'not_found'}},401],[{rpcResults:{start_parent_phone_session:'unexpected'}},503],[{rpcResults:{start_parent_phone_session:'rate_limited'}},429]]){
+  const s=state(overrides),r=await post(login,s,{phone:'0912345678'});assert.equal(r.status,status);assert.equal(s.cookies.length,0);if(status===429)assert.equal(r.headers.get('retry-after'),'900');
  }
 });
 
-test('disabled phone provider is a service configuration failure, not invalid credentials',async()=>{
- const s=state({loginError:{code:'phone_provider_disabled',message:'Phone logins are disabled',status:422}});
- const r=await post(login,s,{phone:'0912345678',password:'synthetic'});
- assert.equal(r.status,503);assert.equal(r.headers.get('cache-control'),'private, no-store');
- const body=await r.json();assert.match(body.error,/chưa sẵn sàng/);assert.doesNotMatch(body.error,/mật khẩu không đúng|Phone logins/);
- assert.equal(did(s,'start_parent_password_session').length,0);assert.equal(s.cookies.length,0);
+test('lookup works without Auth provider and session is checked against the database',async()=>{
+ const s=state({user:null,loginError:{code:'phone_provider_disabled'},cookieValues:{csat_parent_lookup:'a'.repeat(43)}});
+ assert.equal((await post(login,s,{phone:'0912345678'})).status,200);
+ assert.ok(await load('lib/parent-auth.ts',s).parentSession());assert.equal(did(s,'getUser').length,0);assert.equal(did(s,'login').length,0);
+ for(const overrides of [{rpcResults:{parent_phone_session_valid:false}},{rpcError:{code:'offline'}}])assert.equal(await load('lib/parent-auth.ts',state({...overrides,cookieValues:s.cookieValues})).parentSession(),null);
 });
+
 test('raw phone, legacy and malformed cookies are never accepted as sessions',async()=>{
   for(const cookieValues of [{parent_session:'0912345678'},{csat_parent_lookup:'0912345678'},{csat_parent_lookup:'!'.repeat(43)},{}]){
     assert.equal(await load('lib/parent-lookup.ts',state({cookieValues})).readLookupHash(),null);
@@ -151,10 +151,10 @@ test('logout revokes only lookup session and preserves admin/tutor Supabase cook
   assert.equal((await post('app/api/parents/logout/route.ts',failed,{})).status,503);assert.equal(failed.cookies.length,0);
 });
 test('a new lookup retires the previous browser lookup session',async()=>{
-  const s=state({cookieValues:{csat_parent_lookup:'a'.repeat(43)}});assert.equal((await post(login,s,{phone:'0912345678',password:'synthetic'})).status,200);
+  const s=state({cookieValues:{csat_parent_lookup:'a'.repeat(43)}});assert.equal((await post(login,s,{phone:'0912345678'})).status,200);
   assert.equal(did(s,'end_parent_lookup').length,1);
 });
-test('parent page enforces Auth separately; admin/tutor routing stays protected',()=>{
+test('parent page validates lookup separately; admin/tutor routing stays protected',()=>{
   const {authRedirect}=load('lib/auth-routing.ts',state());
   for(const user of [null,{app_metadata:{role:'parent'}},{app_metadata:{role:'admin'}}]) for(const route of ['/parents','/parents/account','/login'])assert.equal(authRedirect(route,user),null);
   for(const route of ['/admin/parents','/tutor/dashboard','/tutor']) assert.equal(authRedirect(route,{app_metadata:{role:'parent'}}),'/parents');
@@ -202,10 +202,15 @@ test('staff login performs durable limiting and refuses inactive or unlinked tut
  }
  const s=state();assert.equal((await post(route,s,body,'https://outside.test')).status,403);assert.equal(s.calls.length,0);
 });
-test('a wrong current password cannot reach updateUser even if provider update requirements are disabled',async()=>{
- const s=state({user:{id:id(2),phone:'+84912345678',app_metadata:{role:'parent'}},cookieValues:{csat_parent_lookup:'a'.repeat(43)},loginError:{message:'wrong'}});
- assert.equal((await post(password,s,{current_password:'wrong',password:'synthetic-new',confirmation:'synthetic-new'})).status,400);assert.equal(did(s,'password').length,0);
+test('both login endpoints share source budget, isolate identities and bound request bodies',async()=>{
+ const {authAttemptKeys}=load('lib/login-security.ts',state());const request=new Request('https://portal.test/api');
+ const parent=authAttemptKeys(request,'parent:0912345678'),staff=authAttemptKeys(request,'staff:tutor@example.test');
+ assert.equal(parent.p_source,staff.p_source);assert.notEqual(parent.p_identity,staff.p_identity);
+ for(const route of [login,'app/api/auth/login/route.ts']){
+  const s=state();const r=await post(route,s,{phone:'0912345678',email:'tutor@example.test',password:'x'.repeat(5000)});assert.ok([400,422].includes(r.status));assert.equal(s.calls.length,0);
+ }
 });
+
 test('missing Origin is rejected before authentication or mutations',async()=>{
  for(const route of [login,password,manage,'app/api/auth/login/route.ts']){const s=state();assert.equal((await post(route,s,{},'')).status,403);assert.equal(s.calls.length,0);}
 });

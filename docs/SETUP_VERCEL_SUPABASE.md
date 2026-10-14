@@ -2,7 +2,7 @@
 
 ## Phát hành giao diện công khai
 
-Trang chủ/lộ trình/catalog dùng Next.js trực tiếp. Bản mã mới có đăng ký API intake v2 (migration18/24), phân loại chương trình (25) và Auth phụ huynh (26); học liệu vẫn xem lại/sao chép/liên hệ. Đọc [runbook ba luồng](BACKEND_COMPLETION.md) trước rollout. Chưa có staging Supabase, nghiệm thu còn chờ; người dùng tự chạy SQL production khi đủ điều kiện. Giữ `CONSULTATIONS_ENABLED=false` đến khi nghiệm thu tiếp nhận, `CONSULTATIONS_EMAIL_ENABLED=false` và email tháng tắt. Tài nguyên/QA xem [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
+Trang chủ/lộ trình/catalog dùng Next.js trực tiếp. Bản mã mới có đăng ký API intake v2 (migration18/24), phân loại chương trình (25) và tra cứu số điện thoại phụ huynh (27, thay Auth26); học liệu vẫn xem lại/sao chép/liên hệ. Đọc [runbook ba luồng](BACKEND_COMPLETION.md) trước rollout. Chưa có staging Supabase, nghiệm thu còn chờ; người dùng tự chạy SQL production khi đủ điều kiện. Giữ `CONSULTATIONS_ENABLED=false` đến khi nghiệm thu tiếp nhận, `CONSULTATIONS_EMAIL_ENABLED=false` và email tháng tắt. Tài nguyên/QA xem [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
 
 Phát hành qua project Vercel hiện phục vụ `portal.csatoj.vn`. Trước deploy xác minh đúng project/domain, giữ nguyên các biến nghiệp vụ và không tạo project thứ hai. Nếu dùng CLI: đăng nhập tại máy, `vercel link` tới project hiện có rồi `vercel deploy --prod` sau khi kiểm thử bản cuối. Không đưa token vào chat hoặc lệnh được lưu trong tài liệu. `.vercelignore` loại tài nguyên nguồn lớn và tài liệu nội bộ. [Tham khảo Vercel CLI](https://vercel.com/docs/cli/deploy).
 
@@ -99,11 +99,12 @@ Chỉ chạy các file còn thiếu, từng file và kiểm chứng ngay sau đ�
 | 23 (đã áp; không chạy lại) | `20261008_23_parent_class_progress.sql` | `tests/parent-class-progress.test.cjs`; đối chiếu RPC/grants và dữ liệu tổng hợp |
 | 24 (cần 18) | `20261012_24_registration_intake.sql` | `20261012_backend_preflight.sql`, `20261012_backend_postflight.sql` |
 | 25 (cần 23) | `20261012_25_class_program_codes.sql` | Cùng pre/postflight; đối chiếu preservation digest |
-| 26 (cần 23) | `20261012_26_parent_password_auth.sql` | Cùng pre/postflight; Auth thật và provisioning cần staging |
+| 26 (cần 23) | `20261012_26_parent_password_auth.sql` | Đã phát hành; giữ nguyên migration lịch sử |
+| 27 (cần 26) | `20261014_27_parent_phone_access.sql` | `verification/20261014_parent_phone_access.sql`; tra cứu số điện thoại và rate limit chung |
 
 23 chỉ phụ thuộc20 và đã có trên production. Ba luồng mới: 18→24, 23→25, 23→26; không lặp20/23 và không cần19/21/22. Email/hồ sơ là chuỗi18→19→21→22 riêng; nếu bổ sung sau24–26 phải kiểm thử lại schema kết hợp, quyền và projection.
 
-Migration26 thu hồi lookup session cũ và chặn login chỉ bằng số ngay. Phải chuẩn bị bảo trì và thực hiện schema → postflight → provisioning → deploy tương thích, không tách rời thành nhiều đợt mở dịch vụ. `scripts/provision-parent-accounts.cjs` dry-run mặc định; apply cần `--apply --project-ref=PROJECT_REF_DA_DOI_CHIEU`, Node24 và secret `CSAT_PARENT_INITIAL_PASSWORD` chỉ trong môi trường công cụ. Xem [runbook](BACKEND_COMPLETION.md) về điều kiện tài khoản, retry không reset/delete, đối soát admin và rollback tương thích.
+Migration27 thu hồi lookup session cũ và ngừng dùng Auth phụ huynh. Thực hiện schema27 → verification27 → deploy tương thích trong cùng cửa sổ chuyển đổi. Không chạy lại26 hoặc provisioning Auth. Script `provision-parent-accounts.cjs` hiện chỉ đối soát tổng hợp và từ chối `--apply`; xem [runbook hiện hành](PARENT_PHONE_ACCESS.md).
 
 Không chạy lại migration đã có, không chạy master schema/reset lên database có dữ liệu. Migration 20 chuyển khung kiến thức lớp và lưu snapshot/lịch sử; đối chiếu Cơ bản A/B/A+B, Nâng cao C+D, bản nháp/công bố và chặng cần xác nhận. Không tự chuyển Luyện thi tùy chỉnh thành HSGQG.
 
@@ -111,12 +112,12 @@ Các file verification nêu trên dùng để kiểm tra; riêng file có tên `
 
 ### Auth và quyền truy cập
 
-- Authentication → Sign In / Providers → Phone: bật **Enable Phone provider** cho đăng nhập phụ huynh bằng số điện thoại và mật khẩu. Đây là cấu hình Supabase Auth, không phải biến Vercel hoặc migration SQL. Lỗi `/token` 422 `phone_provider_disabled` / `Phone logins are disabled` nghĩa provider đang tắt, không chứng minh mật khẩu sai. Sau khi lưu, thử lại bằng tài khoản đã được cấp; không cần cấp lại/reset mật khẩu hoặc redeploy chỉ vì thay cờ này. [Password-based Auth](https://supabase.com/docs/guides/auth/passwords).
-- Tài khoản phụ huynh do admin cấp; không mở tự đăng ký công khai để khắc phục lỗi trên. Đăng nhập hiện tại dùng mật khẩu, không gọi SMS/OTP. Nếu sau này cần xác minh số qua OTP thì phải cấu hình và nghiệm thu nhà cung cấp SMS riêng; không dùng thông tin nhà cung cấp giả.
+- Phụ huynh hiện dùng tra cứu số điện thoại theo [quyết định mới](PARENT_PHONE_ACCESS.md), không cần Phone provider sau migration27 và deploy tương thích. Gia sư/admin tiếp tục Email/password Auth. Cấu hình Phone provider không còn là bước sửa cho luồng mới.
+- Admin quản lý hồ sơ phụ huynh và liên kết con; không cần tạo tài khoản Auth mới cho tra cứu. Không tự mở đăng ký Auth công khai. SMS/OTP không thuộc luồng hiện hành.
 - Chẩn đoán log: `00000` với `source: dashboard` và truy vấn `count_estimate` là log câu lệnh Dashboard, không phải lỗi. `42501` “Không có quyền truy cập lớp.” phát ra từ `current_class_terms` hoặc `current_student_fee`, kể cả khi chúng được gọi qua view `class_current_state`/`class_students_current`. Cần đối chiếu RPC, CONTEXT, vai trò và phân công hiệu lực tại thời điểm lỗi. SQL Editor/service role không tự có danh tính admin của ứng dụng. Không bỏ kiểm tra quyền hoặc cấp thêm quyền chỉ từ thông báo này.
 - Authentication → URL Configuration: Site URL `https://portal.csatoj.vn`. Chỉ thêm redirect URL thật cần cho luồng đã triển khai; dùng project thử cho URL local/Preview. Không tự thêm `/auth/callback` hay reset-password khi ứng dụng chưa có luồng đó. [Auth Redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls).
 - Gia sư hiện đăng nhập bằng mật khẩu qua Supabase Auth; hồ sơ gia sư phải liên kết đúng `auth_uid` và đang hoạt động. Kiểm tra tài khoản admin, phân công lớp, liên kết phụ huynh–học sinh trên dữ liệu được phép.
-- Phụ huynh trong mã mới dùng Supabase Auth phone/password, role parent và link auth_uid. Đổi mật khẩu tùy chọn xác minh mật khẩu hiện tại bằng client độc lập; khuyến nghị bật yêu cầu mật khẩu hiện tại ở provider, thử Auth/thu hồi phiên thật trên staging. Mật khẩu chung và phone_confirm admin chưa chứng minh sở hữu số; SEC-02 còn mở.
+- Phụ huynh dùng số điện thoại đã đăng ký, không mật khẩu/Auth. Giữ phiên lookup và quyền học sinh–lớp; người biết số có thể truy cập dữ liệu liên kết. Chống spam không xác minh danh tính, SEC-02 vẫn mở.
 - Giữ RLS/RPC theo migration. Không tắt RLS để chữa lỗi giao diện, không cấp quyền ghi rộng cho anon/authenticated.
 - Chưa cần cấu hình SMTP Supabase để gửi nhắc tháng/tư vấn: hai luồng này gọi Resend từ ứng dụng. Email mời tài khoản/khôi phục mật khẩu của Supabase Auth là luồng khác, đánh giá riêng nếu bổ sung.
 
@@ -161,7 +162,7 @@ Repository đã có `/api/cron/monthly-reviews`, lịch `0 1 28 * *` (UTC), tứ
 ## 6. Checklist phát hành không gửi email
 
 - [ ] Xác nhận đúng project/branch; rà soát toàn bộ thay đổi local và commit phát hành, loại `.env`, prototype, Excel, scratch và dữ liệu thử.
-- [ ] Môi trường thử dùng Supabase riêng; migration tối thiểu18/23–26, Auth/provisioning và ba luồng được nghiệm thu thật. Avatar chỉ nghiệm thu/bật khi có22 và bucket/policy; không gộp vào điều kiện ba luồng này.
+- [ ] Môi trường thử dùng Supabase riêng; migration tối thiểu18/23–27, tra cứu phụ huynh/chống spam chung và ba luồng được nghiệm thu thật. Avatar chỉ nghiệm thu/bật khi có22 và bucket/policy; không gộp vào điều kiện ba luồng này.
 - [ ] Kiểm thử bản cuối trên runtime lựa chọn: database/API, TypeScript, lint, production build, giao diện và upload.
 - [ ] Người dùng thực hiện production theo quyền; backup/restore thử, SQL aggregate trước/sau; chỉ áp migration còn thiếu trong bảo trì, cấp tài khoản rồi deploy. Bucket/policy thuộc phạm vi riêng, không tự tạo.
 - [ ] Cấu hình Vercel Production như bảng; email tháng và CONSULTATIONS_EMAIL_ENABLED tắt.

@@ -123,6 +123,11 @@
 .csat-public .intake-review>p{font-size:14px;line-height:1.65;color:var(--muted)}
 .csat-public .intake-review textarea{line-height:1.7;resize:vertical;min-height:250px}
 .csat-public .intake-review-actions{display:flex;align-items:center;flex-wrap:wrap;gap:18px}
+.csat-public .public-intake .intake-consent{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:start;gap:12px;min-height:44px;margin:0;padding:10px 0;font-size:14px;font-weight:400;line-height:1.6;cursor:pointer}
+.csat-public .public-intake .intake-consent input[type=checkbox]{display:block;position:static;appearance:auto;width:22px;height:22px;min-height:22px;margin:0;padding:0;align-self:start;accent-color:var(--button-bg)}
+.csat-public .public-intake .intake-consent span{min-width:0;overflow-wrap:anywhere}
+.csat-public .public-intake .intake-consent input:focus-visible{outline:2px solid var(--blue);outline-offset:4px}
+.csat-public .public-intake .intake-submit{margin-top:20px}
 .csat-public .public-intake fieldset{border:0;padding:0;margin:0;min-width:0}.csat-public .public-intake .consent{margin:20px 0}.csat-public .intake-contact{display:grid;gap:20px}.csat-public .intake-contact .btn{justify-self:start}.csat-public .public-intake .form-feedback{margin-top:14px}
 .csat-public .public-reveal{position:relative;isolation:isolate}.csat-public .public-reveal.reveal-play::after{content:'';position:absolute;inset:0;background:var(--blue);pointer-events:none;z-index:3;animation:bar-wipe 820ms var(--ease) both}.csat-public .public-reveal[data-reveal=lime]::after{background:var(--lime)}
 .csat-glyph-layer{position:fixed;inset:0;pointer-events:none;z-index:35;user-select:none;overflow:hidden}.csat-glyph-unit{position:absolute;display:block;text-align:center;white-space:pre;font-family:var(--font-archivo),"Archivo","Segoe UI","Lucida Grande",Arial,sans-serif;pointer-events:none;user-select:none;line-height:1}

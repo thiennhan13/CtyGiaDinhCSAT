@@ -50,7 +50,7 @@ Một phần số liệu đối soát nội bộ từng nằm trong Markdown đ�
 
 ## Các hạn chế đã biết cần xử lý bằng mã/quy trình
 
-- Production được đối chiếu 14/10/2026 đã áp migration26 đóng tra cứu chỉ bằng số, thu hồi phiên cũ và đã cấp 44 Auth parent theo ủy quyền; ứng dụng backend mới chưa deploy/nghiệm thu đăng nhập và đổi mật khẩu thật. Mật khẩu khởi tạo dùng chung, đổi mật khẩu tùy chọn và `phone_confirm` do admin cấp chưa chứng minh sở hữu số, nên SEC-02 vẫn mở. Secret ban đầu chỉ cấp qua `CSAT_PARENT_INITIAL_PASSWORD`, không ghi giá trị vào repo/log/chat. Xem [runbook chuyển đổi](docs/BACKEND_COMPLETION.md).
+- Quyết định hiện hành bỏ mật khẩu/Auth phụ huynh: tra cứu chỉ bằng số đã đăng ký. Người biết số có thể xem dữ liệu liên kết; rate limit không chứng minh danh tính, SEC-02 vẫn mở. Migration27 giữ Auth users/lịch sử nhưng ngừng dùng cho Portal. Xem [quyết định và chuyển đổi](docs/PARENT_PHONE_ACCESS.md); chưa coi local là hoàn tất production.
 - Tạo tài khoản gia sư hiện dùng số điện thoại làm mật khẩu ban đầu; chưa có luồng mời/đổi mật khẩu bắt buộc đã được xác minh.
 - Email còn MAIL-01/02; schema/hồ sơ chưa triển khai đủ tại lần kiểm tra cuối. Giữ gửi tắt đến khi nghiệm thu.
 

@@ -8,7 +8,6 @@ import { normalizeParentPhone } from '@/lib/parents';
 
 export function ParentLoginForm() {
   const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -26,7 +25,7 @@ export function ParentLoginForm() {
       const res = await fetch('/api/parents/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: clean, password }),
+        body: JSON.stringify({ phone: clean }),
       });
       const data = await res.json();
       
@@ -70,10 +69,9 @@ export function ParentLoginForm() {
       </div>
 
 
-      <label className="block text-sm font-semibold">Mật khẩu<Input type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" required maxLength={128} className="mt-2 h-11" /></label>
       <div className="flex items-start gap-2 bg-secondary border border-border rounded-lg p-3 text-[13px] text-muted-foreground">
         <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-primary" />
-        <span>Dùng tài khoản được CSAT cấp để xem thông tin học tập. Nếu quên mật khẩu, vui lòng liên hệ trung tâm.</span>
+        <span>Tra cứu bằng số điện thoại phụ huynh đã đăng ký. Nếu chưa xem được thông tin của con, vui lòng liên hệ CSAT để kiểm tra hồ sơ.</span>
       </div>
 
       {error && (

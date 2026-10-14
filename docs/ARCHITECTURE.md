@@ -23,7 +23,7 @@ flowchart LR
     R --> P
     H[Catalog thành tích / bài viết] --> P
     P --> U[HTML / ảnh tối ưu / tương tác]
-    U --> F[Xem lại đăng ký và đồng ý]
+    U --> F[Đồng ý và Đăng kí ngay]
     F --> L[API intake / RPC lưu đơn]
     U --> M[Học liệu: sao chép / liên hệ]
 ```
@@ -66,10 +66,10 @@ flowchart LR
 |---|---|---|
 | Admin | Supabase Auth; role từ `app_metadata`, API và RPC kiểm tra quyền | `lib/business-api.ts`, `lib/auth-routing.ts`, `lib/supabase/server.ts` |
 | Gia sư | Supabase Auth; `tutors.auth_uid`, hoạt động/phân công hoặc quyền lịch sử theo RPC | `app/api/tutor/`, `features/attendance/`, migrations quyền |
-| Phụ huynh | Supabase Auth phone/password, cookie HttpOnly 12 giờ gắn Auth user/session và parent–student links | `lib/parent-auth.ts`, `lib/parent-lookup.ts`, `app/api/parents/auth/route.ts`, `app/parents/page.tsx` |
+| Phụ huynh | Tra cứu bằng số điện thoại; cookie lookup HttpOnly 12 giờ, phiên DB và parent–student links, không Auth | `lib/parent-auth.ts`, `lib/parent-lookup.ts`, `app/api/parents/auth/route.ts`, `app/parents/page.tsx` |
 | Tác vụ máy chủ | Service-role client sau kiểm tra quyền/secret và điều kiện nghiệp vụ | `lib/supabase/service.ts`, email/profile API |
 
-Phụ huynh dùng Supabase Auth phone/password trong mã mới, không OTP. `parent_accounts.auth_uid` và phiên lookup phải khớp Auth session còn hiệu lực; RPC vẫn kiểm tra liên kết. Provisioning chỉ xét con đang học trong lớp active và có đối soát admin. Mật khẩu khởi tạo chung/đổi tùy chọn chưa chứng minh sở hữu số (SEC-02). Service key vượt RLS nên mọi endpoint dùng nó phải kiểm tra quyền/phạm vi độc lập. Migration26 chặn login cũ ngay; xem [chuyển đổi](BACKEND_COMPLETION.md).
+Phụ huynh chỉ nhập số điện thoại đã đăng ký; máy chủ gọi `start_parent_phone_session`, trang đọc gọi `parent_phone_session_valid` và RPC kiểm tra liên kết. Không xác minh sở hữu số; SEC-02 vẫn mở. Token ngẫu nhiên chỉ lưu hash ở DB, không dùng số điện thoại làm cookie. Gia sư/admin giữ Auth, hai luồng dùng chung ngân sách nguồn trong `consume_auth_attempt`. Migration27 thu hồi phiên lookup cũ và quyền RPC provisioning/Auth cũ; giữ tài khoản và lịch sử. Xem [luồng hiện hành](PARENT_PHONE_ACCESS.md).
 
 Hai bảng nội bộ `csat_internal.auth_attempts` và `csat_internal.parent_auth_provisioning` bật RLS, không có policy cho client và thu hồi quyền truy cập trực tiếp. Hàm SECURITY DEFINER chạy bằng chủ sở hữu bảng thực hiện nghiệp vụ qua quyền EXECUTE giới hạn; không dùng FORCE RLS để thay cho kiểm tra quyền trong RPC. RLS này bổ sung khả năng chặn client nếu vô tình được cấp quyền bảng sau này, không chặn vai trò BYPASSRLS.
 

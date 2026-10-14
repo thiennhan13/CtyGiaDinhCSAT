@@ -49,11 +49,11 @@
 .csat-public .enrollment-help .btn{background:var(--color-ink);color:var(--color-white);border-radius:0;justify-content:space-between;width:100%}
 .csat-public .enrollment-catalog-note{font-size:13px;color:var(--muted);padding-block:26px 40px}
 .csat-public .enrollment-registration{padding-block:44px 54px;background:var(--soft);border-top:1px solid var(--line);scroll-margin-top:118px}
-.csat-public .enrollment-registration-layout{display:grid;grid-template-columns:1fr 1.15fr;gap:54px;align-items:start}
-.csat-public .enrollment-registration-layout>div>p:not(.eyebrow){font-size:15px;color:var(--muted);max-width:470px;margin-top:22px}
-.csat-public .enrollment-registration h2{font-size:clamp(30px,3.7vw,52px);font-weight:800}
+.csat-public .wrap.enrollment-registration-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:28px;width:min(754px,100% - 64px);margin-inline:auto}
+.csat-public .enrollment-registration h2{font-size:clamp(30px,3.7vw,52px);font-weight:800;text-align:center;text-wrap:balance}
 .csat-public .enrollment-selected{margin-top:28px;padding:18px 20px;border-left:4px solid var(--course-accent);background:var(--course-tint);font-size:14px}
 .csat-public .enrollment-selected p{font-size:12px;margin-top:8px;color:var(--muted)}
-@media(max-width:1100px){.csat-public .enrollment-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.csat-public .enrollment-intro{grid-template-columns:1fr;gap:26px}.csat-public .enrollment-intro-side{max-width:720px}.csat-public .enrollment-registration-layout{gap:30px}}
+@media(max-width:1100px){.csat-public .enrollment-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.csat-public .enrollment-intro{grid-template-columns:1fr;gap:26px}.csat-public .enrollment-intro-side{max-width:720px}}
 @media(max-width:700px){.csat-public .enrollment-grid{grid-template-columns:1fr}.csat-public .enrollment-intro{padding-block:28px}.csat-public .enrollment-card-top{padding:18px;gap:14px}.csat-public .enrollment-card-body{padding:22px}.csat-public .enrollment-help{min-height:390px}.csat-public .enrollment-registration-layout{grid-template-columns:1fr}.csat-public .enrollment-registration{padding-block:30px 40px}.csat-public .enrollment-poster{box-shadow:3px 3px 0 var(--course-accent)}}
 @media(max-width:350px){.csat-public .enrollment-card-top{padding:14px;gap:10px}.csat-public .enrollment-card-body{padding:18px}.csat-public .enrollment-rank{width:46px;height:46px;font-size:30px}.csat-public .enrollment-label{font-size:10px}}
+@media(max-width:600px){.csat-public .wrap.enrollment-registration-layout{width:calc(100% - 40px);gap:22px}}
