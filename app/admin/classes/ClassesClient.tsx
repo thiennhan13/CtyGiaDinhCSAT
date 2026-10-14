@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Combobox } from '@/components/ui/combobox';
 import { useAlert, useConfirm } from '@/components/ui/use-dialog';
 import { updateClassStatus } from '@/features/classes/actions';
-import { CLASS_TYPE_OPTIONS as LEARNING_CLASS_TYPES } from '@/lib/learning';
+import { classProgramOptions as LEARNING_CLASS_TYPES, classProgramLabel } from '@/lib/class-programs';
 
 const STATUS_OPTIONS = [
   { value: 'Tất cả', label: 'Tất cả trạng thái' },
@@ -180,7 +180,7 @@ export function ClassesClient({
                     >
                       <TableCell className="font-medium text-foreground">{c.name}</TableCell>
                       <TableCell className="text-muted-foreground">
-                        <Badge variant="outline">{c.class_type || 'Lớp Cơ bản'}</Badge>
+                        <Badge variant="outline">{classProgramLabel(c.program_code, c.class_type)}</Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{c.tutors?.name || '---'}</TableCell>
                       <TableCell>

@@ -15,7 +15,7 @@ Cuối mỗi bài có **Tự kiểm tra** với hai câu hỏi ngắn về lý t
 - `content/parent-topics/*.md`: toàn văn, Markdown không HTML/MDX. `lib/parent-topic-catalog/{ab,bc,cd}.json` giữ metadata; `lib/parent-topics.ts` kiểm tra kiểu và ghép danh mục theo mã/thứ tự. Không lưu dữ liệu học sinh hoặc đưa toàn văn thư viện vào client.
 - Khung chuẩn vẫn là `lib/learning-curriculum-20260922.json`. Chỉ ghép bài khi program/source/toàn bộ stages trùng khung chuẩn, body và template có cùng ID; không ghép theo tên gần giống. Khác thứ tự khóa JSONB không ảnh hưởng; mã, thứ tự hoặc nội dung khác thì dùng mô tả hiện có.
 - Admin/gia sư chọn A/B/A+B, bỏ/khôi phục chặng/chủ đề và công bố theo luồng hiện hành. Không có CMS, tạo chủ đề mới hay sửa toàn văn bài trên UI trong đợt này.
-- C là tên hiển thị nâng cao cho C/D; vẫn giữ mã C01–D07 và scope CD. PreVOI định hướng dùng E, lớp chưa có giáo án dùng K trong đợt bổ sung sau; không tự chuyển lớp/template/enum hiện hành. Đây là mapping đào tạo tương lai, không thay điều kiện tuyển E.
+- C là tên hiển thị nâng cao cho C/D; vẫn giữ mã C01–D07 và scope CD. PREVOI (PreVOI/HSGQG/Ôn thi VOI) dùng giáo án riêng, không E. Nội dung E/K/PREVOI chưa được cung cấp không tự sáng tác hoặc dùng đổi nhãn để chuyển template/giáo án lớp cũ.
 
 ## Đọc bài riêng
 

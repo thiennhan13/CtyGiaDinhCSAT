@@ -7,7 +7,7 @@ Thư viện giải thích sâu từng chủ đề của khung chuẩn, phục v�
 Quyền đọc do server kiểm tra qua phiên phụ huynh, học sinh/lớp có liên kết hiệu lực và khung chuẩn đã công bố. Nội dung không đặt trong `public`, không đưa vào danh mục bài đăng công khai. Nguồn Markdown tĩnh là nội dung biên soạn chung, không chứa hồ sơ hoặc nhận xét riêng của học sinh; bản thân việc giữ tệp ngoài `public` không thay kiểm tra quyền của route.
 
 - Giữ 43 chủ đề A01–A09, B01–B15, C01–C12/D01–D07 và danh mục chuẩn hiện hành. C là tên gọi chung của toàn bộ C/D; không chuyển loại lớp hoặc đổi mã.
-- Cơ bản sử dụng A+B, giữ lựa chọn A/B/A+B hiện có. Nâng cao dùng toàn bộ phần C/D dưới tên C. PreVOI sử dụng E và lớp chưa có khung sử dụng K là hướng bổ sung sau, chưa tạo giáo án E/K hoặc chuyển dữ liệu trong đợt này.
+- Cơ bản sử dụng A+B, giữ lựa chọn A/B/A+B hiện có. Nâng cao dùng toàn bộ phần C/D dưới tên C. PREVOI (PreVOI/HSGQG/Ôn thi VOI) dùng giáo án riêng, không E. Chưa tự tạo giáo án E/K/PREVOI hoặc chuyển nội dung lớp cũ.
 - Admin chọn/bỏ chủ đề trong khung chuẩn; chưa bổ sung chủ đề ngoài khung. Thư viện diễn giải áp dụng cho phiên bản chuẩn đã công bố; khung cũ/tùy chỉnh giữ fallback hiện hành, không ghép bài mới chỉ vì mã có vẻ giống nhau.
 - Chặng hiện tại được suy từ số buổi **của lớp** đã hoàn thành, tính từ đầu lớp và bỏ buổi hủy/chưa diễn ra; không phụ thuộc tháng đang xem. Theo quy ước đã duyệt, một buổi hoàn thành tương ứng một chủ đề; hiển thị cả chặng, không suy ra mức thành thạo của học sinh.
 - Series và các bài đọc không tăng topic count, số buổi hay tạo trạng thái năng lực mới. CSATOJ chỉ nối khi có ID/mapping thật; trước đó dùng dạng bài để tham khảo, không dựng đường dẫn hoặc số bài giả.

@@ -5,6 +5,7 @@ import { ArrowRight, ArrowUpRight, Check, Copy, Pencil } from 'lucide-react';
 import { PublicSelect } from './PublicSelect';
 import { parentPhoneSchema } from '@/lib/parents';
 import type { PublicCourseCode } from '@/lib/public-courses';
+import { intakeChoices, intakeSchema, type IntakeInput } from '@/lib/intake';
 
 const choices = {
   role: ['Phụ huynh', 'Học sinh'],
@@ -17,7 +18,7 @@ function Select({ name, label, full = false, defaultValue }: { name: keyof typeo
   return <PublicSelect name={name} label={label} full={full} defaultValue={defaultValue || choices[name][0]} options={choices[name].map(value => ({ value, label: value }))} />;
 }
 
-/** Frontend only: user reviews/copies; no API, persistent storage or email side effects. */
+/** Review before explicit submission. Materials remain a copy/contact workflow. */
 export function PublicConsultation({ kind = 'consultation', context = '', defaultCourse }: { kind?: 'materials' | 'consultation'; context?: string; defaultCourse?: PublicCourseCode }) {
   const courseDefault = choices.course.find(value => value.startsWith(`${defaultCourse} —`));
   const [ready, setReady] = useState(false);
@@ -28,6 +29,10 @@ export function PublicConsultation({ kind = 'consultation', context = '', defaul
   const heading = useRef<HTMLHeadingElement>(null);
   const reviewButton = useRef<HTMLButtonElement>(null);
   const id = useId();
+  const [submission, setSubmission] = useState<IntakeInput | null>(null);
+  const [sending, setSending] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const requestKey = useRef<{ body: string; id: string } | null>(null);
   useEffect(() => setReady(true), []);
   useEffect(() => { if (review !== null) heading.current?.focus(); }, [review]);
 
@@ -44,6 +49,15 @@ export function PublicConsultation({ kind = 'consultation', context = '', defaul
       return;
     }
     setError(''); setCopyState('idle');
+    if (kind !== 'materials') {
+      const choice = (field: keyof typeof intakeChoices) => Object.entries(intakeChoices[field]).find(([, label]) => label === value(field))?.[0];
+      const body = { schema_version: 2, name: value('name'), phone: phone.data, email: value('email'), role: choice('role'), level: choice('level'), course: choice('course'), goal: choice('goal'), background: choice('background'), school_year: value('school_year'), message: value('message'), source_path: window.location.pathname, consent: data.get('consent') === 'on', website: value('website') };
+      const signature = JSON.stringify(body);
+      if (requestKey.current?.body !== signature) requestKey.current = { body: signature, id: crypto.randomUUID() };
+      const parsed = intakeSchema.safeParse({ ...body, request_id: requestKey.current.id });
+      if (!parsed.success) { setError('Vui lòng kiểm tra thông tin và đồng ý để CSAT lưu đơn, liên hệ tư vấn.'); return; }
+      setSubmission(parsed.data);
+    }
     setReview([
       kind === 'materials' ? 'CSAT — Yêu cầu tài liệu học tập' : 'CSAT — Tư vấn lộ trình học tập',
       `Người liên hệ: ${value('name')} (${value('role')})`, `Số điện thoại: ${phone.data}`,
@@ -58,8 +72,19 @@ export function PublicConsultation({ kind = 'consultation', context = '', defaul
     try { await navigator.clipboard.writeText(review); setCopyState('copied'); }
     catch { setCopyState('failed'); summary.current?.focus(); summary.current?.select(); }
   }
+  async function send() {
+    if (!submission || sending || saved) return;
+    setSending(true); setError('');
+    try {
+      const response = await fetch('/api/consultations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(submission) });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || 'Chưa lưu được đơn. Vui lòng thử lại.');
+      setSaved(true);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Kết nối bị gián đoạn. Thông tin vẫn được giữ để bạn thử lại.'); }
+    finally { setSending(false); }
+  }
 
-  return <div className="public-intake" data-intake-mode="frontend">
+  return <div className="public-intake" data-intake-mode={kind === 'materials' ? 'frontend' : 'registration'}>
     {ready ? <>
       <form hidden={review !== null} onSubmit={prepare} aria-label={kind === 'materials' ? 'Đăng ký nhận tài liệu' : 'Thông tin tư vấn học tập'} aria-describedby={`${id}-note`}>
         <div className="intake-step mono">01 / CHIA SẺ CÙNG CSAT</div>
@@ -74,17 +99,20 @@ export function PublicConsultation({ kind = 'consultation', context = '', defaul
           <Select name="goal" label="Mục tiêu học tập" full />
           <Select name="background" label="Bạn đã học đến đâu?" full />
           <label className="field full">{kind === 'materials' ? 'Bạn muốn tìm tài liệu về nội dung nào?' : 'Bạn muốn trao đổi điều gì?'}<textarea name="message" maxLength={2000} rows={3} placeholder="Chia sẻ điều đang học, phần còn vướng hoặc lịch học mong muốn…" /></label>
+          {kind !== 'materials' && <><label className="full flex items-start gap-3 text-sm leading-6"><input className="mt-1 h-5 w-5 shrink-0" name="consent" type="checkbox" required /><span>Tôi đồng ý để CSAT lưu thông tin và liên hệ về nhu cầu học tập.</span></label><div hidden aria-hidden="true"><input name="website" tabIndex={-1} autoComplete="off" /></div></>}
         </div>
         <p id={`${id}-error`} className="form-feedback" role={error ? 'alert' : undefined}>{error}</p>
         <button ref={reviewButton} type="submit" className="btn">Kiểm tra thông tin <ArrowRight size={18} aria-hidden="true" /></button>
-        <p id={`${id}-note`} className="intake-note">Kiểm tra và sao chép thông tin để trao đổi cùng CSAT. Nội dung chỉ được giữ trong trang đang mở.</p>
+        <p id={`${id}-note`} className="intake-note">{kind === 'materials' ? 'Kiểm tra và sao chép thông tin để trao đổi cùng CSAT. Nội dung chỉ được giữ trong trang đang mở.' : 'Bạn sẽ được xem lại thông tin trước khi gửi đăng ký cho CSAT.'}</p>
       </form>
       {review !== null && <section className="intake-review" aria-labelledby={`${id}-review`}>
         <div className="intake-step mono">02 / KIỂM TRA THÔNG TIN</div>
         <h3 ref={heading} tabIndex={-1} id={`${id}-review`}>Sẵn sàng trao đổi cùng CSAT.</h3>
-        <p>Thông tin chưa được gửi. Bạn có thể sao chép nội dung bên dưới rồi nhắn cho đội ngũ gia sư.</p>
+        <p role="status">{saved ? 'CSAT đã tiếp nhận đăng ký. Đội ngũ sẽ liên hệ để trao đổi với bạn.' : kind === 'materials' ? 'Thông tin chưa được gửi. Bạn có thể sao chép nội dung bên dưới rồi nhắn cho đội ngũ gia sư.' : 'Thông tin chưa được gửi. Hãy kiểm tra lại trước khi gửi đăng ký.'}</p>
+        {kind !== 'materials' && !saved && <button type="button" className="btn" disabled={sending} onClick={send}>{sending ? 'Đang gửi…' : 'Gửi đăng ký'}<ArrowRight size={18} aria-hidden="true" /></button>}
+        {error && <p role="alert" className="form-feedback">{error}</p>}
         <label className="field">Nội dung của bạn<textarea ref={summary} readOnly value={review} rows={11} /></label>
-        <div className="intake-review-actions"><button type="button" className="btn" onClick={copy}>{copyState === 'copied' ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}Sao chép nội dung</button><button type="button" className="text-link" onClick={() => { setReview(null); setCopyState('idle'); requestAnimationFrame(() => reviewButton.current?.focus()); }}><Pencil size={16} aria-hidden="true" />Chỉnh lại</button></div>
+        <div className="intake-review-actions"><button type="button" className="btn" onClick={copy}>{copyState === 'copied' ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}Sao chép nội dung</button>{!saved && <button type="button" className="text-link" disabled={sending} onClick={() => { setReview(null); setCopyState('idle'); requestAnimationFrame(() => reviewButton.current?.focus()); }}><Pencil size={16} aria-hidden="true" />Chỉnh lại</button>}</div>
         <p role="status" className="intake-note">{copyState === 'copied' ? 'Đã sao chép. Hãy dán vào cuộc trò chuyện với CSAT để gửi.' : copyState === 'failed' ? 'Trình duyệt chưa cho phép sao chép. Nội dung đã được chọn; bạn có thể sao chép thủ công.' : ''}</p>
       </section>}
     </> : <p>Chia sẻ nhu cầu học tập hoặc tài liệu bạn đang tìm cùng đội ngũ CSAT.</p>}

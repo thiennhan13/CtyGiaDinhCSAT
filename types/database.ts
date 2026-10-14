@@ -40,6 +40,8 @@ export interface Class {
   tutor_id: string | null;
   status: 'active' | 'inactive' | 'archived';
   class_type: string;
+  program_code?: import('@/lib/class-programs').ClassProgramCode | null;
+  program_revision?: number;
   start_date: string | null;
   end_date: string | null;
   csat_fee_per_session: number;

@@ -6,10 +6,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { createClient } from '@/lib/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { classProgramLabel, classProgramOptions } from '@/lib/class-programs';
 
 export default function TutorClassesPage() {
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [program, setProgram] = useState('all');
   const supabase = createClient();
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function TutorClassesPage() {
 
       const { data, error } = await supabase
         .from('class_current_state')
-        .select('class_id, name, status, start_date, end_date')
+        .select('class_id, name, status, start_date, end_date, program_code')
         .eq('tutor_id', tutorData.tutor_id);
 
       if (!error && data) {
@@ -63,6 +65,7 @@ export default function TutorClassesPage() {
         <p className="text-muted-foreground text-sm mt-1">Các lớp hiện tại bạn đang phụ trách.</p>
       </div>
 
+      <label className="block text-sm">Chương trình<select className="ml-3 rounded border bg-background p-2" value={program} onChange={e => setProgram(e.target.value)}><option value="all">Tất cả</option>{classProgramOptions.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}</select></label>
       <Card>
         <CardHeader>
            <CardTitle>Danh Sách Lớp</CardTitle>
@@ -87,9 +90,9 @@ export default function TutorClassesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {classes.map(c => (
+                  {classes.filter(c => program === 'all' || c.program_code === program).map(c => (
                     <TableRow key={c.class_id}>
-                       <TableCell className="font-semibold text-foreground">{c.name}</TableCell>
+                       <TableCell className="font-semibold text-foreground">{c.name}<span className="block text-xs text-muted-foreground">{classProgramLabel(c.program_code)}</span></TableCell>
                        <TableCell>
                          <span className={`px-2 py-1 rounded-sm text-xs font-semibold ${c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-secondary text-muted-foreground'}`}>
                            {c.status === 'active' ? 'Đang hoạt động' : 'Tạm dừng / Đã kết thúc'}

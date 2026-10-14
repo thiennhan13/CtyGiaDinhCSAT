@@ -2,7 +2,7 @@
 
 ## Phát hành giao diện công khai
 
-Trang chủ/lộ trình/catalog mới dùng Next.js trực tiếp, không cần migration mới hoặc Resend. Theo yêu cầu cập nhật, hai form chỉ chạy frontend: nhập, xem lại và sao chép để nhắn Zalo/Facebook; chưa gọi API hoặc lưu dữ liệu. Giữ `CONSULTATIONS_ENABLED=false` và `CONSULTATIONS_EMAIL_ENABLED=false`. Lần nối sau cần adapter/validation/consent và QA, không chỉ bật biến môi trường. Tài nguyên, trạng thái chưa tích hợp và QA xem [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
+Trang chủ/lộ trình/catalog dùng Next.js trực tiếp. Bản mã mới có đăng ký API intake v2 (migration18/24), phân loại chương trình (25) và Auth phụ huynh (26); học liệu vẫn xem lại/sao chép/liên hệ. Đọc [runbook ba luồng](BACKEND_COMPLETION.md) trước rollout. Chưa có staging Supabase, nghiệm thu còn chờ; người dùng tự chạy SQL production khi đủ điều kiện. Giữ `CONSULTATIONS_ENABLED=false` đến khi nghiệm thu tiếp nhận, `CONSULTATIONS_EMAIL_ENABLED=false` và email tháng tắt. Tài nguyên/QA xem [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
 
 Phát hành qua project Vercel hiện phục vụ `portal.csatoj.vn`. Trước deploy xác minh đúng project/domain, giữ nguyên các biến nghiệp vụ và không tạo project thứ hai. Nếu dùng CLI: đăng nhập tại máy, `vercel link` tới project hiện có rồi `vercel deploy --prod` sau khi kiểm thử bản cuối. Không đưa token vào chat hoặc lệnh được lưu trong tài liệu. `.vercelignore` loại tài nguyên nguồn lớn và tài liệu nội bộ. [Tham khảo Vercel CLI](https://vercel.com/docs/cli/deploy).
 
@@ -10,7 +10,7 @@ Sau deploy được phép: kiểm tra `/`, `/lo-trinh`, các lớp A/B/C/E/K, `/
 
 Đây là hướng dẫn thực hiện, không xác nhận đã áp dụng trên production. Trạng thái và ngày kiểm chứng môi trường chỉ duy trì tại [PROJECT_STATUS](PROJECT_STATUS.md); mọi tác động thật cần quyền phù hợp.
 
-Dùng tài liệu này làm đầu mối cấu hình cho bản kết hợp đến migration 23. Các tài liệu phát hành trước giữ vai trò lịch sử; không dùng riêng chuỗi migration 18–19 hoặc 18–21 cho bản ứng dụng mới. Danh sách việc sau này: [FUTURE_INTEGRATIONS.md](FUTURE_INTEGRATIONS.md).
+Dùng tài liệu này làm đầu mối cấu hình cho mã đến migration26. Các tài liệu phát hành trước giữ vai trò lịch sử; ba luồng mới cần 18→24 và 23→25/26, không cần 19/21/22. Email/hồ sơ và bucket có chuỗi nghiệm thu riêng bên dưới. Danh sách việc sau này: [FUTURE_INTEGRATIONS.md](FUTURE_INTEGRATIONS.md).
 
 > Đối chiếu registry/cấu trúc/grants thực trước phát hành. Migration 20 và 23 đã được ghi nhận áp dụng; không chạy lại hoặc suy từ số lớn nhất rằng các migration trước đó đều có. Xem trạng thái production trong PROJECT_STATUS.
 
@@ -22,13 +22,13 @@ Dùng tài liệu này làm đầu mối cấu hình cho bản kết hợp đế
 | Admin, gia sư, cổng phụ huynh | Có | Supabase đúng môi trường, migration và liên kết tài khoản/dữ liệu |
 | Hồ sơ, giới thiệu, thành tích gia sư | Có | Migration 22 |
 | Avatar | Có | Migration 22 và bucket/policy riêng bên dưới; không cần API CSATOJ |
-| Form tư vấn lưu Portal | Backend đã có, frontend chưa nối | Adapter/consent/validation, migration 18, hash key và admin tiếp nhận |
+| Form đăng ký lưu Portal | Đã nối trong mã, chưa nghiệm thu staging/production | Migration18/24, hash key, cờ tiếp nhận và admin xử lý; đơn mới không tạo outbox/email |
 | Thư tư vấn, nhắc tháng, tổng hợp admin | Chưa bật | Resend, domain gửi được xác minh, kiểm thử và sửa lỗi cron còn mở |
 | Số bài/ranking CSATOJ | Chưa kết nối | Cần triển khai tích hợp; nhập API key đơn thuần chưa đủ |
 
 Thiếu Resend không làm hỏng build hay các tính năng không gửi thư khi giữ công tắc tắt. Thiếu schema hoặc Supabase key lại ảnh hưởng các chức năng dùng database. Thiếu bucket khiến thao tác tải ảnh thất bại; lưu hồ sơ chữ không cần bucket.
 
-Mặc định phát hành ban đầu: `CONSULTATIONS_ENABLED=false`, `CONSULTATIONS_EMAIL_ENABLED=false`, email tháng tắt trong admin. Form frontend hiện không gửi; có bước kiểm tra/sao chép và liên kết Zalo/Facebook. Muốn tiếp nhận tự động cần nối form với API, kiểm thử rồi bật riêng `CONSULTATIONS_ENABLED=true`; email giữ tắt và nhân sự kiểm tra `/admin/consultations` đầu/cuối ngày.
+Mặc định: `CONSULTATIONS_ENABLED=false`, `CONSULTATIONS_EMAIL_ENABLED=false`, email tháng tắt trong admin. Form đăng ký đã nối API nhưng chỉ báo tiếp nhận sau lưu thành công. Sau nghiệm thu bật riêng `CONSULTATIONS_ENABLED=true`; email giữ tắt và nhân sự kiểm tra `/admin/consultations` đầu/cuối ngày. Form học liệu giữ sao chép/liên hệ.
 
 ## 2. Vercel — cấu hình project
 
@@ -52,6 +52,7 @@ Vào Settings → Environment Variables, chọn **Production**. Nhập giá tr�
 | `APP_ORIGIN` | `https://portal.csatoj.vn` | Đặt ngay, không dấu `/` cuối; kiểm tra Origin form và link email |
 | `CRON_SECRET` | Chuỗi ngẫu nhiên riêng, ít nhất 32 ký tự | Đặt trước khi để lịch cron hoạt động; thiếu thì route trả 401 |
 | `CONSULTATIONS_HASH_KEY` | Chuỗi ngẫu nhiên khác, ít nhất 32 ký tự | Trước khi bật nhận form; giữ ổn định giữa deployment |
+| `AUTH_RATE_LIMIT_KEY` | Secret HMAC riêng cho giới hạn login; mã có fallback service-role key | Khuyến nghị cấu hình ổn định trên server, không NEXT_PUBLIC |
 | `CONSULTATIONS_ENABLED` | `false` lúc đầu | Đổi `true` khi đã kiểm thử lưu form và có người xử lý |
 | `CONSULTATIONS_EMAIL_ENABLED` | `false` | Giữ tắt tới khi nghiệm thu gửi |
 | `CSAT_EMAIL_FROM` | Sau này: `CSAT <thongbao@notify.csatoj.vn>` | Có thể chưa tạo khi chưa gửi |
@@ -94,8 +95,13 @@ Chỉ chạy các file còn thiếu, từng file và kiểm chứng ngay sau đ�
 | 21 | `20260922_21_parent_email_completion.sql` | `20260922_parent_email_completion.sql` |
 | 22 | `20260923_22_tutor_profiles.sql` | `20260923_tutor_profiles.sql` |
 | 23 (đã áp; không chạy lại) | `20261008_23_parent_class_progress.sql` | `tests/parent-class-progress.test.cjs`; đối chiếu RPC/grants và dữ liệu tổng hợp |
+| 24 (cần 18) | `20261012_24_registration_intake.sql` | `20261012_backend_preflight.sql`, `20261012_backend_postflight.sql` |
+| 25 (cần 23) | `20261012_25_class_program_codes.sql` | Cùng pre/postflight; đối chiếu preservation digest |
+| 26 (cần 23) | `20261012_26_parent_password_auth.sql` | Cùng pre/postflight; Auth thật và provisioning cần staging |
 
-23 chỉ phụ thuộc 20; có thể triển khai aggregate phụ huynh độc lập với email/avatar. 18 → 19 → 21 → 22 là phần còn lại; không lặp 20/23.
+23 chỉ phụ thuộc20 và đã có trên production. Ba luồng mới: 18→24, 23→25, 23→26; không lặp20/23 và không cần19/21/22. Email/hồ sơ là chuỗi18→19→21→22 riêng; nếu bổ sung sau24–26 phải kiểm thử lại schema kết hợp, quyền và projection.
+
+Migration26 thu hồi lookup session cũ và chặn login chỉ bằng số ngay. Phải chuẩn bị bảo trì và thực hiện schema → postflight → provisioning → deploy tương thích, không tách rời thành nhiều đợt mở dịch vụ. `scripts/provision-parent-accounts.cjs` dry-run mặc định; apply cần `--apply --project-ref=PROJECT_REF_DA_DOI_CHIEU`, Node24 và secret `CSAT_PARENT_INITIAL_PASSWORD` chỉ trong môi trường công cụ. Xem [runbook](BACKEND_COMPLETION.md) về điều kiện tài khoản, retry không reset/delete, đối soát admin và rollback tương thích.
 
 Không chạy lại migration đã có, không chạy master schema/reset lên database có dữ liệu. Migration 20 chuyển khung kiến thức lớp và lưu snapshot/lịch sử; đối chiếu Cơ bản A/B/A+B, Nâng cao C+D, bản nháp/công bố và chặng cần xác nhận. Không tự chuyển Luyện thi tùy chỉnh thành HSGQG.
 
@@ -105,6 +111,7 @@ Các file verification nêu trên dùng để kiểm tra; riêng file có tên `
 
 - Authentication → URL Configuration: Site URL `https://portal.csatoj.vn`. Chỉ thêm redirect URL thật cần cho luồng đã triển khai; dùng project thử cho URL local/Preview. Không tự thêm `/auth/callback` hay reset-password khi ứng dụng chưa có luồng đó. [Auth Redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls).
 - Gia sư hiện đăng nhập bằng mật khẩu qua Supabase Auth; hồ sơ gia sư phải liên kết đúng `auth_uid` và đang hoạt động. Kiểm tra tài khoản admin, phân công lớp, liên kết phụ huynh–học sinh trên dữ liệu được phép.
+- Phụ huynh trong mã mới dùng Supabase Auth phone/password, role parent và link auth_uid. Đổi mật khẩu tùy chọn xác minh mật khẩu hiện tại bằng client độc lập; khuyến nghị bật yêu cầu mật khẩu hiện tại ở provider, thử Auth/thu hồi phiên thật trên staging. Mật khẩu chung và phone_confirm admin chưa chứng minh sở hữu số; SEC-02 còn mở.
 - Giữ RLS/RPC theo migration. Không tắt RLS để chữa lỗi giao diện, không cấp quyền ghi rộng cho anon/authenticated.
 - Chưa cần cấu hình SMTP Supabase để gửi nhắc tháng/tư vấn: hai luồng này gọi Resend từ ứng dụng. Email mời tài khoản/khôi phục mật khẩu của Supabase Auth là luồng khác, đánh giá riêng nếu bổ sung.
 
@@ -149,9 +156,9 @@ Repository đã có `/api/cron/monthly-reviews`, lịch `0 1 28 * *` (UTC), tứ
 ## 6. Checklist phát hành không gửi email
 
 - [ ] Xác nhận đúng project/branch; rà soát toàn bộ thay đổi local và commit phát hành, loại `.env`, prototype, Excel, scratch và dữ liệu thử.
-- [ ] Môi trường thử dùng database riêng; migration đến 22 và bucket/policy được nghiệm thu thật.
+- [ ] Môi trường thử dùng Supabase riêng; migration tối thiểu18/23–26, Auth/provisioning và ba luồng được nghiệm thu thật. Avatar chỉ nghiệm thu/bật khi có22 và bucket/policy; không gộp vào điều kiện ba luồng này.
 - [ ] Kiểm thử bản cuối trên runtime lựa chọn: database/API, TypeScript, lint, production build, giao diện và upload.
-- [ ] Được phép thao tác production; backup và đối chiếu trước/sau; chỉ áp dụng migration còn thiếu, tạo bucket/policy.
+- [ ] Người dùng thực hiện production theo quyền; backup/restore thử, SQL aggregate trước/sau; chỉ áp migration còn thiếu trong bảo trì, cấp tài khoản rồi deploy. Bucket/policy thuộc phạm vi riêng, không tự tạo.
 - [ ] Cấu hình Vercel Production như bảng; email tháng và CONSULTATIONS_EMAIL_ENABLED tắt.
 - [ ] Deploy đúng commit; kiểm tra `/`, `/lo-trinh`, `/parents`, `/tutor/profile`, chi tiết gia sư admin và dữ liệu học phí/nhận xét.
 - [ ] Nếu nhận form: bật CONSULTATIONS_ENABLED, Redeploy, thử yêu cầu do trung tâm quản lý; kiểm tra lưu admin dù không gửi thư.

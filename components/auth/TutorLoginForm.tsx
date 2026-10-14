@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Users, LogIn, Eye, EyeOff } from 'lucide-react';
@@ -14,7 +13,6 @@ export function TutorLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   
   const router = useRouter();
-  const supabase = createClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,31 +20,11 @@ export function TutorLoginForm() {
     setLoading(true);
 
     try {
-      // Rate limit check trước khi gọi Supabase
-      const rlRes = await fetch('/api/auth/rate-limit', { method: 'POST' });
-      if (!rlRes.ok) {
-        const rlData = await rlRes.json();
-        throw new Error(rlData.error || 'Quá nhiều yêu cầu. Vui lòng thử lại sau.');
-      }
-
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError) throw authError;
-
-      // Chỉ dùng role do server quản lý để điều hướng sau đăng nhập.
-      const role = data.user.app_metadata?.role || 'tutor';
-
-      if (role === 'admin' || role === 'superadmin') {
-        router.push('/admin/dashboard');
-      } else if (role === 'tutor' || role === 'staff') {
-        router.push('/tutor/dashboard');
-      } else {
-        await supabase.auth.signOut();
-        throw new Error('Tài khoản không có quyền truy cập hệ thống gia sư.');
-      }
+      const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Chưa đăng nhập được.');
+      router.push(result.redirectUrl);
+      router.refresh();
     } catch (err: unknown) {
       if (err instanceof Error) {
         if (err.message.includes('Invalid login credentials')) {

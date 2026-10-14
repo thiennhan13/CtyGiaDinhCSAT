@@ -11,6 +11,7 @@ import { REVIEW_TAGS } from '@/lib/student-reviews';
 import { getVietnamMonthRange } from '@/lib/calendar';
 import { CurriculumEditor } from './CurriculumEditor';
 import { curriculumError, effectiveStages, isStructuredCurriculum } from '@/lib/curriculum';
+import { classProgramLabel } from '@/lib/class-programs';
 import { Roadmap } from './Roadmap';
 import { AdminClassReviews } from './AdminClassReviews';
 const control = 'min-h-11 w-full rounded-lg border bg-background px-3 py-2 text-sm';
@@ -34,8 +35,9 @@ export function LearningWorkspace({ admin = false, initialMonth }: { admin?: boo
    const found = next.records.find(r => r.kind===kind && (kind==='class' || r.student_id===id || r.session_id===id)) || null;
    const form = found ? found.draft : emptyLearningBody();
    if (!found && kind==='class') {
-     form.program=defaultProgram(next.class.class_type);
-     form.template_id=next.defaults.find(d=>d.program===form.program)?.template_id || null;
+     form.program=defaultProgram(next.class.class_type, next.class.program_code);
+     form.template_id=['basic','advanced'].includes(form.program || '') ? next.defaults.find(d=>d.program===form.program)?.template_id || null : null;
+     if (form.program==='basic') form.curriculum={parts: next.class.program_code==='A'?['A']:next.class.program_code==='B'?['B']:['A','B'],excluded_stage_ids:[],excluded_topic_codes:[],current_stage_id:null};
    }
    setRecord(found); setBody(form); setBaseline(JSON.stringify(form));
  }
@@ -78,7 +80,7 @@ export function LearningWorkspace({ admin = false, initialMonth }: { admin?: boo
  }
  if(!data)return <div className="space-y-4"><p role={error?'alert':'status'}>{error || 'Đang tải lộ trình lớp…'}</p>{error && <Button onClick={()=>setRetry(n=>n+1)}>Thử lại</Button>}</div>;
  return <div className="space-y-6 [&_button]:min-h-11"><ConfirmDialog />
-  <header><Link className="text-sm text-primary underline" href={admin?'/admin/learning':'/tutor/classes/'+classId}>Về {admin?'quản lý chương trình':'lớp học'}</Link><h1 className="mt-4 text-3xl font-black">{data.class.name}</h1><p className="mt-3 text-sm leading-7 text-muted-foreground">Khung lớp định hướng việc học. Gia sư điều chỉnh mục tiêu, trọng tâm và nội dung thực tế; nhận xét học sinh thực hiện một lần trong tháng.</p></header>
+  <header><Link className="text-sm text-primary underline" href={admin?'/admin/learning':'/tutor/classes/'+classId}>Về {admin?'quản lý chương trình':'lớp học'}</Link><h1 className="mt-4 text-3xl font-black">{data.class.name}</h1>{data.class.program_code && <p className="mt-2 text-sm font-semibold">Chương trình {classProgramLabel(data.class.program_code)}</p>}<p className="mt-3 text-sm leading-7 text-muted-foreground">Khung lớp định hướng việc học. Gia sư điều chỉnh mục tiêu, trọng tâm và nội dung thực tế; nhận xét học sinh thực hiện một lần trong tháng.</p></header>
   <nav className="flex flex-wrap gap-3" aria-label="Nội dung lớp"><Button variant={kind==='class'?'default':'outline'} onClick={()=>choose('class')} disabled={busy}>Lộ trình lớp</Button><Button variant={kind==='student'?'default':'outline'} disabled={busy || !data.students.length} onClick={()=>choose('student:'+data.students[0]?.student_id)}>Học sinh</Button><Button variant={kind==='session'?'default':'outline'} disabled={busy || !data.sessions.length} onClick={()=>choose('session:'+data.sessions[data.sessions.length-1]?.session_id)}>Nội dung buổi</Button><Link className="csat-btn text-sm" href={admin?'/admin/learning#monthly':'/tutor/reviews'}>Nhận xét tháng</Link></nav>
   {kind==='student' && <label className="block space-y-2 text-sm">Học sinh<select className={control} disabled={busy} value={subject||''} onChange={e=>choose('student:'+e.target.value)}>{data.students.map(s=><option key={s.student_id} value={s.student_id}>{s.name}</option>)}</select></label>}
   {kind==='session' && <label className="block space-y-2 text-sm">Buổi học<select className={control} disabled={busy} value={subject||''} onChange={e=>choose('session:'+e.target.value)}>{data.sessions.map(s=><option key={s.session_id} value={s.session_id}>{s.date} · {s.status==='cancelled'?'Đã hủy':s.status==='completed'?'Đã hoàn thành':'Theo lịch'}</option>)}</select></label>}

@@ -1,4 +1,5 @@
 'use client';
+import { ClassProgramEditor } from '@/components/learning/ClassProgramEditor';
 import { SessionReconciliation } from '@/features/attendance/SessionReconciliation';
 import { changeClass } from '@/lib/business-client';
 
@@ -447,6 +448,7 @@ export default function ClassDetailPage() {
   return (
     <div className="space-y-6">
       <AlertDialog />
+      <ClassProgramEditor key={classInfo?.program_revision} classId={classId} code={classInfo?.program_code} revision={classInfo?.program_revision} onSaved={() => { void fetchData(); }} />
       <ConfirmDialog />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>

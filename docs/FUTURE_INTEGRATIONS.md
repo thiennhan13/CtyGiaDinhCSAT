@@ -4,7 +4,7 @@
 
 ## 1. Phân biệt các tích hợp
 
-**Form website:** các form hiện chỉ ở frontend, hỗ trợ nhập, kiểm tra và sao chép để nhắn CSAT; chưa gọi API tư vấn. Khi kết nối: ánh xạ khóa/mục tiêu/nền tảng theo [catalog](PUBLIC_COURSE_CATALOG.md), thêm consent cho lưu dữ liệu, phục hồi idempotency/retry, kiểm chứng quyền/Origin/rate limit và chỉ báo tiếp nhận sau khi API xác nhận lưu. Giữ các cờ gửi tắt đến khi nghiệm thu. Không chỉ nhập key hoặc bật `CONSULTATIONS_ENABLED` rồi coi form đã nối; đọc [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
+**Form website:** đăng ký đã nối intake v2 trong mã theo [catalog](PUBLIC_COURSE_CATALOG.md), có consent/idempotency/retry, kiểm tra Origin/rate limit và chỉ báo tiếp nhận sau khi API lưu. `submit_registration` không tạo outbox/email. Học liệu giữ sao chép/liên hệ. Chưa nghiệm thu staging/production; giữ các cờ gửi tắt, chỉ bật tiếp nhận khi schema18/24 và vận hành đạt. Đọc [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md) và [runbook](BACKEND_COMPLETION.md); cấu hình key không thay nghiệm thu.
 
 | Thành phần | Vai trò | Trạng thái |
 |---|---|---|

@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Trash2 } from 'lucide-react';
 import { Combobox } from '@/components/ui/combobox';
 import { useAlert } from '@/components/ui/use-dialog';
-import { CLASS_TYPE_OPTIONS, defaultProgram } from '@/lib/learning';
+import { CLASS_PROGRAMS, classProgramOptions as CLASS_TYPE_OPTIONS, type ClassProgramCode } from '@/lib/class-programs';
 
 export default function NewClassPage() {
   const router = useRouter();
@@ -28,7 +28,7 @@ export default function NewClassPage() {
 
   // Step 1: Class Info & Students
   const [className, setClassName] = useState('');
-  const [classType, setClassType] = useState('Lớp Cơ bản');
+  const [classType, setClassType] = useState('AB');
   const [teachingFormat, setTeachingFormat] = useState('group');
   const [tutorId, setTutorId] = useState('');
   const [csatFee, setCsatFee] = useState<number>(0);
@@ -167,8 +167,9 @@ export default function NewClassPage() {
       const payload = {
         action: 'create',
         name: className,
-        class_type: classType,
-        program: defaultProgram(classType),
+        class_type: CLASS_PROGRAMS[classType as ClassProgramCode].classType,
+        program_code: classType,
+        program: CLASS_PROGRAMS[classType as ClassProgramCode].program,
         teaching_format: teachingFormat,
         tutor_id: tutorId,
         csat_fee_per_session: csatFee,

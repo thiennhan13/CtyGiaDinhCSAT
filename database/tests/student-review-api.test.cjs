@@ -107,5 +107,5 @@ test('DB deployment, authorization, concurrency and transport errors are actiona
   }
   const state = fixture(); state.queryErrors = { student_reviews: { code: '42703' } };
   assert.equal((await route(state).GET(new Request(`https://portal.test/api/tutor/reviews?class_id=${id(10)}&student_id=${id(11)}`))).status, 503);
-  assert.equal((await route(state).POST(new Request('https://portal.test/api/tutor/reviews', { method: 'POST', body: '{invalid' }))).status, 400);
+  assert.equal((await route(state).POST(new Request('https://portal.test/api/tutor/reviews', { method: 'POST', headers:{Origin:'https://portal.test'}, body: '{invalid' }))).status, 400);
 });

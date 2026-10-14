@@ -8,7 +8,7 @@ Migration là bản SQL thay đổi cấu trúc, quyền/RPC hoặc dữ liệu 
 SELECT version FROM csat_internal.schema_migrations ORDER BY version;
 ```
 
-Registry bắt đầu từ 05; thiếu dòng 01–04 không có nghĩa phải chạy lại. Tại lần xác minh 08/10/2026 có 05–17, 20 và 23, còn thiếu 18/19/21/22. Phải đọc lại trạng thái trước lần thao tác mới.
+Registry bắt đầu từ 05; thiếu dòng 01–04 không có nghĩa phải chạy lại. Đối chiếu production 14/10/2026 có 05–18, 20 và 23–26; người dùng đã áp 18/24/25/26, còn thiếu 19/21/22 thuộc backlog. Đã cấp và đối soát 44 Auth parent theo ủy quyền; xem [bàn giao](../docs/BACKEND_COMPLETION.md). Phải đọc lại trạng thái trước lần thao tác mới; không chạy lại migration đã có.
 
 ## Bản đồ các nhóm migration
 
@@ -24,22 +24,29 @@ Registry bắt đầu từ 05; thiếu dòng 01–04 không có nghĩa phải ch
 | 21 | Hoàn thiện email + phí từng buổi trong JSON phụ huynh; còn MAIL-01/02 |
 | 22 | Hồ sơ/avatar gia sư, revision, quyền, audit, JSON phụ huynh |
 | 23 | Aggregate số buổi completed của lớp cho chỉ báo chặng phụ huynh; đã áp production 08/10/2026 |
+| 24 | Đăng ký intake v2 không tạo outbox/email; lịch sử trạng thái có revision; cần 18 |
+| 25 | Mã A/B/AB/C/E/PREVOI/K, lịch sử phân loại; giữ tên/giáo án/học phí; cần 23 |
+| 26 | Supabase Auth phụ huynh, liên kết user/session, rate limit và provisioning; đóng login chỉ bằng số ngay; cần 23 |
 
-20 chỉ phụ thuộc 17, nên có thể có 20 trong khi 18/19 chưa áp dụng. 21 cần 19 và 20; 22 cần 21; 23 chỉ cần 20 và bảo toàn các trường 21/22 nếu có. Có thể phát hành 23 độc lập; kiểm thử xác nhận 21/22 áp sau vẫn giữ aggregate. Với trạng thái hiện tại, phần email/hồ sơ còn lại là **18 → 19 → 21 → 22**, bỏ qua 20/23 và xác minh lại trước thao tác. Không chỉnh migration đã phát hành; sửa bằng migration mới sau số cuối thực tế.
+20 chỉ phụ thuộc 17, nên có thể có 20 trong khi 18/19 chưa áp dụng. 21 cần 19 và 20; 22 cần 21; 23 chỉ cần 20 và bảo toàn các trường 21/22 nếu có. Có thể phát hành 23 độc lập; kiểm thử xác nhận 21/22 áp sau vẫn giữ aggregate. Với trạng thái hiện tại, phần email/hồ sơ còn lại là **19 → 21 → 22** (18 đã có); xác minh lại trước thao tác. Không chỉnh migration đã phát hành; sửa bằng migration mới sau số cuối thực tế. Migration26 đã áp cùng RLS, mọi sửa đổi tiếp theo dùng migration mới.
 
 ## Khởi tạo database thử mới
 
 Dùng project Supabase thử **trống**, có schema Auth và roles chuẩn. Không chạy trên production hoặc project chứa dữ liệu cần giữ.
 
-1. Đọc `CSAT_master_schema.sql`: hiện là baseline tổng hợp **đến 10**, không phải schema mới nhất đến 23.
+1. Đọc `CSAT_master_schema.sql`: hiện là baseline tổng hợp **đến 10**, không phải schema mới nhất đến 26.
 2. Chạy baseline một lần trên project trống; kiểm tra registry 05–10. Không chạy lại 01–10 sau đó.
-3. Áp dụng lần lượt 11–23, xem precondition đầu từng file và verification tương ứng. `upgrade-learning-portal.sql` là gói lịch sử 11–15; chỉ chọn gói hoặc từng file, không cả hai. Migration 23 được kiểm chứng bằng `tests/parent-class-progress.test.cjs` trên database thử.
+3. Áp dụng lần lượt 11–26, xem precondition đầu từng file và verification tương ứng. `upgrade-learning-portal.sql` là gói lịch sử 11–15; chỉ chọn gói hoặc từng file, không cả hai. Bộ backend cần kiểm thử cả chuỗi đầy đủ và chuỗi tối thiểu như production. Auth mock trong test không thay nghiệm thu Supabase thật.
 4. Tạo tài khoản và fixture giả qua luồng được phép; không seed dump production. Bucket avatar/policy là bước Supabase Storage riêng sau 22.
 5. Kiểm tra API/RLS theo vai trò và UI. Bộ test cục bộ có Auth helper giả, không thay thế Supabase thật.
 
 `build-master.cjs` chỉ dựng lại baseline 05–10 từ fixture/migration lịch sử; `build-learning-upgrade.cjs` dựng gói 11–15. Không dùng chúng để tuyên bố master đã chứa các migration mới; không chạy generator rồi commit diff ngoài phạm vi.
 
 ## Kiểm chứng và maintenance
+
+Ba luồng backend dùng **18 → 24**, **23 → 25**, **23 → 26**; không cần 19/21/22. Nếu chạy các migration email/hồ sơ cũ sau 24–26, kiểm chứng lại quyền/projection trên schema kết hợp trước, không chỉ dựa test của 23. [Runbook](../docs/BACKEND_COMPLETION.md) quy định staging và cửa sổ bảo trì schema → provisioning → deploy vì 26 thu hồi lookup cũ ngay. Hiện chưa có staging Supabase; nghiệm thu thật còn chờ. Người dùng tự chạy SQL production, không chạy từ task xây dựng mã.
+
+[Preflight](verification/20261012_backend_preflight.sql) và [postflight](verification/20261012_backend_postflight.sql) đều READ ONLY, trả aggregate/grants/digest, không PII. Lưu kết quả nội bộ; chạy lại preflight sau schema/provision để đối chiếu digest lịch sử/nháp/công bố/tài chính. Digest classes bỏ cột program mới, parent_accounts bỏ auth_uid; các phần còn lại phải giữ nguyên khi không có ghi nghiệp vụ. Postflight kiểm tra login cũ bị khóa, liên kết Auth, outbox đăng ký mới bằng 0 và quyền RPC. Không dùng SQL kiểm tra để cấp user hoặc sửa hồ sơ.
 
 - `verification/`: đọc từng file trước khi chạy. Phần lớn là SQL kiểm tra; **`20260923_tutor_avatar_storage_setup.sql` có ghi**, tạo bucket và policy, cần cho phép đúng môi trường.
 - `maintenance/20260923_student_phone_fallback.sql`: thao tác dữ liệu một lần đã dùng, có guard/audit; không phải chính sách tự copy số cho hồ sơ mới và không chạy mặc định khi onboarding.

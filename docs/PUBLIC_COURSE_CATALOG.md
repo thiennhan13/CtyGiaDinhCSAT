@@ -1,6 +1,6 @@
 # Catalog khóa học công khai
 
-Nguồn chuẩn cho tên lớp/dữ kiện tuyển sinh và hợp đồng tích hợp tương lai. Nội dung học ở [chương trình](CHUONG_TRINH_DAO_TAO.md); UI ở [website](PUBLIC_WEBSITE.md). Các hợp đồng intake/K bên dưới **chưa triển khai vào API/RPC/database**.
+Nguồn chuẩn cho tên lớp/dữ kiện tuyển sinh và hợp đồng intake hiện hành. Nội dung học ở [chương trình](CHUONG_TRINH_DAO_TAO.md); UI ở [website](PUBLIC_WEBSITE.md). Intake v2 đã có trong mã, chưa nghiệm thu staging/production; cơ chế K phối nguồn chéo chương trình vẫn là đề xuất.
 
 ## Quyết định hiện hành
 
@@ -34,13 +34,14 @@ CSATOJ luyện/chấm bài; CSAT Portal theo dõi quá trình. Không tự tạo
 
 | Khái niệm | Giá trị | Quy tắc |
 |---|---|---|
-| Khóa công khai | A/B/C/E/K | Lựa chọn tìm hiểu, chưa là enum loại lớp database |
+| Khóa công khai | A/B/C/E/K | Lựa chọn tìm hiểu; không tự chuyển lớp người học |
+| Mã chương trình lớp | A/B/AB/C/E/PREVOI/K | Mã phân loại mới có revision/audit; AB hiển thị A+B |
 | Chương trình quản lý | basic/advanced/voi/custom | Gán qua thao tác có quyền, không tự map mã public |
 | Hình thức | group/individual | Độc lập với chương trình |
 | Scope Cơ bản hiện hành | A/B/A+B, mặc định A+B | Không tự suy học sinh đã thành thạo A khi chọn B |
 | Phiên bản giáo án | template_id/version | Nháp/công bố, revision và lịch sử |
 
-A/B lấy phần tương ứng basic; C lấy advanced C+D; PreVOI/voi quản lý giữ riêng E. Một lớp 1–1 vẫn có thể dùng basic/advanced với individual; custom chỉ khi có chương trình tùy chỉnh đúng hợp đồng. Tách lớp tương lai/chuyển lớp thật cần đặc tả và quyền riêng.
+A/B lấy phần tương ứng basic, AB mặc định A+B; C lấy advanced C+D. PREVOI (PreVOI/HSGQG/Ôn thi VOI) dùng voi và giáo án riêng, không E; E/K dùng custom trong luồng tạo lớp mới. Một lớp 1–1 vẫn có thể dùng basic/advanced với individual. Migration25 chỉ thêm phân loại cho lớp cũ, giữ tên/giáo án/giá/lịch sử; đổi phân loại có revision và audit không tự chuyển nội dung đã công bố.
 
 ## Selector, tag và đăng ký
 
@@ -54,28 +55,23 @@ Hashtag tổng quan:
 - C: #ThuậtToánNângCao · #HSGCấpTỉnh · #ChuyênTin.
 - E/K không hashtag. Đây là nhãn định hướng, không thêm giáo trình/cam kết.
 
-Đăng ký dùng mẫu 3 thẻ, facts ngay dưới tên và tag kiến thức; E/K chỉ tag định hướng đã duyệt. CTA lớp X → /dang-ky-hoc?course=X#thong-tin; server/form mặc định X, route lớp thắng query khác. Người dùng có thể đổi lựa chọn. PublicConsultation chỉ nhập/validate/xem lại/sao chép/liên hệ, không API/database.
+Đăng ký dùng mẫu 3 thẻ, facts ngay dưới tên và tag kiến thức; E/K chỉ tag định hướng đã duyệt. CTA lớp X → /dang-ky-hoc?course=X#thong-tin; server/form mặc định X, route lớp thắng query khác. Người dùng có thể đổi lựa chọn. PublicConsultation đăng ký có validate/xem lại/consent và gửi API; chỉ thông báo đã tiếp nhận sau lưu thành công. Học liệu giữ sao chép/liên hệ.
 
-## Hợp đồng intake dự kiến
+## Hợp đồng intake v2 trong mã
 
-**Đề xuất kỹ thuật chờ duyệt:** các trường và mapping bên dưới chưa phải quyết định triển khai của chủ trung tâm. Định hướng form công khai đã duyệt không đồng nghĩa với duyệt schema này; cần chốt hợp đồng trước khi nối API.
+`lib/intake.ts` → `/api/consultations` → `submit_registration` (migration24, cần18). Schema strict, giữ lựa chọn khóa độc lập với mục tiêu; không tự map E sang HSGQG. Chưa nghiệm thu staging/production.
 
-Mở rộng luồng tư vấn hiện có cùng lúc ở validation, API, RPC, admin và email. Các trường bổ sung tối thiểu:
-
-| Trường dự kiến | Ý nghĩa và tương thích |
+| Trường | Giá trị/quy tắc |
 |---|---|
-| `request_kind` | `consultation` hoặc `materials`; yêu cầu cũ thiếu trường là tư vấn |
-| `course_interest` | A/B/C/E/K hoặc `null`; là lựa chọn chủ động của người gửi, không phải lớp được nhận |
-| `background` | Mã tự mô tả `new`, `syntax`, `practice`, `unsure` hoặc `null`; thiếu ở dữ liệu cũ là chưa cung cấp, không suy ra chưa biết lập trình |
-| `curriculum_scope` | A/B/C hoặc `null` theo tên công khai mới; hợp đồng tương lai cần đối chiếu C với scope nội bộ CD hiện có, không tự sửa payload/schema đang strict. AB chỉ giữ trong quản lý |
-| `level` mở rộng | Bổ sung Tiểu học; giữ các giá trị THCS/THPT/Đại học/chưa rõ hiện có |
-| `goal` mở rộng | Bổ sung mục tiêu bắt đầu học lập trình nếu UI dùng lựa chọn này; giữ các mục tiêu thi và chưa rõ hiện có |
+| `schema_version`, `request_id` | 2 và UUID idempotency; gửi lại cùng nội dung giữ một đơn, đổi nội dung cùng ID bị từ chối |
+| `role`, `name`, `phone`, `email` | parent/student; tên và số di động Việt Nam hợp lệ, email tùy chọn |
+| `level`, `course` | primary/thcs/thpt; undecided/A/B/C/E/K; không nhận AB public |
+| `goal` | undecided/beginner/thcs/specialist/province |
+| `background` | undecided/none/syntax/independent; dữ liệu cũ thiếu không suy thành none |
+| `school_year`, `message`, `source_path` | Nội dung giới hạn độ dài và route whitelist |
+| `consent`, `website` | consent true; honeypot website phải rỗng (chỉ ở API, không lưu trong data) |
 
-`program` hiện tại là mã gợi ý công khai (`co-ban`, `nang-cao`, `hsgqg`, `consultation`), không phải enum chương trình database. Khi triển khai hợp đồng mở rộng, server cần tính/kiểm chứng lại từ catalog: A/B → `co-ban`; C → `nang-cao`; E → yêu cầu tư vấn Chủ lực (cần hợp đồng mới, không map vào `hsgqg`); K → `consultation`. Mục tiêu người gửi vẫn được lưu độc lập. Nếu chưa chọn khóa, dùng gợi ý mục tiêu tương thích hiện tại. Không tin giá trị `program` do client tự gửi.
-
-Luồng cũ cần tiếp tục hợp lệ; không sửa payload thư đã xếp hàng. Khi đổi hợp đồng, xem lại fingerprint/idempotency để cùng mã yêu cầu không ghi hai nội dung khác nhau. Form thật chỉ bật khi schema, cấu hình và admin tiếp nhận đã được kiểm chứng. Gửi email lỗi không làm mất yêu cầu đã lưu; thành công chỉ thông báo đã tiếp nhận, không nói tài liệu đã gửi hoặc tài khoản CSATOJ đã được tạo.
-
-**Ràng buộc mã hiện tại:** `lib/consultations.ts` đang strict schema và chưa nhận các trường mới. `app/api/consultations/route.ts` kiểm tra `program` bằng hàm gợi ý từ cấp học/mục tiêu; chọn C với mục tiêu Chuyên Tin có thể bị từ chối nếu chỉ sửa cách tính ở UI. Form frontend chưa gọi API; khi nối cần adapter hoặc triển khai đồng bộ hợp đồng mới.
+API kiểm tra Origin/content type/body/rate limit; chỉ nhận khi `CONSULTATIONS_ENABLED=true`. RPC ghi yêu cầu, **không tạo outbox hoặc gửi email**. Admin đọc dữ liệu cũ/mới và đổi trạng thái có revision/audit. Không viết lại payload cũ hoặc suy rằng hồ sơ legacy thiếu consent đã đồng ý. Học liệu không gửi API trong phạm vi này. Hướng dẫn nghiệm thu và chuyển đổi xem [BACKEND_COMPLETION](BACKEND_COMPLETION.md).
 
 ## K tùy chỉnh — thiết kế nguồn, phiên bản và lịch sử
 
@@ -101,4 +97,4 @@ Thành tích gia sư gắn đúng cá nhân trong component đã duyệt, không
 
 Kiểm chứng catalog đúng năm mã, A9/B15/C19 và thứ tự; C công khai nhưng CD nội bộ nguyên vẹn; E tuyển riêng, không mục tiêu quốc gia tự gán. Query/alias/default course phải tương thích. No-JS có nội dung/liên hệ; form không báo gửi giả.
 
-Khi nối intake, thử dữ liệu cũ/mới, mismatch khóa/scope, idempotency, cờ tắt và email lỗi sau lưu thành công. Khi triển khai K, thử quyền/source/version/trùng chủ đề/concurrency và nguồn cập nhật không đổi bản đã công bố. Trạng thái ghi [PROJECT_STATUS](PROJECT_STATUS.md), không gọi hợp đồng dự kiến là đã vận hành.
+Nghiệm thu intake cần dữ liệu cũ/mới, consent/Origin, enum sai, idempotency, giới hạn tần suất, cờ tắt, trạng thái/revision admin và không tạo outbox. Khi triển khai K phối nguồn, thử quyền/source/version/trùng chủ đề/concurrency và nguồn cập nhật không đổi bản đã công bố. Trạng thái ghi [PROJECT_STATUS](PROJECT_STATUS.md), không coi mã local là đã vận hành production.

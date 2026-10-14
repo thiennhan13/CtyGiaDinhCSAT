@@ -1,6 +1,7 @@
+import { CLASS_PROGRAMS, type ClassProgramCode } from './class-programs';
 import { z } from 'zod';
 
-export const PROGRAMS = { basic: 'Cơ bản', advanced: 'Nâng cao', voi: 'HSGQG', custom: 'Luyện thi · Tùy chỉnh' } as const;
+export const PROGRAMS = { basic: 'Cơ bản', advanced: 'Nâng cao', voi: 'PreVOI', custom: 'Nội dung riêng' } as const;
 export const CLASS_TYPE_OPTIONS = [
   { value: 'Lớp Cơ bản', label: 'Lớp Cơ bản' },
   { value: 'Lớp Nâng cao', label: 'Lớp Nâng cao' },
@@ -52,17 +53,18 @@ export interface LearningRecord {
 }
 export interface MonthlyRow { class_id: string; class_name: string; tutor_id: string; tutor_name: string; student_id: string; student_name: string; review_id: string | null; status: 'missing' | 'draft' | 'published'; actionable: boolean }
 export interface LearningWorkspace {
-  class: { class_id: string; name: string; class_type: string };
+  class: { class_id: string; name: string; class_type: string; program_code?: ClassProgramCode | null };
   templates: LearningTemplate[]; defaults: { program: string; template_id: string }[];
   records: LearningRecord[]; students: { student_id: string; name: string }[];
   sessions: { session_id: string; date: string; status: string }[]; queue: MonthlyRow[];
 }
-export function defaultProgram(classType: string): LearningBody['program'] {
+export function defaultProgram(classType: string, code?: ClassProgramCode | null): LearningBody['program'] {
+  if (code && Object.hasOwn(CLASS_PROGRAMS, code)) return CLASS_PROGRAMS[code].program;
   const normalized = classType.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/\s+/g, ' ').replace(/^lop /, '');
   switch (normalized) {
     case 'co ban': return 'basic';
     case 'nang cao': return 'advanced';
-    case 'hsgqg': case 'on thi voi': return 'voi';
+    case 'prevoi': case 'hsgqg': case 'on thi voi': return 'voi';
     case 'luyen thi': return 'custom';
     default: return null;
   }

@@ -10,14 +10,15 @@ const schema=z.discriminatedUnion('action',[
 ]);
 export async function GET(request:Request){
  const session=await businessSession();if(session.response)return session.response;
- const params=new URL(request.url).searchParams,status=params.get('status'),mail=params.get('mail');
- const offset=Math.max(0,Math.min(100000,Number(params.get('offset'))||0));
- let query=session.supabase.from('consultation_requests').select(`request_id,data,created_at,status,revision,updated_at,consultation_email_outbox${mail?'!inner':''}(status,attempts,error_code,accepted_at,next_attempt_at,email_reconciliations(outcome,note,created_at))`,{count:'exact'}).order('created_at',{ascending:false}).range(offset,offset+49);
+ const params=new URL(request.url).searchParams;
+ const status=params.get('status'),course=params.get('course');
+ const offset=Math.max(0,Math.min(100000,Math.floor(Number(params.get('offset'))||0)));
+ let query=session.supabase.from('consultation_requests').select('request_id,data,created_at,status,revision,updated_at,consultation_status_history(old_status,new_status,revision,created_at)',{count:'exact'}).order('created_at',{ascending:false}).order('request_id').range(offset,offset+49);
  if(status&&['new','contacted','completed'].includes(status))query=query.eq('status',status);
- if(mail&&['queued','sending','accepted','failed','manual_review'].includes(mail))query=query.eq('consultation_email_outbox.status',mail);
+ if(course&&['undecided','A','B','C','E','K'].includes(course))query=query.eq('data->>course',course);
  const [result,newCount,contactedCount]=await Promise.all([query,session.supabase.from('consultation_requests').select('request_id',{count:'exact',head:true}).eq('status','new'),session.supabase.from('consultation_requests').select('request_id',{count:'exact',head:true}).eq('status','contacted')]);
  if(result.error)return businessError(result.error);
- return NextResponse.json({data:result.data,total:result.count,newCount:newCount.count,contactedCount:contactedCount.count,configurationMissing:['CSAT_EMAIL_FROM','RESEND_API_KEY'].filter(k=>!process.env[k]),emailEnabled:process.env.VERCEL_ENV==='production'&&process.env.CONSULTATIONS_EMAIL_ENABLED==='true'&&!!process.env.RESEND_API_KEY&&!!process.env.CSAT_EMAIL_FROM},{headers:{'Cache-Control':'private, no-store'}});
+ return NextResponse.json({data:result.data,total:result.count,newCount:newCount.count,contactedCount:contactedCount.count},{headers:{'Cache-Control':'private, no-store'}});
 }
 export async function POST(request:Request){
  const session=await businessSession(true,request);if(session.response)return session.response;

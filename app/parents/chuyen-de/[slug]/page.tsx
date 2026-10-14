@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { z } from 'zod';
 import type { Metadata } from 'next';
 import { ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
-import { readLookupHash } from '@/lib/parent-lookup';
+import { parentSession } from '@/lib/parent-auth';
 import { createAdminClient } from '@/lib/supabase/service';
 import { monthSchema } from '@/lib/learning';
 import type { ParentLearningData } from '@/lib/parent-learning';
@@ -19,8 +19,9 @@ export const metadata: Metadata = { title: 'Chuyên đề học tập | CSAT', r
 const contextSchema = z.object({ student: z.string().uuid(), class: z.string().uuid(), month: monthSchema.optional(), page: z.coerce.number().int().min(0).max(10000).default(0) });
 
 export default async function ParentTopicPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const hash = await readLookupHash();
-  if (!hash) redirect('/login');
+  const session = await parentSession();
+  if (!session) redirect('/login');
+  const { hash } = session;
   const context = contextSchema.safeParse(await searchParams);
   if (!context.success) notFound();
   const { data, error } = await createAdminClient().rpc('parent_learning_portal', { p_token_hash: hash, p_student_id: context.data.student, p_month: context.data.month ?? null, p_review_page: context.data.page });

@@ -8,9 +8,9 @@ CSAT xây dựng website giới thiệu, tuyển sinh và Portal theo dõi việ
 
 ## Định hướng hiện tại
 
-Hoàn thiện frontend theo chỉ dẫn của chủ trung tâm. Website công khai dùng **neobrutalism và playful edtech**, kết hợp typography/editorial, thẻ màu, sơ đồ mạch và art tin học; giữ Archivo, logo và palette đã duyệt. Backend/API/logic vận hành hoàn thiện riêng theo hợp đồng và quyền. Xem [quy định thiết kế](docs/PUBLIC_UI_DESIGN_SYSTEM.md).
+Hoàn thiện ba luồng backend đã duyệt: tiếp nhận đăng ký, phân loại chương trình lớp và tài khoản phụ huynh bằng số điện thoại/mật khẩu. Mã đã kiểm chứng local; production đã có migration18/24/25/26 và cấp 44 tài khoản phụ huynh theo ủy quyền. Chưa có staging Supabase; ứng dụng backend mới còn chờ deploy và nghiệm thu đăng nhập/đổi mật khẩu. Xem [bàn giao backend](docs/BACKEND_COMPLETION.md). Website giữ **neobrutalism và playful edtech**, Archivo, logo và palette đã duyệt theo [quy định thiết kế](docs/PUBLIC_UI_DESIGN_SYSTEM.md).
 
-Catalog công khai có **A/B/C/E/K**: A nhập môn, B thi đấu cơ bản, C nâng cao, E CHỦ LỰC chọn lọc từ C qua thi riêng, K kèm riêng/tùy chọn. C là tên chung cho toàn bộ C/D và các lớp nâng cao tương lai; giữ A9/B15/C19, mã C01–D07/scope CD. Quản lý hiện hành vẫn mặc định Cơ bản A+B, Nâng cao C+D; không tự chuyển lớp cũ.
+Catalog công khai có **A/B/C/E/K**: A nhập môn, B thi đấu cơ bản, C nâng cao, E CHỦ LỰC xét đủ năng lực và đạt bài thi riêng (không bắt buộc học xong C), K kèm riêng/tùy chọn. C là tên chung cho toàn bộ C/D và các lớp nâng cao tương lai; giữ A9/B15/C19, mã C01–D07/scope CD. Quản lý hiện hành vẫn mặc định Cơ bản A+B, Nâng cao C+D; không tự chuyển lớp cũ.
 
 ## Chức năng
 
@@ -21,7 +21,7 @@ Catalog công khai có **A/B/C/E/K**: A nhập môn, B thi đấu cơ bản, C n
 | Gia sư | Buổi học, điểm danh, lộ trình, nhận xét tháng và hồ sơ |
 | Phụ huynh | Nội dung đã công bố, định hướng, gia sư và học phí của con |
 
-Form public chỉ kiểm tra → xem lại → sao chép → chủ động nhắn CSAT; chưa nối API/lưu đăng ký hoặc gửi tài liệu. Khóa quan tâm mặc định theo trang lớp.
+Form đăng ký trong mã mới lưu qua API/RPC khi bật tiếp nhận; đơn mới không tạo outbox hoặc gửi email. Form học liệu vẫn xem lại/sao chép/liên hệ, chưa gửi tài liệu tự động. Khóa quan tâm mặc định theo trang lớp; triển khai cần migration 18/24 và nghiệm thu.
 
 Thành tích dùng bố cục 3 nhãn cạnh ảnh đã duyệt, dữ liệu riêng và HTML tĩnh/WebP responsive. Bài viết cũng lấy catalog frontend, chưa có quản trị database. Không dựng số liệu hoặc cam kết đầu ra chưa có nguồn.
 

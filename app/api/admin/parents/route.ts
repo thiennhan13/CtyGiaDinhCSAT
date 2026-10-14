@@ -15,6 +15,10 @@ export async function GET(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user || user.app_metadata?.role !== 'admin') return response({ error: 'Không có quyền truy cập.' }, 403);
   const params = new URL(request.url).searchParams;
+  if (params.get('view') === 'provisioning') {
+    const result = await supabase.rpc('parent_auth_candidates');
+    return result.error ? response({ error: 'Chưa đọc được danh sách cấp tài khoản. Kiểm tra migration 26.' }, 503) : response({ rows: result.data });
+  }
   const query = (params.get('q') || '').trim().slice(0, 100);
   const escaped = query.replace(/[\\%_]/g, '\\$&');
   if (params.get('view') === 'students') {
@@ -57,5 +61,5 @@ export async function POST(request: Request) {
     if (['PGRST202', '42883', '42P01', '42703'].includes(error.code)) return response({ error: 'Cần áp dụng migration 20260906_03 trước khi quản lý tra cứu.' }, 503);
     return response({ error: 'Chưa lưu được phụ huynh. Kiểm tra danh sách học sinh đã chọn.' }, 400);
   }
-  return response({ message: input.action === 'create' ? 'Đã mở tra cứu cho số điện thoại.' : 'Đã cập nhật quyền tra cứu.' });
+  return response({ message: input.action === 'create' ? 'Đã lưu hồ sơ liên hệ. Tài khoản đăng nhập được cấp qua công cụ đối soát.' : 'Đã cập nhật quyền tra cứu.' });
 }

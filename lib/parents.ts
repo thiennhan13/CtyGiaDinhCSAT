@@ -25,13 +25,14 @@ export interface ParentPortalData {
 
 export function isSameOrigin(request: Request): boolean {
   const origin = request.headers.get('origin');
-  if (!origin) return true;
+  if (!origin) return false;
   // Next.js can expose an internal hostname in request.url behind a proxy.
   // Compare against the request authority and forwarded scheme instead.
   const url = new URL(request.url);
   const host = request.headers.get('host') || url.host;
   const protocol = request.headers.get('x-forwarded-proto')?.split(',')[0].trim() || url.protocol.slice(0, -1);
   try {
-    return ['http', 'https'].includes(protocol) && new URL(origin).origin === `${protocol}://${host.toLowerCase()}`;
+    const expected = process.env.APP_ORIGIN || `${protocol}://${host.toLowerCase()}`;
+    return ['http', 'https'].includes(protocol) && new URL(origin).origin === new URL(expected).origin && request.headers.get('sec-fetch-site') !== 'cross-site';
   } catch { return false; }
 }

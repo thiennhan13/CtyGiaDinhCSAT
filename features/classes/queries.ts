@@ -19,9 +19,7 @@ export async function getClasses(params: {
   }
   
   if (params.classType && params.classType !== 'Tất cả') {
-    query = params.classType === 'Lớp HSGQG'
-      ? query.in('class_type', ['Lớp HSGQG', 'HSGQG', 'Ôn thi VOI'])
-      : query.eq('class_type', params.classType);
+    query = ['A','B','AB','C','E','PREVOI','K'].includes(params.classType) ? query.eq('program_code', params.classType) : query.eq('class_type', params.classType);
   }
   
   if (params.search) {

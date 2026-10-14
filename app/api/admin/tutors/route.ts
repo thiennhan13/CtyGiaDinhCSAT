@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/service';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
+import { isSameOrigin } from '@/lib/parents';
 
 const createTutorSchema = z.object({
   action: z.literal('create'),
@@ -25,6 +26,7 @@ const tutorActionSchema = z.discriminatedUnion('action', [
  * Sử dụng Service Role để bypass RLS và quản lý Auth Users
  */
 export async function POST(request: Request) {
+  if (!isSameOrigin(request)) return NextResponse.json({ error: 'Nguồn yêu cầu không hợp lệ.' }, { status: 403 });
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -72,9 +74,9 @@ export async function POST(request: Request) {
         .single();
 
       if (dbError) {
-        // Rollback Auth user nếu lỗi DB
-        await adminClient.auth.admin.deleteUser(authData.user.id);
-        throw dbError;
+        // A timeout may hide a committed insert. Keep Auth for reconciliation;
+        // deleting here could orphan a real tutor or destroy an active account.
+        return NextResponse.json({ error: 'Tài khoản đã được tạo nhưng chưa xác nhận được hồ sơ. Cần đối soát trước khi tạo lại.' }, { status: 503 });
       }
 
       return NextResponse.json({ message: 'Tạo gia sư thành công', data: tutorData });
@@ -83,7 +85,8 @@ export async function POST(request: Request) {
     // HÀNH ĐỘNG: XÓA GIA SƯ
     if (parsed.data.action === 'delete') {
       // Lấy auth_uid trước khi xóa
-      const { data: tutor } = await adminClient.from('tutors').select('auth_uid').eq('tutor_id', parsed.data.tutor_id).single();
+      const { data: tutor, error: readError } = await adminClient.from('tutors').select('auth_uid').eq('tutor_id', parsed.data.tutor_id).single();
+      if (readError || !tutor) return NextResponse.json({ error: 'Chưa xác nhận được hồ sơ gia sư. Vui lòng tải lại.' }, { status: 503 });
       
       // Soft delete: set is_deleted = true, status = 'inactive'
       const { error: deleteError } = await adminClient.from('tutors').update({ is_deleted: true, status: 'inactive' }).eq('tutor_id', parsed.data.tutor_id);
@@ -92,7 +95,8 @@ export async function POST(request: Request) {
       // Disable tài khoản Auth (Zombie account fix)
       if (tutor?.auth_uid) {
          // Ban user 100 năm (khoảng 876000 giờ)
-         await adminClient.auth.admin.updateUserById(tutor.auth_uid, { ban_duration: '876000h' });
+         const banned = await adminClient.auth.admin.updateUserById(tutor.auth_uid, { ban_duration: '876000h' });
+         if (banned.error) return NextResponse.json({ error: 'Hồ sơ đã ngừng hoạt động nhưng chưa khóa được đăng nhập. Hãy thử lại thao tác vô hiệu hóa.' }, { status: 503 });
       }
 
       return NextResponse.json({ message: 'Đã vô hiệu hóa gia sư và tài khoản đăng nhập.' });
@@ -100,8 +104,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: 'Hành động không hợp lệ' }, { status: 400 });
 
-  } catch (error: any) {
-    console.error('Admin Tutors API Error:', error);
-    return NextResponse.json({ error: error.message || 'Lỗi hệ thống' }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: 'Chưa hoàn tất thao tác tài khoản. Kiểm tra hồ sơ hiện có trước khi thử lại.' }, { status: 500 });
   }
 }

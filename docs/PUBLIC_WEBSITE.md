@@ -43,7 +43,7 @@ Trang chủ dùng bốn lý do: Rèn lập luận và phản biện; Tìm cách 
 
 Hệ sinh thái có terminal giữa bốn nhánh Kho bài & máy chấm / Nhóm học nhỏ / Gia sư chuyên Phan / Đồng hành sát sao. Mỗi nhánh ba ý ngắn; art dẫn trực tiếp, không heading lớn/chú thích riêng. Dây mạch phía sau thẻ; mobile luồng dọc. Trải nghiệm ngay mở CSATOJ tab mới với noopener noreferrer. Số bài/điểm CSATOJ là nội dung trao đổi với gia sư, chưa tự đồng bộ Portal.
 
-Tổng quan lộ trình tách A/B/C/E/K; A+B không có trang/thẻ/tư vấn công khai. C là tên chung toàn bộ C/D nhưng giữ mã/scope và hiện trạng admin/gia sư/database. E chọn lọc từ C qua thi riêng, không phải PreVOI. K chọn phạm vi từ nội dung đã duyệt. [Catalog](PUBLIC_COURSE_CATALOG.md) quyết định đối tượng/giá, không chép lại các dữ kiện này thành nguồn khác.
+Tổng quan lộ trình tách A/B/C/E/K; A+B không có trang/thẻ/tư vấn công khai. C là tên chung toàn bộ C/D nhưng giữ mã/scope và giáo án/lớp lịch sử. E xét đủ năng lực và đạt bài thi riêng, không bắt buộc học xong C, không phải PreVOI. K chọn phạm vi từ nội dung đã duyệt. [Catalog](PUBLIC_COURSE_CATALOG.md) quyết định đối tượng/giá, không chép lại các dữ kiện này thành nguồn khác.
 
 Chi tiết lớp: breadcrumb → hero/poster/CTA và lịch → facts → bản đồ chặng/nội dung học → mục tiêu cuối khoá → Cùng CSAT chọn bước tiếp theo. E/K dùng định hướng được duyệt, không tạo chuyên đề chưa có nguồn. Tư vấn có chủ ngữ/vị ngữ, người học chia sẻ nền tảng và khó khăn, CSAT cùng xem lại để chọn hướng; không tự xác nhận đủ điều kiện.
 
@@ -61,15 +61,15 @@ Chi tiết/đăng ký cho mở poster với nút đóng/Escape/trả focus; khô
 - Dock/lời mời học liệu không render tại login/tutor entry. Lời mời học liệu ẩn tại trang đích, đăng ký và Thành tích để tránh che nội dung. Không popup tự mở hoặc số tin giả.
 - Footer dùng liên hệ đã xác nhận; không tự thêm địa chỉ, pháp nhân hoặc giờ hỗ trợ chưa được cung cấp.
 
-## Form frontend và ranh giới backend
+## Đăng ký, học liệu và ranh giới backend
 
-Mọi form tư vấn/tài liệu/đăng ký dùng PublicConsultation: nhập → validate → xem lại/chỉnh → sao chép theo thao tác → người dùng nhắn Zalo/Facebook. Không nhãn Gửi, thông báo Đã tiếp nhận hoặc gửi tài liệu giả.
+PublicConsultation đăng ký/tư vấn: nhập → validate/consent → xem lại/chỉnh → chủ động gửi `/api/consultations`. Chỉ báo tiếp nhận khi API lưu thành công; lỗi giữ bản nhập để thử lại. Học liệu giữ nhập → xem lại → sao chép → chủ động liên hệ, chưa gửi tài liệu tự động.
 
 Vai trò còn Phụ huynh/Học sinh; cấp học Tiểu học/THCS/THPT. Không Sinh viên, Đại học, cấp học Trao đổi thêm hoặc mục tiêu HSG Quốc gia. Thành tích HSGQG thật của gia sư vẫn hợp lệ, không liên quan tùy chọn form.
 
-Không gọi API tư vấn/trạng thái, không lưu liên hệ vào localStorage/sessionStorage hoặc URL. Rời/tải lại trang mất bản nhập. Clipboard bị chặn có bản chọn để sao chép thủ công; no-JS có liên hệ thật.
+Không lưu liên hệ vào localStorage/sessionStorage hoặc URL. Rời/tải lại trang mất bản nhập. Clipboard bị chặn có bản chọn để sao chép thủ công; no-JS có liên hệ thật. Form học liệu không gọi API đăng ký.
 
-Backend /api/consultations đã có request/outbox nhưng schema strict chưa nhận lựa chọn mới. Bật env chưa nối form. Lần kết nối cần adapter/hợp đồng đồng bộ validation–API–RPC–admin–email, consent, idempotency, migration và QA riêng. Chi tiết ở [catalog](PUBLIC_COURSE_CATALOG.md) và [backend workflow](BACKEND_WORKFLOW.md).
+API dùng intake v2 và `submit_registration` (18→24), kiểm tra Origin/body/enum/consent, idempotency và rate limit. Đơn mới không outbox/email; admin tiếp nhận qua trạng thái có revision/audit. Chưa nghiệm thu staging/production, chỉ bật tiếp nhận khi schema và vận hành đạt. Chi tiết ở [catalog](PUBLIC_COURSE_CATALOG.md) và [runbook](BACKEND_COMPLETION.md).
 
 ## Tài nguyên phục vụ
 

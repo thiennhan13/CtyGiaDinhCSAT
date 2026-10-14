@@ -1,6 +1,6 @@
 # Tiếp nhận công việc CSAT
 
-Mục tiêu hiện tại: hoàn thiện frontend theo chỉ dẫn của chủ trung tâm; backend tiếp tục theo hợp đồng và quyền riêng. Đây là điểm bắt đầu cho agent, không phải nhật ký hội thoại.
+Mục tiêu hiện tại: kiểm chứng và bàn giao ba luồng backend đã duyệt: đăng ký, phân loại chương trình và Auth phụ huynh. Chưa có staging Supabase; nghiệm thu thật còn chờ. Đọc [BACKEND_COMPLETION](BACKEND_COMPLETION.md) trước rollout. Đây là điểm bắt đầu cho agent, không phải nhật ký hội thoại.
 
 ## Thứ tự đọc
 
@@ -17,11 +17,12 @@ Mục tiêu hiện tại: hoàn thiện frontend theo chỉ dẫn của chủ tr
 | Phong cách neobrutalism, playful edtech; kết hợp editorial, bento và sơ đồ theo nội dung. Giữ Archivo, logo, bảng màu đã duyệt | [Design system](PUBLIC_UI_DESIGN_SYSTEM.md) |
 | A/B/C/E/K là năm lớp công khai riêng. A+B chỉ gộp tạm trong quản lý; C là tên chung của phần C/D và lớp nâng cao tương lai | [Catalog](PUBLIC_COURSE_CATALOG.md) |
 | Giữ đủ A9/B15/C19, mã C01–D07 và scope CD; chưa đổi lớp cũ trên gia sư/admin/database | [Đào tạo](CHUONG_TRINH_DAO_TAO.md) |
-| E là CHỦ LỰC, chọn lọc từ C qua thi tuyển riêng; không phải PreVOI. Ba trọng tâm: tri thức/phương pháp, đội ngũ/môi trường, bài tập/cọ xát | [Catalog](PUBLIC_COURSE_CATALOG.md) |
+| E là CHỦ LỰC: đủ năng lực và đạt bài thi tuyển riêng, không bắt buộc học xong C; không phải PreVOI. Ba trọng tâm: tri thức/phương pháp, đội ngũ/môi trường, bài tập/cọ xát | [Catalog](PUBLIC_COURSE_CATALOG.md) |
 | K là kèm riêng hoặc nhóm riêng, chọn nội dung đã duyệt; không mặc định HSGQG | [Catalog](PUBLIC_COURSE_CATALOG.md) |
-| Các form công khai chỉ kiểm tra, xem lại, sao chép và chủ động liên hệ; chưa nối API hoặc gửi thư | [Website](PUBLIC_WEBSITE.md) |
+| Form đăng ký dùng API/RPC intake v2 trong mã mới; không outbox/email. Học liệu giữ luồng xem lại/sao chép/liên hệ | [Website](PUBLIC_WEBSITE.md) |
 | Thành tích dùng bố cục 3 nhãn cạnh ảnh, dữ liệu riêng và trang tĩnh; chỉ công bố nguồn đã xác minh | [Thành tích](PUBLIC_ACHIEVEMENTS.md) |
-| Trang phụ huynh giữ tóm tắt, thêm bài chuyên đề private; đã duyệt kế hoạch nhân rộng 43 chủ đề/54 bài. Mỗi bài có hai câu hỏi mở đáp án, nguồn đọc thêm ngắn và code gọn với namespace std ngầm định, không in khai báo. Giữ Markdown trong repo, không triển khai database/CMS nội dung. PreVOI dùng giáo án E và lớp chưa có giáo án dùng K trong đợt bổ sung sau; không tự chuyển dữ liệu lớp | [Chuyên đề phụ huynh](PARENT_TOPICS.md) |
+| Trang phụ huynh giữ tóm tắt và 43 chủ đề/54 bài private; Markdown trong repo, không DB/CMS. PreVOI/HSGQG/Ôn thi VOI dùng giáo án riêng, không E; không tự chuyển giáo án lớp cũ | [Chuyên đề phụ huynh](PARENT_TOPICS.md) |
+| Quản lý có A/B/AB/C/E/PREVOI/K, AB hiển thị A+B. Phụ huynh dùng Supabase Auth phone/password, cấp riêng cho con đang học trong lớp active, đổi mật khẩu tùy chọn | [Bàn giao backend](BACKEND_COMPLETION.md) |
 | Không dùng font KVANT cho chữ UI; A/B/C/E/K và sơ đồ E dùng font menu Archivo. Logo SVG giữ nét gốc | [Design system](PUBLIC_UI_DESIGN_SYSTEM.md) |
 | Dùng Node.js 24 cho local, CI và deploy; kiểm tra phiên bản thật, không suy trạng thái hosted từ local | [Tiến độ](PROJECT_STATUS.md) |
 

@@ -18,6 +18,8 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root = path.resolve(__dirname, '..');
 const output = path.join(root, 'scratch', 'parent-topics-qa');
 const ids = {
+  parent: '20000000-0000-4000-8000-000000000001',
+  session: '20000000-0000-4000-8000-000000000002',
   student: '20000000-0000-4000-8000-000000000010',
   otherStudent: '20000000-0000-4000-8000-000000000011',
   basicClass: '20000000-0000-4000-8000-000000000020',
@@ -45,6 +47,14 @@ const modes = Object.fromEntries(['valid', 'excluded', 'old', 'expired', 'revoke
 const filter = process.env.PARENT_TOPICS_QA_FILTER ? new RegExp(process.env.PARENT_TOPICS_QA_FILTER) : null;
 const report = { filter: filter?.source || null, assertions: 0, checks: [], failures: [], browserErrors: [], unexpectedRequests: [], mockRequests: [] };
 const check = (value, message) => { report.assertions++; assert.ok(value, message); };
+// Synthetic Auth transport only; this does not certify a real Supabase login.
+const sessions = Object.fromEntries(['parent', 'admin'].map(role => {
+  const user = { id: ids.parent, aud: 'authenticated', role: 'authenticated', app_metadata: { role }, user_metadata: { name: 'Người dùng dữ liệu giả' }, created_at: '2026-01-01T00:00:00Z' };
+  const expires = Math.floor(Date.now() / 1000) + 7200;
+  const encode = value => Buffer.from(JSON.stringify(value)).toString('base64url');
+  const access_token = encode({ alg: 'HS256', typ: 'JWT' }) + '.' + encode({ sub: user.id, aud: 'authenticated', role: 'authenticated', session_id: ids.session, app_metadata: user.app_metadata, exp: expires, iat: expires - 7200 }) + '.' + Buffer.from('synthetic-fixture-signature').toString('base64url');
+  return [role, { access_token, token_type: 'bearer', refresh_token: 'synthetic-unused-refresh', expires_in: 7200, expires_at: expires, user }];
+}));
 async function run(name, fn) {
   if (filter && !filter.test(name)) return;
   try { await fn(); report.checks.push(name); console.log('PASS ' + name); }
@@ -88,7 +98,12 @@ async function main() {
   }
   const mock = http.createServer(async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
-    if (req.url !== '/rest/v1/rpc/parent_learning_portal' || req.method !== 'POST') {
+    if (req.url === '/auth/v1/user' && req.method === 'GET') {
+      const session = Object.values(sessions).find(value => req.headers.authorization === 'Bearer ' + value.access_token);
+      if (!session) { res.writeHead(401); res.end(JSON.stringify({ message: 'Unknown synthetic Auth token.' })); return; }
+      res.end(JSON.stringify(session.user)); return;
+    }
+    if (!['/rest/v1/rpc/parent_learning_portal', '/rest/v1/rpc/parent_password_session_valid'].includes(req.url) || req.method !== 'POST') {
       report.unexpectedRequests.push({ surface: 'mock', path: req.url, method: req.method });
       res.writeHead(404); res.end(JSON.stringify({ message: 'Only the read-only parent RPC fixture exists.' })); return;
     }
@@ -96,6 +111,9 @@ async function main() {
       let body = ''; for await (const chunk of req) body += chunk;
       const args = JSON.parse(body);
       const mode = Object.keys(modes).find(key => modes[key].hash === args.p_token_hash);
+      if (req.url === '/rest/v1/rpc/parent_password_session_valid') {
+        res.end(JSON.stringify(!!mode && !['expired', 'revoked'].includes(mode) && args.p_auth_uid === ids.parent && args.p_session_id === ids.session)); return;
+      }
       // Report only synthetic argument metadata, never cookies or token hashes.
       report.mockRequests.push({ mode: mode || 'unknown', student: args.p_student_id, month: args.p_month, page: args.p_review_page });
       if (!mode || ['expired', 'revoked'].includes(mode) || (args.p_student_id && args.p_student_id !== ids.student)) {
@@ -131,7 +149,9 @@ async function main() {
     }
     check(ready, 'Isolated preview started.');
     browser = await chromium.launch({ headless: true, channel: process.env.CSAT_BROWSER_CHANNEL || 'msedge' });
-    async function context(mode = 'valid', options = {}) {
+    report.runtime = process.version;
+    report.browser = { channel: process.env.CSAT_BROWSER_CHANNEL || 'msedge', version: browser.version() };
+    async function context(mode = 'valid', options = {}, role = 'parent') {
       const result = await browser.newContext({ viewport: { width: 1440, height: 900 }, ...options });
       await result.route('**/*', route => {
         const request = route.request(), url = new URL(request.url());
@@ -144,7 +164,10 @@ async function main() {
         return route.continue();
       });
       result.on('page', page => page.on('pageerror', error => report.browserErrors.push(error.message)));
-      if (mode) await result.addCookies([{ name: 'csat_parent_lookup', value: modes[mode].token, domain: '127.0.0.1', path: '/', httpOnly: true, sameSite: 'Lax' }]);
+      if (mode) await result.addCookies([
+        { name: 'csat_parent_lookup', value: modes[mode].token, domain: '127.0.0.1', path: '/', httpOnly: true, sameSite: 'Lax' },
+        { name: 'sb-127-auth-token', value: 'base64-' + Buffer.from(JSON.stringify(sessions[role])).toString('base64url'), domain: '127.0.0.1', path: '/', httpOnly: true, sameSite: 'Lax' },
+      ]);
       return result;
     }
     const articleUrl = (slug, classId, overrides = {}) => origin + '/parents/chuyen-de/' + slug + '?' + new URLSearchParams({
@@ -215,12 +238,18 @@ async function main() {
       await visit(p, articleUrl(...samples[0])); check(new URL(p.url()).pathname === '/login', 'No cookie must redirect to login.');
       await c.addCookies([{ name: 'csat_parent_lookup', value: 'malformed', domain: '127.0.0.1', path: '/' }]);
       await visit(p, articleUrl(...samples[0])); check(new URL(p.url()).pathname === '/login', 'Malformed cookie must redirect.');
+      await c.addCookies([{ name: 'csat_parent_lookup', value: modes.valid.token, domain: '127.0.0.1', path: '/' }]);
+      await visit(p, articleUrl(...samples[0])); check(new URL(p.url()).pathname === '/login', 'Lookup token alone cannot replace verified Auth.');
       await c.close();
+      const wrongRole = await context('valid', {}, 'admin'), adminPage = await wrongRole.newPage();
+      await visit(adminPage, articleUrl(...samples[0])); check(new URL(adminPage.url()).pathname === '/login', 'Non-parent Auth plus lookup token cannot read parent content.');
+      await wrongRole.close();
     });
     for (const mode of ['expired', 'revoked', 'excluded', 'old', 'withdrawn', 'draft', 'nullStudent']) await run('private article denied: ' + mode, async () => {
       const c = await context(mode), p = await c.newPage();
       await visit(p, articleUrl(...samples[0]));
       check(await p.locator('.parent-topic-content').count() === 0, mode + ' must not return article content.');
+      if (['expired', 'revoked'].includes(mode)) check(new URL(p.url()).pathname === '/login', mode + ' session returns to login.');
       check(!(await p.content()).includes('for (int'), mode + ' must not leak core article code.');
       const prefetch = await c.request.get(articleUrl(...samples[0]), { headers: { RSC: '1', 'Next-Router-Prefetch': '1' } });
       check(!(await prefetch.text()).includes('parent-topic-content'), mode + ' must not return an article through RSC prefetch.');
@@ -400,10 +429,11 @@ async function main() {
       await nojs.close();
     });
     await c.close();
+    await require('./tests/backend-ui.browser.cjs')({ context, origin, run, check, output });
     await run('no browser errors or unexpected backend operations', async () => {
       check(report.browserErrors.length === 0, 'No browser errors: ' + report.browserErrors.join('; '));
       check(report.unexpectedRequests.length === 0, 'No unexpected API requests.');
-      check(report.mockRequests.some(request => request.mode === 'valid'), 'Real SSR made a validated fixture RPC request.');
+      if (!filter || report.mockRequests.length) check(report.mockRequests.some(request => request.mode === 'valid'), 'Real SSR made a validated fixture RPC request.');
     });
   } finally {
     await browser?.close();

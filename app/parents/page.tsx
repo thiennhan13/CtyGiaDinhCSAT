@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { z } from 'zod';
 import { createAdminClient } from '@/lib/supabase/service';
-import { readLookupHash } from '@/lib/parent-lookup';
+import { parentSession } from '@/lib/parent-auth';
 import { monthSchema } from '@/lib/learning';
 import type { ParentLearningData } from '@/lib/parent-learning';
 import { ParentShell } from '@/components/learning/ParentShell';
@@ -10,13 +10,13 @@ import { ParentLogoutButton } from './logout-button';
 import { ParentPortalView } from '@/components/learning/ParentPortalView';
 export const dynamic = 'force-dynamic';
 export default async function ParentPortal({searchParams}:{searchParams:Promise<{student?:string;month?:string;page?:string}>}){
- const hash=await readLookupHash();if(!hash)redirect('/login');
+ const session=await parentSession();if(!session)redirect('/login');const {hash}=session;
  const params=await searchParams;
  const parsed=z.object({student:z.string().uuid().optional(),month:monthSchema.optional(),page:z.coerce.number().int().min(0).max(10000).default(0)}).safeParse(params);
  if(!parsed.success)redirect('/parents');
  const {data,error}=await createAdminClient().rpc('parent_learning_portal',{p_token_hash:hash,p_student_id:parsed.data.student||null,p_month:parsed.data.month||null,p_review_page:parsed.data.page});
  if(error){
-  if(error.code==='42501')return <AccessMessage message="Phiên tra cứu đã hết hạn hoặc học sinh không còn được liên kết. Vui lòng đóng tra cứu và nhập lại số điện thoại." />;
+  if(error.code==='42501')return <AccessMessage message="Phiên tra cứu đã hết hạn hoặc học sinh không còn được liên kết. Vui lòng đăng nhập lại bằng số điện thoại và mật khẩu." />;
   return <AccessMessage message="Chưa tải được đầy đủ thông tin. Vui lòng thử lại sau hoặc liên hệ CSAT." />;
  }
  const portal=data as ParentLearningData;

@@ -1,6 +1,6 @@
 # Workflow frontend
 
-Phạm vi: website công khai và UI admin/gia sư/phụ huynh. Ưu tiên hiện tại là hoàn thiện frontend theo chỉ dẫn chủ trung tâm; backend/API chờ hợp đồng và triển khai riêng. Hai luồng cùng ứng dụng Next.js, không phải hai repository.
+Phạm vi: website công khai và UI admin/gia sư/phụ huynh. Ba luồng đăng ký, phân loại chương trình và Auth phụ huynh đã có thay đổi backend trong mã; UI phải đối chiếu [hợp đồng và nghiệm thu](BACKEND_COMPLETION.md). Chưa có staging Supabase. Hai luồng cùng ứng dụng Next.js, không phải hai repository.
 
 ## Trước khi sửa
 
@@ -48,7 +48,7 @@ Nội dung học thuật dùng chủ ngữ/vị ngữ rõ, gắn hoạt động 
 
 ## Giao tiếp với backend
 
-Chốt input/response, enum, validation, quyền, revision, lỗi và null trước nối. Form public hiện chỉ xem lại/sao chép/liên hệ thật; không báo đã gửi. Bật env không tự hoàn thiện adapter/schema.
+Chốt input/response, enum, validation, quyền, revision, lỗi và null trước nối. Đăng ký đã nối intake v2 trong mã, chỉ báo tiếp nhận sau lưu thành công; học liệu giữ sao chép/liên hệ thật. Bật tiếp nhận cần migration18/24 và nghiệm thu; chỉ bật env không thay kiểm tra schema/quyền.
 
 Trang phụ huynh chỉ đọc published trong phạm vi liên kết, không lọc quyền thay server, không biến null thành 0 hoặc tính học phí cũ bằng giá mới. Catalog C/E/K không tự map vào enum lớp hoặc chuyển dữ liệu hiện có. Backend có workflow riêng: [BACKEND_WORKFLOW](BACKEND_WORKFLOW.md).
 

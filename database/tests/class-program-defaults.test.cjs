@@ -72,9 +72,9 @@ test('missing or mismatched default aborts migration without partial changes',as
  }finally{await db.close();}
 });
 test('UI maps HSGQG and custom independently and rejects ambiguous class names',()=>{
- const ts=require('typescript'),Module=require('node:module'),file=path.join(root,'lib/learning.ts'),m=new Module(file,module);m.filename=file;m.paths=Module._nodeModulePaths(path.dirname(file));
- m._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,file);
- const {defaultProgram,programSchema,CLASS_TYPE_OPTIONS}=m.exports;
+ const ts=require('typescript'),Module=require('node:module');
+ function load(file){const m=new Module(file,module);m.filename=file;m.paths=Module._nodeModulePaths(path.dirname(file));const req=m.require.bind(m);m.require=name=>name.startsWith('.')&&fs.existsSync(path.resolve(path.dirname(file),name+'.ts'))?load(path.resolve(path.dirname(file),name+'.ts')):req(name);m._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,file);return m.exports;}
+ const {defaultProgram,programSchema,CLASS_TYPE_OPTIONS}=load(path.join(root,'lib/learning.ts'));
  for(const [input,expected] of [['Lớp Cơ Bản','basic'],['  Lớp   Nâng cao ','advanced'],['Lớp HSGQG','voi'],['Ôn thi VOI','voi'],['Lớp Luyện thi','custom'],['Cơ bản bổ sung',null],['',null]])assert.equal(defaultProgram(input),expected);
  assert.equal(programSchema.parse('custom'),'custom');assert.equal(CLASS_TYPE_OPTIONS.length,4);
 });

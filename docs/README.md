@@ -9,6 +9,7 @@ Tài liệu hiện hành viết theo chức năng/quyết định, không theo n
 | [README](../README.md), [HANDOFF](HANDOFF.md) | Tổng quan và thứ tự tiếp nhận, các quyết định cần giữ |
 | [AGENTS](../AGENTS.md), [CONTRIBUTING](../CONTRIBUTING.md), [SECURITY](../SECURITY.md) | Quyền, dữ liệu, workflow nhóm và kiểm tra trước chia sẻ |
 | [PROJECT_STATUS](PROJECT_STATUS.md) | Trạng thái local/production, bằng chứng, nội dung chờ và backlog |
+| [BACKEND_COMPLETION](BACKEND_COMPLETION.md) | Ba luồng backend, cấp Auth phụ huynh, SQL pre/postflight và chuyển đổi có bảo trì; nghiệm thu còn chờ |
 | [ARCHITECTURE](ARCHITECTURE.md) | Ranh giới trách nhiệm, luồng dữ liệu/quyền, cấu trúc mã |
 | [FRONTEND_WORKFLOW](FRONTEND_WORKFLOW.md), [BACKEND_WORKFLOW](BACKEND_WORKFLOW.md) | Quy trình triển khai và kiểm thử theo phạm vi |
 | [PUBLIC_UI_DESIGN_SYSTEM](PUBLIC_UI_DESIGN_SYSTEM.md) | Neobrutalism/playful edtech, token/font/palette và ngoại lệ từng trang |

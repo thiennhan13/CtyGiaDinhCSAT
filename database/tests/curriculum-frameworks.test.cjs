@@ -53,7 +53,7 @@ test('curriculum permissions, membership, exclusions, empty publication and stal
 
 test('canonical catalog and effective class contents retain topic order, restore exclusions, and never infer mastery',()=>{
  const ts=require('typescript'),Module=require('node:module');
- function load(file){const filename=path.join(root,file),m=new Module(filename,module);m.filename=filename;m.paths=Module._nodeModulePaths(path.dirname(filename));m._compile(ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,filename);return m.exports;}
+ function load(file){const filename=path.join(root,file),m=new Module(filename,module);m.filename=filename;m.paths=Module._nodeModulePaths(path.dirname(filename));const req=m.require.bind(m);m.require=name=>name.startsWith('.')&&fs.existsSync(path.resolve(path.dirname(filename),name+'.ts'))?load(path.relative(root,path.resolve(path.dirname(filename),name+'.ts'))):req(name);m._compile(ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,filename);return m.exports;}
  const {templateSchema,emptyLearningBody}=load('lib/learning.ts'),{effectiveStages,curriculumError}=load('lib/curriculum.ts');
  const seeds=require('../../lib/learning-curriculum-20260922.json');
  const [basic,advanced]=seeds.map((t,i)=>({...templateSchema.parse(t),template_id:id(50+i),version:2}));

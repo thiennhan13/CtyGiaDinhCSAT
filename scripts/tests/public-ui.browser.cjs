@@ -2,7 +2,7 @@
 // Set PLAYWRIGHT_MODULE for an installed module, PUBLIC_QA_BASE_URL for localhost,
 // and CSAT_BROWSER_CHANNEL for an installed Chromium channel (default msedge).
 // PUBLIC_QA_FILTER optionally limits named checks for targeted re-verification.
-// External network and all writes are blocked; frontend forms never call the intake API.
+// External network and writes are blocked; reviewing a registration must not submit it.
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const fs=require('node:fs/promises'),path=require('node:path');
 const base=new URL(process.env.PUBLIC_QA_BASE_URL||'http://127.0.0.1:3100');
@@ -576,7 +576,7 @@ async function main(){
    }
   }
   await go(page,'/dang-ky-hoc?course=C#thong-tin');const form=page.locator('.public-intake form');
-  await form.locator('[name=name]').fill('Phụ huynh kiểm thử');await form.locator('[name=phone]').fill('0912345678');
+  await form.locator('[name=consent]').check();await form.locator('[name=name]').fill('Phụ huynh kiểm thử');await form.locator('[name=phone]').fill('0912345678');
   await form.getByRole('button',{name:'Kiểm tra thông tin'}).click();check((await page.locator('.intake-review textarea').inputValue()).includes('Khóa quan tâm: C —'),'Default is included in review');
   await page.getByRole('button',{name:'Chỉnh lại',exact:true}).click();await choose(page,form,'course','B — Thi đấu cơ bản');
   await form.getByRole('button',{name:'Kiểm tra thông tin'}).click();check((await page.locator('.intake-review textarea').inputValue()).includes('Khóa quan tâm: B —'),'User can override default');
@@ -594,7 +594,7 @@ async function main(){
   for(const route of ['/hoc-lieu-mien-phi','/lo-trinh?course=C&level=thcs&goal=province&background=practice&show=1#tu-van']){
    await page.setViewportSize({width:375,height:900});await go(page,route);const form=page.locator('.public-intake form');await form.waitFor();
    await form.locator('[data-select-name=course]').click();await page.getByRole('option').nth(5).waitFor();check(await page.getByRole('option').count()===6,'Five courses plus advice');await page.keyboard.press('Escape');
-   await form.locator('[name=name]').fill('Phụ huynh kiểm thử');await form.locator('[name=phone]').fill('123');await form.getByRole('button',{name:'Kiểm tra thông tin'}).click();check(await form.getByRole('alert').isVisible(),'Invalid phone blocked');check(await page.locator('.intake-review').count()===0,'Invalid form does not advance');
+   if(route!=='/hoc-lieu-mien-phi')await form.locator('[name=consent]').check();await form.locator('[name=name]').fill('Phụ huynh kiểm thử');await form.locator('[name=phone]').fill('123');await form.getByRole('button',{name:'Kiểm tra thông tin'}).click();check(await form.getByRole('alert').isVisible(),'Invalid phone blocked');check(await page.locator('.intake-review').count()===0,'Invalid form does not advance');
    await form.locator('[name=phone]').fill('0912345678');await form.locator('[name=email]').fill('test@example.test');await form.locator('[name=message]').fill('Muốn tìm tài liệu và luyện thêm thuật toán.');await choose(page,form,'course','C — Thi đấu nâng cao');
    await form.getByRole('button',{name:'Kiểm tra thông tin'}).click();const review=page.locator('.intake-review'),summary=review.locator('textarea');await review.waitFor();check((await summary.inputValue()).includes('C — Thi đấu nâng cao'),'Chosen course preserved');check((await review.innerText()).includes('Thông tin chưa được gửi'),'Honest unsent state');check(await review.locator('h3').evaluate(e=>e===document.activeElement),'Review gets focus');
    await review.getByRole('button',{name:'Sao chép nội dung'}).click();await page.waitForFunction(()=>!!window.__copied);check(await page.evaluate(()=>window.__copied)===(await summary.inputValue()),'Clipboard matches reviewed text');

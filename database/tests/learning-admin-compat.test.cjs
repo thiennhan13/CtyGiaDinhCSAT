@@ -3,6 +3,7 @@ const root=path.resolve(__dirname,'../..');
 function load(relative,state){const filename=path.join(root,relative),m=new Module(filename,module);m.paths=Module._nodeModulePaths(path.dirname(filename));const req=m.require.bind(m);m.require=name=>{
  if(name==='next/server')return {NextResponse:{json:(b,o)=>Response.json(b,o)}};
  if(name==='@/lib/learning')return load('lib/learning.ts',state);
+ if(name.startsWith('.')&&fs.existsSync(path.resolve(path.dirname(filename),name+'.ts')))return load(path.relative(root,path.resolve(path.dirname(filename),name+'.ts')),state);
  if(name==='@/lib/business-api')return {businessError:e=>Response.json({error:e.code},{status:500}),businessSession:async()=>({supabase:{from:table=>{let selection='';const query={select(s){selection=s;return query;},order(){return query;},not(){return query;},single(){return query;},limit(){return query;},then(resolve){state.calls.push({table,selection});if(table==='review_email_outbox'&&selection.includes('email_reconciliations')&&state.error)return Promise.resolve({data:null,error:{code:state.error}}).then(resolve);return Promise.resolve({data:table==='parent_portal_settings'?{revision:1}:table==='review_email_outbox'?[{outbox_id:'synthetic',status:'pending'}]:[],error:null}).then(resolve);}};return query;}}})};
  return req(name);
  };m._compile(ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,filename);return m.exports;}

@@ -122,6 +122,44 @@ test('PostgreSQL 17: concurrent accounting, learning drafts and email leases; ba
   await a.exec('reset role');
   assert.equal(await value(a,'select revision from tutor_public_profiles where tutor_id=$1',[id(20)]),1);
 
+  // Backend completion: use separate real connections for idempotency/revision/rate locks.
+  await a.exec('reset role');
+  await a.exec('alter table auth.users add column phone text, add column banned_until timestamptz; create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id));');
+  for(const file of ['20261008_23_parent_class_progress.sql','20261012_24_registration_intake.sql','20261012_25_class_program_codes.sql','20261012_26_parent_password_auth.sql'])await a.exec(fs.readFileSync(path.join(__dirname,'../migrations',file),'utf8'));
+  for(const worker of [a,b]){await worker.exec('reset role');await worker.query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({role:'service_role'})]);await worker.exec('set role service_role');}
+  const intakeId=randomUUID(),intake={schema_version:2,role:'parent',name:'Synthetic',phone:'0987654321',email:'',level:'thcs',course:'B',goal:'thcs',background:'syntax',school_year:'8',message:'',source_path:'/lo-trinh/b',consent:true};
+  const intakeArgs=[intakeId,JSON.stringify(intake),'c'.repeat(64)];
+  const accepted=await Promise.all([value(a,'select submit_registration($1,$2,$3)',intakeArgs),value(b,'select submit_registration($1,$2,$3)',intakeArgs)]);assert.equal(accepted[0],accepted[1]);
+  await a.exec('reset role');
+  assert.equal(await value(a,'select count(*)::int from consultation_email_outbox where request_id=$1',[intakeId]),0);
+  await a.exec('set role service_role');
+  await value(a,'select submit_registration($1,$2,$3)',[randomUUID(),...intakeArgs.slice(1)]);
+  const intakeLimited=await Promise.allSettled([value(a,'select submit_registration($1,$2,$3)',[randomUUID(),...intakeArgs.slice(1)]),value(b,'select submit_registration($1,$2,$3)',[randomUUID(),...intakeArgs.slice(1)])]);
+  assert.equal(intakeLimited.filter(r=>r.status==='fulfilled').length,1);
+  assert.equal(intakeLimited.find(r=>r.status==='rejected').reason.code,'P0429');
+  for(let i=0;i<9;i++)await value(a,'select consume_auth_attempt($1,$2)',['d'.repeat(64),'e'.repeat(64)]);
+  const attempts=await Promise.all([value(a,'select consume_auth_attempt($1,$2)',['d'.repeat(64),'e'.repeat(64)]),value(b,'select consume_auth_attempt($1,$2)',['d'.repeat(64),'e'.repeat(64)])]);assert.equal(attempts.filter(Boolean).length,1);
+  await as(a);await as(b);
+  const codeWrites=await Promise.allSettled([value(a,"select admin_set_class_program($1,'A',1,'Synthetic classification')",[c.class_id]),value(b,"select admin_set_class_program($1,'B',1,'Synthetic classification')",[c.class_id])]);assert.equal(codeWrites.filter(x=>x.status==='fulfilled').length,1);assert.equal(codeWrites.find(x=>x.status==='rejected').reason.code,'40001');
+  const statusWrites=await Promise.allSettled([value(a,"select update_consultation_status($1,'contacted',1)",[intakeId]),value(b,"select update_consultation_status($1,'completed',1)",[intakeId])]);
+  assert.equal(statusWrites.filter(r=>r.status==='fulfilled').length,1);assert.equal(statusWrites.find(r=>r.status==='rejected').reason.code,'40001');
+  // Eligibility must be re-read after a concurrent contact edit commits.
+  await a.exec('reset role');
+  await a.query("insert into parent_accounts(parent_id,display_name,phone) values($1,'Synthetic Parent','0987654321')",[id(880)]);
+  await a.query("update students set parent_name='Synthetic Parent',parent_number='0987654321',status='Đang học' where student_id=$1",[id(10)]);
+  await a.query('insert into parent_student_links(parent_id,student_id) values($1,$2)',[id(880),id(10)]);
+  await a.query("insert into auth.users(id,phone,raw_app_meta_data) values($1,'84987654321',$2)",[id(880),JSON.stringify({role:'parent',csat_parent_id:id(880)})]);
+  await b.exec('reset role');await b.query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({role:'service_role'})]);await b.exec('set role service_role');
+  await a.exec('begin');await a.query("update students set status='Nghỉ học' where student_id=$1",[id(10)]);
+  const linkResult=Promise.allSettled([value(b,'select link_parent_auth($1,$2,$3)',[id(880),id(880),'0987654321'])]);
+  await a.query('select pg_sleep(0.1)');await a.exec('commit');
+  assert.equal((await linkResult)[0].status,'rejected');
+  assert.equal(await value(a,'select auth_uid from parent_accounts where parent_id=$1',[id(880)]),null);
+  await a.query("update students set status='Đang học' where student_id=$1",[id(10)]);
+  await a.query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({role:'service_role'})]);await a.exec('set role service_role');
+  const links=await Promise.all([value(a,'select link_parent_auth($1,$2,$3)',[id(880),id(880),'0987654321']),value(b,'select link_parent_auth($1,$2,$3)',[id(880),id(880),'0987654321'])]);
+  assert.deepEqual(links,[true,true]);
+
   // Cold physical backup: copy only after a clean shutdown, then restore to a separate data directory.
   await Promise.all(clients.splice(0).map(c=>c.end()));
   await pg.stop();started=false;
