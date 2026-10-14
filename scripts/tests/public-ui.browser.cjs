@@ -565,7 +565,7 @@ async function main(){
    await page.getByRole('link',{name:`Đăng ký học lớp ${code}`,exact:true}).click();
    await page.waitForURL(url=>url.pathname==='/dang-ky-hoc'&&url.searchParams.get('course')===code);
    check((await page.locator('.public-intake [data-select-name=course]').innerText()).startsWith(code+' —'),'Enrollment inherits '+code);
-   check(await page.locator('.enrollment-selected').innerText().then(t=>t.includes('Lớp '+code)),'Selected course context shown');
+   check(await page.locator('.enrollment-registration form').evaluate((form,expected)=>String(new FormData(form).get('course')).startsWith(expected+' —'),code),'Enrollment form submits the inherited course '+code);
   }
   for(const route of ['/dang-ky-hoc?course=C#thong-tin','/lo-trinh/a#tu-van','/lo-trinh#tu-van','/hoc-lieu-mien-phi#nhan-tai-lieu']){
    await go(page,route);const form=page.locator('.public-intake form');
