@@ -1,5 +1,7 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
+// Each test file runs in its own process; do not inherit a deployment/preview origin.
+process.env.APP_ORIGIN = 'https://portal.test';
 const fs = require('node:fs');
 const path = require('node:path');
 const Module = require('node:module');
@@ -155,8 +157,24 @@ test('parent page enforces Auth separately; admin/tutor routing stays protected'
 });
 test('same-origin checks use forwarded authority and reject foreign or opaque origins',()=>{
   const {isSameOrigin}=load('lib/parents.ts',state());const req=origin=>new Request('http://localhost:3000/api',{headers:{host:'portal.test','x-forwarded-proto':'https',origin}});
+  const configuredOrigin=process.env.APP_ORIGIN;
+  try {
+    delete process.env.APP_ORIGIN;
+    assert.equal(isSameOrigin(req('https://portal.test')),true);
+    for(const origin of ['https://attacker.test','http://portal.test','null','not-a-url'])assert.equal(isSameOrigin(req(origin)),false);
+  } finally {
+    process.env.APP_ORIGIN=configuredOrigin;
+  }
+});
+
+test('configured origin takes precedence over request authority and still rejects cross-site requests',()=>{
+  const {isSameOrigin}=load('lib/parents.ts',state());
+  const req=(origin,extra={})=>new Request('http://localhost:3000/api',{
+    headers:{host:'attacker.test','x-forwarded-proto':'https',...(origin?{origin}:{}),...extra},
+  });
   assert.equal(isSameOrigin(req('https://portal.test')),true);
-  for(const origin of ['https://attacker.test','http://portal.test','null','not-a-url'])assert.equal(isSameOrigin(req(origin)),false);
+  for(const origin of ['https://attacker.test','http://portal.test','https://portal.test:444','null','not-a-url',''])assert.equal(isSameOrigin(req(origin)),false);
+  assert.equal(isSameOrigin(req('https://portal.test',{'sec-fetch-site':'cross-site'})),false);
 });
 
 test('admin searches domestic storage using local or international prefixes',async()=>{

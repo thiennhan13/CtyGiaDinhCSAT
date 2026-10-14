@@ -57,6 +57,8 @@ npm run build
 
 `database/tests/` gồm PGlite/API và PostgreSQL native; ca Windows kiểm chứng concurrency/restore. Không coi skip là pass: ghi rõ nền tảng, ca đã chạy và môi trường. Hồi quy tiêu biểu: ngoài quyền/chéo học sinh, ghi đồng thời, payload giữ nguyên sau lần gửi đầu, worker crash, tháng đổi, dữ liệu học phí thiếu/điều chỉnh/hoàn và Storage lỗi.
 
+Test API phải tự đặt `APP_ORIGIN` khớp origin fixture trong tiến trình test; không kế thừa origin của deployment hoặc preview. Ca kiểm tra fallback theo host/proxy cần tạm bỏ biến này và khôi phục sau kiểm tra. CI chỉ đặt origin loopback tại bước build/public smoke; runner private topics tự đặt origin theo cổng thử của nó. Không nới kiểm tra Origin ở runtime để sửa lỗi môi trường test.
+
 Trước PR chạy thêm guard và guard tests theo [CONTRIBUTING](../CONTRIBUTING.md). Avatar phải thử Supabase Storage thật trong project thử, Auth phải thử luồng phù hợp, restore phải kiểm chứng trên môi trường tách biệt; mock/build không thay thế những bằng chứng đó.
 
 Production theo [runbook ba luồng](BACKEND_COMPLETION.md) và [setup](SETUP_VERCEL_SUPABASE.md): staging trước → backup/restore thử → preflight → bảo trì/schema → postflight → provisioning có đối soát → deploy tương thích với email tắt → smoke. Migration26 không tương thích login phụ huynh cũ; không để khoảng trống schema/deploy ngoài bảo trì. Người dùng tự chạy SQL production; chưa có staging nên nghiệm thu còn chờ. Không tự thao tác dashboard, cấp Auth thật, gửi thư, reset tài khoản hoặc push/deploy chỉ vì test xanh.

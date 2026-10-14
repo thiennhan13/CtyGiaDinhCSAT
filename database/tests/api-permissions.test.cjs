@@ -1,5 +1,7 @@
 const assert=require('node:assert/strict');
 const {test}=require('node:test');
+// Each test file runs in its own process; do not inherit a deployment/preview origin.
+process.env.APP_ORIGIN='https://portal.test';
 const fs=require('node:fs'),path=require('node:path'),Module=require('node:module'),ts=require('typescript');
 const root=path.resolve(__dirname,'../..');
 const id=n=>'10000000-0000-4000-8000-'+String(n).padStart(12,'0');

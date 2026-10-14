@@ -1,5 +1,7 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
+// Each test file runs in its own process; do not inherit a deployment/preview origin.
+process.env.APP_ORIGIN = 'https://portal.test';
 const fs = require('node:fs');
 const path = require('node:path');
 const Module = require('node:module');
