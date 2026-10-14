@@ -1,7 +1,7 @@
 'use client';
 import { publicZaloUrl } from '@/lib/public-contact';
 
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowRight, ArrowUpRight, Check, Copy, Pencil } from 'lucide-react';
 import { PublicSelect } from './PublicSelect';
 import { parentPhoneSchema } from '@/lib/parents';
@@ -29,13 +29,21 @@ export function PublicConsultation({ kind = 'consultation', context = '', defaul
   const summary = useRef<HTMLTextAreaElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const reviewButton = useRef<HTMLButtonElement>(null);
+  const restoreReviewFocus = useRef(false);
   const id = useId();
   const [submission, setSubmission] = useState<IntakeInput | null>(null);
   const [sending, setSending] = useState(false);
   const [saved, setSaved] = useState(false);
   const requestKey = useRef<{ body: string; id: string } | null>(null);
   useEffect(() => setReady(true), []);
-  useEffect(() => { if (review !== null) heading.current?.focus(); }, [review]);
+  useLayoutEffect(() => {
+    if (review !== null) heading.current?.focus();
+    else if (restoreReviewFocus.current) {
+      // The form must be visible in the committed DOM before it can receive focus.
+      restoreReviewFocus.current = false;
+      reviewButton.current?.focus();
+    }
+  }, [review]);
 
   function prepare(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -113,7 +121,7 @@ export function PublicConsultation({ kind = 'consultation', context = '', defaul
         {kind !== 'materials' && !saved && <button type="button" className="btn" disabled={sending} onClick={send}>{sending ? 'Đang gửi…' : 'Gửi đăng ký'}<ArrowRight size={18} aria-hidden="true" /></button>}
         {error && <p role="alert" className="form-feedback">{error}</p>}
         <label className="field">Nội dung của bạn<textarea ref={summary} readOnly value={review} rows={11} /></label>
-        <div className="intake-review-actions"><button type="button" className="btn" onClick={copy}>{copyState === 'copied' ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}Sao chép nội dung</button>{!saved && <button type="button" className="text-link" disabled={sending} onClick={() => { setReview(null); setCopyState('idle'); requestAnimationFrame(() => reviewButton.current?.focus()); }}><Pencil size={16} aria-hidden="true" />Chỉnh lại</button>}</div>
+        <div className="intake-review-actions"><button type="button" className="btn" onClick={copy}>{copyState === 'copied' ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}Sao chép nội dung</button>{!saved && <button type="button" className="text-link" disabled={sending} onClick={() => { restoreReviewFocus.current = true; setReview(null); setCopyState('idle'); }}><Pencil size={16} aria-hidden="true" />Chỉnh lại</button>}</div>
         <p role="status" className="intake-note">{copyState === 'copied' ? 'Đã sao chép. Hãy dán vào cuộc trò chuyện với CSAT để gửi.' : copyState === 'failed' ? 'Trình duyệt chưa cho phép sao chép. Nội dung đã được chọn; bạn có thể sao chép thủ công.' : ''}</p>
       </section>}
     </> : <p>Chia sẻ nhu cầu học tập hoặc tài liệu bạn đang tìm cùng đội ngũ CSAT.</p>}

@@ -1,6 +1,6 @@
 # Bàn giao ba luồng backend
 
-Phạm vi mã hiện tại: tiếp nhận đăng ký public, phân loại chương trình lớp và tài khoản phụ huynh bằng số điện thoại/mật khẩu. Kiểm chứng local đã đạt theo bảng cuối tài liệu; **chưa nghiệm thu end-to-end staging/production** vì chưa có project Supabase staging. Người dùng đã tự chạy SQL 18/24/25/26; theo ủy quyền tiếp theo đã cấp 44 Auth parent và đối soát production ngày 14/10/2026. Vercel dashboard ngày 14/10/2026 xác nhận commit 731174b đã Ready; bản nâng cấp trang nhận đơn còn chờ phát hành và cấu hình tiếp nhận bởi người dùng.
+Phạm vi mã hiện tại: tiếp nhận đăng ký public, phân loại chương trình lớp và tài khoản phụ huynh bằng số điện thoại/mật khẩu. Kiểm chứng local đã đạt theo bảng cuối tài liệu; **chưa nghiệm thu end-to-end staging/production** vì chưa có project Supabase staging. Người dùng đã tự chạy SQL 18/24/25/26; theo ủy quyền tiếp theo đã cấp 44 Auth parent và đối soát production ngày 14/10/2026. Bản nâng cấp nhận đơn 661717f đã triển khai production ngày 14/10/2026; người dùng tự cấu hình cờ/khóa và endpoint xác nhận enabled. Chưa nghiệm thu gửi đơn hợp lệ và phiên admin thật; bằng chứng chi tiết ở PROJECT_STATUS.
 
 ## Hợp đồng đã triển khai trong mã
 

@@ -22,6 +22,9 @@ export async function POST(request: Request) {
     if (!limit.data) return response({ error: 'Bạn đã thử nhiều lần. Vui lòng thử lại sau 15 phút.' }, 429);
     const auth = await createClient();
     const signed = await auth.auth.signInWithPassword({ phone: '+84' + parsed.data.phone.slice(1), password: parsed.data.password });
+    if (signed.error?.code === 'phone_provider_disabled') {
+      return response({ error: 'Đăng nhập phụ huynh hiện chưa sẵn sàng. Vui lòng liên hệ CSAT để được hỗ trợ.' }, 503);
+    }
     if (signed.error || signed.data.user?.app_metadata?.role !== 'parent' || !signed.data.session) {
       if (signed.data.session) await auth.auth.signOut({ scope: 'local' });
       return response({ error: 'Số điện thoại hoặc mật khẩu không đúng, hoặc tài khoản chưa được cấp quyền.' }, 401);

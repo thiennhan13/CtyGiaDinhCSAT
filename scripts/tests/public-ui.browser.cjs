@@ -600,6 +600,11 @@ async function main(){
    await review.getByRole('button',{name:'Sao chép nội dung'}).click();await page.waitForFunction(()=>!!window.__copied);check(await page.evaluate(()=>window.__copied)===(await summary.inputValue()),'Clipboard matches reviewed text');
    if(route!=='/hoc-lieu-mien-phi')check((await summary.inputValue()).includes('Ngữ cảnh tìm hiểu:'),'Selector context carried');
    await review.getByRole('button',{name:'Chỉnh lại'}).click();check(await form.locator('[name=name]').inputValue()==='Phụ huynh kiểm thử','Edit retains input');check(await form.getByRole('button',{name:'Kiểm tra thông tin'}).evaluate(e=>e===document.activeElement),'Edit restores focus');
+   for(let cycle=0;cycle<3;cycle++){
+    await page.keyboard.press('Enter');await review.waitFor();check(await review.locator('h3').evaluate(e=>e===document.activeElement),'Keyboard review gets focus');
+    await review.getByRole('button',{name:'Chỉnh lại'}).focus();await page.keyboard.press('Enter');await form.waitFor();
+    check(await form.getByRole('button',{name:'Kiểm tra thông tin'}).evaluate(e=>e===document.activeElement),'Repeated keyboard edit restores focus');
+   }
    await form.getByRole('button',{name:'Kiểm tra thông tin'}).click();await page.evaluate(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async()=>{throw Error('Denied');}}}));await review.getByRole('button',{name:'Sao chép nội dung'}).click();await review.getByRole('status').filter({hasText:'thủ công'}).waitFor();check(await summary.evaluate(e=>e.selectionEnd===e.value.length),'Clipboard failure selects text');
    check(!page.url().includes('0912345678'),'No PII in URL');check(await page.evaluate(()=>!Object.values(localStorage).join('').includes('0912345678')&&!Object.values(sessionStorage).join('').includes('0912345678')),'No persistent draft');
    await page.reload({waitUntil:'networkidle'});await page.locator('.public-intake form').waitFor();check(await page.locator('.public-intake [name=name]').inputValue()==='','Reload clears draft');

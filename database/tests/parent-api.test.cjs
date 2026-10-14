@@ -128,6 +128,14 @@ test('phone-only, invalid credentials, revoked profile and durable rate limits f
   const s=state(overrides),r=await post(login,s,{phone:'0912345678',password:'synthetic'});assert.equal(r.status,status);assert.equal(s.cookies.length,0);if(status===429)assert.equal(r.headers.get('retry-after'),'900');
  }
 });
+
+test('disabled phone provider is a service configuration failure, not invalid credentials',async()=>{
+ const s=state({loginError:{code:'phone_provider_disabled',message:'Phone logins are disabled',status:422}});
+ const r=await post(login,s,{phone:'0912345678',password:'synthetic'});
+ assert.equal(r.status,503);assert.equal(r.headers.get('cache-control'),'private, no-store');
+ const body=await r.json();assert.match(body.error,/chưa sẵn sàng/);assert.doesNotMatch(body.error,/mật khẩu không đúng|Phone logins/);
+ assert.equal(did(s,'start_parent_password_session').length,0);assert.equal(s.cookies.length,0);
+});
 test('raw phone, legacy and malformed cookies are never accepted as sessions',async()=>{
   for(const cookieValues of [{parent_session:'0912345678'},{csat_parent_lookup:'0912345678'},{csat_parent_lookup:'!'.repeat(43)},{}]){
     assert.equal(await load('lib/parent-lookup.ts',state({cookieValues})).readLookupHash(),null);

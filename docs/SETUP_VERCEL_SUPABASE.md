@@ -79,6 +79,8 @@ Trong SQL Editor đúng project, kiểm tra chỉ đọc:
 SELECT version FROM csat_internal.schema_migrations ORDER BY version;
 ```
 
+Repo dùng registry `csat_internal.schema_migrations`, không dùng bảng lịch sử của Supabase CLI `supabase_migrations.schema_migrations`. Nếu công cụ dò bảng CLI nhận `42P01`, kiểm tra tồn tại bằng `to_regclass('supabase_migrations.schema_migrations')` trước khi truy vấn; không tạo bảng giả hoặc chạy lại migration để xóa cảnh báo. Việc bảng CLI không tồn tại không chứng minh schema nghiệp vụ bị thiếu.
+
 Bằng chứng production có ngày và các migration còn thiếu xem PROJECT_STATUS. Đối chiếu lại trước thực hiện; nếu kết quả khác, dựa vào kết quả thực. Nếu chưa có registry hoặc thiếu migration nền, dừng đối chiếu quy trình khởi tạo; không chạy ngẫu nhiên migration 18 trở đi.
 
 Tạo backup có thể phục hồi và lưu số lượng tổng hợp các dữ liệu liên quan trước khi chạy SQL. Backup database không chứa byte ảnh trong Storage; cần sao lưu tệp riêng sau khi dùng avatar. Không mặc định mọi gói đều có backup/PITR giống nhau. [Supabase backups](https://supabase.com/docs/guides/platform/backups).
@@ -109,6 +111,9 @@ Các file verification nêu trên dùng để kiểm tra; riêng file có tên `
 
 ### Auth và quyền truy cập
 
+- Authentication → Sign In / Providers → Phone: bật **Enable Phone provider** cho đăng nhập phụ huynh bằng số điện thoại và mật khẩu. Đây là cấu hình Supabase Auth, không phải biến Vercel hoặc migration SQL. Lỗi `/token` 422 `phone_provider_disabled` / `Phone logins are disabled` nghĩa provider đang tắt, không chứng minh mật khẩu sai. Sau khi lưu, thử lại bằng tài khoản đã được cấp; không cần cấp lại/reset mật khẩu hoặc redeploy chỉ vì thay cờ này. [Password-based Auth](https://supabase.com/docs/guides/auth/passwords).
+- Tài khoản phụ huynh do admin cấp; không mở tự đăng ký công khai để khắc phục lỗi trên. Đăng nhập hiện tại dùng mật khẩu, không gọi SMS/OTP. Nếu sau này cần xác minh số qua OTP thì phải cấu hình và nghiệm thu nhà cung cấp SMS riêng; không dùng thông tin nhà cung cấp giả.
+- Chẩn đoán log: `00000` với `source: dashboard` và truy vấn `count_estimate` là log câu lệnh Dashboard, không phải lỗi. `42501` “Không có quyền truy cập lớp.” phát ra từ `current_class_terms` hoặc `current_student_fee`, kể cả khi chúng được gọi qua view `class_current_state`/`class_students_current`. Cần đối chiếu RPC, CONTEXT, vai trò và phân công hiệu lực tại thời điểm lỗi. SQL Editor/service role không tự có danh tính admin của ứng dụng. Không bỏ kiểm tra quyền hoặc cấp thêm quyền chỉ từ thông báo này.
 - Authentication → URL Configuration: Site URL `https://portal.csatoj.vn`. Chỉ thêm redirect URL thật cần cho luồng đã triển khai; dùng project thử cho URL local/Preview. Không tự thêm `/auth/callback` hay reset-password khi ứng dụng chưa có luồng đó. [Auth Redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls).
 - Gia sư hiện đăng nhập bằng mật khẩu qua Supabase Auth; hồ sơ gia sư phải liên kết đúng `auth_uid` và đang hoạt động. Kiểm tra tài khoản admin, phân công lớp, liên kết phụ huynh–học sinh trên dữ liệu được phép.
 - Phụ huynh trong mã mới dùng Supabase Auth phone/password, role parent và link auth_uid. Đổi mật khẩu tùy chọn xác minh mật khẩu hiện tại bằng client độc lập; khuyến nghị bật yêu cầu mật khẩu hiện tại ở provider, thử Auth/thu hồi phiên thật trên staging. Mật khẩu chung và phone_confirm admin chưa chứng minh sở hữu số; SEC-02 còn mở.
