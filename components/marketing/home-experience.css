@@ -2725,7 +2725,7 @@
 .csat-public .home-page .oj-practice { margin-top: 30px; background: var(--home-art-ink); color: var(--home-art-paper); border-radius: 14px; overflow: hidden; border: 1px solid var(--home-art-ink); box-shadow: 7px 7px 0 var(--lime); }
 .csat-public .home-page .oj-practice-panel { padding: 28px; min-height: 240px; }
 .csat-public .home-page .oj-practice-panel > svg { width: 52px; height: 52px; color: var(--lime); float: right; margin-left: 15px; }
-.csat-public .home-page .oj-practice-panel h3 { font-size: 27px; margin-bottom: 15px; color: var(--home-art-paper); }
+.csat-public .home-page .oj-practice-panel :is(h2,h3) { font-size: 27px; margin-bottom: 15px; color: var(--home-art-paper); }
 .csat-public .home-page .oj-practice-panel p { font-size: 15px; color: #dfded6; }
 .csat-public .home-page .oj-practice-panel:not([hidden]) { animation: csat-home-panel-in 220ms var(--ease); }
 .csat-public .home-page .oj-photo { height: 230px; margin-top: 32px; overflow: hidden; border-radius: 8px; }
@@ -2782,7 +2782,7 @@
  .csat-public .home-page .values-bulb { width: 58px; height: 87px; }
  .csat-public .home-page .materials-card .materials-note { font-size: 12px; }
  .csat-public .home-page .oj-practice-panel { padding: 24px; min-height: 230px; }
- .csat-public .home-page .oj-practice-panel h3 { font-size: 25px; }
+ .csat-public .home-page .oj-practice-panel :is(h2,h3) { font-size: 25px; }
  .csat-public .home-page .oj-photo { height: 210px; }
  .csat-public .home-page .course-format { display: flex; }
  .csat-public .home-page .course-meta { flex-wrap: wrap; }

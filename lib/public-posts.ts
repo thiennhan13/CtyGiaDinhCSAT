@@ -8,6 +8,7 @@ export type PublicPost = {
   imageAlt: string;
   paragraphs: readonly string[];
   link: { href: string; label: string };
+  relatedLinks: readonly { href: string; label: string }[];
 };
 
 export const publicPosts: readonly PublicPost[] = [
@@ -22,6 +23,11 @@ export const publicPosts: readonly PublicPost[] = [
       'Tại CSAT, chương trình Cơ bản mặc định gồm A+B. Điểm bắt đầu và mục tiêu ôn luyện được trao đổi theo nền tảng hiện tại của người học; lựa chọn trên website là một gợi ý để tìm hiểu, không phải kết quả xếp trình độ.',
     ],
     link: { href: '/lo-trinh', label: 'Khám phá lộ trình học tập' },
+    relatedLinks: [
+      { href: '/lo-trinh/a', label: 'Lớp A — Nhập môn lập trình' },
+      { href: '/lo-trinh/b', label: 'Lớp B — Lập trình thi đấu cơ bản' },
+      { href: '/bai-dang/luyen-bai-cung-csatoj', label: 'Đọc đề, thử ý tưởng, kiểm chứng trên CSATOJ' },
+    ],
   },
   {
     slug: 'luyen-bai-cung-csatoj', category: 'Cách học tại CSAT',
@@ -34,6 +40,10 @@ export const publicPosts: readonly PublicPost[] = [
       'Một buổi học CSAT đi từ link Google Meet, lý thuyết và contest bài tập đến điểm danh, giảng bài, luyện tập trên CSATOJ và chữa bài. Record cùng bài tập về nhà giúp học sinh tiếp tục xem lại sau buổi học.',
     ],
     link: { href: '/#buoi-hoc', label: 'Tìm hiểu một buổi học CSAT' },
+    relatedLinks: [
+      { href: '/lo-trinh/b', label: 'Lớp B — Lập trình thi đấu cơ bản' },
+      { href: '/bai-dang/tu-dong-code-dau-tien', label: 'Từ dòng code đầu tiên đến một lời giải của riêng mình' },
+    ],
   },
   {
     slug: 'gia-su-chuyen-phan', category: 'Đội ngũ CSAT',
@@ -46,6 +56,10 @@ export const publicPosts: readonly PublicPost[] = [
       'Phụ huynh đồng hành qua Portal: theo dõi nhận xét của gia sư, nội dung học, lộ trình và học phí của con. Thông tin được hiển thị theo dữ liệu và nội dung đã công bố trong hệ thống.',
     ],
     link: { href: '/gia-su', label: 'Gặp đội ngũ gia sư CSAT' },
+    relatedLinks: [
+      { href: '/lo-trinh', label: 'Lộ trình học tập cùng CSAT' },
+      { href: '/bai-dang/tu-dong-code-dau-tien', label: 'Từ dòng code đầu tiên đến một lời giải của riêng mình' },
+    ],
   },
 ];
 

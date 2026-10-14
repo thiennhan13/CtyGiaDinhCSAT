@@ -21,7 +21,7 @@ function OJPractice() {
       <button key={title} type="button" aria-pressed={active === i} aria-controls={`oj-practice-${i}`} className={active === i ? 'is-active' : ''} onClick={() => setActive(i)}>0{i + 1}<span>{title}</span></button>
     )}</div>
     {items.map(([icon, title, text], i) => <div className="oj-practice-panel" id={`oj-practice-${i}`} key={title} hidden={active !== i}>
-      <CodeIcon name={icon} /><h3>{title}</h3><p>{text}</p>
+      <CodeIcon name={icon} /><h2>{title}</h2><p>{text}</p>
     </div>)}
   </div>;
 }

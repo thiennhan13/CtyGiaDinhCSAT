@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
+import { publicCourseDescriptions, publicPageMetadata, publicPrivateRobots } from '@/lib/public-seo';
+import { courseStructuredData } from '@/lib/public-structured-data';
+import { PublicStructuredData } from '@/components/marketing/PublicStructuredData';
 import { ArrowRight, ArrowUpRight, Clock3, Users, UserRound, Compass, BookOpen } from 'lucide-react';
 import curriculum from '@/lib/learning-curriculum-20260922.json';
 import { PublicShell } from '@/components/marketing/PublicShell';
@@ -27,11 +30,11 @@ export function generateStaticParams() { return [...Object.keys(catalog), ...Obj
 export const dynamicParams = false;
 export async function generateMetadata({ params }: { params: Promise<{ program: string }> }): Promise<Metadata> {
   const { program } = await params;
-  if (['co-ban', 'basic'].includes(program)) return { title: 'Tìm hiểu lộ trình — CSAT', alternates: { canonical: 'https://portal.csatoj.vn/lo-trinh' } };
+  if (['co-ban', 'basic', 'hsgqg', 'voi', 'prevoi'].includes(program)) return { robots: publicPrivateRobots };
   const key = resolve(program);
-  if (!key) return { title: 'Không tìm thấy lộ trình — CSAT' };
+  if (!key) notFound();
   const course = catalog[key];
-  return { title: `${course.code} — ${course.title} · CSAT`, description: publicRoadmapContent[course.code].introduction, alternates: { canonical: `https://portal.csatoj.vn/lo-trinh/${key}` } };
+  return publicPageMetadata({ path: `/lo-trinh/${key}`, title: `Lớp ${course.code} — ${course.title} | CSAT`, description: publicCourseDescriptions[course.code] });
 }
 const contextValues: Record<string, Record<string, string>> = {
   level: { primary: 'Tiểu học', thcs: 'THCS', thpt: 'THPT' },
@@ -40,8 +43,16 @@ const contextValues: Record<string, Record<string, string>> = {
 };
 export default async function CoursePage({ params, searchParams }: { params: Promise<{ program: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [{ program }, search] = await Promise.all([params, searchParams]);
-  if (['co-ban', 'basic'].includes(program)) redirect('/lo-trinh');
-  if (['hsgqg', 'voi', 'prevoi'].includes(program)) redirect('/dang-ky-hoc#thong-tin');
+  if (['co-ban', 'basic'].includes(program)) permanentRedirect('/lo-trinh');
+  if (['hsgqg', 'voi', 'prevoi'].includes(program)) permanentRedirect('/dang-ky-hoc#thong-tin');
+  if (Object.hasOwn(aliases, program)) {
+    const preserved = new URLSearchParams();
+    for (const [name, options] of Object.entries(contextValues)) {
+      const value = search[name];
+      if (typeof value === 'string' && Object.hasOwn(options, value)) preserved.set(name, value);
+    }
+    permanentRedirect(`/lo-trinh/${aliases[program]}${preserved.size ? `?${preserved}` : ''}`);
+  }
   const key = resolve(program);
   if (!key) notFound();
   const course = catalog[key];
@@ -58,7 +69,7 @@ export default async function CoursePage({ params, searchParams }: { params: Pro
     if (typeof value === 'string' && Object.hasOwn(options, value)) { query.set(name, value); context.push(options[value]); }
   }
   const linkTo = (code: string) => `/lo-trinh/${code}${query.size ? `?${query}` : ''}`;
-  return <PublicShell><div className={`roadmap-experience rm-course-page rm-detail-${key}`}>
+  return <PublicShell><PublicStructuredData data={courseStructuredData(courseCode)} /><div className={`roadmap-experience rm-course-page rm-detail-${key}`}>
     <header className="wrap rm-course-intro">
       <nav className="rm-course-switch" aria-label="Khám phá các lớp">{Object.entries(catalog).map(([slug, item]) => <Link href={linkTo(slug)} key={slug} aria-current={key === slug ? 'page' : undefined}><b>{item.code}</b>{item.title}<ArrowUpRight aria-hidden="true" size={16} /></Link>)}</nav>
       <nav className="rm-breadcrumb" aria-label="Đường dẫn"><Link href="/">Giới thiệu</Link><span aria-hidden="true">/</span><Link href="/lo-trinh">Lộ trình học tập</Link><span aria-hidden="true">/</span><span aria-current="page">{course.code}</span></nav>

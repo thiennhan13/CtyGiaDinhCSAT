@@ -47,6 +47,8 @@ PublicSectionNavigation là hai nút fixed overlay, không dành cột; đến s
 
 Runtime chỉ chứa media tối ưu đã chọn; raw source, prototype và công cụ local ngoài Git/gói build. Không import scratch/internal để chạy ứng dụng.
 
+SEO public dùng domain chuẩn và helper `lib/public-seo.ts`; sitemap/llms lấy catalog, JSON-LD render server qua `lib/public-structured-data.ts`, ảnh chia sẻ là PNG tĩnh. Không đưa chuyên đề/hồ sơ private vào sitemap, llms hoặc schema. Metadata/noindex không thay quyền API/RPC. Xem [SEO và Search Console](PUBLIC_SEO.md).
+
 ## Luồng nghiệp vụ
 
 ```mermaid

@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { AdminLayoutClient } from '@/components/layout/AdminLayoutClient';
+import { publicPrivateRobots } from '@/lib/public-seo';
+
+export const metadata = { robots: publicPrivateRobots };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();

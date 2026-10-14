@@ -82,6 +82,7 @@ jobs:
             echo 'Public preview did not become ready.'
             exit 1
           fi
+          node scripts/tests/public-seo.http.cjs
           npm run test:public
 
       - name: Private parent topics, access and reading experience

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { publicPageMetadata } from '@/lib/public-seo';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
@@ -7,11 +8,11 @@ import { CodeIcon, Reveal } from '@/components/marketing/PublicMotion';
 import { publicPosts } from '@/lib/public-posts';
 import '@/components/marketing/posts.css';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
+  path: '/bai-dang',
   title: 'Góc học Tin — CSAT',
   description: 'Tìm hiểu chương trình học, cách luyện bài và đội ngũ gia sư chuyên Phan tại CSAT.',
-  alternates: { canonical: 'https://portal.csatoj.vn/bai-dang' },
-};
+});
 
 export default function PostsPage() {
   return <PublicShell><div className="posts-page wrap">

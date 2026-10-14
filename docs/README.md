@@ -15,6 +15,7 @@ Tài liệu hiện hành viết theo chức năng/quyết định, không theo n
 | [PUBLIC_UI_DESIGN_SYSTEM](PUBLIC_UI_DESIGN_SYSTEM.md) | Neobrutalism/playful edtech, token/font/palette và ngoại lệ từng trang |
 | [UI_MOTION_WORKFLOW](UI_MOTION_WORKFLOW.md) | Motion, fallback, vòng đời effect và nghiệm thu |
 | [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md) | Route/component/media/form và hành vi công khai |
+| [PUBLIC_SEO](PUBLIC_SEO.md) | Metadata, sitemap/robots, schema, ảnh chia sẻ và Search Console; baseline/Edge chờ |
 | [PUBLIC_COURSE_CATALOG](PUBLIC_COURSE_CATALOG.md) | Năm lớp A/B/C/E/K, dữ kiện tuyển sinh và hợp đồng tương lai |
 | [CHUONG_TRINH_DAO_TAO](CHUONG_TRINH_DAO_TAO.md) | Phạm vi/thứ tự/mã kiến thức chuẩn, quản lý A+B/C+D hiện hành |
 | [ROADMAP_CONTENT_RESEARCH](ROADMAP_CONTENT_RESEARCH.md) | Quy tắc hành văn, nguồn tham khảo, dữ kiện so với diễn giải |

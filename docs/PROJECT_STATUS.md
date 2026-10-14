@@ -23,6 +23,8 @@ Mã ứng dụng `3b3258d` đã commit/push và Vercel báo Production success 0
 
 ## Frontend hiện có
 
+SEO public (mã local, chưa phát hành): đồng bộ domain/canonical, bản tóm tắt lớp riêng, Open Graph/Twitter và PNG logo CSAT 1200×630; schema Organization/WebSite/Course A/B/C/Breadcrumb/BlogPosting, E/K giữ WebPage; alias 308, heading Học liệu, liên kết bài liên quan và llms.txt public. Admin/gia sư bổ sung noindex, /login cho crawl để đọc noindex; quyền Portal giữ nguyên. Chủ trung tâm cung cấp tệp HTML xác minh URL-prefix Search Console, đã chuẩn bị trong mã; chưa xác minh production hoặc gửi sitemap. Node24: guard, 16/16 repo tests, 266/266 DB/API, typecheck, lint strict và build đạt. HTTP trên bản build: 15 trang, 4 link ảnh, 9 alias, 5 đường dẫn riêng tư, query/404/heading/alt/anchor/schema/ảnh/tệp xác minh đạt; đã xem ảnh chia sẻ. Baseline PageSpeed/Lighthouse và QA Edge **để sau theo chỉ đạo**, chưa đo hoặc chạy lại cho đợt SEO. Không áp migration hoặc deploy. Chi tiết ở [PUBLIC_SEO](PUBLIC_SEO.md).
+
 Favicon bo góc đã cập nhật trong mã local: SVG và PNG/ICO, giữ logo CSAT, metadata đổi phiên bản URL để làm mới cache. Node24: typecheck, lint phần sửa, guard/diff và Edge kiểm tra metadata/tải đủ ba định dạng đạt; góc PNG và ba frame ICO trong suốt. Chưa phát hành thay đổi favicon lên production; không chạy lại build/database cho thay đổi tài nguyên này.
 
 | Phần | Trạng thái mã hiện tại | Việc còn lại |

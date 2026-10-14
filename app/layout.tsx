@@ -4,6 +4,7 @@ import { Archivo } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ThemeProvider } from '@/components/theme-provider';
+import { publicSiteOrigin } from '@/lib/public-seo';
 
 /** Primary font — Archivo 400-900 (csatoj.vn uses only Archivo) */
 const archivo = Archivo({
@@ -14,6 +15,7 @@ const archivo = Archivo({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(publicSiteOrigin),
   title: 'CSAT Tutor',
   description: 'Hệ thống Quản lý Gia sư CSAT',
   icons: {

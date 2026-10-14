@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { publicPageMetadata } from '@/lib/public-seo';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
@@ -7,11 +8,11 @@ import { Reveal } from '@/components/marketing/PublicMotion';
 import { publicAchievements } from '@/lib/public-achievements';
 import '@/components/marketing/achievements.css';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
+  path: '/thanh-tich',
   title: 'Thành tích — CSAT',
-  description: 'Những dấu mốc học Tin cùng CSAT: học sinh, trường học và thành tích được ghi lại.',
-  alternates: { canonical: 'https://portal.csatoj.vn/thanh-tich' },
-};
+  description: 'Bảng vàng vinh danh học sinh CSAT: những thành tích từ nỗ lực học tập và rèn luyện. CSAT vinh dự đồng hành cùng các bạn trên hành trình học Tin.',
+});
 // Content is an editorial catalog, independent of private Portal student records.
 export const dynamic = 'error';
 

@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { TutorLayoutClient } from '@/components/layout/TutorLayoutClient';
+import { publicPrivateRobots } from '@/lib/public-seo';
+
+export const metadata = { robots: publicPrivateRobots };
 
 export default async function TutorLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
