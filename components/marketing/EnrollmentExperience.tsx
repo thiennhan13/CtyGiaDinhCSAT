@@ -1,3 +1,4 @@
+import './course-e-theme.css';
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, Clock3, Users } from 'lucide-react';
 import { enrollmentHref, publicCourses, type PublicCourseCode } from '@/lib/public-courses';

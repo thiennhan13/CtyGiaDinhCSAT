@@ -1,0 +1,216 @@
+/* Practice section only: preserve original cascade and media conditions. */
+
+.csat-public .home-page .oj-layout {
+  display: grid;
+  grid-template-columns: 1.06fr .94fr;
+  gap: 64px;
+  align-items: start;
+}
+.csat-public .home-page .oj-story h2 {
+  margin-top: 20px;
+}
+.csat-public .home-page .oj-story h2>span {
+  color: var(--blue);
+}
+.csat-public .home-page .oj-intro {
+  margin-top: 23px;
+  color: var(--muted);
+  max-width: 510px;
+  font-size: 16px;
+}
+.csat-public .home-page .oj-tabs {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  padding: 15px 14px 0;
+  gap: 3px;
+}
+.csat-public .home-page .oj-tabs button {
+  min-height: 48px;
+  font: 500 10px var(--mono);
+  background: transparent;
+  color: var(--home-art-paper);
+  border: 0;
+  border-bottom: 2px solid rgba(255,255,255,.18);
+  text-align: left;
+  padding: 10px 8px;
+  cursor: pointer;
+  transition: background var(--home-duration-fast),color var(--home-duration-fast);
+}
+.csat-public .home-page .oj-tabs button span {
+  display: block;
+  font-family: inherit;
+  font-size: 11px;
+  margin-top: 3px;
+}
+.csat-public .home-page .oj-tabs button.is-active {
+  color: var(--lime);
+  border-color: var(--lime);
+  background: rgba(255,255,255,.04);
+}
+.csat-public .home-page .oj-tabs button:focus-visible {
+  outline-color: var(--lime);
+}
+.csat-public .home-page .oj-story>.text-link {
+  margin-top: 25px;
+  display: inline-flex;
+}
+.csat-public .home-page .oj-proof {
+  display: flex;
+  gap: 15px;
+  border-top: 1px solid var(--line);
+  margin-top: 25px;
+  padding-top: 25px;
+  align-items: start;
+}
+.csat-public .home-page .oj-proof p {
+  font-size: 12px;
+  margin: 0;
+  color: var(--muted);
+}
+.csat-public .home-page .oj-proof strong {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 650;
+}
+@media(max-width:1150px) {
+  .csat-public .home-page .oj-layout {
+    gap: 36px;
+  }
+}
+@media(max-width:900px) {
+  .csat-public .home-page .oj-layout {
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+  }
+  .csat-public .home-page .oj-tabs {
+    padding: 12px 6px 0;
+  }
+  .csat-public .home-page .oj-tabs button span {
+    font-size: 10px;
+  }
+  .csat-public .home-page .oj-story h2 {
+    font-size: 35px;
+  }
+}
+@media(max-width:680px) {
+  .csat-public .home-page .oj-layout {
+    grid-template-columns: 1fr;
+    gap: 42px;
+  }
+  .csat-public .home-page .oj-story h2 {
+    font-size: 37px;
+  }
+  .csat-public .home-page .oj-intro {
+    font-size: 15px;
+  }
+  .csat-public .home-page .oj-tabs {
+    padding: 14px 13px 0;
+  }
+  .csat-public .home-page .oj-tabs button span {
+    font-size: 11px;
+  }
+  .csat-public .home-page .oj-proof {
+    padding-top: 22px;
+  }
+}
+.csat-public .home-page .oj-photo {
+  margin: 28px 0 0;
+  position: relative;
+  overflow: hidden;
+  border-radius: 3px 32px 3px 3px;
+  height: 170px;
+  background: var(--home-art-ink);
+}
+.csat-public .home-page .oj-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 48%;
+  opacity: .95;
+}
+.csat-public .home-page .oj-photo figcaption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent,rgba(0,0,0,.8));
+  padding: 20px 14px 10px;
+  color: #fff;
+  font: 9px/1.4 var(--mono);
+}
+.csat-public .home-page .oj-photo figcaption a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  .csat-public .home-page .oj-proof:hover .proof-icon svg {
+    transform: translateY(-2px) rotate(-6deg);
+  }
+}
+.csat-public .home-page .oj-brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+.csat-public .home-page .oj-brand-lockup img {
+  width: 158px;
+  height: auto;
+  padding: 7px;
+  background: var(--home-art-paper);
+  border-radius: 4px;
+}
+.csat-public .home-page .oj-brand-lockup .eyebrow {
+  font-size: 9px;
+  margin: 0;
+  line-height: 1.65;
+  max-width: 115px;
+}
+.csat-public .home-page .oj-photo {
+  height: 205px;
+}
+.csat-public .home-page .oj-photo figcaption {
+  font-size: 10px;
+  line-height: 1.6;
+  padding-top: 26px;
+}
+@media (max-width: 680px) {
+  .csat-public .home-page .oj-brand-lockup {
+    gap: 13px;
+  }
+  .csat-public .home-page .oj-brand-lockup img {
+    width: 147px;
+  }
+}
+.csat-public .home-page .oj-photo figcaption {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-width: none;
+  background: #191917;
+  color: #fff;
+  padding: 8px 12px;
+  font-size: 11px;
+}
+.csat-public .home-page .oj-practice { margin-top: 30px; background: var(--home-art-ink); color: var(--home-art-paper); border-radius: 6px; overflow: hidden; border: 1px solid var(--home-art-ink); box-shadow: 7px 7px 0 var(--lime); }
+.csat-public .home-page .oj-practice-panel { padding: 28px; min-height: 240px; }
+.csat-public .home-page .oj-practice-panel > svg { width: 52px; height: 52px; color: var(--lime); float: right; margin-left: 15px; }
+.csat-public .home-page .oj-practice-panel :is(h2,h3) { font-size: 27px; margin-bottom: 15px; color: var(--home-art-paper); }
+.csat-public .home-page .oj-practice-panel p { font-size: 15px; color: #dfded6; }
+.csat-public .home-page .oj-practice-panel:not([hidden]) { animation: csat-home-panel-in 220ms var(--ease); }
+.csat-public .home-page .oj-photo { height: 230px; margin-top: 32px; overflow: hidden; border-radius: 8px; }
+.csat-public .home-page .oj-photo img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 680px) {
+ .csat-public .home-page .oj-practice-panel { padding: 24px; min-height: 230px; }
+ .csat-public .home-page .oj-practice-panel :is(h2,h3) { font-size: 25px; }
+ .csat-public .home-page .oj-photo { height: 210px; }
+}
+.csat-public .home-page .oj-photo{border-radius:0;clip-path:polygon(0 0,calc(100% - 28px) 0,100% 28px,100% 100%,28px 100%,0 calc(100% - 28px))}
+.csat-public .home-page .oj-photo.practice-video { position: relative; height: auto; aspect-ratio: 4 / 3; }
+.csat-public .home-page .oj-photo.practice-video :is(img,video) { width: 100%; height: 100%; object-fit: cover; }
+.csat-public .home-page .oj-photo.practice-video video { position: absolute; inset: 0; }
+.csat-public .home-page .practice-video-toggle { position: absolute; right: 16px; bottom: 16px; z-index: 1; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 4px; background: var(--glass-bg); color: var(--ink); }
+.csat-public .home-page .practice-video-toggle:focus-visible { outline-offset: -5px; }

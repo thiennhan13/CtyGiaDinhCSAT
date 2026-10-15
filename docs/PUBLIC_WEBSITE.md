@@ -2,7 +2,7 @@
 
 Website giới thiệu CSAT, giúp người học hiểu hướng học và chủ động liên hệ. Phát triển trực tiếp trong Next.js, không phụ thuộc HTML prototype. Quyết định tuyển sinh ở [catalog](PUBLIC_COURSE_CATALOG.md), nội dung chuẩn ở [đào tạo](CHUONG_TRINH_DAO_TAO.md), phong cách ở [design system](PUBLIC_UI_DESIGN_SYSTEM.md), trạng thái ở [PROJECT_STATUS](PROJECT_STATUS.md).
 
-Metadata/canonical, sitemap/robots, schema, ảnh chia sẻ logo CSAT và llms.txt theo [quy định SEO](PUBLIC_SEO.md). Search Console xác minh riêng Portal bằng tệp HTML do chủ trung tâm cung cấp; không bỏ noindex hoặc quyền của khu vực riêng tư. Baseline hiệu năng và QA Edge bổ sung ở bước sau theo chỉ đạo hiện hành.
+Metadata/canonical, sitemap/robots, schema, ảnh chia sẻ logo CSAT và llms.txt theo [quy định SEO](PUBLIC_SEO.md). Search Console xác minh riêng Portal bằng tệp HTML do chủ trung tâm cung cấp; không bỏ noindex hoặc quyền của khu vực riêng tư. Baseline hiệu năng, tối ưu và QA Edge ghi tại [báo cáo hiệu năng](PUBLIC_PERFORMANCE_QA.md), tách số đo local khỏi production.
 
 ## Chức năng và entry point
 

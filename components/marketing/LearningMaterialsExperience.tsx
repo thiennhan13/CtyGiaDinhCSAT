@@ -7,6 +7,7 @@ import { CodeIcon, Reveal } from './PublicMotion';
 import { PublicConsultation } from './PublicConsultation';
 import { PracticeVideo } from './PracticeVideo';
 import './home-experience.css';
+import './learning-practice.css';
 import './learning-materials.css';
 
 function OJPractice() {

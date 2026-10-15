@@ -47,7 +47,7 @@
 .csat-public .why-branch-icon { position: relative; display: grid; place-items: center; flex: 0 0 66px; height: 70px; color: var(--branch-color); background: var(--paper); border: 1px solid var(--line); }
 .csat-public .why-branch-icon > svg { width: 52px; height: 52px; transition: transform 260ms var(--ease); }
 .csat-public .why-branch-icon i { width: 9px; height: 9px; position: absolute; right: -5px; bottom: -5px; background: var(--branch-color); transition: transform 260ms var(--ease); }
-.csat-public .why-branch-number { display: block; font: 500 10px/1.4 var(--font-nav); letter-spacing: .08em; color: var(--branch-color); margin-bottom: 6px; }
+.csat-public .why-branch-number { display: block; font: 500 10px/1.4 var(--font-nav); letter-spacing: .08em; color: var(--ink); margin-bottom: 6px; }
 .csat-public .home-page .why-branch h3 { font: 600 clamp(22px, 1.7vw, 26px)/1.22 var(--font-nav); text-transform: none; letter-spacing: -.015em; text-wrap: pretty; }
 .csat-public .why-branch ul { list-style: none; padding: 0 24px; margin: 24px 0; display: grid; gap: 16px; }
 .csat-public .why-branch li { position: relative; padding-left: 16px; color: var(--muted); font-size: 14px; line-height: 1.65; }
@@ -61,7 +61,6 @@
 .dark .csat-public .why-branch-watermark { opacity: .1; }
 .dark .csat-public .why-community { --branch-color: var(--lime); }
 .dark .csat-public .why-wire-community { stroke: var(--lime); }
-@supports (backdrop-filter: blur(8px)) { .csat-public .why-branch { background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(8px); } }
 @media (hover: hover) and (pointer: fine) {
  .csat-public .why-practice:hover .why-branch-icon svg { transform: translateY(-4px); }
  .csat-public .why-community:hover .why-branch-icon svg { transform: rotate(-8deg) scale(1.06); }

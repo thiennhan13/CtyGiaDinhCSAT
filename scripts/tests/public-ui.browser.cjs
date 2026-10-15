@@ -85,6 +85,11 @@ async function main(){
   await page.setViewportSize({width:1440,height:900});await go(page,'/lo-trinh');const form=page.locator('.rm-selector-form'),original=page.url(),heading=await page.locator('.rm-result h3').innerText();
   await choose(page,form,'level','thcs');await choose(page,form,'goal','province');await choose(page,form,'background','practice');check(page.url()===original,'Draft inputs do not mutate URL');check(await page.locator('.rm-result h3').innerText()===heading,'Draft does not change committed result');
   await form.getByRole('button',{name:'Xem hướng học'}).click();await page.waitForFunction(()=>new URLSearchParams(location.search).get('show')==='1');check(new URL(page.url()).searchParams.get('background')==='practice','Background committed');check(await page.locator('.rm-result a[href^="/lo-trinh/c"]').count()===1,'Practice background suggests C');check(await page.locator('.rm-result a[href^="/lo-trinh/e"]').count()===0,'Selector does not imply E admission');
+  for(const code of ['a','b','c','e','k']){
+   const href=await page.locator('#lop-'+code+' a[href^="/lo-trinh/'+code+'"]').getAttribute('href');
+   const query=new URL(href,base).searchParams;
+   check(query.get('level')==='thcs'&&query.get('goal')==='province'&&query.get('background')==='practice'&&query.get('course')===code.toUpperCase(),'Static chapter link retains committed selection '+code);
+  }
   await page.goto(new URL('/lo-trinh/c',base).href,{waitUntil:'networkidle'});await page.goBack({waitUntil:'networkidle'});check(await page.locator('.rm-selector-form [name=background]').inputValue()==='practice','Back restores background');check(await page.locator('.rm-result a[href^="/lo-trinh/c"]').count()===1,'Back restores result');
   await go(page,'/lo-trinh?level=private-name&goal=untrusted&background=0912345678&course=X&email=private%40example.test');await choose(page,page.locator('.rm-selector-form'),'level','primary');await page.locator('.rm-selector-form button[type=submit]').click();check([...new URL(page.url()).searchParams.keys()].every(k=>['level','goal','background','course','show'].includes(k)),'Unknown query fields dropped');check(!page.url().includes('private')&&!page.url().includes('0912345678'),'Free text not propagated');
  });

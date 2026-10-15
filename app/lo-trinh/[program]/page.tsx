@@ -9,6 +9,7 @@ import curriculum from '@/lib/learning-curriculum-20260922.json';
 import { PublicShell } from '@/components/marketing/PublicShell';
 import { PublicConsultation } from '@/components/marketing/PublicConsultation';
 import '@/components/marketing/roadmap-experience.css';
+import '@/components/marketing/roadmap-detail-base.css';
 import { enrollmentHref, publicCourseCode, publicCourses } from '@/lib/public-courses';
 import { publicRoadmapContent } from '@/lib/public-roadmap-content';
 import { CoursePoster } from '@/components/marketing/RoadmapCourseSection';

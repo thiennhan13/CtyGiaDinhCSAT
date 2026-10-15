@@ -24,7 +24,9 @@ Trang đăng nhập được crawl để Google đọc noindex. Robots vẫn h�
 
 Quyết định: URL-prefix riêng `https://portal.csatoj.vn/`, không Domain property toàn csatoj.vn. Người dùng cung cấp phương thức tệp HTML: `public/google8e5ffbef59a10505.html`, nội dung đúng `google-site-verification: google8e5ffbef59a10505.html`. Đây là bằng chứng công khai được phép đưa vào repo. Proxy cho phép đọc đúng tệp, không gọi Auth; không bỏ kiểm tra Auth cho mọi tệp HTML.
 
-Sau phát hành được duyệt:
+Đã kiểm tra HTTP production ngày 15/10/2026: robots, sitemap 15 URL, llms và tệp xác minh trả 200; canonical trang chủ đúng domain. Chủ trung tâm xác nhận Search Console đã kết nối, tự hoàn tất xác minh và gửi sitemap. Chưa kiểm chứng trạng thái crawl/index trong tài khoản Google.
+
+Các bước chủ trung tâm thực hiện:
 
 1. Kiểm tra `https://portal.csatoj.vn/google8e5ffbef59a10505.html` trả 200 với nội dung đúng và không yêu cầu đăng nhập.
 2. Trong tài khoản Google của chủ trung tâm, hoàn tất xác minh tệp HTML cho thuộc tính URL-prefix trên. Giữ tệp sau xác minh để Google kiểm tra lại.
@@ -37,9 +39,9 @@ Nếu chuyển sang phương thức meta tag sau này, helper trang chủ hỗ t
 
 Node.js 24: guard, repo tests (gồm metadata/schema/catalog), database/API tests, typecheck, lint strict và build. Sau build, `node scripts/tests/public-seo.http.cjs` kiểm tra HTML server qua `PUBLIC_QA_BASE_URL` loopback: sitemap, canonical/OG, heading/alt, link/anchor, alias 308, query, 404, noindex riêng tư, JSON-LD, ảnh và tệp xác minh. CI chạy kiểm tra HTTP cùng server công khai đã dựng; không dùng tài khoản hoặc dữ liệu thật.
 
-Theo chỉ đạo mới nhất, **đo baseline PageSpeed/Lighthouse và QA Edge để sau**. Không gọi HTML checks là browser QA hoặc Core Web Vitals đạt. Bước sau đo bản production build cho trang chủ, tổng quan, đăng ký và thành tích; đối chiếu dữ liệu thực từ Speed Insights/Search Console. Mục tiêu phân vị75: LCP≤2,5s, INP≤200ms, CLS≤0,1; nếu chưa đủ dữ liệu thực thì ghi rõ chờ.
+Theo phạm vi rút gọn đã duyệt, đã chạy QA Edge tập trung và baseline Lighthouse trên production build **local** cho trang chủ, tổng quan, đăng ký và thành tích; xem [kết quả và giới hạn](PUBLIC_PERFORMANCE_QA.md). Chạy lại nhóm liên quan khi thay form, bố cục hoặc component chung; không lặp toàn bộ ma trận hoặc chặn CI bằng điểm Lighthouse mỗi commit. Đối chiếu hosted và dữ liệu thực từ Speed Insights/Search Console còn chờ. Mục tiêu phân vị75: LCP≤2,5s, INP≤200ms, CLS≤0,1; nếu chưa đủ dữ liệu thực thì ghi rõ chờ. Không gọi HTML checks hoặc điểm Lighthouse là Core Web Vitals thực đạt.
 
-Đợt SEO không áp migration27, không tự push/deploy hoặc xác minh thay chủ sở hữu tài khoản Google. Không coi kết quả local là tình trạng production. Trước phát hành kiểm tra tương thích của toàn bộ commit với schema production; không gộp thay đổi đăng nhập phụ huynh chưa rollout chỉ vì SEO đã build thành công.
+Đợt SEO không tự áp migration hoặc xác minh thay chủ sở hữu tài khoản Google. Registry 27 và ứng dụng production đã được kiểm tra chỉ đọc trong đợt chuẩn bị phát hành 15/10/2026; không còn coi 27 là chưa rollout. Trước phát hành tiếp tục kiểm tra tương thích toàn bộ commit với schema thực; kết quả local không thay kiểm chứng hosted.
 
 ## Nguồn kỹ thuật
 

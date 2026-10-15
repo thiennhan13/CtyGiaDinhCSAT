@@ -1,3 +1,4 @@
+import { RoadmapDetailsLink } from './RoadmapSelection';
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, Clock3, Users } from 'lucide-react';
 import { enrollmentHref, publicCourses, type PublicCourseCode } from '@/lib/public-courses';
@@ -14,8 +15,8 @@ export function CoursePoster({ code, priority = false, sizes = '(max-width: 520p
   return <CoursePosterPreview code={code} className="rm-course-poster" sizes={sizes} priority={priority} />;
 }
 
-export function RoadmapCourseSection({ code, chapter, href }: { code: PublicCourseCode; chapter: string; href: string }) {
-  if (code === 'E') return <FlagshipCourseSection chapter={chapter} href={href} />;
+export function RoadmapCourseSection({ code, chapter }: { code: PublicCourseCode; chapter: string }) {
+  if (code === 'E') return <FlagshipCourseSection chapter={chapter} />;
   const course = publicCourses.find(item => item.code === code)!;
   const content = publicRoadmapContent[code];
   return <section className={`rm-class-section rm-editorial-class rm-class-${code.toLowerCase()}`} id={`lop-${code.toLowerCase()}`} aria-labelledby={`class-${code.toLowerCase()}-title`}>
@@ -33,7 +34,7 @@ export function RoadmapCourseSection({ code, chapter, href }: { code: PublicCour
       <div className="rm-overview-body">
         <div className="rm-overview-roadmap">{code === 'K' && <p className="eyebrow">Một hướng học từ nhu cầu cụ thể</p>}<CourseKnowledge code={code} /></div>
       </div>
-      <div className="rm-class-actions"><Link className="btn" href={href}>Khám phá nội dung lớp {code} <ArrowRight aria-hidden="true" size={18}/></Link><Link className="text-link rm-enrollment-link" href={enrollmentHref(code)}>Đăng ký lớp {code} <ArrowUpRight aria-hidden="true" size={16}/></Link></div>
+      <div className="rm-class-actions"><RoadmapDetailsLink code={code} className="btn">Khám phá nội dung lớp {code} <ArrowRight aria-hidden="true" size={18}/></RoadmapDetailsLink><Link className="text-link rm-enrollment-link" href={enrollmentHref(code)}>Đăng ký lớp {code} <ArrowUpRight aria-hidden="true" size={16}/></Link></div>
     </Reveal>
   </section>;
 }

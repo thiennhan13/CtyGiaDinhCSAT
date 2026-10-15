@@ -1,5 +1,6 @@
 import { ArrowUpRight } from 'lucide-react';
-import { CodeIcon, Reveal } from './PublicMotion';
+import { Reveal } from './PublicMotion';
+import { CodeIcon } from './CodeIcon';
 import { EcosystemIcon } from './EcosystemIcon';
 import './why-csat.css';
 
@@ -10,7 +11,7 @@ const branches = [
     ['Cập nhật, cọ xát.', 'Bổ sung bài mới và contest để thử sức với nhiều cách tiếp cận.'],
   ] },
   { key: 'community', label: '02', title: 'Nhóm học nhỏ', code: 'learn.together();', points: [
-    ['Nhóm học phù hợp.', 'Trao đổi nền tảng, lứa tuổi và mục tiêu; E tuyển từ C, nhóm 3–4 học sinh.'],
+    ['Nhóm học phù hợp.', 'Trao đổi nền tảng, lứa tuổi và mục tiêu; E tuyển qua bài thi riêng, nhóm 3–4 học sinh.'],
     ['Cùng học, cùng thi đua.', 'Chia sẻ cách giải, gỡ bài khó và hướng tới các kỳ thi Tin học thường niên.'],
     ['Giữ nhịp học.', 'Chuẩn bị trước buổi học, tự luyện và xác định phần cần củng cố.'],
   ] },
@@ -27,7 +28,8 @@ const branches = [
 ] as const;
 
 export function WhyCSAT() {
-  return <section className="home-why section" id="csatoj" aria-label="Hệ sinh thái CSAT">
+  return <section className="home-why section" id="csatoj" aria-labelledby="ecosystem-title">
+    <h2 id="ecosystem-title" className="sr-only">Hệ sinh thái CSAT</h2>
     <div className="why-background" aria-hidden="true"><i /><i /><i /></div>
     <div className="wrap">
       <div className="why-tree">

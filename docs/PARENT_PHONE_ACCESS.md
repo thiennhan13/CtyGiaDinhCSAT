@@ -46,4 +46,4 @@ Migration và mã cần đi cùng nhau: mã cũ không mở được phiên sau 
 
 ## Trạng thái nghiệm thu
 
-Migration27 và ứng dụng đã qua kiểm thử local trên Node24, PostgreSQL17 và Edge; gồm tranh chấp rate limit, bảo toàn dữ liệu, phiên/liên kết và đọc bài không Auth. Chưa áp migration27, chưa deploy thay đổi này lên production. Kết quả kiểm thử và bước còn chờ được cập nhật tại [PROJECT_STATUS](PROJECT_STATUS.md).
+Migration27 và ứng dụng đã qua kiểm thử local trên Node24, PostgreSQL17 và Edge; gồm tranh chấp rate limit, bảo toàn dữ liệu, phiên/liên kết và đọc bài không Auth. Xác minh chỉ đọc production ngày 15/10/2026: registry có 27, hai RPC mở/kiểm tra phiên chỉ cấp cho service role, RLS bật trên parent_accounts/parent_lookup_sessions/auth_attempts. Vercel bản 2190a6f Ready và trang login hiển thị tra cứu bằng số điện thoại. Chưa nghiệm thu bằng hồ sơ thật; không suy từ đây rằng mọi phiên/liên kết đã được nghiệm thu. Kết quả kiểm thử và bước còn chờ được cập nhật tại [PROJECT_STATUS](PROJECT_STATUS.md).

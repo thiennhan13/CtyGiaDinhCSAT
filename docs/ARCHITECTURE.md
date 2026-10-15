@@ -41,6 +41,14 @@ Bản đồ route/component và hành vi ở [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md)
 
 CSS public scope .csat-public; font toàn hệ thống Archivo. PublicHeader tái dùng menu tại login/ParentShell, nội dung nghiệp vụ nằm ngoài scope marketing.
 
+Trang chủ giữ `HomeExperience` và `TutorShowcase` ở máy chủ; `HomeLearningWidgets` sở hữu hai phần tương tác, `TutorHeroMotion` chỉ quản lý chuyển động quanh nội dung truyền qua children. SVG `CodeIcon` không bắt buộc client. Không chuyển cả cây nội dung tĩnh thành client chỉ vì một phần có hook. `Reveal` dùng geometry từ IntersectionObserver để tránh đọc layout rồi ghi class lặp lại khi hydrate.
+
+CSS riêng học liệu/video nằm trong `learning-practice.css`, chỉ nhập ở trang học liệu; CSS theme E nhập tại phần E và danh mục đăng ký. Các selector dùng chung giữ ở stylesheet chung; kiểm tra điều hướng hai chiều để tránh giao diện phụ thuộc thứ tự tải CSS. Bóng đèn dùng cùng một WebP nhỏ cho ảnh và mask để tái sử dụng cache, ảnh hero eager/fetchPriority high.
+
+`RoadmapExperience` dựng hero, mô tả lớp và `CourseKnowledge` trên server. `RoadmapSelection` giữ provider không thêm DOM, bộ chọn, context tư vấn và các liên kết chi tiết đọc lựa chọn hiện hành; nội dung server đi qua children, không nhập vào cây client. `RoadmapAssembly` sở hữu riêng hiệu ứng ghép biểu tượng. Query/hash, khôi phục lịch sử và focus vẫn do client xử lý; tổng quan không cần đọc query ở server và tiếp tục được prerender tĩnh.
+
+`roadmap-detail-base.css` chỉ nhập ở route chi tiết trước các override `course-detail.css`; CSS tổng quan, reset, token và shell giữ phạm vi cũ. CSS select/intake vẫn nằm trong stylesheet chung: thử tách riêng đã tăng request và FCP ở tổng quan nên không giữ. Không xóa rule theo Coverage một lần tải hoặc trì hoãn CSS thiết yếu. Khi đổi ranh giới component, kiểm tra CSS của bản production build và điều hướng client vì chunk có thể được Next gộp hoặc prefetch.
+
 CoursePosterPreview: tổng quan interactive=false trả ảnh/div tĩnh, chi tiết/đăng ký mở native dialog và fallback WebP khi no-JS. CSS trigger relative chỉ khớp ảnh không phải background; description-band giữ absolute independent thứ tự tải chunk. Ảnh lớn chỉ dựng khi mở, không API/scroll lock.
 
 PublicSectionNavigation là hai nút fixed overlay, không dành cột; đến section/header liền kề. Reveal/listener/observer/rAF dọn khi đổi route. PracticeVideo dừng ngoài viewport/tab ẩn, fallback poster/no-JS/reduce. Style và trạng thái đọc ở [design system](PUBLIC_UI_DESIGN_SYSTEM.md)/[motion](UI_MOTION_WORKFLOW.md).
