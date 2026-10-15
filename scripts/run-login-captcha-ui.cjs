@@ -11,7 +11,7 @@ const secret = 'synthetic-captcha-secret';
 const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54329', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'local-qa-anon-placeholder', SUPABASE_SERVICE_ROLE_KEY: 'local-qa-service-placeholder', APP_ORIGIN: origin, CONSULTATIONS_ENABLED: 'false', CONSULTATIONS_EMAIL_ENABLED: 'false', TURNSTILE_LOGIN_ENABLED: 'true', TURNSTILE_SITE_KEY: 'synthetic-sitekey', TURNSTILE_SECRET_KEY: secret, NEXT_TELEMETRY_DISABLED: '1' };
 const widgetScript = `(() => {
  let serial=0; const widgets=new Map();
- window.turnstile={ready: fn=>fn(),render(container,options){
+ window.turnstile={ready(){throw Error('Turnstile.ready is incompatible with async/defer');},render(container,options){
   const id=String(++serial),box=document.createElement('div');box.dataset.fixtureWidget=options.action;
   box.style.cssText='border:1px solid #aaa;padding:12px;box-sizing:border-box;width:'+(options.size==='compact'?'150px':'100%');
   const solve=document.createElement('button');solve.type='button';solve.textContent='Xác minh thử nghiệm';solve.onclick=()=>options.callback('fixture-'+options.action+'-'+id);

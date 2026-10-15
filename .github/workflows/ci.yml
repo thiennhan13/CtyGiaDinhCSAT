@@ -60,6 +60,10 @@ jobs:
         run: npm run build
       - name: Install Chromium for public smoke tests
         run: npx --no-install playwright install --with-deps chromium
+      - name: Login CAPTCHA lifecycle (synthetic widget and API)
+        env:
+          CSAT_BROWSER_CHANNEL: chromium
+        run: node scripts/run-login-captcha-ui.cjs
       - name: Public pages, navigation and no-JS smoke
         env:
           APP_ORIGIN: http://127.0.0.1:3100

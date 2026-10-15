@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 
 export type LoginCaptchaConfig = { enabled: boolean; siteKey: string };
 type Turnstile = {
-  ready: (callback: () => void) => void;
   render: (container: HTMLElement, options: Record<string, unknown>) => string;
   remove: (id: string) => void;
 };
@@ -23,7 +22,9 @@ function loadTurnstile() {
     function ready() {
       const api = window.turnstile;
       if (!api) { fail(); return; }
-      api.ready(() => { window.clearTimeout(timer); resolve(api); });
+      // The script load event already guarantees the API is available.
+      // Turnstile.ready() rejects scripts loaded with async/defer.
+      window.clearTimeout(timer); resolve(api);
     }
     if (window.turnstile) { ready(); return; }
     script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
