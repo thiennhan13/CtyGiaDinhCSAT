@@ -8,6 +8,8 @@ Trong mã: đăng nhập kiểm tra Origin và body tối đa 4 KiB; rate limit 
 
 Phản hồi trang chủ/login đã kiểm tra chưa có CSP, X-Frame-Options, X-Content-Type-Options hoặc Referrer-Policy tường minh. Chưa đọc cấu hình Firewall của project nên không khẳng định WAF/Bot Protection đã bật.
 
+**Quyết định 15/10/2026:** chủ trung tâm chọn chỉ lập phương án, chưa thay cấu hình. Không bật Bot Protection/CAPTCHA, đổi header/CSP, dependency hoặc cách tra cứu trong release 2171653.
+
 ## Đề xuất chờ chốt
 
 | Nhóm | Đề xuất | Điều kiện nghiệm thu |

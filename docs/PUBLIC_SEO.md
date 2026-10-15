@@ -35,6 +35,8 @@ Các bước chủ trung tâm thực hiện:
 
 Nếu chuyển sang phương thức meta tag sau này, helper trang chủ hỗ trợ `GOOGLE_SITE_VERIFICATION`: chỉ dùng giá trị content của thẻ, không dùng dòng nội dung tệp HTML; biến phải có trước build/deploy. Không cần cấu hình biến này cho phương thức tệp đã chọn.
 
+Bản tối ưu 2171653 đã phát hành 15/10/2026; smoke SEO hosted đạt 15 trang/canonical/OG/JSON-LD/H1/alt và các tài nguyên trên. Search Console xác nhận kết nối do chủ trung tâm cung cấp, không phải kết quả agent kiểm tra tài khoản Google.
+
 ## Kiểm chứng và phần làm sau
 
 Node.js 24: guard, repo tests (gồm metadata/schema/catalog), database/API tests, typecheck, lint strict và build. Sau build, `node scripts/tests/public-seo.http.cjs` kiểm tra HTML server qua `PUBLIC_QA_BASE_URL` loopback: sitemap, canonical/OG, heading/alt, link/anchor, alias 308, query, 404, noindex riêng tư, JSON-LD, ảnh và tệp xác minh. CI chạy kiểm tra HTTP cùng server công khai đã dựng; không dùng tài khoản hoặc dữ liệu thật.

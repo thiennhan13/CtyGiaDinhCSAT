@@ -138,10 +138,23 @@ Trang đối chứng gần như không đổi byte (508.933 → 508.927), nhưng
 
 Nội dung server làm HTML tăng khoảng 7,9 KB; JavaScript giảm khoảng 10,5 KB và tổng giảm khoảng 3,7 KB. Đây là cải thiện dung lượng nhỏ, không phải đã giải quyết toàn bộ đường tải đầu. Danh mục từ HTML cuối lưu riêng ở scratch/performance-final-assets.json: không gộp prefetch hoặc script nomodule vào JS tải đầu của Edge. CSS chặn render ước tính còn 730–760 ms tại lộ trình; polyfill Next vẫn khoảng 14 KiB, hình ảnh còn dư theo audit. Giữ font/prefetch/ảnh hiện hành vì chưa có thay đổi thêm được chứng minh an toàn và có lợi.
 
-Bản build sau phép đo chỉ cố định gap 10 px của nhãn chương dưới 520 px; build đạt, Edge **2 nhóm/212 assertions** query và CSS điều hướng đạt, **24/24 vùng** tại 375/768/1440 px khớp toàn bộ hình học với bản trước refactor. Không đo lại chín lượt cho thay đổi dưới vùng hero này. Chưa deploy hoặc đo PageSpeed production.
+Bản build sau phép đo chỉ cố định gap 10 px của nhãn chương dưới 520 px; build đạt, Edge **2 nhóm/212 assertions** query và CSS điều hướng đạt, **24/24 vùng** tại 375/768/1440 px khớp toàn bộ hình học với bản trước refactor. Không đo lại chín lượt cho thay đổi dưới vùng hero này. Tại mốc đo local này chưa deploy; kết quả phát hành/đo hosted ở mục bên dưới.
 
 Bằng chứng ngoài Git: scratch/performance-final/ (9 JSON/HTML), scratch/performance-final-assets.json, scratch/roadmap-refactor-public-report.json, scratch/roadmap-refactor-before/, scratch/roadmap-refactor-after/, scratch/roadmap-geometry-diff.json, scratch/roadmap-image-diff.json. Ảnh QA không là tài nguyên runtime.
 
+## Phát hành và đo hosted
+
+Bản ứng dụng **2171653** đã push và Vercel xác nhận Ready/Production Current ngày **15/10/2026**: [deployment](https://cty-gia-dinh-csat-4m29jp2yg-thiennhan13s-projects.vercel.app). Smoke chỉ GET trên domain thật đạt 15 trang/canonical/OG/H1/alt/JSON-LD, robots/sitemap/llms/tệp Google, ảnh chia sẻ/bóng đèn nhỏ và cờ nhận đơn. Login giữ private/no-store/noindex; không đăng nhập hoặc gửi đơn thật.
+
+Đo bằng cùng Node24/Edge/Lighthouse 13.5.0 và preset mobile, ba lượt cho mỗi URL HTTPS thật; không chặn HTTPS hoặc Speed Insights, không mock server. Kết quả không so trực tiếp với loopback hoặc ảnh PageSpeed trước do môi trường/cache khác nhau.
+
+| Trang | Điểm trung vị (khoảng) | LCP | FCP | TBT | CLS |
+|---|---|---|---|---|---|
+| Trang chủ | 95 (95–97) | 2,46 s | 1,11 s | 163,5 ms | 0 |
+| Lộ trình | 90 (89–92) | 2,98 s | 1,11 s | 257,5 ms | 0 |
+
+Sáu lượt không có runtime error/run warning. Chưa có baseline hosted cùng điều kiện; không quy kết chênh lệch với local là hiệu quả mã hoặc tuyên bố toàn bộ Core Web Vitals đạt. Lộ trình vẫn còn LCP/TBT cần cải thiện, polyfill khoảng 14 KiB và ảnh dư vẫn xuất hiện trong audit. Chờ dữ liệu người dùng thực từ Speed Insights/Search Console. Bằng chứng ngoài Git: scratch/performance-production-2171653/ và scratch/release-production-seo.json.
+
 ## Giới hạn môi trường
 
-Kiểm tra production sau phát hành, xác minh Search Console/gửi sitemap, dữ liệu INP thực và nghiệm thu một đơn hợp lệ tới admin vẫn là các bước riêng. Không suy trạng thái production từ kết quả local này. Không chạy lại database tests vì thay đổi chỉ ở renderer công khai, CSS và ảnh; không sửa hợp đồng/API/database.
+Smoke public và sáu lượt Lighthouse hosted đã chạy; xác minh Search Console/gửi sitemap do chủ trung tâm tự thực hiện. Dữ liệu INP thực và nghiệm thu một đơn hợp lệ tới admin vẫn còn chờ. Không suy trạng thái production từ kết quả local này. Gate phát hành đã chạy lại 266/266 DB/API bằng fixture riêng và đạt; không sửa hợp đồng/API/database.
