@@ -4,18 +4,21 @@ import { isSameOrigin } from '@/lib/parents';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/service';
 import { authAttemptKeys, readLoginBody } from '@/lib/login-security';
-const schema = z.object({ email: z.email().max(254).transform(v => v.toLowerCase()), password: z.string().min(1).max(128) }).strict();
+import { verifyLoginCaptcha } from '@/lib/login-captcha';
+const schema = z.object({ email: z.email().max(254).transform(v => v.toLowerCase()), password: z.string().min(1).max(128), captchaToken: z.string().max(2048).optional() }).strict();
 const reply = (body: object, status = 200) => NextResponse.json(body, { status, headers: { 'Cache-Control': 'private, no-store', ...(status === 429 ? { 'Retry-After': '900' } : {}) } });
 export async function POST(request: Request) {
   if (!isSameOrigin(request)) return reply({ error: 'Nguồn yêu cầu không hợp lệ.' }, 403);
   const input = schema.safeParse(await readLoginBody(request));
   if (!input.success) return reply({ error: 'Kiểm tra email và mật khẩu.' }, 422);
   try {
+    const captcha = await verifyLoginCaptcha(input.data.captchaToken, 'staff_login');
+    if (!captcha.ok) return reply({ error: captcha.error }, captcha.status);
     const limit = await createAdminClient().rpc('consume_auth_attempt', authAttemptKeys(request, 'staff:' + input.data.email));
     if (limit.error) return reply({ error: 'Chưa đăng nhập được. Vui lòng thử lại.' }, 503);
     if (!limit.data) return reply({ error: 'Vui lòng thử lại sau 15 phút.' }, 429);
     const db = await createClient();
-    const signed = await db.auth.signInWithPassword(input.data);
+    const signed = await db.auth.signInWithPassword({ email: input.data.email, password: input.data.password });
     if (signed.error) return reply({ error: 'Email hoặc mật khẩu không chính xác.' }, 401);
     const role = signed.data.user?.app_metadata?.role;
     if (!['admin', 'tutor'].includes(role)) { await db.auth.signOut({ scope: 'local' }); return reply({ error: 'Tài khoản chưa được cấp quyền.' }, 403); }

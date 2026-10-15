@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Phone, Search } from 'lucide-react';
 import { normalizeParentPhone } from '@/lib/parents';
+import { useLoginCaptcha, type LoginCaptchaConfig } from './LoginCaptcha';
 
-export function ParentLoginForm() {
+export function ParentLoginForm({ captcha, active = true }: { captcha?: LoginCaptchaConfig; active?: boolean }) {
+  const verification = useLoginCaptcha(captcha, active, 'parent_login');
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,18 +16,20 @@ export function ParentLoginForm() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setError('');
     const clean = normalizeParentPhone(phone);
     if (!clean) {
       setError('Vui lòng nhập số di động Việt Nam, bắt đầu bằng 0 hoặc +84.');
       return;
     }
+    if (!verification.ready) { setError('Vui lòng hoàn tất xác minh bảo mật.'); return; }
     setLoading(true);
     try {
       const res = await fetch('/api/parents/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: clean }),
+        body: JSON.stringify({ phone: clean, captchaToken: verification.token }),
       });
       const data = await res.json();
       
@@ -38,6 +42,7 @@ export function ParentLoginForm() {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Có lỗi xảy ra.');
     } finally {
+      verification.reset();
       setLoading(false);
     }
   };
@@ -81,9 +86,10 @@ export function ParentLoginForm() {
         </div>
       )}
 
+      {verification.widget}
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || !verification.ready}
         className="csat-btn csat-btn--primary w-full h-11 flex justify-center items-center text-[0.95em]"
       >
         {loading ? (

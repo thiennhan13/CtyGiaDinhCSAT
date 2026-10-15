@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { TrendingUp, FileSpreadsheet, ChevronDown, ChevronRight, BookOpen } from 'lucide-react';
 import { formatVND } from '@/lib/utils';
-import * as XLSX from 'xlsx';
 
 interface TutorSalaryTableProps {
   stats: any;
@@ -37,6 +36,7 @@ export function TutorSalaryTable({
         return;
       }
 
+      const XLSX = await import('xlsx');
       const wb = XLSX.utils.book_new();
       const period = selectedHistoricalPeriod || 'preview';
       const safePeriod = String(period).replace(/[\[\]*?/\\:|<>"]/g, '_');

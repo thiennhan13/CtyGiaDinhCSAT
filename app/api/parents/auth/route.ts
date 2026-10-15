@@ -3,10 +3,11 @@ import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { createAdminClient } from '@/lib/supabase/service';
 import { authAttemptKeys, readLoginBody } from '@/lib/login-security';
+import { verifyLoginCaptcha } from '@/lib/login-captcha';
 import { parentPhoneSchema, isSameOrigin } from '@/lib/parents';
 import { LOOKUP_COOKIE, lookupCookieOptions, newLookupToken, hashLookupToken, readLookupHash } from '@/lib/parent-lookup';
 
-const schema = z.object({ phone: parentPhoneSchema }).strict();
+const schema = z.object({ phone: parentPhoneSchema, captchaToken: z.string().max(2048).optional() }).strict();
 const response = (body: unknown, status = 200) => NextResponse.json(body, {
   status, headers: { 'Cache-Control': 'private, no-store', ...(status === 429 ? { 'Retry-After': '900' } : {}) },
 });
@@ -15,6 +16,8 @@ export async function POST(request: Request) {
   const parsed = schema.safeParse(await readLoginBody(request));
   if (!parsed.success) return response({ error: 'Vui lòng nhập số di động Việt Nam hợp lệ.' }, 400);
   try {
+    const captcha = await verifyLoginCaptcha(parsed.data.captchaToken, 'parent_login');
+    if (!captcha.ok) return response({ error: captcha.error }, captcha.status);
     const admin = createAdminClient();
     const token = newLookupToken();
     const { data, error } = await admin.rpc('start_parent_phone_session', {

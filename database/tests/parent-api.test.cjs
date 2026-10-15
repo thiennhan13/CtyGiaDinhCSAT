@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const { test } = require('node:test');
 // Each test file runs in its own process; do not inherit a deployment/preview origin.
 process.env.APP_ORIGIN = 'https://portal.test';
+process.env.TURNSTILE_LOGIN_ENABLED = 'false';
 const fs = require('node:fs');
 const path = require('node:path');
 const Module = require('node:module');
@@ -54,6 +55,7 @@ function load(relative,s) {
     if(name==='@supabase/supabase-js') return {createClient:()=>client(s)};
     if(name==='server-only') return {};
     if(name==='@/lib/login-security') return load('lib/login-security.ts',s);
+    if(name==='@/lib/login-captcha') return load('lib/login-captcha.ts',s);
     if(name==='@/lib/parent-auth') return load('lib/parent-auth.ts',s);
     if(name==='next/server') return {NextResponse:{json:(body,init)=>Response.json(body,init)}};
     if(name==='next/headers') return {cookies:async()=>({set:(...args)=>s.cookies.push(args),get:name=>s.cookieValues?.[name]?{value:s.cookieValues[name]}:undefined})};
@@ -72,6 +74,70 @@ const password = 'app/api/parents/password/route.ts';
 const createBody = {action:'create',name:'Parent',phone:'0912 345 678',studentIds:[id(11)]};
 function post(route,s,body,origin='https://portal.test') { return load(route,s).POST(new Request('https://portal.test/api',{method:'POST',headers:{'Content-Type':'application/json',...(origin?{origin}:{})},body:JSON.stringify(body)})); }
 const did = (s,name) => s.calls.filter(c=>c.name===name);
+
+function captchaConfig(t) {
+ const names=['TURNSTILE_LOGIN_ENABLED','TURNSTILE_SITE_KEY','TURNSTILE_SECRET_KEY','APP_ORIGIN','VERCEL_ENV'];
+ const previous=Object.fromEntries(names.map(name=>[name,process.env[name]]));
+ Object.assign(process.env,{TURNSTILE_LOGIN_ENABLED:'true',TURNSTILE_SITE_KEY:'synthetic-sitekey',TURNSTILE_SECRET_KEY:'synthetic-captcha-secret',APP_ORIGIN:'https://portal.test'});
+ t.after(()=>{for(const name of names){if(previous[name]===undefined)delete process.env[name];else process.env[name]=previous[name];}});
+ return load('lib/login-captcha.ts',state());
+}
+
+test('login CAPTCHA fails closed on configuration errors and protects secret from page props',async t=>{
+ const captcha=captchaConfig(t);let calls=0;const fetcher=async()=>{calls++;throw Error('Must not call');};
+ assert.deepEqual(captcha.loginCaptchaPresentation(),{enabled:true,siteKey:'synthetic-sitekey'});
+ for(const flag of ['true','typo']){
+  process.env.TURNSTILE_LOGIN_ENABLED=flag;process.env.TURNSTILE_SECRET_KEY='';
+  assert.equal((await captcha.verifyLoginCaptcha('token','parent_login',fetcher)).status,503);
+  assert.deepEqual(captcha.loginCaptchaPresentation(),{enabled:true,siteKey:''});
+ }
+ process.env.TURNSTILE_LOGIN_ENABLED='false';
+ assert.deepEqual(await captcha.verifyLoginCaptcha(undefined,'parent_login',fetcher),{ok:true});assert.equal(calls,0);
+});
+
+test('login CAPTCHA validates hostname/action/expiry and fails safely on network or malformed responses',async t=>{
+ const {verifyLoginCaptcha}=captchaConfig(t);
+ const valid={success:true,hostname:'portal.test',action:'parent_login',challenge_ts:new Date().toISOString()};
+ let calls=0;
+ const fetcher=async(url,options)=>{
+  calls++;assert.equal(url,'https://challenges.cloudflare.com/turnstile/v0/siteverify');
+  assert.deepEqual(JSON.parse(options.body),{secret:'synthetic-captcha-secret',response:'synthetic-token'});
+  assert.equal(options.cache,'no-store');assert.equal(options.redirect,'error');assert.ok(options.signal);
+  return Response.json(valid);
+ };
+ for(const token of [undefined,'','x'.repeat(2049)])assert.equal((await verifyLoginCaptcha(token,'parent_login',fetcher)).status,403);
+ assert.equal(calls,0);assert.deepEqual(await verifyLoginCaptcha('synthetic-token','parent_login',fetcher),{ok:true});
+ for(const result of [null,{...valid,success:false},{...valid,hostname:'attacker.test'},{...valid,action:'staff_login'},{...valid,challenge_ts:'invalid'},{...valid,challenge_ts:new Date(Date.now()-301000).toISOString()}]){
+  assert.equal((await verifyLoginCaptcha('synthetic-token','parent_login',async()=>Response.json(result))).status,403);
+ }
+ for(const fail of [async()=>{throw Error('timeout');},async()=>new Response('unavailable',{status:503}),async()=>new Response('not JSON')]){
+  assert.equal((await verifyLoginCaptcha('synthetic-token','parent_login',fail)).status,503);
+ }
+});
+
+test('official CAPTCHA test keys cannot be used on a deployed hostname',async t=>{
+ const captcha=captchaConfig(t);process.env.TURNSTILE_SITE_KEY='1x00000000000000000000AA';
+ assert.equal(captcha.loginCaptchaPresentation().siteKey,'');
+ process.env.APP_ORIGIN='http://127.0.0.1:3197';process.env.VERCEL_ENV='development';
+ assert.equal(captcha.loginCaptchaPresentation().siteKey,'1x00000000000000000000AA');
+ process.env.VERCEL_ENV='production';assert.equal(captcha.loginCaptchaPresentation().siteKey,'');
+});
+
+test('both login endpoints reject invalid/replayed CAPTCHA before Auth, database or cookies',async t=>{
+ captchaConfig(t);const previousFetch=global.fetch;t.after(()=>{global.fetch=previousFetch;});
+ for(const [route,body,action] of [[login,{phone:'0912345678'},'parent_login'],['app/api/auth/login/route.ts',{email:'staff@example.test',password:'synthetic-only'},'staff_login']]){
+  let verifies=0;
+  global.fetch=async()=>{verifies++;return Response.json({success:verifies===1,hostname:'portal.test',action,challenge_ts:new Date().toISOString()});};
+  let s=state({targetUser:{id:id(1),app_metadata:{role:'admin'}}});
+  assert.equal((await post(route,s,body)).status,403);assert.equal(s.calls.length,0);assert.equal(verifies,0);
+  s=state({targetUser:{id:id(1),app_metadata:{role:'admin'}}});
+  assert.equal((await post(route,s,{...body,captchaToken:'synthetic-token'})).status,200);
+  if(action==='staff_login')assert.deepEqual(did(s,'login')[0].payload,body);
+  s=state();assert.equal((await post(route,s,{...body,captchaToken:'synthetic-token'})).status,403);
+  assert.equal(s.calls.length,0);assert.equal(s.cookies.length,0);
+  s=state();assert.equal((await post(route,s,{...body,captchaToken:'synthetic-token'},'https://attacker.test')).status,403);assert.equal(verifies,2);
+ }
+});
 
 test('phone normalization accepts full local/international numbers and rejects suffixes',()=>{
   const {normalizeParentPhone}=load('lib/parents.ts',state());

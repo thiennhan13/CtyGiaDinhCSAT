@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { createClient } from '@/lib/supabase/client';
 import { DollarSign, TrendingUp, BookOpen, FileSpreadsheet, ChevronDown, ChevronRight } from 'lucide-react';
 import { Combobox } from '@/components/ui/combobox';
-import * as XLSX from 'xlsx';
 import { formatVND } from '@/lib/format';
 
 export default function TutorSalaryPage() {
@@ -66,8 +65,11 @@ export default function TutorSalaryPage() {
     return()=>{active=false;};
   }, [selectedPeriod, tutorInfo]);
 
-  function exportExcel() {
+  async function exportExcel() {
     if (!sessionDetails.length || !salaryData) return;
+    let XLSX: typeof import('xlsx');
+    try { XLSX = await import('xlsx'); }
+    catch { alert('Chưa tải được công cụ xuất Excel. Vui lòng thử lại.'); return; }
 
     const wb = XLSX.utils.book_new();
     const period = selectedPeriod || 'ky_luong';

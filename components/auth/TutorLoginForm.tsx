@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Users, LogIn, Eye, EyeOff } from 'lucide-react';
+import { useLoginCaptcha, type LoginCaptchaConfig } from './LoginCaptcha';
 
-export function TutorLoginForm() {
+export function TutorLoginForm({ captcha, active = true }: { captcha?: LoginCaptchaConfig; active?: boolean }) {
+  const verification = useLoginCaptcha(captcha, active, 'staff_login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,11 +19,13 @@ export function TutorLoginForm() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setError('');
+    if (!verification.ready) { setError('Vui lòng hoàn tất xác minh bảo mật.'); return; }
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+      const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, captchaToken: verification.token }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Chưa đăng nhập được.');
       router.push(result.redirectUrl);
@@ -37,6 +41,7 @@ export function TutorLoginForm() {
         setError('Đã xảy ra lỗi không xác định.');
       }
     } finally {
+      verification.reset();
       setLoading(false);
     }
   };
@@ -99,9 +104,10 @@ export function TutorLoginForm() {
         </div>
       )}
 
+      {verification.widget}
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || !verification.ready}
         className="csat-btn csat-btn--primary w-full h-11 flex justify-center items-center text-[0.95em]"
       >
         {loading ? (

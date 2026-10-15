@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, FileSpreadsheet, AlertTriangle } from 'lucide-react';
 import { formatVND } from '@/lib/utils';
-import * as XLSX from 'xlsx';
 
 interface StudentTuitionTableProps {
   stats: any;
@@ -45,6 +44,7 @@ export function StudentTuitionTable({
 
   const exportCustomerPayments = async () => {
     try {
+      const XLSX = await import('xlsx');
       if (viewMode === 'preview') {
         const list = stats?.studentInvoicePreview || [];
         if (!list.length) { alert('Không có dữ liệu dự kiến hóa đơn để xuất!'); return; }

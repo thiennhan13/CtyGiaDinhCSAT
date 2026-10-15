@@ -14,6 +14,10 @@ Một ứng dụng Next.js phục vụ website công khai và admin/gia sư/ph�
 
 proxy.ts định tuyến/làm mới phiên, không thay quyền API/database. app/(auth) là route group không tạo tiền tố URL.
 
+CAPTCHA đăng nhập: server page `/login` chỉ truyền public presentation từ `lib/login-captcha.ts`; `components/auth/LoginCaptcha.tsx` quản lý script/widget theo vai trò. Hai API `/api/parents/auth` và `/api/auth/login` gọi Siteverify trước nghiệp vụ, đối chiếu hostname APP_ORIGIN và action riêng; secret không đi vào client/Supabase/DB. Bật qua biến môi trường, không migration, không thêm CAPTCHA cho tiếp nhận đơn. Xem [hướng dẫn cấu hình và nghiệm thu](LOGIN_CAPTCHA.md).
+
+Module service Supabase có guard `server-only`; API dùng service role vẫn phải kiểm tra quyền/phạm vi trước RPC. Header bảo vệ cấu hình trong `next.config.ts`; CSP đang Report-Only, không có collector lưu URL riêng tư và không dùng nonce làm mất static rendering. CSS primitives của shadcn được giữ nguyên ở `app/styles/ui-primitives.css` kèm giấy phép, không cần CLI shadcn trong runtime. Bốn luồng xuất Excel tải SheetJS bằng dynamic import khi người dùng bấm, nội dung báo cáo và quyền lấy dữ liệu giữ nguyên. Trạng thái local/production của gói này nằm ở PROJECT_STATUS.
+
 ## Website công khai: dữ liệu đến giao diện
 
 ```mermaid

@@ -1,3 +1,4 @@
+import 'server-only';
 import { createClient } from '@supabase/supabase-js'
 
 // This should ONLY be used in server-side API routes or Server Actions

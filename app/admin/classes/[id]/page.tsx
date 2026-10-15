@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { createClient } from '@/lib/supabase/client';
 import { useParams } from 'next/navigation';
 import { Trash2, AlertTriangle, History, FileSpreadsheet, Edit } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { formatVND } from '@/lib/format';
 import { Combobox } from '@/components/ui/combobox';
@@ -395,8 +394,11 @@ export default function ClassDetailPage() {
     }
   };
 
-  const handleExportReport = () => {
+  const handleExportReport = async () => {
     if (!classInfo) return;
+    let XLSX: typeof import('xlsx');
+    try { XLSX = await import('xlsx'); }
+    catch { await showAlert({ title: 'Chưa xuất được báo cáo', description: 'Chưa tải được công cụ xuất Excel. Vui lòng thử lại.', variant: 'error' }); return; }
     const wb = XLSX.utils.book_new();
     
     const wsStudents = XLSX.utils.json_to_sheet(studentsInClass.map(cs => ({

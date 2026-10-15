@@ -8,10 +8,11 @@ import { PublicHeader } from '@/components/marketing/PublicHeader';
 import { CodeIcon } from '@/components/marketing/PublicMotion';
 import { ParentLoginForm } from './ParentLoginForm';
 import { TutorLoginForm } from './TutorLoginForm';
+import type { LoginCaptchaConfig } from './LoginCaptcha';
 import './contact-entry.css';
 
 type EntryRole = 'parent' | 'tutor';
-export function ContactEntry({ initialRole = 'parent' }: { initialRole?: EntryRole }) {
+export function ContactEntry({ initialRole = 'parent', captcha }: { initialRole?: EntryRole; captcha?: LoginCaptchaConfig }) {
   const search = useSearchParams();
   const role: EntryRole = search ? (search.get('role') === 'tutor' ? 'tutor' : 'parent') : initialRole;
   function select(next: EntryRole) {
@@ -38,8 +39,8 @@ export function ContactEntry({ initialRole = 'parent' }: { initialRole?: EntryRo
           </label>)}
         </fieldset>
         <div className="contact-entry-forms">
-          <div id="entry-parent" hidden={role !== 'parent'}><p className="contact-form-intro">Theo dõi nhận xét, nội dung học và học phí của con.</p><ParentLoginForm/></div>
-          <div id="entry-tutor" hidden={role !== 'tutor'}><p className="contact-form-intro">Dành cho gia sư và quản trị viên của trung tâm.</p><TutorLoginForm/></div>
+          <div id="entry-parent" hidden={role !== 'parent'}><p className="contact-form-intro">Theo dõi nhận xét, nội dung học và học phí của con.</p><ParentLoginForm captcha={captcha} active={role === 'parent'}/></div>
+          <div id="entry-tutor" hidden={role !== 'tutor'}><p className="contact-form-intro">Dành cho gia sư và quản trị viên của trung tâm.</p><TutorLoginForm captcha={captcha} active={role === 'tutor'}/></div>
         </div>
         <p className="contact-entry-help">Cần hỗ trợ? <a href={publicZaloUrl} target="_blank" rel="noopener noreferrer">Nhắn CSAT qua Zalo ↗</a></p>
         <noscript><style>{'.contact-entry-forms,.contact-role-switch{display:none!important}'}</style><p>Vui lòng bật JavaScript để đăng nhập, hoặc liên hệ CSAT để được hỗ trợ.</p></noscript>

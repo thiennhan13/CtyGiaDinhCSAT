@@ -15,6 +15,11 @@ async function main(){
  for(const url of urls){
   const parsed=new URL(url);assert.equal(parsed.origin,canonical);assert.equal(parsed.search,'');assert.ok(!/\/(parents|admin|tutor|login|api)(\/|$)/.test(parsed.pathname));
   const r=await get(parsed.pathname);assert.equal(r.status,200,parsed.pathname);
+  assert.equal(r.headers.get('x-content-type-options'),'nosniff',parsed.pathname);
+  assert.equal(r.headers.get('x-frame-options'),'DENY',parsed.pathname);
+  assert.equal(r.headers.get('referrer-policy'),'strict-origin-when-cross-origin',parsed.pathname);
+  assert.match(r.headers.get('content-security-policy-report-only')||'',/object-src 'none'/,parsed.pathname);
+  assert.equal(r.headers.get('content-security-policy'),null,'CSP remains observation-only');
   const html=await r.text(),body=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'');pages.set(parsed.pathname,body);
   assert.equal(link(html,'canonical'),url);assert.ok(!/noindex/.test(meta(html,'robots')));assert.ok(!/noindex/.test(r.headers.get('x-robots-tag')||''));
   const title=decode(html.match(/<title>(.*?)<\/title>/)?.[1]||'');assert.ok(title);assert.ok(!titles.has(title));titles.add(title);
