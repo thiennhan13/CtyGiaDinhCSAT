@@ -1,8 +1,8 @@
 # Phương án đối soát và vận hành với ngân sách miễn phí
 
-**Phạm vi hiện hành:** chủ trung tâm xác nhận Usage thực tế ổn và duyệt triển khai bước 2–5: dependency/header/secret, quyền và backup, bot Log, giảm tải theo bằng chứng. Đã sửa mã local và bật Bot Protection Log trên Vercel; chưa deploy mã mới, chưa đổi database/DNS hoặc nâng gói. Giữ tra cứu phụ huynh hiện hành. Trạng thái bảo mật và rủi ro danh tính ở [PUBLIC_SECURITY](PUBLIC_SECURITY.md).
+**Phạm vi hiện hành:** chủ trung tâm xác nhận Usage thực tế ổn và duyệt triển khai bước 2–5: dependency/header/secret, quyền và backup, bot Log, giảm tải theo bằng chứng. Đã phát hành gói bảo vệ cùng CAPTCHA ngày 16/10/2026; Bot Protection Log giữ nguyên. Không đổi database/DNS hoặc nâng gói. Giữ tra cứu phụ huynh hiện hành. Trạng thái bảo mật và rủi ro danh tính ở [PUBLIC_SECURITY](PUBLIC_SECURITY.md).
 
-Quyết định bổ sung: chủ trung tâm đã duyệt Turnstile Free **chỉ cho đăng nhập**. Mã local và fixture đã có, chờ widget/key và phát hành theo [LOGIN_CAPTCHA](LOGIN_CAPTCHA.md); không mở rộng CAPTCHA sang đăng ký/tư vấn.
+Quyết định bổ sung: chủ trung tâm đã duyệt Turnstile Free **chỉ cho đăng nhập**. Mã và bản vá đã phát hành; nghiệm thu tài khoản thật còn chờ theo [LOGIN_CAPTCHA](LOGIN_CAPTCHA.md); không mở rộng CAPTCHA sang đăng ký/tư vấn.
 
 ## Điều kiện hosting cần chốt trước
 
@@ -74,6 +74,6 @@ SEC-02: người biết đúng số phụ huynh vẫn có thể xem dữ liệu 
 - Chạy Node24 guard, repo/database tests, typecheck, lint strict và build cho đợt sửa mã; Edge mobile/desktop kiểm menu, đăng ký, đăng nhập, ảnh, video, tải Excel, no-JS/reduced motion và link SEO. Avatar cần Storage thử thật; thử quyền/phiên trên Supabase riêng.
 - Giữ tên/ID lớp, C01–D07, nháp/công bố, revision và lịch sử tài chính; không chạy lại migration đã phát hành. Nếu cần SQL, tạo migration mới theo số cuối lúc triển khai.
 - Bằng chứng local Node24.19.0: guard, typecheck, lint strict, build đạt; database/API 266 ca đạt sau chạy lại ba ca bị sandbox chặn thao tác tệp/initdb. Repo 16 ca đạt sau chạy lại hai ca sandbox chặn Git fixture; thêm 4 kiểm thử round-trip Excel đạt. HTTP SEO/header 15 public URL, 4 liên kết bổ sung, 9 alias, 5 private path đạt. Edge public 28 nhóm/689 assertions có một ca hover glyph không ổn định; chạy riêng ca đó và đăng nhập đạt 2 nhóm/33 assertions. Ghi giới hạn này thay vì coi lần chạy tổng đã xanh hoàn toàn. Bằng chứng và phần QA bổ sung ở PROJECT_STATUS.
-- Trước phát hành: xác nhận bộ mã đã duyệt, theo dõi CI, kiểm header/dependency đúng trên deployment mới. Không suy cấu hình Header local là đã có trên production. Chưa commit/push/deploy đợt vá này.
+- Trước phát hành: xác nhận bộ mã đã duyệt, theo dõi CI, kiểm header/dependency đúng trên deployment mới. Không suy cấu hình Header local là đã có trên production. Đã commit/push/deploy 39fbb36 và bản vá c6fc0cc; CI hai job đạt, header production và HTTP các trang chính đã kiểm tra.
 
-Phần còn chờ: Supabase staging/Storage thật, môi trường phục hồi được phép chứa bản sao dữ liệu thật, mã hóa/offsite/lịch và thời hạn lưu backup; quan sát bot trước khi chặn; bảy advisory dev/build; giải quyết điều kiện Hobby. Không cần chạy migration hoặc cấp lại tài khoản trong đợt này. CAPTCHA đăng nhập đã có mã local, chờ cấu hình và phát hành theo LOGIN_CAPTCHA.
+Phần còn chờ: Supabase staging/Storage thật, môi trường phục hồi được phép chứa bản sao dữ liệu thật, mã hóa/offsite/lịch và thời hạn lưu backup; quan sát bot trước khi chặn; bảy advisory dev/build; giải quyết điều kiện Hobby. Không cần chạy migration hoặc cấp lại tài khoản trong đợt này. CAPTCHA đăng nhập đã phát hành; phạm vi kiểm chứng và nghiệm thu còn chờ ở LOGIN_CAPTCHA.
