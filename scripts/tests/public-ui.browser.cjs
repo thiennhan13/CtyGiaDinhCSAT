@@ -310,7 +310,7 @@ async function main(){
     check(await stage.getAttribute('open')!==null,'Stage anchor opens selected disclosure');
     check(await stage.locator('.rm-stage-body').isVisible(),'Selected stage readable');
     check(await stage.locator('.rm-stage-skills .rm-focus-tags li').count()>0,'Stage shows skill focus');
-    check((await stage.locator('.rm-lesson-skill').first().innerText()).length>40,'Lesson skill explanation present');
+    check(await stage.locator('.rm-lesson-skill').count()===0,'Per-topic skill annotation removed');
    }
   }
   for(const theme of ['light','dark'])for(const width of [320,375,768,1440]){
@@ -464,11 +464,38 @@ async function main(){
   await page.goBack({waitUntil:'networkidle'});await page.goForward({waitUntil:'networkidle'});
   check(await page.locator('.rm-schedule-note').count()===1&&await page.locator('.rm-course-outcomes h3').count()===4,'Back/forward preserves detail structure');
  });
+ await run('course stage reasoning tags and self-study entry',async()=>{
+  for(const width of [320,375,768,1440]){
+   await page.setViewportSize({width,height:900});
+   for(const slug of ['a','b','c']){
+    await go(page,'/lo-trinh/'+slug);
+    const link=page.locator('.rm-self-study-link');
+    check(await link.getAttribute('href')==='/tu-hoc#view='+slug.toUpperCase(),'Scoped self-study reference '+slug);
+    check(await page.locator('.rm-curriculum-heading>p,.rm-stage-body>p,.rm-stage-skills>h3,.rm-stage-skills>p,.rm-lesson-skill').count()===0,'No stage commentary, redundant heading or per-topic skill annotation');
+    for(const stage of await page.locator('.rm-curriculum-stage').all()){
+     await stage.evaluate(el=>el.open=true);
+     const tags=await stage.locator('.rm-stage-skills li').allTextContents();
+     check(tags.length===5&&new Set(tags).size===5&&tags.every(text=>text.length<=40),'Five concrete concise reasoning tags');
+     check(await stage.locator('.rm-stage-skills li').evaluateAll(els=>els.every(el=>el.scrollWidth<=el.clientWidth+1)),'Tags do not clip text '+slug+'/'+width);
+    }
+    check(await link.evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&r.height>=44&&el.scrollWidth<=el.clientWidth+1}),'Reference CTA fits and stays accessible');
+    await link.scrollIntoViewIfNeeded();
+    check(await link.evaluate(el=>{const r=el.getBoundingClientRect();return [...document.querySelectorAll('.public-section-jump button')].every(button=>{const b=button.getBoundingClientRect();return r.right<=b.left||r.left>=b.right||r.bottom<=b.top||r.top>=b.bottom})}),'Reference CTA clear of floating section controls');
+    check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Detail has no horizontal overflow');
+    if([375,1440].includes(width))await page.locator('.rm-curriculum-heading').screenshot({path:path.join(output,`course-reference-${slug}-${width}.png`)});
+    if(slug==='c'&&[375,1440].includes(width))await page.locator('.rm-curriculum-stage').nth(3).screenshot({path:path.join(output,`course-reasoning-c-${width}.png`)});
+   }
+  }
+  await page.locator('.rm-self-study-link').click();
+  await page.waitForURL(url=>url.pathname==='/tu-hoc'&&url.hash==='#view=C');
+  await page.locator('#graph-C01').waitFor();
+  check(await page.locator('#stage [data-node]').count()===19,'Course CTA opens exactly the selected C view');
+ });
  await run('approved curriculum preserved on public course routes',async()=>{
   const curriculum=require('../../lib/learning-curriculum-20260922.json');
   for(const [slug,program,part,count] of [['a','basic','A',9],['b','basic','B',15],['c','advanced',null,19]]){
    await go(page,'/lo-trinh/'+slug);const stages=curriculum.find(t=>t.program===program).stages.filter(s=>!part||s.part===part),lessons=stages.flatMap(s=>s.lessons);
-   check(lessons.length===count,'Approved source count '+slug);check(await page.locator('.rm-stage-body>ol>li').count()===count,'Rendered topic count '+slug);check(JSON.stringify(await page.locator('.rm-stage-body>ol>li h3').allTextContents())===JSON.stringify(lessons.map(l=>l.title)),'Approved titles/order '+slug);
+   check(lessons.length===count,'Approved source count '+slug);check(await page.locator('.rm-lesson-skill').count()===0,'No Kỹ năng rèn luyện line '+slug);check(await page.locator('.rm-stage-body>ol>li').count()===count,'Rendered topic count '+slug);check(JSON.stringify(await page.locator('.rm-stage-body>ol>li h3').allTextContents())===JSON.stringify(lessons.map(l=>l.title)),'Approved titles/order '+slug);
    await page.locator('.rm-curriculum-stage').last().locator('summary').click();check(await page.locator('.rm-curriculum-stage').last().locator('.rm-stage-body').isVisible(),'Keyboard/native details reveal content');
   }
   for(const slug of ['e','k']){await go(page,'/lo-trinh/'+slug);check(await page.locator('.rm-stage-body>ol>li').count()===0,'No invented curriculum '+slug);check(!(await page.locator('.rm-course-facts').innerText()).includes('99.000'),'No invented E/K price');}

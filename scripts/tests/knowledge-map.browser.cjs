@@ -31,9 +31,9 @@ try {
   await page.locator('[data-view=A]').click(); await page.waitForFunction(() => document.querySelectorAll('#stage [data-node]').length === 9);
   assert.equal(await page.locator('#stage [data-node]').count(), 9);
   await page.locator('#plus').click();
-  await page.locator('#canvas').evaluate(element => element.scrollTop = 200);
+  await page.evaluate(() => window.scrollTo({top:200,behavior:'instant'}));
   const svgHandle = await page.locator('#stage > svg').elementHandle();
-  const viewport = () => page.locator('#canvas').evaluate(element => ({ left: element.scrollLeft, top: element.scrollTop, width: element.querySelector('svg').style.width }));
+  const viewport = () => page.evaluate(() => ({ left: scrollX, top: scrollY, width: document.querySelector('#stage>svg').style.width }));
   const before = await viewport(), fetchCount = requests.filter(url => /\/self-study\//.test(url)).length;
   await page.locator('#search').fill('ĐỌC INPUT'); await page.locator('#result').filter({ hasText: '1 kết quả' }).waitFor();
   assert(await page.locator('#stage > svg').evaluate((element, original) => element === original, svgHandle));
@@ -85,7 +85,7 @@ try {
   assert.equal(await page.evaluate(() => document.activeElement.dataset.node), 'B02');
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto(base + '#view=DP'); await page.waitForFunction(() => document.querySelectorAll('#stage [data-node]').length === 7);
-  assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  assert(await page.locator('#canvas').evaluate(el => getComputedStyle(el).overflow === 'visible'), 'Diagram uses document scrolling.');
   assert(Number((await page.locator('#scale-label').textContent()).replace('%', '')) >= 70, 'Mobile opens at a readable scale.');
   await page.screenshot({ path: path.join(results, 'mobile.png') });
   await page.locator('#graph-D01').click();

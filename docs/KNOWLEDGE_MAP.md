@@ -1,34 +1,45 @@
-# Trang Tự học
+# Bản đồ kiến thức dọc
 
-`/tu-hoc` giữ nội dung và quan hệ của project `csat-roadmap`, trình bày theo mẫu Sổ tay đã duyệt: cây ngang, mục lục cam bên trái, node cắt góc với header cobalt/lime, khung đọc bên phải. Đây là tài liệu tự học công khai; chương trình lớp và bài đọc phụ huynh tiếp tục dùng khung đã duyệt riêng.
+`/tu-hoc` giữ nguyên 43 chủ đề, nội dung và quan hệ của project `csat-roadmap`, trình bày cây dọc trên toàn trang giấy kẻ. Portal phụ huynh dùng cùng hình học/node, nhưng nội dung lấy từ giáo án công bố hiệu lực của lớp.
 
-## Nguồn và cấu trúc
+## Nguồn và ranh giới
 
-Nguồn được chỉ định: `D:\Cty_gia_đình_CSAT\csat-roadmap`, commit `a30fc0e142b4295d2482594417a8e15d7a4779f7`, working tree sạch khi tiếp nhận. Dữ liệu 43 chủ đề/57 quan hệ và năm SVG gốc giữ nguyên byte tại `public/self-study/`; checksum và commit nguồn nằm trong `lib/self-study-source.json`. SVG giao diện mới được tạo riêng tại `public/self-study/notebook/`, đường dẫn có fingerprint trong `lib/self-study-diagrams.json`; không ghi đè nguồn.
+Nguồn Tự học: `D:\Cty_gia_đình_CSAT\csat-roadmap`, commit `a30fc0e142b4295d2482594417a8e15d7a4779f7`. JSON 43 chủ đề/57 quan hệ và năm SVG gốc giữ nguyên byte trong `public/self-study/`; checksum ở `lib/self-study-source.json`. Năm SVG dọc được sinh riêng tại `public/self-study/notebook/`, fingerprint ở `lib/self-study-diagrams.json`. Không sửa nguồn chỉ để đổi bố cục.
 
-- `lib/self-study-markup.ts`: giao diện Sổ tay, giữ chọn lớp/cách xem, tìm kiếm, công cụ zoom/tải SVG, sơ đồ, danh sách và drawer dùng native dialog.
-- `lib/self-study-runtime.js`: tương tác nguồn, đổi truy vấn DOM sang root component; fetch và listener có AbortController, ResizeObserver/rAF được dọn khi rời trang.
-- `components/marketing/SelfStudyRoadmap.tsx`: mount/unmount tương tác trong Next.js.
-- `self-study-roadmap.css`: CSS scope trong `.self-study-roadmap`, dùng Archivo/palette hiện hành. Nền ngoài trong suốt để hiện `SiteBackground` chung; giấy kẻ chỉ trong canvas. Mobile chuyển mục lục thành hàng nút; dark mode có màu tương ứng. Logo/menu/footer do PublicShell cung cấp.
-- `self-study-enrollment.css`: giữ lời mời đăng ký hiện hành và đích `/lo-trinh#tu-van`, thêm sáu icon trang trí hai bên và thu gọn nền lime sau chữ “ngay”.
-- `scripts/build-self-study-diagrams.cjs`: tạo lại năm SVG từ JSON chuẩn bằng Node 24, không cần Graphviz hoặc package mới. Bố trí DAG phân tầng trái → phải, giữ phép rút gọn bắc cầu của source và hiển thị nền ngoài lớp bằng mã. Dòng chữ được ngắt bảo thủ, browser QA kiểm glyph Archivo thực không tràn/đè header/footer.
+- `lib/roadmap-graph.ts`: hình học DAG từ trên xuống, nhóm xếp dọc, rút gọn cạnh bắc cầu, node cắt góc/cobalt, title ngắt dòng và tự tăng chiều cao; escape nội dung và namespace ID khi có nhiều bản đồ.
+- `scripts/build-self-study-diagrams.cjs`: Node 24 dùng renderer chung để tạo năm SVG từ snapshot công khai, không cần Graphviz/package mới.
+- `lib/self-study-markup.ts` và `lib/self-study-runtime.js`: giao diện/tương tác public scoped qua `SelfStudyRoadmap`; AbortController/ResizeObserver/rAF/timer được dọn khi unmount.
+- `PublicShell presentation="map"`: giữ menu/logo/theme, bỏ footer và nền trang trí ở riêng Tự học. Nền giấy phủ trang; CSS `body:has(.self-study-page)` chỉ mở cuộn ngang trong route này, tự hết hiệu lực khi điều hướng đi.
+- `components/learning/ParentKnowledgeMap.tsx`: chỉ nhận giáo án lớp hiện hành và liên kết do server caller cấp. Không import snapshot Tự học hoặc toàn văn chuyên đề. `Roadmap` của admin/gia sư giữ hành vi cũ.
 
-Dữ liệu nguồn quyết định tên, mô tả, thứ tự theo nhánh, kiến thức chi tiết, điều kiện học trước và URL bài tập trên trang này. Không ghép thêm diễn giải từ curriculum Portal. Đây là quyết định thay thế bản Tự học cũ với hero, mục Một vòng tự học và 13 chặng; không đổi giáo án hoặc quyền đọc 54 bài phụ huynh. Mapping `knowledge-map-links.json`/helper `csatoj-practice.ts` của phụ huynh vẫn độc lập, các tag hiện khớp snapshot nguồn.
+Snapshot public quyết định tên/mô tả/chi tiết/kiến thức trước/URL bài tập của Tự học. Parent giữ tên bài dài từ `learning-curriculum-20260922.json` hoặc template của chính lớp, lọc phần/chặng/chủ đề bằng `effectiveStages`. Chỉ khung chuẩn mới dùng quan hệ trong `knowledge-map-links.json`; template tùy chỉnh giữ nhóm chặng và chủ đề riêng, không tự gán điều kiện học trước. Không API/migration, ghi tiến độ hay suy ra thành thạo.
 
-## Hành vi
+## Tự học
 
-- Hai chế độ Sơ đồ/Danh sách; lọc Toàn lộ trình, A, B, C hoặc Quy hoạch động.
-- Tìm không dấu trên mã, tên, mô tả và nội dung chi tiết. Tìm kiếm không tải lại SVG, không đặt lại vị trí/zoom.
-- Năm SVG mới tải theo nhu cầu và cache trong phiên component. Node hỗ trợ Tab/Enter/Space; drawer đóng bằng Escape và trả focus. Kéo nền bằng chuột, cảm ứng dùng cuộn tự nhiên; node không kéo đổi vị trí.
-- URL giữ cấu trúc hash nguồn: `#view=C&mode=list&q=...&tag=D03`; back/forward khôi phục trạng thái. Anchor cũ `#chu-de-D03` vẫn mở đúng chủ đề. Alias `/ban-do-kien-thuc` tiếp tục chuyển hướng.
-- Khi không JS có liên kết mở SVG toàn bộ như trang nguồn. CSS in giữ sơ đồ/danh sách, ẩn điều khiển và CTA.
-- Mặt node giữ sáng để đọc rõ; nền canvas, bảng, chữ và drawer hỗ trợ theme chung. SVG tải xuống/no-JS dùng cùng node mới, có thể mở độc lập.
-- Không API OJ, đăng nhập, ghi tiến độ hoặc trạng thái thành thạo. Không import Markdown/metadata bài riêng tư vào dữ liệu public.
+Menu chính website cố định phía trên. Mục lục Tất cả/A/B/C/DP và liên kết đăng ký không ô màu dẫn `/lo-trinh#tu-van` nổi bên trái trên sơ đồ; mobile thu gọn bằng native disclosure. Thanh điều chỉnh nổi phía dưới gồm tìm kiếm, Sơ đồ/Danh sách, vừa chiều ngang, zoom và tải SVG. Không có vùng canvas cuộn lồng: thanh cuộn trang và thao tác cuộn/kéo nền di chuyển sơ đồ. Chừa khoảng trống trên/dưới để chủ đề không nằm sau menu.
 
-## Cập nhật và kiểm chứng
+Mặc định desktop 100%, mobile 85%; Vừa khung chỉ vừa chiều ngang khả dụng, không ép toàn cây dài vào chiều cao. Các nhánh vẫn có thể rộng hơn màn hình. Khi tìm từ khóa nhấn Enter, node được đưa vào vùng nhìn giữa các menu.
 
-Khi tiếp nhận bản nguồn mới, đối chiếu JSON và SVG gốc, cập nhật fingerprint/checksum nguồn, rồi chạy `node scripts/build-self-study-diagrams.cjs`. Kiểm lại các tập cạnh và hộp chữ của cả năm bản mới; chỉ xóa derivative cũ khi đã chắc không còn caller. Project nguồn chỉ đọc; runtime không phụ thuộc ổ D, scratch hoặc công cụ sinh SVG.
+Tìm không dấu trên mã/tên/mô tả/chi tiết, không tải lại SVG hoặc reset vị trí. Chỉ tải SVG view đang dùng, cache trong component; lưu zoom/vị trí trang riêng từng view. Hash `#view=C&mode=list&q=...&tag=D03`, back/forward, anchor cũ `#chu-de-D03` và alias `/ban-do-kien-thuc` được giữ. Node hỗ trợ Tab/Enter/Space, drawer đóng Escape/trả focus. Kéo chuột từ nền hoặc node không chọn chữ, không kích hoạt drawer khi đang kéo; click thường vẫn mở chủ đề. Chặn chọn chữ chỉ trong canvas, drawer/danh sách vẫn sao chép được. Cảm ứng dùng cuộn tự nhiên, không kéo đổi tọa độ node.
 
-`node --test scripts/tests/knowledge-map.test.cjs` kiểm checksum, 43 mã, A9/B15/C19, tag mapping, không chu trình và tập cạnh/mã đầy đủ trong năm SVG mới. `node scripts/tests/knowledge-map.browser.cjs` kiểm đủ 43 dialog/URL/detail, lazy load/cache, zoom, history, bàn phím, mobile và retry. `node scripts/tests/self-study-design.browser.cjs` kiểm 22 bố cục sáng/tối ở 320–1920 px, hộp chữ SVG, nền chung/giấy kẻ, CTA/icon/nền chữ, kéo canvas, no-JS, in và zoom 200%. Dùng `PUBLIC_QA_BASE_URL` trỏ preview loopback; ảnh/báo cáo tại `scratch/knowledge-map-qa/`, ngoài runtime/Git.
+No-JS hiện ảnh/liên kết SVG dọc đầy đủ và CTA thật; ẩn các điều khiển cần JS. In giữ sơ đồ/danh sách, ẩn menu nổi. Dark mode đổi giấy/đường nối/drawer, node public giữ mặt sáng dễ đọc. Không khóa cuộn trang.
 
-Bằng chứng môi trường và việc còn chờ xem [PROJECT_STATUS](PROJECT_STATUS.md). Nghiên cứu PDF và chuẩn hóa bài phụ huynh xem [PARENT_LESSON_AUDIT](PARENT_LESSON_AUDIT.md).
+## Phụ huynh và số buổi
+
+Bản đồ hiển thị toàn giáo án hiệu lực của lớp trong khung giấy cuộn riêng, không có mục lục nội bộ. Thẻ số buổi ở ngoài trang giấy; nhãn và màu lime áp dụng toàn chặng hiện tại. Nút Đến chặng hiện tại chỉ cuộn khung, không ghi dữ liệu. Các node mở drawer mô tả và hành động **Đọc chuyên đề**, **Luyện tập trên CSATOJ** khi server caller đã cung cấp. Mục tiêu/focus/bước tiếp theo, nhận xét, điểm danh, học phí và sidebar Portal giữ nguyên.
+
+`resolveParentCurriculumProgress` giữ quy tắc: làm phẳng chủ đề của các chặng hiệu lực theo thứ tự; N buổi lớp đã hoàn thành chọn chủ đề thứ `min(N, tổng chủ đề)` khi N≥1, tô toàn chặng chứa chủ đề. N=0 là chuẩn bị chặng đầu. Số buổi thật vẫn hiển thị nếu vượt số chủ đề; không tự đánh dấu hoàn tất khóa. Thiếu aggregate không biến thành 0: dùng chặng gia sư công bố hoặc chưa xác nhận. Không hiện nhãn “ước tính” trên UI.
+
+Count do RPC hiện hành cung cấp: mọi buổi completed đã kết thúc theo giờ Việt Nam từ đầu lịch sử lớp, không theo tháng hoặc điểm danh cá nhân. Quy tắc một buổi/một chủ đề chỉ là cách định hướng hiển thị; không quy định thời lượng thật của mỗi chủ đề, không suy thành thạo. Series 54 bài không làm tăng 43 chủ đề hoặc số buổi. Xem [chuyên đề và quyền đọc](PARENT_TOPICS.md).
+
+## Cập nhật và QA
+
+Khi cập nhật snapshot chuẩn, đối chiếu dữ liệu/checksum rồi chạy `node scripts/build-self-study-diagrams.cjs` bằng Node 24. Kiểm node/edge/title của cả năm view. Runtime không phụ thuộc ổ D, prototype/scratch hoặc công cụ tác giả.
+
+- `scripts/tests/knowledge-map.test.cjs`: checksum gốc, 43 mã, tag và đủ cạnh/mã trong derivative.
+- `scripts/tests/roadmap-graph.test.cjs`: hình học dọc/không chồng card dài, escape/ID, custom, chu trình; các mốc số buổi, loại trừ và thiếu aggregate không cần DB.
+- `scripts/tests/knowledge-map.browser.cjs`: 43 drawer/URL/detail, cache, tìm kiếm, zoom, vị trí trang, history, bàn phím, mobile và retry.
+- `scripts/tests/self-study-design.browser.cjs`: giấy toàn trang, menu nổi, cuộn document,20 bố cục sáng/tối 320–1920 px, hộp chữ SVG, điều khiển 44 px, kéo nền/no-JS/in và cleanup khi chuyển route.
+- `scripts/run-parent-topics-ui.cjs`: dữ liệu giả qua RPC loopback, kiểm giáo án/quyền/series/ngữ cảnh và hồi quy các phần Portal. Không dùng hồ sơ thật.
+
+Dùng `PUBLIC_QA_BASE_URL` loopback. Ảnh/báo cáo ở `scratch/knowledge-map-qa/` và `scratch/parent-topics-qa/`, ngoài runtime/Git. Bằng chứng thực chạy và việc còn chờ ở [PROJECT_STATUS](PROJECT_STATUS.md). Chưa phát hành thiết kế dọc khi chỉ có demo local.

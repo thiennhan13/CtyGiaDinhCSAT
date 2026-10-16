@@ -85,7 +85,7 @@ Breadcrumb 14–15 px một hàng, căn giữa. Ba khối Đối tượng / Cùn
 
 Tất cả lớp dùng nền chung website; E chi tiết không mang nền tối riêng của E tổng quan. Orb/line/blob radial tĩnh theo accent từng lớp, ở góc sau chi tiết, không bắt pointer; mặt thẻ đọc đặc.
 
-Chặng editorial: số/tên/nội dung căn giữa, thẳng hàng, mũi tên chỉ thứ tự ngang hoặc dọc. Nội dung chủ đề chi tiết vẫn đầy đủ. Mục tiêu cuối khoá đặt trước Cùng CSAT chọn bước tiếp theo; heading tư vấn thường, không glyph.
+Chặng editorial: số/tên căn giữa, thẳng hàng, mũi tên chỉ thứ tự ngang hoặc dọc. Trong chi tiết chặng, chỉ giữ tag tư duy cụ thể, không nhãn Trọng tâm tư duy/đoạn dẫn/đoạn nối chặng. Phần Nội dung học tập thay đoạn chú thích bằng nút Tự học đúng lớp, chừa khoảng cho điều khiển nổi. Chủ đề giữ tên/tag nội dung/mục đích/cách tiếp cận; bỏ dòng Kỹ năng rèn luyện dưới từng chủ đề. Mục tiêu cuối khoá đặt trước Cùng CSAT chọn bước tiếp theo; heading tư vấn thường, không glyph.
 
 ### Đăng ký học
 

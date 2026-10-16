@@ -11,12 +11,13 @@ Metadata/canonical, sitemap/robots, schema, ảnh chia sẻ logo CSAT và llms.t
 | / — Giới thiệu | app/page.tsx, HomeExperience.tsx, home-experience.css | Hero, bốn lý do, đội ngũ, hệ sinh thái, lớp học, sáu bước buổi học, phụ huynh, tư vấn |
 | /lo-trinh — Tìm hiểu | RoadmapExperience.tsx, RoadmapCourseSection.tsx, CourseKnowledge.tsx | Selector, năm mục A/B/C/E/K, tag/roadmap; ảnh nền không tương tác |
 | E tổng quan | FlagshipCourseSection.tsx, flagship-course.css, course-e-theme.css | Một mục nổi bật, banner/sơ đồ đầu vào/ba trọng tâm/CTA |
-| /lo-trinh/[program] | app/lo-trinh/[program]/page.tsx, CourseDetailContent.tsx, CourseStageNavigation.tsx, course-detail.css | Facts, chặng/chủ đề, mục tiêu cuối khoá trước tư vấn; poster flexible và mở ảnh |
+| /lo-trinh/[program] | app/lo-trinh/[program]/page.tsx, CourseDetailContent.tsx, CourseStageNavigation.tsx, course-detail.css | Facts, tag tư duy của chặng và chủ đề chuẩn, bỏ dòng Kỹ năng rèn luyện; nút Tự học theo lớp; mục tiêu cuối khoá trước tư vấn; poster flexible và mở ảnh |
 | /dang-ky-hoc | EnrollmentExperience.tsx, enrollment.css | Năm thẻ 3/2/1 cột, giá/tag/đối tượng, khóa quan tâm mặc định theo ngữ cảnh |
 | /thanh-tich | app/thanh-tich/page.tsx, achievements.css, lib/public-achievements.ts | HTML tĩnh và WebP; bố cục 3 nhãn cạnh ảnh; [hướng dẫn](PUBLIC_ACHIEVEMENTS.md) |
 | /gia-su | app/gia-su/page.tsx, TutorShowcase.tsx | Đội ngũ dùng chung trang chủ, thành tích cá nhân có nguồn |
 | /bai-dang và /bai-dang/[slug] | app/bai-dang/, lib/public-posts.ts, posts.css | Danh mục/trang bài viết frontend; [hướng dẫn](PUBLIC_POSTS.md) |
 | /hoc-lieu-mien-phi | LearningMaterialsExperience.tsx, PracticeVideo.tsx | Không gian luyện tập, video và form chuẩn bị nhu cầu; chưa tự gửi tài liệu |
+| /tu-hoc | app/tu-hoc/page.tsx, SelfStudyRoadmap.tsx, self-study-roadmap.css | Cây dọc 43 chủ đề, node cắt góc, giấy kẻ toàn trang, cuộn document, mục lục/CTA nổi trái và toolbar nổi dưới; tìm/lọc/drawer và CSATOJ; [nguồn và ranh giới](KNOWLEDGE_MAP.md) |
 | /login | components/auth/ContactEntry.tsx, ParentLoginForm.tsx, TutorLoginForm.tsx | Trang liên lạc, switch Phụ huynh/Gia sư; handler Auth hiện hành |
 | Shell/menu/theme/footer | PublicShell.tsx, PublicHeader.tsx, PublicNavigation.tsx, RoadmapNavigation.tsx | Menu chung, theme, liên hệ thật; không thay quyền |
 | Form/select/motion/ảnh | PublicConsultation.tsx, PublicSelect.tsx, PublicMotion.tsx, PublicFeedback.tsx, CoursePosterPreview.tsx | Tái sử dụng tương tác, bàn phím và fallback |

@@ -52,4 +52,4 @@ Cập nhật mục tương ứng khi có lựa chọn mới, bỏ phương án h
 
 ## Trang Tự học
 
-Theo yêu cầu chủ trung tâm, `/tu-hoc` dùng nguyên nội dung, nhánh học, cấu trúc sơ đồ/danh sách và tương tác từ project `csat-roadmap`, thay phần hero/diễn giải của bản cũ. Giữ menu/logo và Archivo của website, thêm lời mời đăng ký cuối trang dẫn `/lo-trinh#tu-van`. Snapshot này là tài liệu tự học; không thay khung chuẩn/giáo án công bố hoặc bài đọc phụ huynh. [Nguồn và cách tích hợp](KNOWLEDGE_MAP.md).
+Theo yêu cầu chủ trung tâm, `/tu-hoc` dùng nguyên nội dung, nhánh học, cấu trúc sơ đồ/danh sách và tương tác từ project `csat-roadmap`, thay phần hero/diễn giải của bản cũ. Giữ menu/logo và Archivo của website, lời mời đăng ký dẫn `/lo-trinh#tu-van`. Thiết kế hiện hành dùng cây dọc: Tự học là trang giấy cuộn tự nhiên, mục lục/CTA nổi trái và toolbar nổi dưới; Portal dùng khung cây dọc riêng, thẻ số buổi ngoài giấy, tô toàn chặng và bỏ mục lục nội bộ. Snapshot này là tài liệu tự học; không thay khung chuẩn/giáo án công bố hoặc bài đọc phụ huynh. [Nguồn và cách tích hợp](KNOWLEDGE_MAP.md).

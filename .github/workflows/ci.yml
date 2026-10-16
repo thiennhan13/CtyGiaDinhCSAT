@@ -46,6 +46,10 @@ jobs:
         run: |
           npm ci
           npm ci --prefix database/tests
+      - name: Reproducible self-study diagrams
+        run: |
+          node scripts/build-self-study-diagrams.cjs
+          git diff --exit-code -- lib/self-study-diagrams.json public/self-study/notebook
       - name: Repository guard tests
         run: npm run test:repo
       - name: Database and API regressions
@@ -69,7 +73,7 @@ jobs:
           APP_ORIGIN: http://127.0.0.1:3100
           CSAT_BROWSER_CHANNEL: chromium
           PUBLIC_QA_BASE_URL: http://127.0.0.1:3100
-          PUBLIC_QA_FILTER: '^layout no-preference/light/(375|1440)|^no-JS reading|^navbar collapse|^roadmap disclosure|^selector submit|^new course chapters|^approved curriculum|^enrollment catalog|^frontend forms'
+          PUBLIC_QA_FILTER: '^layout no-preference/light/(375|1440)|^no-JS reading|^navbar collapse|^roadmap disclosure|^selector submit|^new course chapters|^approved curriculum|^course stage reasoning|^enrollment catalog|^frontend forms'
         run: |
           node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3100 > "$RUNNER_TEMP/csat-public.log" 2>&1 &
           preview_pid=$!
@@ -88,6 +92,8 @@ jobs:
           fi
           node scripts/tests/public-seo.http.cjs
           npm run test:public
+          node scripts/tests/knowledge-map.browser.cjs
+          node scripts/tests/self-study-design.browser.cjs
 
       - name: Private parent topics, access and reading experience
         env:

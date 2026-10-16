@@ -184,7 +184,7 @@ async function main() {
       const demoContext = await context();
       const demoPage = await demoContext.newPage();
       await visit(demoPage, origin + '/parents?' + new URLSearchParams({ student: ids.student, month: '2026-09' }));
-      await demoPage.locator('#roadmap').scrollIntoViewIfNeeded();
+      await demoPage.locator('#roadmap').evaluate(node => window.scrollTo({top: scrollY + node.getBoundingClientRect().top - 125, behavior: 'instant'}));
       console.log('Synthetic parent demo: ' + demoPage.url() + ' — close this Edge window to stop the fixture.');
       await new Promise(resolve => browser.once('disconnected', resolve));
       return;
@@ -280,9 +280,13 @@ async function main() {
       const dashboard = month => origin + '/parents?' + new URLSearchParams({ student: ids.student, month, page: '2' });
       await visit(page, dashboard('2026-09'));
       const basic = page.locator('#roadmap > article').first();
-      const current = await basic.locator('.roadmap-stage[aria-pressed="true"]').innerText();
-      check(current.includes('CHẶNG 02') && current.includes(standards[0].stages[1].title), 'Five completed class sessions select the second basic stage.');
-      check((await basic.innerText()).includes('Chặng định hướng theo 5 buổi lớp đã hoàn thành.'), 'Current class-stage explanation visible.');
+      const current = await basic.locator('.pkm-session-card').innerText();
+      const highlighted = (await basic.locator('.group-current .group-label').allTextContents()).join(' ');
+      check(highlighted.includes('CHẶNG 02') && highlighted.includes(standards[0].stages[1].title), 'Five completed class sessions highlight the entire second basic stage.');
+      check(current.includes('Lớp đã hoàn thành 5 buổi'), 'Completed class session card visible outside the paper.');
+      check(await basic.locator('.pkm-paper .pkm-session-card').count() === 0, 'Session card is outside the paper.');
+      check(await basic.locator('.roadmap-stage-nav').count() === 0, 'No internal stage table of contents.');
+      check(await page.locator('#roadmap .node').count() === 43, 'All effective topics are visible in the two class maps.');
       check(await page.locator('#reviews').evaluate(node => node.nextElementSibling?.id === 'roadmap'), 'Roadmap immediately follows reviews.');
       check(!await page.locator('.contact-dock').isVisible(), 'Marketing contact dock does not cover parent dashboard.');
       const hrefs = await page.locator('#roadmap .parent-read-topic').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')));
@@ -296,12 +300,15 @@ async function main() {
       const practice = await page.locator('#roadmap .parent-practice-link').evaluateAll(nodes => nodes.map(node => ({ href: node.href, rel: node.rel, target: node.target })));
       check(new Set(practice.map(link => link.href)).size === 43, 'All 43 published topics have practice links.');
       check(practice.every(link => link.href.startsWith('https://csatoj.vn/problems/?tag=') && !/student|class|month|page=/.test(link.href) && link.target === '_blank' && link.rel.includes('noreferrer')), 'Practice links carry no parent context and open safely.');
-      const focus = await basic.locator('.parent-roadmap-context>div').first().innerText();
-      await basic.locator('.roadmap-stage').last().click();
-      check(await basic.locator('.parent-roadmap-context>div').first().innerText() === focus, 'Browsing another stage does not change class focus.');
-      check((await basic.locator('.parent-roadmap-context>div').last().innerText()).includes(standards[0].stages.at(-1).title), 'Viewed stage is announced separately.');
+      await basic.locator('[data-node="B15"]').click();
+      check(await basic.locator('.pkm-drawer').isVisible(), 'A topic opens the detail drawer.');
+      check((await basic.locator('.pkm-drawer').innerText()).includes(standards[0].stages.at(-1).title), 'Drawer carries the selected topic stage.');
+      check(await basic.locator('.pkm-session-card').innerText() === current, 'Browsing a topic does not change class focus.');
+      await page.keyboard.press('Escape');
+      await basic.locator('.pkm-jump').click();
+      check(await basic.locator('.pkm-viewport').evaluate(node => node.scrollTop > 0), 'Current stage jump scrolls the bounded map viewport.');
       await visit(page, dashboard('2026-08'));
-      check(await page.locator('#roadmap > article').first().locator('.roadmap-stage[aria-pressed="true"]').innerText() === current, 'Changing attendance month does not change current class stage.');
+      check(await page.locator('#roadmap > article').first().locator('.pkm-session-card').innerText() === current, 'Changing attendance month does not change current class stage.');
       await page.setViewportSize({ width: 375, height: 900 });
       check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Parent dashboard remains responsive.');
       await page.screenshot({ path: path.join(output, 'parent-dashboard-375.png'), fullPage: true });
@@ -325,11 +332,29 @@ async function main() {
           await roadmap.scrollIntoViewIfNeeded();
           await page.screenshot({ path: path.join(output, 'roadmap-' + width + (dark ? '-dark' : '-light') + '.png'), animations: 'disabled' });
         }
+        check(await roadmap.locator('[data-node="A01"]').evaluate(node => {
+          const region = node.closest('.pkm-viewport'), viewport = region.getBoundingClientRect(), box = node.getBoundingClientRect();
+          const left = viewport.left + region.clientLeft, right = left + region.clientWidth;
+          return box.left >= left - 2 && box.right <= right + 2;
+        }), 'Full first node and shadow fit the bounded map at ' + width + 'px.');
       }
-      const button = roadmap.locator('.roadmap-stage').last();
+      const typography = await page.locator('#roadmap .node').evaluateAll(nodes => nodes.map(node => {
+        const height = Number(node.dataset.height);
+        const titles = [...node.querySelectorAll('.node-title')].map(text => {const b = text.getBBox();return {x:b.x,y:b.y,w:b.width,h:b.height};});
+        return {id:node.dataset.node,height,titles};
+      }));
+      for (const node of typography) for (const title of node.titles) check(title.x >= 10 && title.x + title.w <= 226 && title.y > 36 && title.y + title.h < node.height - 19, 'Long approved title fits card: ' + node.id);
+      const button = roadmap.locator('[data-node="B15"]');
       await button.focus();
       await page.keyboard.press('Enter');
-      check(await button.getAttribute('aria-pressed') === 'true', 'Stage can be selected by keyboard.');
+      check(await roadmap.locator('.pkm-drawer').isVisible(), 'Topic details can be opened by keyboard.');
+      await page.keyboard.press('Escape');
+      check(await button.evaluate(node => document.activeElement === node), 'Closing drawer returns keyboard focus.');
+      await roadmap.locator('.pkm-viewport').evaluate(node => {node.scrollTop = 240;});
+      await roadmap.getByRole('button', {name: 'Phóng to bản đồ', exact: true}).click();
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      check(await roadmap.locator('.pkm-controls output').innerText() === '115%', 'Manual zoom remains available after adaptive default framing.');
+      check(await roadmap.locator('.pkm-viewport').evaluate(node => Math.abs(node.scrollTop - 240) <= 1), 'Zoom preserves the existing vertical scroll position.');
       await page.setViewportSize({ width: 720, height: 450 });
       await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
       check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Roadmap reflows with enlarged text at half desktop width.');
@@ -343,10 +368,11 @@ async function main() {
       const scope = await context(mode), p = await scope.newPage();
       await visit(p, origin + '/parents?student=' + ids.student);
       const basic = p.locator('#roadmap > article').first();
-      const selected = await basic.locator('.roadmap-stage[aria-pressed="true"]').innerText();
+      const selected = (await basic.locator('.group-current .group-label').allTextContents()).join(' ');
       check(selected.includes(mode === 'zero' ? 'CHẶNG 01' : 'CHẶNG 03'), 'Zero/fallback select expected stage.');
-      check((await basic.innerText()).includes(mode === 'zero' ? 'Lớp đang chuẩn bị cho chặng đầu tiên.' : 'Gia sư đang ghi nhận trọng tâm:'), 'Preparation or published tutor fallback is explained.');
-      check(!(await basic.innerText()).includes('Chặng định hướng theo 0 buổi'), 'Missing data is not treated as zero completed sessions.');
+      const card = await basic.locator('.pkm-session-card').innerText();
+      check(card.includes(mode === 'zero' ? 'Chưa hoàn thành buổi nào' : 'Số buổi lớp: chưa có dữ liệu'), 'Zero sessions remain distinct from missing aggregate.');
+      check(card.toLocaleLowerCase('vi-VN').includes(mode === 'zero' ? 'chặng chuẩn bị' : 'chặng đang tập trung'), 'Preparation or published tutor fallback is displayed.');
       await scope.close();
     });
     await run(articlesToReview.length + ' articles, HTTP privacy, questions and rendered code', async () => {
@@ -486,10 +512,14 @@ async function main() {
       check(await p.locator('.parent-codeblock pre').first().evaluate(node => ['pre-wrap', 'break-spaces'].includes(getComputedStyle(node).whiteSpace)), 'Printed code wraps.');
       await p.emulateMedia({ media: 'screen' });
       await visit(p, origin + '/parents?student=' + ids.student);
-      const all = p.locator('.roadmap-all').first();
-      await all.locator('summary').click();
+      const all = p.locator('.pkm-readable').first();
+      await all.locator(':scope > summary').click();
+      await all.locator('section details').first().locator('summary').click();
       check(await all.locator('.parent-practice-link').first().isVisible(), 'No-JS full roadmap exposes practice links.');
       check(await all.locator('.parent-read-topic').first().isVisible(), 'No-JS full roadmap exposes articles.');
+      await p.emulateMedia({ media: 'print' });
+      check(await all.locator('section').last().isVisible(), 'Print includes every effective stage.');
+      check(!await p.locator('.pkm-paper').first().isVisible(), 'Print uses readable curriculum instead of a clipped scroll canvas.');
       await nojs.close();
     });
     await c.close();

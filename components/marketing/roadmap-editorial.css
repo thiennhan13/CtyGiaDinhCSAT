@@ -77,8 +77,6 @@
 .csat-public .rm-stage-body .rm-focus-tags>li{display:block;padding:6px 9px;border:1px solid var(--line);gap:0}
 .csat-public .rm-course-page .rm-stage-body li h3{font:750 20px/1.4 var(--font);letter-spacing:-.025em}
 .csat-public .rm-course-page .rm-stage-body li p{font-size:14px;line-height:1.7;max-width:760px}
-.csat-public .rm-lesson-skill{border-left:2px solid var(--orange);padding-left:12px}
-.csat-public .rm-lesson-skill strong{color:var(--ink)}
 .csat-public .rm-special-content.rm-detail-special{display:block;padding-top:16px;padding-bottom:40px}
 .csat-public .rm-detail-special>h2{font-size:clamp(28px,3.4vw,44px);text-transform:none;margin-bottom:18px}
 .csat-public .rm-detail-special>p{max-width:850px;color:var(--muted)}

@@ -53,10 +53,10 @@ Chủ đề chỉ có tên nhưng không có mô tả chi tiết trong JSON đư
 ## Cấu trúc bàn giao
 
 - `publicRoadmapContent`: các khóa A/B/C/E/K (không có AB công khai); `tagline`, `overview`, `headline`, `introduction`, `foundation`, `pathway`, `focusTags`. Trường tùy chọn `development` chỉ có ở E, gồm 3 ô trọng tâm định hướng: Tri thức & phương pháp; Đội ngũ & môi trường; Bài tập & cọ xát.
-- `roadmapStageContent`: 13 khóa theo stage ID gốc; `description`, `skills`, `bridge`. Thứ tự do JSON gốc quyết định.
-- `roadmapLessonContent`: đủ 43 mã A01–A09/B01–B15/C01–C12/D01–D07; `purpose`, `approach`, `skill`. Tên chủ đề tiếp tục lấy từ JSON gốc.
+- `roadmapStageContent`: 13 khóa theo stage ID gốc; `skills` với 5 tag tư duy cụ thể mỗi chặng; không còn đoạn dẫn/đoạn nối chặng. Thứ tự do JSON gốc quyết định.
+- `roadmapLessonContent`: đủ 43 mã A01–A09/B01–B15/C01–C12/D01–D07; `purpose`, `approach`, `skill`. Tên chủ đề tiếp tục lấy từ JSON gốc. Chi tiết lớp chỉ hiển thị `purpose`/`approach`; không còn dòng Kỹ năng rèn luyện. `skill` giữ cho component bản đồ cũ để không đổi hợp đồng không liên quan.
 
-Pathway của E/K mô tả đầu vào, định hướng hoặc việc thống nhất cách học; không được gắn nhãn “chặng giáo trình” hay số chủ đề. `bridge` là liên hệ biên tập giữa các nhóm kiến thức; không phải điều kiện chuyển chặng tự động.
+Pathway của E/K mô tả đầu vào, định hướng hoặc việc thống nhất cách học; không được gắn nhãn “chặng giáo trình” hay số chủ đề. Tag chặng là nội dung tư duy để tham khảo, không phải điều kiện chuyển chặng tự động.
 
 `development` của E gồm ba trọng tâm đã duyệt: **Tri thức & phương pháp** kết nối thuật toán với tư duy toán học, lập luận và giải quyết vấn đề; **Đội ngũ & môi trường** nhấn sự đồng hành của gia sư và tập thể học sinh chung định hướng; **Bài tập & cọ xát** tập trung đề thi thật, đề luyện thi và cơ hội contest/giao lưu. Đây là **trọng tâm định hướng**, tách với quy trình tuyển chọn trong `pathway`; không phải 3 chặng giáo trình, tiêu chí thi tuyển hay cam kết học sinh sẽ đạt kỹ năng. Không thêm tên thuật toán, chuyên đề hoặc số buổi chưa được duyệt.
 

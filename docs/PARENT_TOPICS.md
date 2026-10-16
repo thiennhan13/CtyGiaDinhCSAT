@@ -34,9 +34,9 @@ Series mở từ bài đầu, có danh sách cùng chuyên đề và bài trư�
 
 ## Chặng lớp theo buổi đã hoàn thành
 
-Roadmap nhận `practiceLinks` tùy chọn và `variant="parent"`; caller khác giữ mặc định. Trang phụ huynh chỉ truyền liên kết cho khung chuẩn đã công bố và các chủ đề trong giáo án hiệu lực. **Chặng đang tập trung** tách khỏi **Chặng đang xem**; xem chặng không ghi tiến độ. Chủ đề mở bằng native disclosure, có hai hành động đọc và luyện tập. Khi không JS, phần toàn bộ nội dung vẫn mở được.
+`ParentKnowledgeMap` thay renderer riêng ở `ParentPortalView`: cây dọc dùng hình học/node chung `lib/roadmap-graph.ts`, nền giấy trong khung cuộn và thẻ số buổi nằm ngoài. Hiển thị toàn giáo án hiệu lực, không có mục lục/chọn chặng nội bộ. Lime và nhãn chữ tô toàn chặng hiện tại; nút Đến chặng hiện tại chỉ cuộn bản đồ. Drawer chủ đề có mô tả giáo án, đọc chuyên đề và luyện tập theo liên kết đã được caller cấp quyền; custom không tự nhận liên kết/quan hệ khung chuẩn. `Roadmap` hiện hành của admin/gia sư giữ nguyên.
 
-CSS mới chỉ nằm trong `.parent-portal .parent-roadmap` và phần đọc chuyên đề: kem/cobalt, lime cho nhãn và tự kiểm, cam cho trọng tâm/luyện tập, viền và bóng cứng. Bài dài giữ nền sáng, có token dark tương ứng; không đổi nhận xét, buổi học, phí hay liên hệ.
+CSS nằm trong `.parent-knowledge-map`, cùng phần đọc chuyên đề riêng. Giữ Archivo/palette, nền giấy sáng nhẹ và dark tương ứng, card tự tăng chiều cao theo tiêu đề. No-JS và bản in đọc toàn nội dung qua native disclosure; nhận xét, buổi học, phí và liên hệ không đổi. [Hành vi và quy tắc số buổi](KNOWLEDGE_MAP.md).
 
 Migration `20261008_23_parent_class_progress.sql` mở rộng RPC bằng `class_progress?` gồm class_id/completed_sessions/as_of. Migration chỉ phụ thuộc khung 20, bảo toàn projection/quyền hiện hành và các trường 21/22 khi có. Chạy 18/19/21/22 sau 23 vẫn giữ aggregate, được kiểm chứng bằng fixture thử. Count mọi session completed đã kết thúc theo giờ Việt Nam của lớp từ đầu lịch sử; bỏ cancelled/future, không theo tháng hoặc điểm danh cá nhân. Lớp liên kết active và giáo án class published mới có aggregate.
 

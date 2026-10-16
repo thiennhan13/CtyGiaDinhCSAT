@@ -8,10 +8,12 @@ Tài liệu mô tả pipeline trong mã, không xác nhận GitHub Actions/deplo
 
 | Job | Môi trường | Kiểm tra |
 |---|---|---|
-| `Quality (Node 24)` | Ubuntu, Node theo `.nvmrc` | Repo guard/liên kết Markdown → cài lockfile → test guard → database/API regressions → TypeScript → lint strict → build với placeholder → Chromium smoke public |
+| `Quality (Node 24)` | Ubuntu, Node theo `.nvmrc` | Repo guard/liên kết Markdown → cài lockfile → sinh SVG dọc và kiểm diff bằng 0 → test guard → database/API regressions → TypeScript → lint strict → build với placeholder → CAPTCHA fixture → HTTP SEO/public smoke/tag chặng → cây dọc Tự học/tương tác/typography → chuyên đề phụ huynh private |
 | `PostgreSQL 17 (Windows, Node 24)` | Windows, Node theo `.nvmrc` | PostgreSQL native: transaction đồng thời, migration chain và phục hồi trên database tách biệt |
 
-Ca PostgreSQL native trong bộ test bị skip trên Linux theo code; job Windows tránh việc báo xanh nhưng thiếu ca này. CI chạy smoke browser với Playwright khóa version trong lockfile và Chromium cài trong job: trang public ở 375/1440 px, no-JS, điều hướng/bàn phím, selector và giáo trình. Đây chưa phải toàn bộ QA responsive/motion/Storage thật. Lint CI dùng `lint:strict`, không cho warnings.
+CAPTCHA fixture kiểm vòng đời widget/API, không gọi Cloudflare thật. Chuyên đề private kiểm quyền và trải nghiệm đọc qua mock RPC; không dùng tài khoản thật.
+
+Ca PostgreSQL native trong bộ test bị skip trên Linux theo code; job Windows tránh việc báo xanh nhưng thiếu ca này. CI chạy smoke browser với Playwright khóa version trong lockfile và Chromium cài trong job: trang public ở 375/1440 px, no-JS, điều hướng/bàn phím, selector và giáo trình. Smoke kiểm thêm tag của 13 chặng, không còn dòng Kỹ năng rèn luyện và CTA Tự học đúng lớp. Hai runner `knowledge-map.browser.cjs`/`self-study-design.browser.cjs` dùng cùng preview loopback: 43 chủ đề/link/detail, cache/history/zoom, 20 bố cục sáng/tối, hộp chữ SVG, kéo không chọn chữ, no-JS/in/remount. Đây chưa phải toàn bộ QA responsive/motion/Storage thật. Lint CI dùng `lint:strict`, không cho warnings.
 
 Preview browser chỉ lắng nghe loopback, dùng cùng bản build placeholder và dừng khi bước kết thúc. Runner chặn mạng ngoài và request ghi; `PUBLIC_QA_FILTER` chọn nhóm kiểm tra, không chọn được ca nào thì thất bại. Không upload ảnh/chụp dữ liệu thật làm artifact. Chạy đầy đủ bộ public ở local trước thay đổi giao diện lớn; smoke CI không thay nghiệm thu production.
 

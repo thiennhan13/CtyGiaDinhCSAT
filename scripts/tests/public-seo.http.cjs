@@ -35,7 +35,8 @@ async function main(){
  }
  const checked=new Set();
  for(const [source,html]of pages){for(const tag of html.match(/<a\b[^>]*>/g)||[]){const href=attr(tag,'href');if(!href)continue;const url=new URL(href,new URL(source,origin));if(url.origin!==origin.origin)continue;
-  if(url.hash&&pages.has(url.pathname)){const id=decodeURIComponent(url.hash.slice(1));assert.ok((pages.get(url.pathname).match(/\bid="([^"]*)"/g)||[]).some(tag=>attr(tag,'id')===id),'Broken anchor '+source+' -> '+href);}
+  const roadmapView=url.pathname==='/tu-hoc'&&/^#view=(?:full|A|B|C|DP)$/.test(url.hash);
+  if(url.hash&&pages.has(url.pathname)&&!roadmapView){const id=decodeURIComponent(url.hash.slice(1));assert.ok((pages.get(url.pathname).match(/\bid="([^"]*)"/g)||[]).some(tag=>attr(tag,'id')===id),'Broken anchor '+source+' -> '+href);}
   if(['/login','/parents','/admin','/tutor'].some(p=>url.pathname===p||url.pathname.startsWith(p+'/'))||pages.has(url.pathname)||checked.has(url.pathname))continue;
   checked.add(url.pathname);assert.ok((await get(url.pathname)).status<400,'Broken link '+href);
  }}

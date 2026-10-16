@@ -88,75 +88,23 @@ export const publicRoadmapContent: Record<PublicRoadmapCode, PublicRoadmapConten
   },
 };
 
-export type RoadmapStageContent = { description: string; skills: readonly string[]; bridge: string };
+export type RoadmapStageContent = { skills: readonly string[] };
 
-/** Keys are stage IDs in learning-curriculum-20260922.json; order remains in that source. */
+/** Stage tags describe concrete reasoning within the approved topic scope. */
 export const roadmapStageContent: Record<string, RoadmapStageContent> = {
-  'basic-a-1': {
-    description: 'Bắt đầu từ dữ liệu đầu vào và kết quả cần tìm, người học dùng kiểu dữ liệu, toán tử, rẽ nhánh và vòng lặp để mô tả cách xử lý. Trọng tâm của chặng là liên hệ từng câu lệnh với một thao tác trong lời giải, rồi kiểm tra quá trình thực hiện trên những trường hợp cụ thể.',
-    skills: ['Phân tích đầu vào / đầu ra', 'Diễn đạt điều kiện', 'Kiểm soát vòng lặp'],
-    bridge: 'Từ xử lý từng giá trị, chuyển sang tổ chức và xử lý nhiều phần tử bằng mảng.',
-  },
-  'basic-a-2': {
-    description: 'Mảng giúp biểu diễn dữ liệu dưới dạng dãy và bảng. Từ duyệt, đếm, tìm giá trị lớn nhất hoặc nhỏ nhất, nội dung tiến tới đảo, chèn, xóa và các thao tác trên ma trận. Cách chọn chỉ số và phạm vi duyệt là điểm kết nối giữa cấu trúc dữ liệu với ý tưởng xử lý.',
-    skills: ['Tổ chức dữ liệu', 'Quản lý chỉ số', 'Mô tả thao tác trên dãy / bảng'],
-    bridge: 'Dùng những thao tác đã học làm cơ sở để chia chương trình thành hàm và xử lý xâu.',
-  },
-  'basic-a-3': {
-    description: 'Hàm phân chia một chương trình thành những nhiệm vụ có đầu vào và kết quả rõ ràng; xâu mở rộng việc xử lý từ số sang ký tự và văn bản. Chặng này kết nối cách tổ chức mã với tham trị, tham chiếu, phạm vi biến, nhập xâu và các thao tác cơ bản trên string.',
-    skills: ['Phân chia nhiệm vụ', 'Theo dõi dữ liệu qua hàm', 'Xử lý ký tự / văn bản'],
-    bridge: 'Nền tảng C++ là điểm nối để tìm hiểu các phương pháp giải bài ở lớp B.',
-  },
-  'basic-b-1': {
-    description: 'Vét cạn đặt câu hỏi cần xét những phương án nào và làm sao không bỏ sót; mảng thống kê tổ chức những lần xuất hiện thành dữ liệu có thể truy cập. Hai hướng tiếp cận giúp làm rõ quan hệ giữa cách duyệt, điều kiện chấp nhận và kết quả cần tính.',
-    skills: ['Mô tả không gian phương án', 'Kiểm tra điều kiện', 'Tổ chức dữ liệu đếm'],
-    bridge: 'Từ duyệt và đếm, khai thác thêm tính chất số học để xây dựng lời giải.',
-  },
-  'basic-b-2': {
-    description: 'Các chủ đề số chính phương, số nguyên tố, ước, Euclid, phân tích thừa số và Legendre nối tính chất toán học với cách tính bằng chương trình. Modulo, lũy thừa nhanh, đổi hệ cơ số và nhân Ấn Độ tiếp tục mở rộng cách biểu diễn và thực hiện phép tính.',
-    skills: ['Khai thác tính chất số', 'Chuyển lập luận thành phép tính', 'So sánh cách tính'],
-    bridge: 'Kết hợp công cụ số học với cấu trúc lưu trữ và thứ tự xử lý dữ liệu.',
-  },
-  'basic-b-3': {
-    description: 'Vector, pair, struct và map cung cấp những cách lưu dữ liệu theo nhu cầu truy cập. Sắp xếp cơ bản, sort() và comparator làm rõ vai trò của thứ tự: dữ liệu được tổ chức tốt có thể giúp một phương án giải trở nên đơn giản hơn.',
-    skills: ['Lựa chọn cách lưu trữ', 'Tổ chức bản ghi', 'Xác định tiêu chí sắp xếp'],
-    bridge: 'Khai thác dữ liệu đã sắp xếp bằng tìm kiếm nhị phân, rồi mở rộng xử lý xâu.',
-  },
-  'basic-b-4': {
-    description: 'Chặt nhị phân trên mảng đã sắp xếp thu hẹp miền tìm kiếm theo từng bước; lower_bound và upper_bound liên hệ thao tác tìm vị trí với thư viện C++. Xử lý xâu tiến tới tách từ, chuẩn hóa và các bài toán đối xứng, giúp vận dụng nền tảng ký tự trong những yêu cầu đa dạng hơn.',
-    skills: ['Thu hẹp miền tìm kiếm', 'Kiểm tra biên', 'Phân tích cấu trúc xâu'],
-    bridge: 'Làm cơ sở để trao đổi hướng học kỹ thuật mảng, chiến lược giải bài và quy hoạch động ở lớp C.',
-  },
-  'advanced-1': {
-    description: 'Mảng cộng dồn, mảng hiệu, hai con trỏ và cửa sổ trượt khai thác quan hệ giữa những đoạn dữ liệu. Chặng này chuyển trọng tâm từ tính lại từng yêu cầu sang tổ chức phép tính, lưu thông tin cần thiết và cập nhật có kiểm soát.',
-    skills: ['Tiền xử lý', 'Khai thác quan hệ giữa các đoạn', 'Theo dõi dữ liệu khi cập nhật'],
-    bridge: 'Từ kỹ thuật xử lý dữ liệu, xem xét cấu trúc lưu trữ phù hợp với thao tác cần thực hiện.',
-  },
-  'advanced-2': {
-    description: 'Các cấu trúc tuyến tính, set, map, mảng đếm, queue, deque và stack được nhìn qua nhu cầu lưu, tìm và lấy dữ liệu. Thay vì chọn theo thói quen, chặng này hướng việc lựa chọn cấu trúc về thao tác chủ đạo và thứ tự xử lý của bài toán.',
-    skills: ['Chọn cấu trúc dữ liệu', 'Phân tích thao tác truy cập', 'Kiểm soát thứ tự xử lý'],
-    bridge: 'Kết hợp tổ chức dữ liệu với đệ quy, chia để trị và quá trình sinh phương án.',
-  },
-  'advanced-3': {
-    description: 'Đệ quy diễn đạt lời giải thông qua những bài toán nhỏ hơn; chia để trị nối việc phân chia với tổng hợp kết quả. Quay lui mở rộng sang sinh phương án và mô hình tìm kiếm, với cắt nhánh để loại những hướng không còn phù hợp.',
-    skills: ['Phân rã bài toán', 'Mô tả trạng thái tìm kiếm', 'Kiểm soát không gian phương án'],
-    bridge: 'Đối chiếu tìm kiếm phương án với những chiến lược lựa chọn, kiểm tra đáp án và so sánh xâu.',
-  },
-  'advanced-4': {
-    description: 'Tham lam, chặt nhị phân trên đáp án và hashing đưa ra ba cách nhìn khác nhau: lựa chọn theo một tiêu chí, kiểm tra tính khả thi của đáp án và biểu diễn xâu để so sánh. Trọng tâm là điều kiện áp dụng, lý do lời giải đúng và những giới hạn cần kiểm tra.',
-    skills: ['Lập luận lựa chọn', 'Xây hàm kiểm tra', 'Đánh giá điều kiện áp dụng'],
-    bridge: 'Từ lựa chọn và kiểm tra, chuyển sang mô hình liên hệ các bài toán con bằng quy hoạch động.',
-  },
-  'advanced-5': {
-    description: 'Quy hoạch động bắt đầu từ câu hỏi trạng thái cần lưu những gì và kết quả nào có thể suy ra từ bài toán con. Các mô hình nhập môn, trên lưới, cái túi và chia tập giúp đối chiếu cách xác định trạng thái, điều kiện ban đầu, quan hệ chuyển và thứ tự tính.',
-    skills: ['Định nghĩa trạng thái', 'Thiết lập quan hệ chuyển', 'Chọn thứ tự tính'],
-    bridge: 'Vận dụng mô hình trạng thái vào dãy, xâu và các bài toán cần mở rộng cách biểu diễn.',
-  },
-  'advanced-6': {
-    description: 'LIS, LCS, Edit Distance và các trạng thái mở rộng tiếp tục phát triển cách mô tả bài toán bằng quy hoạch động. Nội dung kết nối độ dài hoặc giá trị tối ưu với truy vết, đồng thời xem xét trạng thái hai chiều và chia đoạn theo cấu trúc dữ liệu của bài.',
-    skills: ['Mô hình hóa dãy / xâu', 'Truy vết lời giải', 'Mở rộng trạng thái'],
-    bridge: 'Kết nối các phương pháp của lớp C để phân tích bài toán chuyên Tin và trao đổi hướng đào sâu tiếp theo.',
-  },
+  'basic-a-1': { skills: ['Phân tích đầu vào / đầu ra', 'Chọn kiểu dữ liệu', 'Phân chia trường hợp', 'Theo dõi trạng thái lặp', 'Kiểm tra điểm dừng'] },
+  'basic-a-2': { skills: ['Mô hình hóa dãy / bảng', 'Quản lý chỉ số', 'Giới hạn miền duyệt', 'Thứ tự cập nhật', 'Kiểm tra trường hợp biên'] },
+  'basic-a-3': { skills: ['Phân rã nhiệm vụ', 'Đầu vào / đầu ra của hàm', 'Tham trị / tham chiếu', 'Phạm vi biến', 'Xử lý ký tự / xâu'] },
+  'basic-b-1': { skills: ['Xác định không gian phương án', 'Duyệt đủ, không trùng', 'Kiểm tra điều kiện', 'Đếm tần suất', 'Ước lượng số phép tính'] },
+  'basic-b-2': { skills: ['Khai thác tính chất số', 'Phân tích thừa số', 'Biến đổi đồng dư', 'Tránh tràn số', 'Đánh giá chi phí tính'] },
+  'basic-b-3': { skills: ['Chọn cấu trúc dữ liệu', 'Tổ chức bản ghi', 'Thứ tự so sánh', 'Comparator hợp lệ', 'Chi phí lưu trữ / truy cập'] },
+  'basic-b-4': { skills: ['Thu hẹp miền tìm kiếm', 'Giữ bất biến tìm kiếm', 'Phân biệt biên trái / phải', 'Phân tích cấu trúc xâu', 'Kiểm tra đầu vào biên'] },
+  'advanced-1': { skills: ['Tiền xử lý', 'Truy vấn đoạn', 'Bất biến hai con trỏ', 'Cập nhật cửa sổ', 'Điều kiện áp dụng'] },
+  'advanced-2': { skills: ['Chọn thao tác chủ đạo', 'Chi phí thêm / xóa / tìm', 'Thứ tự LIFO / FIFO', 'Duy trì thứ tự dữ liệu', 'Kiểm soát bộ nhớ'] },
+  'advanced-3': { skills: ['Phân rã bài toán', 'Điều kiện dừng đệ quy', 'Sinh đủ phương án', 'Khôi phục trạng thái', 'Cắt nhánh có căn cứ'] },
+  'advanced-4': { skills: ['Lập luận lựa chọn tham lam', 'Tính đơn điệu', 'Hàm kiểm tra khả thi', 'Phản ví dụ', 'Va chạm hashing'] },
+  'advanced-5': { skills: ['Định nghĩa trạng thái', 'Khởi tạo cơ sở', 'Quan hệ chuyển', 'Thứ tự tính', 'Tối ưu bộ nhớ'] },
+  'advanced-6': { skills: ['Mô hình hóa dãy / xâu', 'Thông tin đủ trong trạng thái', 'Truy vết phương án', 'Tránh tính lặp', 'So sánh độ phức tạp'] },
 };
 
 export type RoadmapLessonContent = { purpose: string; approach: string; skill: string };

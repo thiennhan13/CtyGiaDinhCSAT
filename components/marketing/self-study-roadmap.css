@@ -1,4 +1,4 @@
-.csat-public .self-study-roadmap{--study-surface:#fffef9;--study-ink:#191917;--study-muted:#65645c;--study-rule:#191917;--study-soft:#eeede5;--study-blue:#2b50e0;--study-lime:#d9e64c;--study-orange:#ee683e;color:var(--study-ink);background:transparent;font:15px/1.5 var(--font-archivo),Arial,sans-serif;width:calc(100% - 48px);max-width:1560px;margin:36px auto 0;container:study / inline-size}
+.csat-public .self-study-roadmap{--study-surface:#fffef9;--study-ink:#191917;--study-muted:#65645c;--study-rule:#191917;--study-soft:#eeede5;--study-blue:#2b50e0;--study-lime:#d9e64c;--study-orange:#ee683e;color:var(--study-ink);background:transparent;font:15px/1.5 var(--font-archivo),Arial,sans-serif;width:100%;max-width:none;margin:0}
 .csat-public .self-study-roadmap *{box-sizing:border-box}
 .csat-public .self-study-roadmap :is(h1,h2,h3,p){margin:0;font-family:inherit;text-transform:none}
 .csat-public .self-study-roadmap :is(button,input,a){font:inherit;color:inherit}
@@ -13,52 +13,53 @@
 .csat-public .self-study-roadmap .study-icon{width:20px;height:20px;flex-shrink:0;display:block}
 .csat-public .self-study-roadmap .study-skip{position:absolute;top:-100px;left:16px;background:var(--study-surface);padding:12px;z-index:20}
 .csat-public .self-study-roadmap .study-skip:focus{top:100px}
-.csat-public .self-study-roadmap .study-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 0 16px;border-bottom:2px solid var(--study-rule);margin-bottom:24px}
-.csat-public .self-study-roadmap .study-title h1{font-size:clamp(26px,2.6vw,38px);font-weight:800;line-height:1.2;letter-spacing:-1.3px}
-.csat-public .self-study-roadmap .study-title p{font-size:13px;color:var(--study-muted);margin-top:8px;line-height:1.6}
-.csat-public .self-study-roadmap .study-class-key{display:flex;gap:8px;flex-shrink:0}
-.csat-public .self-study-roadmap .study-class-key>span{display:flex;align-items:center;gap:8px;font-size:12px;border:1px solid var(--study-rule);padding:6px 10px;background:var(--study-surface)}
-.csat-public .self-study-roadmap .study-class-key b{font-size:20px;line-height:1;color:var(--study-blue)}
-.csat-public .self-study-roadmap .study-class-key>span:first-child{background:var(--study-lime);color:#191917}
-.csat-public .self-study-roadmap .study-class-key>span:last-child{background:#fbd7c7;color:#191917}
-.csat-public .self-study-roadmap .study-workspace{display:grid;grid-template-columns:208px minmax(0,1fr);gap:20px}
-.csat-public .self-study-roadmap .study-rail{display:block;background:var(--study-orange);padding:22px 16px;border:2px solid #191917;box-shadow:5px 5px 0 #191917;align-self:start;color:#191917}
-.csat-public .self-study-roadmap .study-rail>p{font-size:11px;font-weight:750;letter-spacing:.8px;margin-bottom:22px}
-.csat-public .self-study-roadmap .study-rail>strong{display:block;font-size:72px;line-height:1;letter-spacing:-5px;margin:30px 0}
-.csat-public .self-study-roadmap .study-rail nav{display:grid;gap:8px}
-.csat-public .self-study-roadmap .study-rail button{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 10px;font-size:12px;text-align:left;background:#fffdf3;border-color:#191917;color:#191917}
-.csat-public .self-study-roadmap .study-rail button[aria-pressed=true]{background:#191917;color:#fffef9}
+/* Only this route exposes native document scrolling in both directions. */
+body:has(.self-study-page){overflow-x:auto}
+.csat-public.self-study-page{overflow:visible;min-width:100%;width:max-content;min-height:100dvh;background:#fffdf3 linear-gradient(#d9dddf 1px,transparent 1px) 0 0 / 100% 24px;--map-header-bottom:116px;--map-toolbar-height:100px}
+.csat-public.self-study-page .site-header{position:fixed;inset:0 0 auto;z-index:40;width:100vw}
+.csat-public.self-study-page .contact-dock{display:none}
+.csat-public.self-study-page #noi-dung{padding:0;min-height:100dvh}
+.csat-public .self-study-roadmap .study-workspace{display:block;min-height:100dvh}
+.csat-public .self-study-roadmap .study-rail{position:fixed;z-index:25;top:var(--map-header-bottom);left:20px;width:218px;max-height:calc(100dvh - var(--map-header-bottom) - var(--map-toolbar-height) - 24px);overflow:auto;background:var(--study-orange);border:2px solid #191917;box-shadow:5px 5px 0 #191917;color:#191917}
+.csat-public .self-study-roadmap .study-rail>summary{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;font-size:14px;font-weight:800;line-height:1.5;list-style:none}
+.csat-public .self-study-roadmap .study-rail>summary:before{display:none}
+.csat-public .self-study-roadmap .study-rail>summary::-webkit-details-marker{display:none}
+.csat-public .self-study-roadmap .study-rail>summary span{font-size:20px;line-height:1}
+.csat-public .self-study-roadmap .study-rail-content{padding:0 12px 14px}
+.csat-public .self-study-roadmap .study-rail nav{display:grid;gap:7px}
+.csat-public .self-study-roadmap .study-rail nav button{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;font-size:12px;text-align:left;background:#fffdf3;border-color:#191917;color:#191917}
+.csat-public .self-study-roadmap .study-rail nav button[aria-pressed=true]{background:#191917;color:#fffef9}
 .csat-public .self-study-roadmap .study-rail button small{font-size:11px;flex-shrink:0}
-.csat-public .self-study-roadmap .study-rail .study-rail-note{margin:24px 0 0;font-size:12px;line-height:1.8;letter-spacing:0;font-weight:400}
-.csat-public .self-study-roadmap .study-board{border:2px solid var(--study-rule);box-shadow:5px 5px 0 #191917;background:var(--study-surface);min-width:0}
-.csat-public .self-study-roadmap .navigation-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:2px solid #191917;background:var(--study-lime);color:#191917}
-.csat-public .self-study-roadmap .study-board-label{font-size:12px;letter-spacing:1px;font-weight:800}
-.csat-public .self-study-roadmap .view-modes{display:flex;flex-shrink:0}
-.csat-public .self-study-roadmap .view-modes button{font-size:12px;border-radius:0;padding:8px 11px;background:#fffdf3;color:#191917;border-color:#191917}
-.csat-public .self-study-roadmap .view-modes button+button{border-left:0}
-.csat-public .self-study-roadmap .view-modes button[aria-pressed=true]{background:var(--study-blue);color:#fff}
-.csat-public .self-study-roadmap .tools-row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--study-rule)}
-.csat-public .self-study-roadmap .search-field{position:relative;flex:1;min-width:120px}
-.csat-public .self-study-roadmap .search-field>.study-icon{position:absolute;left:13px;top:12px;pointer-events:none}
-.csat-public .self-study-roadmap #search{width:100%;padding:10px 44px;font-size:14px;font-weight:400;height:46px;line-height:1.5}
+.csat-public .self-study-roadmap .map-meta{padding:14px 0;border-bottom:1px solid #19191766}
+.csat-public .self-study-roadmap #view-code{font-size:10px;font-weight:750;letter-spacing:.5px}
+.csat-public .self-study-roadmap #view-title{font-size:13px;font-weight:750;line-height:1.5;margin-top:4px}
+.csat-public .self-study-roadmap .study-rail-enrollment p{font-size:12px;line-height:1.65;margin:14px 0}
+.csat-public .self-study-roadmap .study-rail-enrollment a{display:flex;align-items:center;justify-content:flex-start;gap:8px;min-height:46px;padding:8px 0;background:transparent;color:#191917;border:0;box-shadow:none;font-size:14px;font-weight:750;text-decoration:underline;text-underline-offset:4px}
+.csat-public .self-study-roadmap .study-board{min-width:100vw}
+.csat-public .self-study-roadmap .study-toolbar{position:fixed;z-index:30;bottom:calc(12px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(1020px,calc(100vw - 32px));background:var(--study-surface);border:2px solid var(--study-rule);box-shadow:5px 5px 0 #191917;padding:10px 12px 6px}
+.csat-public .self-study-roadmap .tools-row{display:flex;align-items:center;gap:12px}
+.csat-public .self-study-roadmap .search-field{position:relative;flex:1;min-width:100px}
+.csat-public .self-study-roadmap .search-field>.study-icon{position:absolute;left:12px;top:12px;pointer-events:none}
+.csat-public .self-study-roadmap #search{width:100%;padding:10px 42px;font-size:14px;font-weight:400;height:46px;line-height:1.5}
 .csat-public .self-study-roadmap #search::placeholder{color:var(--study-muted);opacity:1}
 .csat-public .self-study-roadmap #search::-webkit-search-cancel-button{display:none}
 .csat-public .self-study-roadmap #clear-search{position:absolute;right:1px;top:1px;border:0;width:44px;min-height:44px;padding:12px;background:transparent}
-.csat-public .self-study-roadmap .study-zoom-tools,.csat-public .self-study-roadmap #zoom-controls{display:flex;gap:6px;align-items:center}
+.csat-public .self-study-roadmap .study-toolbar-actions,.csat-public .self-study-roadmap .study-zoom-tools,.csat-public .self-study-roadmap #zoom-controls,.csat-public .self-study-roadmap .view-modes{display:flex;gap:6px;align-items:center}
+.csat-public .self-study-roadmap .view-modes{gap:0}
+.csat-public .self-study-roadmap .view-modes button{font-size:12px;border-radius:0;padding:9px 10px}
+.csat-public .self-study-roadmap .view-modes button+button{border-left:0}
+.csat-public .self-study-roadmap .view-modes button[aria-pressed=true]{background:var(--study-blue);color:#fff}
 .csat-public .self-study-roadmap #zoom-controls button,.csat-public .self-study-roadmap #download{width:44px;height:44px;padding:10px;display:grid;place-items:center;flex-shrink:0}
 .csat-public .self-study-roadmap #zoom-controls #fit{width:auto;display:flex;gap:7px;font-size:12px}
 .csat-public .self-study-roadmap #scale-label{font-size:12px;width:40px;text-align:center;font-variant-numeric:tabular-nums}
 .csat-public .self-study-roadmap #download{border:2px solid var(--study-rule);background:var(--study-soft);border-radius:2px}
-.csat-public .self-study-roadmap .map-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:var(--study-surface)}
-.csat-public .self-study-roadmap .map-meta>div{display:flex;gap:10px;align-items:center}
-.csat-public .self-study-roadmap #view-code{font-size:11px;font-weight:750;letter-spacing:.6px;color:var(--study-blue)}
-.csat-public .self-study-roadmap #view-title{font-size:15px;font-weight:700;line-height:1.3}
-.csat-public .self-study-roadmap #result{font-size:12px;color:var(--study-muted);text-align:right}
-/* Ruled paper belongs to the map only; the page stays transparent over SiteBackground. */
-.csat-public .self-study-roadmap #canvas{height:575px;overflow:auto;position:relative;overscroll-behavior:contain;background:#fffdf3 linear-gradient(#d9dddf 1px,transparent 1px) 0 0 / 100% 24px;cursor:grab;touch-action:pan-x pan-y}
-.csat-public .self-study-roadmap #canvas:active{cursor:grabbing}
-.csat-public .self-study-roadmap #stage{padding:16px;width:max-content;min-width:100%;min-height:100%;display:flex;justify-content:center}
-.csat-public .self-study-roadmap #stage>svg{display:block;max-width:none}
+.csat-public .self-study-roadmap #result{font-size:11px;line-height:1.5;color:var(--study-muted);margin-top:4px}
+.csat-public .self-study-roadmap #canvas{height:auto;overflow:visible;position:relative;cursor:grab;touch-action:pan-x pan-y;min-height:100dvh}
+.csat-public .self-study-roadmap #canvas,.csat-public .self-study-roadmap #canvas *{-webkit-user-select:none;user-select:none}
+.csat-public .self-study-roadmap #canvas.is-dragging,.csat-public .self-study-roadmap #canvas.is-dragging *{cursor:grabbing}
+.csat-public .self-study-roadmap #stage{padding:calc(var(--map-header-bottom) + 28px) 40px calc(var(--map-toolbar-height) + 40px) 278px;width:max-content;min-width:100vw;min-height:100dvh;display:flex;justify-content:center;align-items:flex-start}
+.csat-public .self-study-roadmap #stage>svg{display:block;max-width:none;flex-shrink:0}
+.csat-public .self-study-roadmap .svg-node{scroll-margin:calc(var(--map-header-bottom) + 20px) 24px calc(var(--map-toolbar-height) + 20px) 260px}
 .csat-public .self-study-roadmap .study-map-svg text{font-family:var(--font-archivo),Archivo,Arial,sans-serif}
 .csat-public .self-study-roadmap .svg-node{cursor:pointer;outline:none}
 .csat-public .self-study-roadmap .svg-node:hover .node-face,.csat-public .self-study-roadmap .svg-node:focus-visible .node-face{stroke:var(--study-blue);stroke-width:4px}
@@ -70,7 +71,7 @@
 .csat-public .self-study-roadmap .legend{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding:10px 18px;border-top:2px solid var(--study-rule);font-size:11px;color:var(--study-muted)}
 .csat-public .self-study-roadmap .legend>span:first-child{display:flex;align-items:center;gap:6px}
 .csat-public .self-study-roadmap .legend i{width:10px;height:10px;background:var(--study-orange);border:1px solid var(--study-rule)}
-.csat-public .self-study-roadmap #list{padding:20px}
+.csat-public .self-study-roadmap #list{padding:calc(var(--map-header-bottom) + 24px) 32px calc(var(--map-toolbar-height) + 32px) 278px;width:100vw}
 .csat-public .self-study-roadmap .rank-section{margin-bottom:26px}
 .csat-public .self-study-roadmap .rank-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
 .csat-public .self-study-roadmap .rank-letter{font-size:24px;font-weight:750;background:var(--study-lime);color:#191917;border:2px solid #191917;width:40px;text-align:center}
@@ -82,7 +83,7 @@
 .csat-public .self-study-roadmap .topic-code{flex-shrink:0;font-size:11px;min-width:38px;min-height:24px;background:var(--study-lime);color:#191917;border:1px solid #191917;display:grid;place-items:center}
 .csat-public .self-study-roadmap .topic strong{display:block;font-size:14px;font-weight:700;line-height:1.4}
 .csat-public .self-study-roadmap .topic small{display:block;font-size:12px;font-weight:400;color:var(--study-muted);line-height:1.5;margin-top:5px}
-.csat-public .self-study-roadmap .notice{padding:20px;border-top:1px solid var(--study-rule);background:var(--study-soft);font-size:14px}
+.csat-public .self-study-roadmap .notice{position:fixed;z-index:26;top:calc(var(--map-header-bottom) + 52px);left:50%;transform:translateX(-50%);width:min(480px,calc(100vw - 32px));padding:20px;border-top:1px solid var(--study-rule);background:var(--study-soft);font-size:14px}
 .csat-public .self-study-roadmap .notice p{margin-bottom:10px}
 .csat-public .self-study-roadmap .notice a{color:var(--study-blue);text-decoration:underline}
 .csat-public .self-study-roadmap dialog{position:fixed;inset:0 0 0 auto;margin:0;border:2px solid var(--study-rule);border-radius:0;padding:0;width:min(580px,calc(100vw - 20px));max-width:none;height:100dvh;max-height:100dvh;background:var(--study-surface);color:var(--study-ink);box-shadow:-8px 0 0 #191917;overscroll-behavior:contain}
@@ -112,52 +113,33 @@
 .csat-public .self-study-roadmap .dialog-bottom{margin-top:20px}
 .csat-public .self-study-roadmap #locate{display:flex;align-items:center;justify-content:space-between;width:100%;background:var(--study-lime);color:#191917;border-color:#191917}
 .dark .csat-public .self-study-roadmap{--study-surface:#2d2925;--study-ink:#f8f7f2;--study-muted:#c7c1b3;--study-rule:#f8f7f2;--study-soft:#3c3731}
-.dark .csat-public .self-study-roadmap #canvas{background:#292622 linear-gradient(#f8f7f219 1px,transparent 1px) 0 0 / 100% 24px}
-.dark .csat-public .self-study-roadmap :is(#view-code,.notice a){color:#b8c7ff}
+.dark .csat-public.self-study-page{background:#292622 linear-gradient(#f8f7f219 1px,transparent 1px) 0 0 / 100% 24px}
+.dark .csat-public .self-study-roadmap .notice a{color:#b8c7ff}
 .dark .csat-public .self-study-roadmap .study-class-key>span:nth-child(2) b{color:#b8c7ff}
 .dark .csat-public .self-study-roadmap .study-map-svg .group-box{fill:#29262255;stroke:#69665e}
 .dark .csat-public .self-study-roadmap .study-map-svg .group-label{fill:#d9e64c}
 .dark .csat-public .self-study-roadmap .study-map-svg .edge path{stroke:#b7b3a8}
 .dark .csat-public .self-study-roadmap .svg-edge.highlight path{stroke:#b8c7ff}
 .dark .csat-public .self-study-roadmap :focus-visible{outline-color:#b8c7ff}
-@media(max-width:1050px){
- .csat-public .self-study-roadmap .study-workspace{grid-template-columns:165px minmax(0,1fr)}
- .csat-public .self-study-roadmap .study-rail{padding:18px 10px}
- .csat-public .self-study-roadmap .study-rail>strong{font-size:58px}
- .csat-public .self-study-roadmap .study-rail button{font-size:11px;padding:10px 7px}
- .csat-public .self-study-roadmap .study-rail button small{display:none}
- .csat-public .self-study-roadmap .study-class-key{display:none}
- .csat-public .self-study-roadmap .tools-row{flex-wrap:wrap}
+@media(max-width:900px){
+ .csat-public .self-study-roadmap .tools-row{flex-wrap:wrap;gap:6px}
  .csat-public .self-study-roadmap .search-field{flex-basis:100%}
- .csat-public .self-study-roadmap .study-zoom-tools{margin-left:auto}
-}
-@container study (max-width:620px){
- .csat-public .self-study-roadmap .study-workspace{grid-template-columns:1fr}
- .csat-public .self-study-roadmap .study-rail{padding:12px}
- .csat-public .self-study-roadmap .study-rail>p,.csat-public .self-study-roadmap .study-rail>strong{display:none}
- .csat-public .self-study-roadmap .study-rail nav{display:flex;flex-wrap:wrap;gap:7px}
- .csat-public .self-study-roadmap .study-rail button{font-size:12px;padding:8px 10px}
- .csat-public .self-study-roadmap .navigation-row{flex-wrap:wrap;gap:10px;padding:12px}
- .csat-public .self-study-roadmap .tools-row{flex-wrap:wrap;padding:12px;gap:10px}
- .csat-public .self-study-roadmap .search-field{flex-basis:100%}
- .csat-public .self-study-roadmap .study-zoom-tools{margin:0;width:100%}
- .csat-public .self-study-roadmap #zoom-controls #fit{width:44px;padding:10px}
+ .csat-public .self-study-roadmap .study-toolbar-actions{width:100%;justify-content:space-between}
  .csat-public .self-study-roadmap #fit>span{display:none}
- .csat-public .self-study-roadmap #download{margin-left:auto}
- .csat-public .self-study-roadmap .topic-grid{grid-template-columns:1fr}
- .csat-public .self-study-roadmap .map-meta>div{flex-direction:column;align-items:flex-start;gap:4px}
+ .csat-public .self-study-roadmap #zoom-controls #fit{width:44px;padding:10px}
 }
 @media(max-width:680px){
- .csat-public .self-study-roadmap{width:calc(100% - 28px);margin-top:24px}
- .csat-public .self-study-roadmap .study-title h1{font-size:26px;letter-spacing:-.8px}
- .csat-public .self-study-roadmap .study-title p{font-size:12px;max-width:300px}
- .csat-public .self-study-roadmap .map-meta{padding:11px 12px}
- .csat-public .self-study-roadmap #view-title{font-size:14px}
- .csat-public .self-study-roadmap #result{font-size:11px}
- .csat-public .self-study-roadmap #canvas{height:520px}
- .csat-public .self-study-roadmap .legend{padding:10px 12px;font-size:10px}
- .csat-public .self-study-roadmap .legend>span:last-child{display:none}
- .csat-public .self-study-roadmap #list{padding:14px}
+ .csat-public.self-study-page{--map-header-bottom:98px;--map-toolbar-height:144px}
+ .csat-public .self-study-roadmap .study-rail{left:12px;width:208px}
+ .csat-public .self-study-roadmap #stage{padding-left:24px;padding-right:24px;padding-top:calc(var(--map-header-bottom) + 62px)}
+ .csat-public .self-study-roadmap .study-toolbar{width:calc(100vw - 24px);padding:8px 8px 4px;bottom:calc(8px + env(safe-area-inset-bottom))}
+ .csat-public .self-study-roadmap .study-toolbar-actions,.csat-public .self-study-roadmap .study-zoom-tools,.csat-public .self-study-roadmap #zoom-controls{gap:2px}
+ .csat-public .self-study-roadmap .view-modes button{font-size:11px;padding:8px 6px}
+ .csat-public .self-study-roadmap #scale-label{width:33px;font-size:11px}
+ .csat-public .self-study-roadmap #zoom-controls button,.csat-public .self-study-roadmap #zoom-controls #fit,.csat-public .self-study-roadmap #download{width:44px;padding:10px}
+ .csat-public .self-study-roadmap #list{padding:calc(var(--map-header-bottom) + 64px) 14px calc(var(--map-toolbar-height) + 30px);width:100vw}
+ .csat-public .self-study-roadmap .topic-grid{grid-template-columns:1fr}
+ .csat-public .self-study-roadmap .svg-node{scroll-margin-left:16px}
  .csat-public .self-study-roadmap dialog{width:calc(100vw - 12px)}
  .csat-public .self-study-roadmap #topic-content{padding:20px}
  .csat-public .self-study-roadmap #topic-title{font-size:26px}
@@ -167,12 +149,25 @@
 }
 @media(prefers-reduced-motion:reduce){.csat-public .self-study-roadmap *{scroll-behavior:auto!important}}
 @media print{
- .csat-public .self-study-roadmap{width:100%;margin:0}
- .csat-public .self-study-roadmap :is(.study-heading,.study-rail,.tools-row,.navigation-row,.map-meta,.legend,dialog,.notice){display:none}
- .csat-public .self-study-roadmap .study-workspace{display:block}
- .csat-public .self-study-roadmap .study-board{box-shadow:none;border:0}
- .csat-public .self-study-roadmap #canvas{height:auto;overflow:visible;background:none}
- .csat-public .self-study-roadmap #stage{padding:0}
+ body:has(.self-study-page){overflow:visible}
+ .csat-public.self-study-page{width:100%;background:white}
+ .csat-public .self-study-roadmap :is(.study-rail,.study-toolbar,dialog,.notice){display:none}
+ .csat-public .self-study-roadmap #stage{padding:0;min-height:0;min-width:0;width:100%}
  .csat-public .self-study-roadmap #stage>svg{width:100%!important;height:auto!important}
+ .csat-public .self-study-roadmap #list{padding:0;width:100%}
  .csat-public .self-study-roadmap .topic{break-inside:avoid}
+}
+
+.csat-public .self-study-roadmap .study-static-link{padding:150px 24px 12px 278px}
+.csat-public .self-study-roadmap .study-static-link a{text-decoration:underline}
+.csat-public .self-study-roadmap .study-static-map{margin-left:260px;max-width:none;width:1160px}
+@media(max-width:680px){.csat-public .self-study-roadmap .study-static-link{padding-left:24px}.csat-public .self-study-roadmap .study-static-map{margin-left:24px}}
+@media print{.csat-public .self-study-roadmap .study-static-map{margin:0;width:100%}.csat-public .self-study-roadmap .study-static-link{display:none}}
+
+.csat-public .self-study-roadmap .view-modes .study-icon{display:none}
+@media(max-width:420px){
+ .csat-public .self-study-roadmap .study-toolbar{width:calc(100vw - 16px);padding:8px 6px 4px}
+ .csat-public .self-study-roadmap .view-mode-label,.csat-public .self-study-roadmap #scale-label{display:none}
+ .csat-public .self-study-roadmap .view-modes button{width:44px;padding:10px;display:grid;place-items:center}
+ .csat-public .self-study-roadmap .view-modes .study-icon{display:block}
 }
