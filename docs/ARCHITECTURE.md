@@ -38,7 +38,7 @@ flowchart LR
 - /dang-ky-hoc đọc query course theo whitelist. CTA từ lớp truyền mặc định; route lớp có ưu tiên hơn query. PublicConsultation dùng schema intake v2, consent và API `/api/consultations` → `submit_registration`; có cấu hình tắt/lỗi và idempotency. Đơn đăng ký mới không tạo outbox/email. Học liệu giữ luồng xem lại/sao chép/liên hệ.
 - /thanh-tich là static route, lib/public-achievements.ts và WebP responsive dựng sẵn; tách hồ sơ Portal, không API/CMS. /bai-dang lấy lib/public-posts.ts; /gia-su dùng chung TutorShowcase.
 - /hoc-lieu-mien-phi tái dùng PracticeVideo/form frontend. Footer/dock lấy lib/public-contact.ts. /login là switch Phụ huynh/Gia sư dùng handler riêng, /tutor qua proxy rồi redirect nếu chưa có phiên.
-- `/tu-hoc` là bản đồ tự học công khai, độc lập trang tuyển sinh: `lib/knowledge-map.ts` ghép curriculum/diễn giải public với quan hệ và tag CSATOJ trong `knowledge-map-links.json`; page server truyền dữ liệu cho `KnowledgeMap` lọc/tìm/mở chủ đề. Không nhập thư viện bài riêng tư, không API hoặc trạng thái học sinh. [Nguồn và hành vi](KNOWLEDGE_MAP.md).
+- `/tu-hoc` tích hợp nguyên nội dung/sơ đồ của project `csat-roadmap`: asset JSON/SVG tĩnh tại `public/self-study`, markup/runtime scoped qua `SelfStudyRoadmap`; React effect dọn fetch/listener/observer khi rời trang. Snapshot public độc lập curriculum và thư viện bài phụ huynh, không API hoặc trạng thái học sinh. [Nguồn và hành vi](KNOWLEDGE_MAP.md).
 
 Bản đồ route/component và hành vi ở [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md); nội dung tuyển sinh ở [catalog](PUBLIC_COURSE_CATALOG.md). Không để tài liệu kiến trúc thành nhật ký chỉnh màu/kích thước.
 
@@ -150,6 +150,6 @@ Tiêu chí sau mỗi đợt tách module: hành vi và quyền không đổi, l�
 
 Renderer chuyên đề giữ nội dung Markdown trong repo theo quyết định đã chốt. Shiki import riêng C++/github-dark, dùng chung highlighter; cache thân bài/mục lục tối đa 54 nội dung trên worker, khóa theo Markdown và mã chủ đề công khai. Header, ngữ cảnh học sinh–lớp và kết quả RPC không được cache chung; route xác thực/kiểm tra bản công bố mỗi lần đọc rồi mới gọi renderer. Xem [chuyên đề phụ huynh](PARENT_TOPICS.md).
 
-Liên kết luyện tập đi qua `lib/csatoj-practice.ts`, đọc riêng mapping tag đã xác minh; không import toàn bộ trang Tự học vào renderer riêng tư. `prepareParentPractice` bọc mục Luyện tập và thêm CTA trong HAST đã parse, không bật HTML tùy ý. `ParentPortalView` chỉ tạo `practiceLinks` cho giáo án chuẩn đã công bố và chủ đề hiệu lực; `Roadmap` nhận prop tùy chọn, caller khác giữ hành vi cũ. Không thêm hợp đồng API/RPC hoặc đồng bộ trạng thái OJ.
+Liên kết luyện tập trong thư viện phụ huynh đi qua `lib/csatoj-practice.ts`, đọc riêng mapping tag đã xác minh; không import toàn bộ trang Tự học vào renderer riêng tư. `prepareParentPractice` bọc mục Luyện tập và thêm CTA trong HAST đã parse, không bật HTML tùy ý. `ParentPortalView` chỉ tạo `practiceLinks` cho giáo án chuẩn đã công bố và chủ đề hiệu lực; `Roadmap` nhận prop tùy chọn, caller khác giữ hành vi cũ. Không thêm hợp đồng API/RPC hoặc đồng bộ trạng thái OJ.
 
 `SiteBackground` là nền trang trí dùng chung giữa PublicShell và ParentShell, CSS Module độc lập; Portal không kế thừa layout/typography marketing. Menu chung tiếp tục qua PublicNavigation/PublicHeader.

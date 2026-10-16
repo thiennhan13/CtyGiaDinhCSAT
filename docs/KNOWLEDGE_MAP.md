@@ -1,40 +1,33 @@
-# Trang Tự học và bản đồ kiến thức
+# Trang Tự học
 
-Trang công khai `/tu-hoc` có mục **Tự học** riêng trên menu chính, dành cho học sinh tham khảo hướng tự học. Trang `/lo-trinh` tiếp tục giới thiệu lớp và tuyển sinh. Đường dẫn cũ `/ban-do-kien-thuc` chuyển hướng 308 sang `/tu-hoc`, giữ query và anchor chủ đề. Bản đồ không ghi tiến độ, xếp lớp hoặc xác nhận thành thạo.
+`/tu-hoc` tái lập roadmap trong project `csat-roadmap` theo yêu cầu chủ trung tâm. Đây là tài liệu tự học công khai; chương trình lớp và bài đọc phụ huynh tiếp tục dùng khung đã duyệt riêng.
 
-## Nguồn nội dung
+## Nguồn và cấu trúc
 
-- `lib/learning-curriculum-20260922.json` quyết định mã, tên, mô tả, thứ tự và 13 chặng: A có 9 chủ đề, B có 15, C có 19 (gồm C01–D07).
-- `lib/public-roadmap-content.ts` cung cấp mục đích, cách tiếp cận và kỹ năng cần rèn đã dùng ở trang chi tiết lớp. Không tạo nguồn mô tả trùng lặp.
-- `lib/knowledge-map-links.json` giữ liên hệ kiến thức và ID tag bài luyện, đối chiếu từ bản `csat-roadmap` do chủ trung tâm chỉ định. Nền tảng nên ôn là gợi ý biên tập; không phải điều kiện đăng ký hoặc chuyển chặng. Các nhánh học tiếp được suy ngược từ liên hệ này.
-- Các bài trong `content/parent-topics/` dùng để đối chiếu phạm vi. Bản đồ không import catalog/toàn văn riêng tư, không tạo liên kết bài cần ngữ cảnh học sinh–lớp và không đổi quyền đọc.
+Nguồn được chỉ định: `D:\Cty_gia_đình_CSAT\csat-roadmap`, commit `a30fc0e142b4295d2482594417a8e15d7a4779f7`, working tree sạch khi tiếp nhận. Dữ liệu 43 chủ đề và năm SVG được sao chép nguyên byte vào `public/self-study/`. Checksum và commit nguồn nằm trong `lib/self-study-source.json`.
 
-## Kết quả đối chiếu tài liệu
+- `lib/self-study-markup.ts`: markup từ trang nguồn, giữ tiêu đề ngắn, thanh chọn lớp/cách xem, tìm kiếm, công cụ zoom/tải SVG, sơ đồ, danh sách và dialog.
+- `lib/self-study-runtime.js`: tương tác nguồn, đổi truy vấn DOM sang root component; fetch và listener có AbortController, ResizeObserver/rAF được dọn khi rời trang.
+- `components/marketing/SelfStudyRoadmap.tsx`: mount/unmount tương tác trong Next.js.
+- `self-study-roadmap.css`: bố cục và màu nguồn, selector được scope trong `.self-study-roadmap`; giữ Archivo của website. Logo/menu/footer chung do PublicShell cung cấp, không lặp logo text trong heading roadmap.
+- `self-study-enrollment.css`: lời mời đăng ký cuối trang theo phong cách trang giới thiệu, dùng nội dung chủ trung tâm cung cấp và dẫn đến `/lo-trinh#tu-van`.
 
-Roadmap tham khảo khớp đủ 43 mã, nhưng tên rút gọn, thứ tự theo nhánh và một số mô tả khác khung chuẩn. Ví dụ C05 liệt kê multiset/unordered containers, C06 thêm heap; không chép các danh mục đó thành phạm vi chương trình. Bản tích hợp giữ nội dung nguồn của Portal, chỉ tiếp nhận liên hệ và ID tag.
+Dữ liệu nguồn quyết định tên, mô tả, thứ tự theo nhánh, kiến thức chi tiết, điều kiện học trước và URL bài tập trên trang này. Không ghép thêm diễn giải từ curriculum Portal. Đây là quyết định thay thế bản Tự học cũ với hero, mục Một vòng tự học và 13 chặng; không đổi giáo án hoặc quyền đọc 54 bài phụ huynh. Mapping `knowledge-map-links.json`/helper `csatoj-practice.ts` của phụ huynh vẫn độc lập, các tag hiện khớp snapshot nguồn.
 
-PDF **Căn bản lập trình thi đấu** do chủ trung tâm cung cấp có 280 trang. Đã trích văn bản để khảo sát cấu trúc, đọc phần mở đầu/mục lục và đối chiếu mẫu tham lam trang 38–39; đã xem ảnh render trang 38. Đây chưa phải kiểm toán toàn bộ lý thuyết/code của sách. Sách có Euclid mở rộng, phi Euler, lũy thừa ma trận, đồ thị và các nội dung ngoài khung hiện hành; không tự thêm vào A/B/C/E.
+## Hành vi
 
-Điểm cần kiểm chứng khi dùng sách để biên soạn tiếp: phần đổi tiền trang 39 giải thích điều kiện canonical bằng khả năng ghép mệnh giá lớn từ mệnh giá nhỏ. Điều đó chưa đủ để bảo đảm tham lam tối ưu: với mệnh giá 1, 3, 4 và tổng 6, tham lam lấy 4+1+1 trong khi 3+3 dùng ít đồng hơn. Bài C10 hiện có đã phân biệt lựa chọn cục bộ với chứng minh tính đúng và dùng bài chọn hoạt động. Vì vậy PDF là nguồn gợi ý đối chiếu, không là nguồn thay thế giáo trình hay bài đã kiểm chứng. Không sao chép toàn văn, code hoặc đưa PDF lên website.
+- Hai chế độ Sơ đồ/Danh sách; lọc Toàn lộ trình, A, B, C hoặc Quy hoạch động.
+- Tìm không dấu trên mã, tên, mô tả và nội dung chi tiết. Tìm kiếm không tải lại SVG, không đặt lại vị trí/zoom.
+- Năm SVG tải theo nhu cầu và cache trong phiên component. Các node hỗ trợ Tab/Enter/Space; dialog đóng bằng Escape và trả focus.
+- URL giữ cấu trúc hash nguồn: `#view=C&mode=list&q=...&tag=D03`; back/forward khôi phục trạng thái. Anchor cũ `#chu-de-D03` vẫn mở đúng chủ đề. Alias `/ban-do-kien-thuc` tiếp tục chuyển hướng.
+- Khi không JS có liên kết mở SVG toàn bộ như trang nguồn. CSS in giữ sơ đồ/danh sách, ẩn điều khiển và CTA.
+- Roadmap giữ mặt màu sáng như bản gốc; menu/footer/CTA tiếp tục hỗ trợ theme chung.
+- Không API OJ, đăng nhập, ghi tiến độ hoặc trạng thái thành thạo. Không import Markdown/metadata bài riêng tư vào dữ liệu public.
 
-## Trải nghiệm và ranh giới
+## Cập nhật và kiểm chứng
 
-- Hero nối ba phần A → B → C; nội dung chi tiết tổ chức theo chặng và chủ đề, giữ Archivo, palette CSAT, viền/bóng cứng và mặt màu phẳng.
-- Lọc A/B/C; tìm tên, mã hoặc thuật toán có/không dấu; có số kết quả và trạng thái không tìm thấy.
-- Mở chủ đề đọc cách tiếp cận, kỹ năng, nền tảng nên ôn và nhánh học tiếp. Chuyển sang chủ đề liên quan gỡ lọc, mở đúng mục, cuộn và đặt focus vào tiêu đề.
-- URL `?lop=C&q=...` giữ bộ lọc; `#chu-de-D03` ưu tiên mở chủ đề trực tiếp. Back/forward và tải lại giữ ngữ cảnh URL; không lưu thông tin cá nhân.
-- Native `details` đọc được khi không JavaScript; các bộ lọc cần JS được ẩn cho đến hydration. Không kéo thả, khóa cuộn hoặc chạy animation liên tục.
-- Liên kết bài luyện mở tab CSATOJ theo tag, không gọi API sync, lấy điểm hoặc suy tiến độ. ID tag từ bản xuất nguồn 10/10/2026; cần rà lại khi CSATOJ thay đổi phân loại.
-- Route dùng metadata/canonical, sitemap và llms công khai. Điều hướng **Tự học** nằm riêng trên menu chính và footer, không thuộc dropdown Lộ trình. Không thêm endpoint hoặc migration.
+Khi tiếp nhận bản nguồn mới, đối chiếu JSON/SVG/markup/CSS/runtime cùng nhau; cập nhật fingerprint, manifest checksum và các hằng đường dẫn trong runtime. Project nguồn chỉ được đọc; runtime không phụ thuộc ổ D hoặc công cụ sinh SVG.
 
-## Tiếp tục chuẩn hóa nội dung
+`node --test scripts/tests/knowledge-map.test.cjs` kiểm checksum, 43 mã, A9/B15/C19, tag mapping và liên hệ không chu trình. `node scripts/tests/knowledge-map.browser.cjs` chạy bộ kiểm tương tác từ project nguồn trên preview loopback bằng Edge; dùng `PUBLIC_QA_BASE_URL` nếu đổi cổng. Kiểm đủ 43 dialog/URL/detail, lazy load/cache, zoom, history, bàn phím, mobile và retry. Ảnh/báo cáo ở `scratch/knowledge-map-qa/`, ngoài runtime/Git.
 
-Đã bổ sung [đối chiếu từng bài phụ huynh](PARENT_LESSON_AUDIT.md), gồm phần PDF đọc có trọng tâm và 43 đích tag kiểm lại ngày 16/10/2026. URL luyện tập nay tạo chung qua `lib/csatoj-practice.ts`; trang public không nhận nội dung/quyền của thư viện riêng tư. Kiểm HTTP và tag được chọn không đồng nghĩa nghiệm thu từng bài OJ.
-
-1. Review cách diễn đạt cho học sinh và phụ huynh trên cùng mã chủ đề; giữ tách mục tiêu học, hoạt động và minh chứng thực tế.
-2. Đối chiếu từng bài với nguồn học thuật và kiểm thử ví dụ/code trước khi thay nội dung; ưu tiên điều kiện áp dụng, trường hợp biên và phản ví dụ.
-3. Chỉ thêm bài hoặc kiến thức ngoài khung khi đã duyệt phạm vi; E/K/PreVOI vẫn chờ nguồn riêng.
-
-## Kiểm tra
-
-`node --test scripts/tests/knowledge-map.test.cjs` kiểm khung chuẩn, 43 mã, quan hệ không chu trình/tham chiếu hỏng, tìm kiếm và dữ liệu public. `node scripts/tests/knowledge-map.browser.cjs` chạy Edge với preview loopback, chặn mạng ngoài và request ghi. Ảnh/báo cáo ở `scratch/knowledge-map-qa/`, không thuộc runtime/Git. Bằng chứng từng môi trường ở [PROJECT_STATUS](PROJECT_STATUS.md).
+Bằng chứng môi trường và việc còn chờ xem [PROJECT_STATUS](PROJECT_STATUS.md). Nghiên cứu PDF và chuẩn hóa bài phụ huynh xem [PARENT_LESSON_AUDIT](PARENT_LESSON_AUDIT.md).

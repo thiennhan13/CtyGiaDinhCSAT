@@ -49,3 +49,7 @@ Chặng lớp dựa số buổi completed đã kết thúc từ đầu lớp, kh
 ## Duy trì quyết định
 
 Cập nhật mục tương ứng khi có lựa chọn mới, bỏ phương án hết hiệu lực khỏi hướng dẫn hiện hành và dẫn đúng tài liệu nghiệp vụ. Git giữ lịch sử; tài liệu vận hành giữ bằng chứng tối thiểu. Phân biệt rõ **đã chốt**, **đã triển khai** và **đã nghiệm thu**.
+
+## Trang Tự học
+
+Theo yêu cầu chủ trung tâm, `/tu-hoc` dùng nguyên nội dung, nhánh học, cấu trúc sơ đồ/danh sách và tương tác từ project `csat-roadmap`, thay phần hero/diễn giải của bản cũ. Giữ menu/logo và Archivo của website, thêm lời mời đăng ký cuối trang dẫn `/lo-trinh#tu-van`. Snapshot này là tài liệu tự học; không thay khung chuẩn/giáo án công bố hoặc bài đọc phụ huynh. [Nguồn và cách tích hợp](KNOWLEDGE_MAP.md).
