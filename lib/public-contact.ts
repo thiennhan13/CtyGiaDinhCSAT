@@ -6,4 +6,5 @@ export const publicContactChannels = [
   { name: 'TikTok', label: '@csat.tutor', url: 'https://www.tiktok.com/@csat.tutor' },
 ] as const;
 
-export const publicContactEmail = 'csattutor@gmail.com';
+export const publicContactEmail = 'contact@csatoj.vn';
+export const publicContactEmails = [publicContactEmail, 'csattutor@gmail.com'] as const;

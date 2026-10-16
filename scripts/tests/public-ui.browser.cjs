@@ -503,7 +503,7 @@ async function main(){
   check(await page.locator('.practice-video').count()===1,'Optimized video preserved');
   check(await invite.count()===0,'No invitation on destination');
   await page.locator('.oj-tabs button').nth(1).click();check(await page.locator('#oj-practice-1').isVisible(),'Practice step switches');
-  for(const href of ['mailto:csattutor@gmail.com','https://zalo.me/0917791599','https://www.facebook.com/csat.tutor','https://www.tiktok.com/@csat.tutor'])check(await page.locator('.footer-contact a[href="'+href+'"]').count()===1,'Official contact '+href);
+  for(const href of ['mailto:contact@csatoj.vn','mailto:csattutor@gmail.com','https://zalo.me/0917791599','https://www.facebook.com/csat.tutor','https://www.tiktok.com/@csat.tutor'])check(await page.locator('.footer-contact a[href="'+href+'"]').count()===1,'Official contact '+href);
   await page.emulateMedia({reducedMotion:'reduce'});await page.reload({waitUntil:'networkidle'});
   await page.locator('.practice-video').scrollIntoViewIfNeeded();await page.waitForTimeout(150);
   check(await page.locator('.practice-video video').evaluate(v=>v.paused&&!v.getAttribute('src')),'Reduced motion does not autoplay video');

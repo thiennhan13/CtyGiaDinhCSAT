@@ -4,9 +4,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { Menu, X, Sun, Moon, MessageCircle, ArrowUpRight, Bell, BookOpen, Send, Trophy, UsersRound, Newspaper, MessageSquareText } from 'lucide-react';
+import { Menu, X, Sun, Moon, MessageCircle, ArrowUpRight, Bell, BookOpen, Send, Trophy, UsersRound, Newspaper, MessageSquareText, Mail } from 'lucide-react';
 import { RoadmapNavigation } from './RoadmapNavigation';
-import { publicContactChannels } from '@/lib/public-contact';
+import { publicContactChannels, publicContactEmail } from '@/lib/public-contact';
 export function PublicNavigation() {
     const path = usePathname(), { resolvedTheme, setTheme } = useTheme();
     const [menu, setMenu] = useState(false), [dock, setDock] = useState(false), [mounted, setMounted] = useState(false);
@@ -46,6 +46,7 @@ export function PublicNavigation() {
       </div>}
       <div className="dock-panel" id="contact-panel" hidden={!dock}>
         <Link href="/hoc-lieu-mien-phi" onClick={close}><span>Học liệu miễn phí<br /><small>Trao đổi cùng gia sư CSAT</small></span><BookOpen size={20} /></Link>
+        <a href={`mailto:${publicContactEmail}`}><span>Email<br /><small>{publicContactEmail}</small></span><Mail size={20} aria-hidden="true" /></a>
         {publicContactChannels.map(channel => <a key={channel.name} href={channel.url} target="_blank" rel="noopener noreferrer"><span>{channel.name}<br /><small>{channel.label}</small></span><ArrowUpRight size={20} /></a>)}
       </div>
       <button ref={dockButton} type="button" className="icon-btn dock-toggle" aria-controls="contact-panel" aria-expanded={dock} aria-label={dock ? 'Đóng các kênh liên hệ' : 'Mở các kênh liên hệ'} onClick={() => { setDock(!dock); setMenu(false); }}><MessageCircle size={24}/></button>
