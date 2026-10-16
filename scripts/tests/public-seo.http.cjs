@@ -10,7 +10,7 @@ function link(html,rel){const tag=(html.match(/<link\b[^>]*>/g)||[]).find(tag=>a
 async function get(path){return fetch(new URL(path,origin),{redirect:'manual',signal:AbortSignal.timeout(20000)});}
 async function main(){
  const response=await get('/sitemap.xml');assert.equal(response.status,200);const xml=await response.text();
- const urls=[...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map(m=>decode(m[1]));assert.equal(urls.length,15);assert.equal(new Set(urls).size,15);
+ const urls=[...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map(m=>decode(m[1]));assert.equal(urls.length,16);assert.equal(new Set(urls).size,16);assert.ok(urls.includes(canonical+'/tu-hoc'),'Self-study page is included in the public sitemap');
  const pages=new Map(),titles=new Set();let image='';
  for(const url of urls){
   const parsed=new URL(url);assert.equal(parsed.origin,canonical);assert.equal(parsed.search,'');assert.ok(!/\/(parents|admin|tutor|login|api)(\/|$)/.test(parsed.pathname));
