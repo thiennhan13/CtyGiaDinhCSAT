@@ -1,11 +1,33 @@
 .csat-public .study-enrollment{position:relative;isolation:isolate;text-align:center;border-top:1px solid var(--line);padding:76px 100px 88px;margin-top:48px}
 .csat-public .study-enrollment h2{font-size:clamp(44px,6.5vw,88px);font-weight:800;letter-spacing:-.055em;line-height:1.15;margin:0 0 28px}
-.csat-public .study-enrollment h2 span{position:relative;display:inline-block}
-.csat-public .study-enrollment h2 span:before{content:'';position:absolute;inset:10% -12px -5px;background:var(--lime);z-index:-1;transform:rotate(-2deg)}
+.csat-public .study-enrollment h2 span{position:relative;display:inline-block;line-height:1}
+.csat-public .study-enrollment h2 span:before{content:'';position:absolute;inset:.12em -.055em .01em;background:var(--lime);z-index:-1;transform:rotate(-2deg)}
 .csat-public .study-enrollment p{max-width:760px;margin:0 auto 30px;font-size:clamp(18px,2vw,24px);line-height:1.6;color:var(--muted)}
 .csat-public .study-enrollment .btn{font-size:18px;padding:16px 24px;min-height:58px}
-.csat-public .study-enrollment-mark{position:absolute;top:92px;left:30px;font-size:64px;font-weight:800;letter-spacing:-.12em;color:var(--blue);transform:rotate(-16deg)}
-.csat-public .study-enrollment-pixel{position:absolute;right:70px;top:132px;width:18px;height:18px;background:var(--orange);box-shadow:18px 18px 0 var(--blue),36px 0 0 var(--lime)}
+.csat-public .study-enrollment-art{position:absolute;top:56px;bottom:56px;width:84px;pointer-events:none;user-select:none}
+.csat-public .study-enrollment-art-left{left:8px}
+.csat-public .study-enrollment-art-right{right:8px}
+.csat-public .study-enrollment-art svg{position:absolute;stroke-width:2}
+.csat-public .study-art-main{width:58px;height:58px;top:26px;left:6px;color:var(--blue);transform:rotate(-14deg)}
+.csat-public .study-art-branch{width:36px;height:36px;top:126px;right:0;color:var(--orange);transform:rotate(12deg)}
+.csat-public .study-art-small{width:30px;height:30px;bottom:8px;left:6px;color:var(--blue);transform:rotate(-8deg)}
+.csat-public .study-enrollment-art-right .study-art-main{left:auto;right:0;transform:rotate(12deg)}
+.csat-public .study-enrollment-art-right .study-art-branch{right:32px;transform:rotate(-14deg)}
+.csat-public .study-enrollment-art-right .study-art-small{left:auto;right:3px;bottom:25px;color:var(--orange)}
+.csat-public .study-enrollment-pixel{position:absolute;left:0;top:4px;width:9px;height:9px;background:var(--orange);box-shadow:9px 9px 0 var(--blue),18px 0 0 var(--lime)}
 .dark .csat-public .study-enrollment h2 span{color:#191917}
-@media(max-width:760px){.csat-public .study-enrollment{padding:58px 8px 60px;margin-top:28px}.csat-public .study-enrollment-mark{top:12px;left:8px;font-size:28px}.csat-public .study-enrollment-pixel{top:20px;right:36px;width:9px;height:9px;box-shadow:9px 9px 0 var(--blue),18px 0 0 var(--lime)}}
+.dark .csat-public .study-enrollment-art :is(.study-art-main,.study-art-small){color:#b8c7ff}
+@media(max-width:760px){
+ .csat-public .study-enrollment{padding:80px 8px 70px;margin-top:28px}
+ .csat-public .study-enrollment-art{top:12px;bottom:auto;height:44px;width:112px}
+ .csat-public .study-enrollment-art-left{left:8px}
+ .csat-public .study-enrollment-art-right{right:8px}
+ .csat-public .study-art-main{width:28px;height:28px;top:4px;left:0}
+ .csat-public .study-art-branch{width:22px;height:22px;top:15px;right:40px}
+ .csat-public .study-art-small{width:20px;height:20px;bottom:auto;top:0;left:auto;right:0}
+ .csat-public .study-enrollment-art-right .study-art-main{right:0}
+ .csat-public .study-enrollment-art-right .study-art-branch{right:47px;top:17px}
+ .csat-public .study-enrollment-art-right .study-art-small{right:88px;bottom:auto;top:0}
+ .csat-public .study-enrollment-pixel{display:none}
+}
 @media print{.csat-public .study-enrollment{display:none}}

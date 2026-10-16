@@ -38,7 +38,7 @@ flowchart LR
 - /dang-ky-hoc đọc query course theo whitelist. CTA từ lớp truyền mặc định; route lớp có ưu tiên hơn query. PublicConsultation dùng schema intake v2, consent và API `/api/consultations` → `submit_registration`; có cấu hình tắt/lỗi và idempotency. Đơn đăng ký mới không tạo outbox/email. Học liệu giữ luồng xem lại/sao chép/liên hệ.
 - /thanh-tich là static route, lib/public-achievements.ts và WebP responsive dựng sẵn; tách hồ sơ Portal, không API/CMS. /bai-dang lấy lib/public-posts.ts; /gia-su dùng chung TutorShowcase.
 - /hoc-lieu-mien-phi tái dùng PracticeVideo/form frontend. Footer/dock lấy lib/public-contact.ts. /login là switch Phụ huynh/Gia sư dùng handler riêng, /tutor qua proxy rồi redirect nếu chưa có phiên.
-- `/tu-hoc` tích hợp nguyên nội dung/sơ đồ của project `csat-roadmap`: asset JSON/SVG tĩnh tại `public/self-study`, markup/runtime scoped qua `SelfStudyRoadmap`; React effect dọn fetch/listener/observer khi rời trang. Snapshot public độc lập curriculum và thư viện bài phụ huynh, không API hoặc trạng thái học sinh. [Nguồn và hành vi](KNOWLEDGE_MAP.md).
+- `/tu-hoc` giữ dữ liệu/quan hệ của project `csat-roadmap`; JSON/SVG gốc tại `public/self-study`, SVG trình bày Sổ tay được sinh riêng tại `public/self-study/notebook` và ánh xạ qua `lib/self-study-diagrams.json`. Markup/runtime scoped qua `SelfStudyRoadmap`; React effect dọn fetch/listener/observer khi rời trang. Snapshot public độc lập curriculum và thư viện bài phụ huynh, không API hoặc trạng thái học sinh. [Nguồn và hành vi](KNOWLEDGE_MAP.md).
 
 Bản đồ route/component và hành vi ở [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md); nội dung tuyển sinh ở [catalog](PUBLIC_COURSE_CATALOG.md). Không để tài liệu kiến trúc thành nhật ký chỉnh màu/kích thước.
 

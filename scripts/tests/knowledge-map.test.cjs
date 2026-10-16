@@ -32,3 +32,17 @@ test('roadmap prerequisites remain complete and acyclic',()=>{
  }
  for(const node of nodes)visit(node.id);
 });
+
+test('notebook diagrams retain every scoped topic and the source dependency edges',()=>{
+ const diagrams=require('../../lib/self-study-diagrams.json');
+ for(const [view,url] of Object.entries(diagrams)){
+  const svg=fs.readFileSync(path.join(root,'public',url.slice(1)),'utf8');
+  const sourceName=Object.keys(provenance.files).find(name=>name.startsWith(`diagram-${view}.`));
+  const original=fs.readFileSync(path.join(root,'public/self-study',sourceName),'utf8').replaceAll('&#45;','-');
+  const edges=text=>[...text.matchAll(/id="edge-([A-D]\d+)-([A-D]\d+)"/g)].map(m=>m[1]+'-'+m[2]).sort();
+  assert.deepEqual(edges(svg),edges(original),view+' prerequisites');
+  const expected=nodes.filter(n=>view==='full'||(view==='DP'?n.id.startsWith('D'):n.rank===view)).map(n=>n.id).sort();
+  assert.deepEqual([...svg.matchAll(/id="graph-([A-D]\d+)"/g)].map(m=>m[1]).sort(),expected,view+' topics');
+  assert(url.includes(createHash('sha256').update(svg).digest('hex').slice(0,12)),view+' immutable URL');
+ }
+});
