@@ -12,6 +12,7 @@ export function GET() {
     '## Tìm hiểu CSAT', '',
     `- [Giới thiệu](${publicUrl()}): Cách học và các kênh đồng hành tại CSAT.`,
     `- [Lộ trình học tập](${publicUrl('/lo-trinh')}): Chọn điểm bắt đầu, tìm hiểu A/B/C/E/K.`,
+    `- [Tự học](${publicUrl('/tu-hoc')}): Tham khảo hướng tự học qua 43 chủ đề C++ và thuật toán, cùng bài luyện CSATOJ.`,
     `- [Đội ngũ](${publicUrl('/gia-su')}): Giới thiệu gia sư CSAT.`,
     `- [Đăng ký học](${publicUrl('/dang-ky-hoc')}): Đối tượng, thông tin lớp và đăng ký tư vấn.`,
     `- [Học liệu miễn phí](${publicUrl('/hoc-lieu-mien-phi')}): Trao đổi để tìm tài liệu phù hợp.`,

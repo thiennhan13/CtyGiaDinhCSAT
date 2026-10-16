@@ -65,9 +65,15 @@ Theo quy nạp số phần tử xét, mọi tập hợp hợp lệ hoặc chứa
 
 O(nkS) thời gian, O(kS) bộ nhớ, chưa gồm lưu truy vết. Không cho rằng thêm một chiều chỉ tăng chi phí một chút: k,S lớn làm tích tăng rất nhanh. Nếu cần đếm, thay kiểu boolean và phép hoặc bằng quy tắc đếm có kiểm soát tràn; nếu cần tổng giá trị tốt nhất, ý nghĩa trạng thái và cơ sở phải đổi.
 
+## Luyện tập
+
 - So sánh với liệt kê mọi tập con khi n nhỏ.
 - Thử `[0,0,5]`, k bằng 2, S bằng 0 để kiểm tra count giảm.
 - Bổ sung tiền nhiệm theo lượt i nếu cần in các chỉ số được chọn.
+
+### Kiểm tra chiều số lượng bằng các phần tử 0
+
+Với dãy `0, 0, 5`, chọn đúng hai phần tử có tổng 0 là khả thi, còn chọn đúng ba phần tử có tổng 0 thì không. Nếu chỉ có một phần tử 0, không thể dùng nó hai lần để đạt yêu cầu chọn hai phần tử. Những ca này kiểm tra việc đọc hàng số lượng của lượt trước, kể cả khi tổng không thay đổi.
 
 ## Tự kiểm tra
 

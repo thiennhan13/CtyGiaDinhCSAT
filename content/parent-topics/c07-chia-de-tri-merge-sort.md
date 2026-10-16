@@ -77,7 +77,7 @@ Nếu hai giá trị bằng nhau, mã chọn bên trái trước. Điều này g
 
 Mỗi tầng trộn tổng cộng O(n) phần tử. Số tầng chia khoảng O(log n), nên thời gian O(n log n), kể cả dãy đã sắp xếp. Vùng đệm O(n); ngăn xếp O(log n). Không cấp phát vector n phần tử tại từng lời gọi, vì đó là công việc thừa so với vùng đệm dùng chung.
 
-Merge sort chia các đoạn không giao nhau. Fibonacci đệ quy lại gặp nhiều trạng thái trùng; đó là lí do một bên cần bước ghép, một bên hưởng lợi rõ từ bảng nhớ.
+Merge sort chia các đoạn không giao nhau. Fibonacci đệ quy lại gặp nhiều trạng thái trùng; đó là lý do một bên cần bước ghép, một bên hưởng lợi rõ từ bảng nhớ.
 
 ## Luyện tập
 

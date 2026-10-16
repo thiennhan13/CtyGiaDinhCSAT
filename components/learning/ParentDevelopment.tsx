@@ -47,7 +47,7 @@ export function ParentDevelopment({ plans }: { plans: ParentLearningData['plans'
   return <section id="development" className="parent-card" aria-labelledby="development-heading">
     <p className="parent-eyebrow mb-3 text-primary">TỪ NỀN TẢNG ĐẾN MỤC TIÊU</p>
     <h2 id="development-heading">Định hướng phát triển của con</h2>
-    <p className="parent-development-intro">Mỗi chặng học mở thêm một hướng phát triển. Dưới đây là định hướng của chương trình lớp; mục tiêu riêng của con được trao đổi dựa trên bài làm, nhận xét của gia sư và mong muốn của gia đình.</p>
+    <p className="parent-development-intro">Định hướng theo chương trình lớp; mục tiêu riêng của con được trao đổi dựa trên bài làm, nhận xét của gia sư và mong muốn của gia đình.</p>
     {groups.map(({ program, classes }) => <div className="parent-development-program" key={program}>
       <h3>{directions[program].name}</h3>
       <p className="parent-development-classes">{classes.map(plan => plan.class_name).join(' · ')}</p>

@@ -95,6 +95,10 @@ Thử `n = 0`, `n = 1` và một số nhỏ tính tay được. Viết `i < n` b
 - Đếm chữ số khác 0 của số không âm; thử `0`, `1000`, `4020`.
 - In bảng kích thước được nhập; giải thích vị trí xuống dòng và số lượt trước khi chạy.
 
+### Giải thích một lượt trước khi tăng cận
+
+Với `n = 3`, ghi giá trị `tong` sau mỗi lượt: 1, 3, 6. Với `n = 0`, không có lượt nào và tổng vẫn là 0. Học sinh nên giải thích được vì sao biến tổng được khởi tạo một lần trước vòng lặp; nếu đặt lại bằng 0 trong mỗi lượt, chương trình sẽ chỉ giữ số vừa cộng cuối cùng.
+
 ## Tự kiểm tra
 
 > **Câu hỏi 1:** Vì sao vòng `for` tính tổng vẫn đúng khi `n = 0`?

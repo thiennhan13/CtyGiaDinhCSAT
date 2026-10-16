@@ -1,0 +1,19 @@
+.background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background: radial-gradient(rgba(25,25,23,.054) 1.5px, transparent 1.5px) 0 0 / 16.5px 16.5px #f8f7f2;
+}
+.circle { position: absolute; top: -12vw; right: -13vw; width: 36vw; height: 36vw; border-radius: 50%; background: #d9e64c; }
+.second { top: 19vw; right: -6vw; width: 16.5vw; height: 16.5vw; background: rgba(13,127,110,.16); }
+.watermark { position: absolute; top: 2vh; left: -3vw; width: 66.5vw; height: auto; max-width: none; opacity: .0765; transform: rotate(-5deg); }
+:global(.dark) .background { background-color: #211e1b; background-image: radial-gradient(rgba(255,255,255,.0675) 1.5px, transparent 1.5px); }
+:global(.dark) .second { background: rgba(13,127,110,.25); }
+:global(.dark) .watermark { filter: invert(1); opacity: .162; }
+@media(max-width:760px) {
+  .circle { top: -19vw; right: -26vw; width: 52vw; height: 52vw; }
+  .second { display: none; }
+}
+@media print { .background { display: none; } }

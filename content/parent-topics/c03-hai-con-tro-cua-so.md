@@ -86,15 +86,21 @@ Nếu có số âm, quy tắc trên sai. Dãy `4, -3`, `K = 2` có cả đoạn 
 
 Do đó, phải kiểm tra dữ kiện trước khi chọn cửa sổ thay đổi. Không áp kỹ thuật chỉ vì đề có từ “đoạn con”. Thử dãy rỗng, toàn 0, `K = 0`, phần tử đơn vượt `K` và toàn dãy thỏa điều kiện.
 
-## Minh họa và luyện tập
+## Minh họa
 
 [USACO Guide — Two Pointers](https://www.youtube.com/watch?v=zmadiUuUeAA).
 
 Vẽ một dải số và hai mũi tên: ở tìm cặp, chúng tiến từ hai phía vào nhau; ở cửa sổ, chúng cùng tiến sang phải. Ghi dưới mỗi mũi tên nhóm phương án bị bỏ. Bảng trên giúp đối chiếu ý nghĩa của từng bước trước khi xem cách trình bày trong video.
 
+## Luyện tập
+
 - Tìm cặp có tổng bằng đích trên dãy đã sắp; thử phần tử trùng và trường hợp không có đáp án.
 - Tìm tổng lớn nhất của một cửa sổ có độ dài cố định.
 - Tìm đoạn dài nhất có tổng không quá ngưỡng trên dãy không âm, rồi kiểm tra bằng vét cạn cho dãy nhỏ.
+
+### Độ dài lớn nhất khác với số lượng đoạn
+
+Với dãy `0, 0` và `K = 0`, đoạn dài nhất có tổng không vượt K dài 2. Nhưng có **ba** đoạn không rỗng có tổng đúng K: hai đoạn một phần tử và cả dãy. Vì vậy, không thể đổi câu lệnh cập nhật độ dài thành “gặp tổng K thì tăng đếm một lần” rồi coi đó là thuật toán đếm mọi đoạn. Hãy xác định lại thông tin cần lưu khi mục tiêu bài toán thay đổi.
 
 ## Tự kiểm tra
 

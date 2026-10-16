@@ -15,13 +15,15 @@ Quyền đọc do server kiểm tra qua phiên phụ huynh, học sinh/lớp có
 
 ## Trạng thái biên soạn
 
-Thư viện có **54 bài cho 43 chủ đề** trong `content/parent-topics/`, theo kế hoạch đã duyệt và các chỉnh sửa văn phong của chủ trung tâm. Đây là trạng thái biên soạn local, chưa phát hành production. Quyền, renderer và route được kiểm chứng riêng tại [triển khai](PARENT_TOPICS.md).
+Thư viện có **54 bài cho 43 chủ đề** trong `content/parent-topics/`, theo kế hoạch đã duyệt và các chỉnh sửa văn phong của chủ trung tâm. Thư viện đã phát hành; bằng chứng môi trường và nghiệm thu còn chờ ở [PROJECT_STATUS](PROJECT_STATUS.md). Quyền, renderer và route được kiểm chứng riêng tại [triển khai](PARENT_TOPICS.md).
 
 Metadata nằm trong `lib/parent-topic-catalog/`; `order` tính trong chuỗi của cùng mã chủ đề. Danh mục có kiểu dữ liệu là nguồn chuẩn cho title/excerpt/slug, không nhân bản bảng danh mục vào tài liệu này.
 
 Markdown bài học không có YAML frontmatter hoặc H1; title lấy từ registry và route render một lần. Bài bắt đầu bằng đoạn dẫn, chia mục bằng H2/H3, dùng bảng và code fence; không có HTML raw. Việc parser tắt HTML raw và xử lý URL an toàn thuộc renderer, không suy ra từ việc các bản mẫu không có HTML.
 
 ## Vai trò các nguồn
+
+Đối chiếu roadmap và sách **Căn bản lập trình thi đấu** cho đợt chuẩn hóa hiện tại được ghi từng bài ở [PARENT_LESSON_AUDIT](PARENT_LESSON_AUDIT.md). Bảng phân biệt phần trùng trực tiếp, phần chỉ liên quan và phần chưa có nguồn tương ứng; giữ riêng đề xuất ngoài khung. Đã xác minh đích của 43 tag CSATOJ, chưa nghiệm thu nội dung từng đề hoặc nộp bài.
 
 **VNOI** giúp định hướng cách lập luận: phát biểu bài toán → cách trực tiếp → nhận xét quan trọng → ý tưởng → lý do đúng → cài đặt và giới hạn. Đây là nhận xét rút ra từ các bài đã đọc, không phải tuyên bố về một style guide chính thức. Học sườn và cách dẫn, không sao chép câu chữ, ví dụ hoặc mã.
 

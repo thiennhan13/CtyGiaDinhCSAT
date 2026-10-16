@@ -58,11 +58,13 @@ Gọi cơ số và số mũ ban đầu là `A`, `B`. Trước mỗi lượt, tí
 
 Số mũ giảm một nửa mỗi lượt, nên thuật toán dừng sau `O(log(b + 1))` lượt và dùng `O(1)` bộ nhớ phụ. Với `b = 0`, đáp án là `1 mod m`; vì thế `m = 1` phải trả 0. Trường hợp `0^0` ở đây sử dụng quy ước tích rỗng bằng 1; nếu đề định nghĩa khác thì xử lý theo đề.
 
-## Minh họa và luyện tập
+## Minh họa
 
 [Video Binary Exponentiation — Errichto Algorithms](https://www.youtube.com/watch?v=L-Wzglnm4dM).
 
 Để đối chiếu ý tưởng khi xem video, hãy nối chuỗi `3 → 9 → 81 → 6561` với các số mũ `1 → 2 → 4 → 8`, rồi đánh dấu 1, 4, 8 trong biểu diễn `13 = 1101₂`. Ba nhánh được chọn chính là ba thừa số xây nên đáp án.
+
+## Luyện tập
 
 - Tìm chữ số tận cùng của một lũy thừa bằng modulo 10.
 - Tính kết quả cho số mũ 0, 1, một số chẵn và một số lẻ; so sánh với nhân trực tiếp trên dữ liệu nhỏ.

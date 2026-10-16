@@ -1,16 +1,16 @@
-LCS tìm dãy kí tự chung dài nhất của hai xâu, trong đó được bỏ bớt kí tự nhưng giữ thứ tự. Các kí tự được chọn **không bắt buộc liên tiếp**. Đây là điểm cần phân biệt với đoạn xâu chung liên tiếp: hai bài có tên gọi gần nhau nhưng công thức và cách truy vết khác nhau.
+LCS tìm dãy ký tự chung dài nhất của hai xâu, trong đó được bỏ bớt ký tự nhưng giữ thứ tự. Các ký tự được chọn **không bắt buộc liên tiếp**. Đây là điểm cần phân biệt với đoạn xâu chung liên tiếp: hai bài có tên gọi gần nhau nhưng công thức và cách truy vết khác nhau.
 
 ## Tư duy
 
 - Dùng hai độ dài tiền tố để mô tả phần của hai xâu đang xét.
-- Xét kí tự cuối của hai tiền tố, phân biệt khớp và không khớp.
-- Hiểu nhánh bỏ kí tự là giữ lựa chọn tốt nhất, không mặc định bỏ bên dài hơn.
+- Xét ký tự cuối của hai tiền tố, phân biệt khớp và không khớp.
+- Hiểu nhánh bỏ ký tự là giữ lựa chọn tốt nhất, không mặc định bỏ bên dài hơn.
 - Đi ngược bảng theo quyết định hợp lệ để dựng một LCS thật.
 
 ## Nội dung học
 
-- `dp[i][j]`: độ dài LCS của i kí tự đầu xâu a và j kí tự đầu xâu b.
-- Hàng 0 và cột 0, chuyển chéo khi kí tự bằng nhau và max hai nhánh khi khác.
+- `dp[i][j]`: độ dài LCS của i ký tự đầu xâu a và j ký tự đầu xâu b.
+- Hàng 0 và cột 0, chuyển chéo khi ký tự bằng nhau và max hai nhánh khi khác.
 - Truy vết, nhiều đáp án tối ưu và đảo chuỗi được dựng ngược.
 - O(nm) thời gian, bộ nhớ bảng và rút hàng khi chỉ cần độ dài.
 
@@ -25,9 +25,9 @@ Hai xâu `ABC` và `AC` có LCS `AC` dài 2: bỏ B từ xâu đầu. Trong `ABC
 | AB | 0 | 1 | 1 |
 | ABC | 0 | 1 | 2 |
 
-Nếu kí tự cuối bằng nhau, có một lời giải tối ưu ghép cặp hai kí tự cuối: lấy LCS của phần trước rồi thêm kí tự ấy. Có thể giải thích bằng cách đưa lần xuất hiện cuối được chọn của kí tự đó ra vị trí cuối cùng trong cả hai xâu; việc dịch về sau không phá thứ tự của phần đã chọn.
+Nếu ký tự cuối bằng nhau, có một lời giải tối ưu ghép cặp hai ký tự cuối: lấy LCS của phần trước rồi thêm ký tự ấy. Có thể giải thích bằng cách đưa lần xuất hiện cuối được chọn của ký tự đó ra vị trí cuối cùng trong cả hai xâu; việc dịch về sau không phá thứ tự của phần đã chọn.
 
-Nếu kí tự cuối khác nhau, không thể dùng chúng làm cùng một kí tự cuối của dãy chung. Mọi lời giải bỏ ít nhất một trong hai, nên lấy max của hai trạng thái bỏ bên a hoặc bỏ bên b.
+Nếu ký tự cuối khác nhau, không thể dùng chúng làm cùng một ký tự cuối của dãy chung. Mọi lời giải bỏ ít nhất một trong hai, nên lấy max của hai trạng thái bỏ bên a hoặc bỏ bên b.
 
 ## Lập bảng và truy vết trong cùng một hàm
 
@@ -65,13 +65,13 @@ string lcs(const string& a, const string& b) {
 }
 ```
 
-Chỉ số dp là độ dài tiền tố; kí tự cuối tương ứng nằm ở `i-1` và `j-1`. Không thêm kí tự khi đi lên hoặc sang trái, vì các bước ấy biểu diễn bỏ một kí tự. Nếu hai nhánh ngang bằng, chọn một bên bất kỳ vẫn cho một đáp án tối ưu; quy tắc khác có thể tạo LCS khác cùng độ dài.
+Chỉ số dp là độ dài tiền tố; ký tự cuối tương ứng nằm ở `i-1` và `j-1`. Không thêm ký tự khi đi lên hoặc sang trái, vì các bước ấy biểu diễn bỏ một ký tự. Nếu hai nhánh ngang bằng, chọn một bên bất kỳ vẫn cho một đáp án tối ưu; quy tắc khác có thể tạo LCS khác cùng độ dài.
 
 ## Chi phí và những giới hạn cần đọc
 
 Thử mọi dãy con của một xâu đã có số lượng cấp số nhân. Bảng có nm trạng thái và mỗi ô O(1) công việc, nên O(nm) thời gian, O(nm) bộ nhớ; truy vết thêm O(n+m). Nếu chỉ cần độ dài, hai hàng giảm bộ nhớ O(min(n,m)), nhưng không còn sẵn bảng để truy vết như trên.
 
-Xâu rỗng có LCS rỗng. Kí tự lặp không làm công thức sai; nó chỉ có thể tạo nhiều đường truy vết. Với chuỗi Unicode, `string` và chỉ số trong mã xử lý byte; bài luyện dùng bảng kí tự đơn byte, không coi byte là mọi kí tự tiếng Việt.
+Xâu rỗng có LCS rỗng. Ký tự lặp không làm công thức sai; nó chỉ có thể tạo nhiều đường truy vết. Với chuỗi Unicode, `string` và chỉ số trong mã xử lý byte; bài luyện dùng bảng ký tự đơn byte, không coi byte là mọi ký tự tiếng Việt.
 
 ## Luyện tập
 
@@ -81,11 +81,11 @@ Xâu rỗng có LCS rỗng. Kí tự lặp không làm công thức sai; nó ch�
 
 ## Tự kiểm tra
 
-> **Câu hỏi 1:** LCS có bắt buộc kí tự đứng cạnh nhau trong xâu gốc không?
+> **Câu hỏi 1:** LCS có bắt buộc ký tự đứng cạnh nhau trong xâu gốc không?
 >
-> **Trả lời:** Không. Chỉ cần giữ thứ tự; có thể bỏ các kí tự nằm giữa những kí tự được chọn.
+> **Trả lời:** Không. Chỉ cần giữ thứ tự; có thể bỏ các ký tự nằm giữa những ký tự được chọn.
 
-> **Câu hỏi 2:** Khi hai nhánh bỏ kí tự có cùng giá trị, có thể chọn bất kỳ không?
+> **Câu hỏi 2:** Khi hai nhánh bỏ ký tự có cùng giá trị, có thể chọn bất kỳ không?
 >
 > **Trả lời:** Có nếu chỉ cần một LCS. Mỗi nhánh giữ cùng độ dài tối ưu, nhưng có thể dựng ra nội dung đáp án khác nhau.
 

@@ -22,7 +22,8 @@ const {publicPosts}=load('lib/public-posts.ts');
 
 test('sitemap contains canonical public catalog and posts, never aliases or private curriculum',()=>{
  const entries=load('app/sitemap.ts').default();
- assert.equal(entries.length,7+publicCourses.length+publicPosts.length);
+ assert.equal(entries.length,8+publicCourses.length+publicPosts.length);
+ assert.ok(entries.some(e=>e.url===seo.publicUrl('/tu-hoc')));
  assert.equal(new Set(entries.map(e=>e.url)).size,entries.length);
  for(const entry of entries){const url=new URL(entry.url);assert.equal(url.origin,seo.publicSiteOrigin);assert.equal(url.search,'');assert.equal(url.hash,'');assert.ok(!/\/(parents|admin|tutor|login|api)(\/|$)/.test(url.pathname));assert.equal(entry.lastModified,undefined);}
  for(const course of publicCourses)assert.ok(entries.some(e=>e.url===seo.publicUrl('/lo-trinh/'+course.code.toLowerCase())));

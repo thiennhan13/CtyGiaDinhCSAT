@@ -233,3 +233,33 @@
  .csat-public .nav-roadmap-panel > a { font-size: 14px; }
 }
 @media (prefers-reduced-motion:reduce) { .csat-public .nav-roadmap > summary svg { transition: none; } }
+/* Approved navigation: colored icons, persistent desktop caption, unchanged height. */
+.csat-public .navbar.wrap{width:min(1619.2px,calc(100vw - 32px));height:81px;min-height:81px;gap:12px;position:relative;left:50%;transform:translateX(-50%);margin-inline:0}
+.csat-public .site-header .brand{flex-shrink:0}
+.csat-public .site-header .brand .brand-caption{display:block;white-space:nowrap}
+.csat-public .nav-links>a,.csat-public .nav-roadmap>summary{display:flex;align-items:center;gap:7px;font-weight:700}
+.csat-public .nav-roadmap>summary{justify-content:flex-start}
+.csat-public .nav-roadmap>summary>svg:last-child{margin-left:auto}
+.csat-public .nav-roadmap[open]>summary>.nav-icon{transform:none}
+.csat-public .nav-icon{flex-shrink:0;color:var(--nav-icon-color)}
+.csat-public .nav-icon-roadmap{--nav-icon-color:#2b50e0}
+.csat-public .nav-icon-register{--nav-icon-color:#d74728}
+.csat-public .nav-icon-awards{--nav-icon-color:#168653}
+.csat-public .nav-icon-team{--nav-icon-color:#8c36cb}
+.csat-public .nav-icon-posts{--nav-icon-color:#c24a33}
+.csat-public .nav-icon-study{--nav-icon-color:#1686a4}
+.csat-public .nav-icon-portal{--nav-icon-color:#3b62c9}
+.dark .csat-public .nav-icon{color:color-mix(in srgb,var(--nav-icon-color) 60%,white)}
+.csat-public .nav-links>a[aria-current=page],.csat-public .nav-roadmap>summary[aria-current=page]{background:#e7ecff;color:#2b50e0}
+.dark .csat-public .nav-links>a[aria-current=page],.dark .csat-public .nav-roadmap>summary[aria-current=page]{background:#303e68;color:#c5d0ff}
+.csat-public:has(.nav-links.is-open) .contact-dock{display:none}
+@media(min-width:1281px) and (max-width:1500px){
+ .csat-public .navbar.wrap{gap:9px;padding-inline:12px}
+ .csat-public .nav-links{gap:2px}
+ .csat-public .nav-links>a,.csat-public .nav-roadmap>summary{font-size:13px;padding-inline:7px;gap:5px}
+ .csat-public .brand .brand-caption{font-size:11px;padding-left:8px}
+ .csat-public .nav-links a.nav-oj{gap:6px;padding-inline:7px}
+ .csat-public .oj-caption{font-size:10px}
+}
+@media(max-width:1280px){.csat-public .navbar.wrap{height:78px;min-height:78px}}
+@media(max-width:600px){.csat-public .navbar.wrap{height:68px;min-height:68px}.csat-public .site-header .brand .brand-caption{display:none}}

@@ -1,5 +1,7 @@
 .parent-portal .parent-shell-article{max-width:1160px}
 .parent-topic-page{min-width:0}
+.parent-portal .parent-topic-page{--topic-lime:#e6ed9b;--topic-orange:#ffd8b8;--topic-ink:#191917}
+.dark .parent-portal .parent-topic-page{--topic-lime:#36432a;--topic-orange:#4b3426;--topic-ink:#f4f3eb}
 .parent-topic-back{display:inline-flex;align-items:center;gap:9px;min-height:44px;font-size:14px;font-weight:700;margin-bottom:20px}
 .parent-topic-header{border:1.5px solid var(--foreground);border-radius:14px;background:var(--card);box-shadow:4px 4px 0 var(--foreground);padding:clamp(22px,4vw,42px);margin-bottom:30px}
 .parent-topic-meta{display:flex;flex-wrap:wrap;gap:10px 20px;font-size:12px;font-weight:700;color:var(--primary);margin-bottom:20px}
@@ -57,4 +59,31 @@
 @media(max-width:900px){.parent-topic-layout{display:block}.parent-topic-toc{position:static;max-height:none;margin-bottom:30px;padding:12px 20px;background:var(--card);border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:8px}.parent-topic-toc-desktop{display:none}.parent-topic-toc-mobile{display:block}.parent-topic-content{max-width:none}}
 @media(max-width:600px){.parent-topic-header{padding:22px 18px}.parent-topic-header>p{font-size:16px}.parent-topic-series{padding:18px}.parent-topic-series ol{grid-template-columns:1fr}.parent-topic-pagination{flex-direction:column}.parent-topic-pagination a{max-width:none}.parent-codeblock pre{padding:16px;font-size:13px}.parent-topic-content h2{margin-top:34px}.parent-topic-content>p:first-child{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.parent-topic-header{animation:none}}
+.parent-portal .parent-topic-header{border-width:2px;border-radius:8px;border-top:8px solid var(--primary);background:var(--card)}
+.parent-portal .parent-topic-meta{gap:10px;color:var(--foreground)}
+.parent-portal .parent-topic-meta>span{padding:7px 10px;border:1px solid var(--foreground);border-radius:4px;background:var(--topic-lime);color:var(--topic-ink)}
+.parent-portal .parent-topic-meta>span+span{background:var(--card);color:var(--foreground)}
+.parent-portal .parent-topic-meta>span:nth-child(3){background:var(--topic-orange);color:var(--topic-ink)}
+.parent-portal .parent-topic-series{background:var(--topic-lime);color:var(--topic-ink);border-width:2px;border-radius:8px;box-shadow:3px 3px 0 var(--foreground)}
+.parent-portal .parent-topic-series a{border-color:var(--foreground);border-radius:5px}
+.parent-portal .parent-topic-series a[aria-current]{background:var(--primary);color:var(--primary-foreground)}
+.parent-portal .parent-topic-series a[aria-current]>span{background:var(--card);color:var(--foreground)}
+.parent-portal .parent-topic-toc{padding:12px 16px;border:2px solid var(--foreground);border-radius:6px;background:var(--card);box-shadow:3px 3px 0 var(--foreground)}
+.parent-portal .parent-topic-toc nav a{min-height:44px;text-underline-offset:4px}
+.parent-portal .parent-topic-toc nav a:hover{text-decoration:underline}
+.parent-portal .parent-topic-content{padding:clamp(18px,3vw,32px);border:1px solid var(--border);border-radius:8px;background:var(--card)}
+.parent-portal .parent-topic-table{border:1.5px solid var(--foreground);border-radius:5px}
+.parent-portal .parent-topic-table th{background:var(--topic-lime);color:var(--topic-ink)}
+.parent-portal .parent-topic-practice{margin:36px 0;padding:22px;background:var(--topic-orange);color:var(--topic-ink);border:2px solid var(--foreground);border-radius:7px;box-shadow:4px 4px 0 var(--foreground)}
+.parent-portal .parent-topic-practice h2{margin:0 0 18px;padding:0;border:0}
+.parent-portal .parent-topic-practice p:last-child{margin-bottom:0}
+.parent-portal .parent-topic-practice .parent-practice-action a{display:inline-flex;align-items:center;min-height:48px;padding:12px 16px;background:var(--primary);color:var(--primary-foreground);border:2px solid var(--foreground);border-radius:5px;box-shadow:2px 2px 0 var(--foreground);font-size:14px;font-weight:750;text-decoration:none}
+.parent-portal .parent-topic-practice .parent-practice-action a:hover{text-decoration:underline;box-shadow:none}
+.parent-portal .parent-topic-question{border-width:2px;border-radius:6px}
+.parent-portal .parent-topic-question summary{background:var(--topic-lime);color:var(--topic-ink)}
+.parent-portal .parent-topic-question summary strong{color:inherit}
+.parent-portal .parent-topic-pagination a{padding:12px 16px;border:2px solid var(--foreground);border-radius:6px;background:var(--card);box-shadow:3px 3px 0 var(--foreground)}
+@media print{.parent-portal:has(.parent-topic-page) .parent-session-toolbar,.parent-portal .parent-topic-page :is(.parent-topic-back,.parent-topic-series,.parent-topic-toc,.parent-topic-pagination,.parent-code-copy){display:none!important}}
+@media(max-width:600px){.parent-portal .parent-topic-content{padding:18px 14px}.parent-portal .parent-topic-practice{padding:18px 14px}.parent-portal .parent-topic-question summary,.parent-portal .parent-topic-answer{padding:14px}.parent-portal .parent-topic-layout{margin-inline:-4px}}
+@media print{.parent-portal .parent-topic-content{border:0;padding:0}.parent-portal .parent-topic-practice{box-shadow:none;background:white;color:#111}.parent-portal .parent-practice-action{display:none}.parent-portal .parent-topic-question summary{background:white;color:#111}.parent-portal .parent-topic-meta>span{background:white;color:#111}}
 @media print{.parent-portal .parent-shell-article{max-width:none}.parent-topic-layout{display:block}.parent-topic-header{box-shadow:none;padding:16px;margin-bottom:20px;animation:none}.parent-topic-header h1{font-size:26px}.parent-topic-content{max-width:none;font-size:11pt}.parent-topic-page,.parent-topic-page article{break-inside:auto!important}.parent-topic-content h2{margin-top:24px;scroll-margin:0;font-size:18pt}.parent-codeblock{background:#fff!important;color:#111!important;box-shadow:none;break-inside:auto}.parent-code-toolbar{background:#eee;color:#111}.parent-codeblock pre{white-space:pre-wrap;overflow:visible;overflow-wrap:anywhere;font-size:9pt}.parent-codeblock span{color:#111!important}.parent-topic-table{overflow:visible}.parent-topic-table th,.parent-topic-table td{white-space:normal;padding:6px}.parent-topic-content a{color:#111}}

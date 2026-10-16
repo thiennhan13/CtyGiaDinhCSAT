@@ -84,13 +84,25 @@ Với chỉ một truy vấn trên dãy chưa sắp xếp, duyệt tuyến tính
 
 Nên thử dãy rỗng, dãy một phần tử, số cần tìm ở đầu/cuối, số không có trong dãy và dãy toàn các phần tử bằng nhau. Dùng dãy nhỏ để kiểm tra rằng mỗi lần cập nhật đều loại bỏ ít nhất vị trí vừa xét.
 
-## Thực hành
+## Luyện tập
 
 - Tìm số 10, 6 và 20 trong dãy ví dụ; lập bảng `lo`, `hi`, `mid` cho từng lượt.
 - Đếm số lần xuất hiện của một giá trị trong dãy có phần tử trùng nhau bằng hai ranh giới.
 - Tìm phần tử đầu tiên không nhỏ hơn một ngưỡng; giải thích kết quả khi ngưỡng vượt phần tử cuối.
 
 Chủ đề này tập trung tìm kiếm trên dãy đã sắp. Việc tìm một đáp án tối ưu bằng hàm kiểm tra khả thi thuộc C11, nơi điều kiện áp dụng được giải thích riêng.
+
+### Kiểm tra bằng hai ranh giới
+
+Vẫn dùng dãy `2, 4, 4, 7, 10, 13` và chỉ số từ 0:
+
+| Giá trị tìm | Chỉ số `lower_bound` | Chỉ số `upper_bound` | Số lần xuất hiện |
+|---:|---:|---:|---:|
+| 4 | 1 | 3 | 2 |
+| 6 | 3 | 3 | 0 |
+| 14 | 6 | 6 | 0 |
+
+Chỉ số 6 là ranh giới ngay sau dãy, không phải phần tử được phép đọc. Với dãy rỗng, cả hai ranh giới là 0 và số lần xuất hiện vẫn là 0.
 
 ## Tự kiểm tra
 

@@ -23,6 +23,9 @@ const cspReportOnly = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
+  redirects() {
+    return [{ source: '/ban-do-kien-thuc', destination: '/tu-hoc', permanent: true }];
+  },
   reactStrictMode: true,
   async headers() {
     return [{

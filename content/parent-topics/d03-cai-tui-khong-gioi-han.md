@@ -112,11 +112,15 @@ Nếu cho phép trọng lượng 0 và giá trị dương, mô hình lấy vô h
 
 Bài này **tối ưu tổng giá trị**, không đếm số cách lựa chọn. Trong bài đếm, thứ tự vật có được tính là một cách khác hay không còn ảnh hưởng cách chuyển và thứ tự vòng lặp; các mô hình đếm được học riêng trong phạm vi tiếp theo.
 
-## Thực hành
+## Luyện tập
 
 - Với duy nhất loại A và sức chứa 6, giải thích vì sao đáp án là 12 ở mô hình này nhưng chỉ là 4 ở mô hình 0/1.
 - Với ba loại A, B, C và sức chứa 5, đáp án là 9, từ một A và một B. Theo dõi thời điểm `dp[5]` được cải thiện.
 - Chỉ có loại trọng lượng 4, giá trị 7, sức chứa 6: đáp án là 7 và còn trống 2. Giải thích vì sao không cần tiếp tục “lấp đủ” túi.
+
+### Cùng một dữ liệu để phân biệt hai mô hình
+
+Với một loại vật trọng lượng 2, giá trị 3 và sức chứa 4, đáp án là 6 vì được lấy hai vật cùng loại. Nếu duyệt sức chứa giảm như bài 0/1, một lượt xét loại vật chỉ tạo giá trị 3. Hãy giải thích bằng trạng thái mà vòng lặp được phép đọc, thay vì chỉ học thuộc “tăng” hay “giảm”.
 
 ## Tự kiểm tra
 

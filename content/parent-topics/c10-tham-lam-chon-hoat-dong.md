@@ -73,6 +73,10 @@ Lập luận phụ thuộc mục tiêu **đếm hoạt động**, không có tr�
 - Bổ sung chỉ số hoạt động để trả về lịch đã chọn, rồi kiểm tra không chồng thời gian.
 - Khi mục tiêu là tổng lợi ích, nêu rõ bước nào của chứng minh trao đổi không còn đúng.
 
+### Khi mục tiêu chuyển sang tổng lợi ích
+
+Xét ba hoạt động: A từ 0 đến 2 có lợi ích 2; B từ 2 đến 4 có lợi ích 2; C từ 0 đến 4 có lợi ích 5. Chọn kết thúc sớm lấy A và B, tối đa được hai hoạt động nhưng tổng lợi ích chỉ là 4; chọn C đạt lợi ích 5. Ví dụ này giúp kiểm tra rằng lập luận trong bài giải quyết **số lượng hoạt động**, còn bài tối đa lợi ích cần một lập luận khác.
+
 ## Tự kiểm tra
 
 > **Câu hỏi 1:** Điều gì khiến quy tắc kết thúc sớm có thể lặp lại sau mỗi lựa chọn?

@@ -63,7 +63,7 @@ Sau chuẩn hóa, số lượt là `O(log(m + 1))`; bộ nhớ phụ `O(1)`. V�
 
 `m = 1`, thừa số bằng 0 đều cho 0 ngay. Với số âm, trước hết dùng hàm chuẩn hóa ở bài Modulo; không lấy trị tuyệt đối một cách tùy tiện vì trị tuyệt đối của giá trị nhỏ nhất có dấu có thể không biểu diễn được.
 
-## Luyện tập và liên hệ
+## Luyện tập
 
 - Lập bảng chia đôi để tính `18 * 25`, rồi đối chiếu với phép nhân thông thường.
 - Tính tích modulo 97 cho các số nhỏ bằng cả hai cách.

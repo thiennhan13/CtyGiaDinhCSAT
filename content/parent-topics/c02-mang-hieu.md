@@ -64,15 +64,21 @@ Với một cập nhật, tổng các dấu trước `l` bằng 0; từ `l` đ�
 
 Ghi `q` cập nhật tốn `O(q)`; khôi phục dãy tốn `O(n)`; tổng `O(n + q)` thời gian, `O(n)` bộ nhớ phụ. Kỹ thuật phù hợp khi thực hiện tất cả cập nhật rồi mới cần dữ liệu cuối. Nếu sau mỗi cập nhật đều phải hỏi ngay giá trị một vị trí, cộng dồn lại từ đầu mỗi lần có thể làm chi phí trở nên lớn; cần xem đúng mô hình bài toán.
 
-## Minh họa và luyện tập
+## Minh họa
 
 [Prefix sums, difference arrays — peltorator](https://www.youtube.com/watch?v=5iW84xlL0j0).
 
 Trên một dải 5 ô, đánh dấu `+3` ở ô 2 và `-3` ngay sau ô 4. Khi đi từ trái qua phải, “mức đang tác động” nhảy từ 0 lên 3 rồi trở về 0. Đó là diễn giải trực quan của cột cộng dồn trong bảng, không phải hai ô duy nhất được cập nhật trong dãy cuối.
 
+## Luyện tập
+
 - Cập nhật cả dãy, một ô, hai đoạn giao nhau và một đoạn với lượng tăng âm.
 - Kiểm tra dữ liệu cuối bằng cập nhật trực tiếp trên những dãy ngắn.
 - Dùng mảng hiệu để đếm số đoạn phủ mỗi vị trí bằng cập nhật lượng tăng 1.
+
+### Kiểm tra điểm bắt đầu và điểm kết thúc
+
+Lấy dãy năm số 0, cộng 3 vào đoạn `[2,5]`, rồi cộng -1 vào `[5,5]`. Kết quả phải là `0, 3, 3, 3, 2`. Lần cập nhật cuối vừa kiểm tra đoạn một phần tử vừa kiểm tra ô dừng ở `r + 1 = 6`; ô này thuộc vùng đệm, không phải phần tử thứ sáu của kết quả. Đối chiếu với cách cộng trực tiếp trên từng đoạn khi dữ liệu nhỏ.
 
 ## Tự kiểm tra
 

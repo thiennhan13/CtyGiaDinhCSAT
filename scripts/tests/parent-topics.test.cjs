@@ -78,6 +78,7 @@ test('54 articles cover the 43 canonical topics, with intact series and no orpha
       assert.match(content, /```(?:cpp|text|pseudocode)/);
       assert.match(content, /https:\/\//);
       assert.match(content, /^## Nguồn tham khảo thêm\s*$/m);
+      assert.equal((content.match(/^## Luyện tập\s*$/gm) || []).length, 1, article.slug + ': one practice section');
       assert.doesNotMatch(content, /Hiểu bài và đồng hành|C\+\+\s*(?:11|14|17|20|23)/);
       const cpp = [...content.matchAll(/```cpp\n([\s\S]*?)```/g)].map(match => match[1]);
       for (const code of cpp) {
@@ -129,4 +130,42 @@ test('article and return navigation preserve whitelisted parent context', () => 
   assert.equal(back.hash, '#roadmap');
   assert.equal(back.searchParams.get('page'), '2');
   assert.deepEqual([...url.searchParams.keys()], ['student', 'class', 'month', 'page']);
+});
+
+test('practice links cover only canonical topics and wrapping preserves questions and references', async () => {
+  const load = name => {
+    const file = path.join(root, 'lib', name + '.ts');
+    const loaded = new Module(file, module);
+    loaded.filename = file;
+    loaded.paths = Module._nodeModulePaths(path.dirname(file));
+    loaded._compile(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText, file);
+    return loaded.exports;
+  };
+  const { csatojPracticeUrl } = load('csatoj-practice');
+  const { prepareParentPractice } = load('parent-topic-practice');
+  const { unified } = await import('unified');
+  const { default: parse } = await import('remark-parse');
+  const { default: rehype } = await import('remark-rehype');
+  const processor = unified().use(parse).use(rehype);
+  const elements = node => [node, ...(node.children || []).flatMap(elements)];
+  for (const code of ['E01', 'PREVOI', 'constructor', '__proto__', '', 'A01?student=secret']) assert.equal(csatojPracticeUrl(code), undefined);
+  for (const article of parentTopicArticles) {
+    const url = new URL(csatojPracticeUrl(article.topicCode));
+    assert.equal(url.origin, 'https://csatoj.vn');
+    assert.equal(url.pathname, '/problems/');
+    assert.deepEqual([...url.searchParams.keys()], ['tag', 'point_start', 'point_end']);
+    const markdown = fs.readFileSync(path.join(root, 'content/parent-topics', article.slug + '.md'), 'utf8');
+    const tree = await processor.run(processor.parse(markdown));
+    const before = elements(tree).filter(node => node.tagName === 'h2').length;
+    prepareParentPractice(tree, url.href);
+    assert.equal(elements(tree).filter(node => node.tagName === 'h2').length, before);
+    const section = tree.children.find(node => node.tagName === 'section');
+    assert.ok(section, article.slug);
+    assert.equal(elements(section).filter(node => node.tagName === 'h2').length, 1);
+    assert.equal(elements(section).filter(node => node.tagName === 'blockquote').length, 0, 'Self-check stays outside practice section');
+    assert.equal(elements(section).filter(node => node.tagName === 'a' && node.properties.href === url.href).length, 1);
+  }
+  const noLink = await processor.run(processor.parse('## Luyện tập\n\n- Tự kiểm tra.\n\n## Tự kiểm tra\n\nCâu hỏi.'));
+  prepareParentPractice(noLink, undefined);
+  assert.equal(elements(noLink).filter(node => node.tagName === 'a').length, 0);
 });

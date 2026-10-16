@@ -26,7 +26,7 @@ chuỗi rỗng
       11 → 110, 111
 ```
 
-Tại một vị trí chỉ có hai lựa chọn. Khi đã chọn đủ n kí tự, xuất chuỗi. Mọi xâu có đúng một đường đi từ gốc tới lá, nên không thiếu và không trùng.
+Tại một vị trí chỉ có hai lựa chọn. Khi đã chọn đủ n ký tự, xuất chuỗi. Mọi xâu có đúng một đường đi từ gốc tới lá, nên không thiếu và không trùng.
 
 ```cpp
 #include <iostream>
@@ -46,7 +46,7 @@ void binaryStrings(int n, string& current) {
 }
 ```
 
-Gọi với n không âm và `current` rỗng. n bằng 0 sinh một cấu hình rỗng, được thể hiện bằng một dòng trống. Nếu quên `pop_back`, nhánh sau sẽ chứa kí tự của nhánh trước.
+Gọi với n không âm và `current` rỗng. n bằng 0 sinh một cấu hình rỗng, được thể hiện bằng một dòng trống. Nếu quên `pop_back`, nhánh sau sẽ chứa ký tự của nhánh trước.
 
 ## Tổ hợp cần loại thứ tự dư thừa
 
@@ -111,13 +111,13 @@ Phần đã chọn luôn chứa các số khác nhau. Mỗi hoán vị xác đ�
 
 ## Liệt kê có một giới hạn không thể bỏ qua
 
-Xuất tất cả xâu nhị phân mất ít nhất O(n·2^n) kí tự; thuật toán trên có cùng bậc thời gian và O(n) bộ nhớ phụ. Tổ hợp xuất O(k·C(n,k)) kí tự; hoán vị dài n có n! kết quả và chi phí xuất O(n·n!). Cắt nhánh không thể làm nhanh hơn kích thước đầu ra khi mọi kết quả đều phải in.
+Xuất tất cả xâu nhị phân mất ít nhất O(n·2^n) ký tự; thuật toán trên có cùng bậc thời gian và O(n) bộ nhớ phụ. Tổ hợp xuất O(k·C(n,k)) ký tự; hoán vị dài n có n! kết quả và chi phí xuất O(n·n!). Cắt nhánh không thể làm nhanh hơn kích thước đầu ra khi mọi kết quả đều phải in.
 
 Không lưu cả danh sách nếu chỉ cần in hoặc cập nhật một thống kê. Nếu chỉ cần **số lượng** cấu hình, cân nhắc công thức hoặc quy hoạch động trước khi chọn liệt kê.
 
 ## Luyện tập
 
-- Sinh xâu nhị phân không có hai kí tự 1 liên tiếp bằng cách kiểm tra tiền tố.
+- Sinh xâu nhị phân không có hai ký tự 1 liên tiếp bằng cách kiểm tra tiền tố.
 - Sinh tổ hợp k phần tử, kiểm chứng số kết quả với n nhỏ.
 - Sinh hoán vị của 1..n và mô tả trạng thái `used` ngay trước và sau một nhánh.
 

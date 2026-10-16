@@ -77,7 +77,7 @@ Công thức trên yêu cầu `1 ≤ l ≤ r ≤ n`. Dãy rỗng không có mộ
 
 Lỗi dễ gặp là trộn chỉ số 0/1, quên tổng rỗng hoặc viết `pref[r] - pref[l]`. Cách kiểm tra hiệu quả là so sánh mọi đoạn của một dãy nhỏ với phép cộng trực tiếp, thay vì chỉ thử một truy vấn dài.
 
-## Thực hành
+## Luyện tập
 
 - Tính các đoạn `[1, 1]`, `[4, 5]`, `[1, 5]` của dãy ví dụ; đáp án tương ứng là 3, 0 và 6.
 - Cho một dãy lượng tăng/giảm mỗi ngày, trả lời tổng biến động trong các khoảng ngày khác nhau; dữ liệu có thể âm.
@@ -90,6 +90,10 @@ Dạng bài đếm ở ý cuối dùng cùng một kỹ thuật trên dãy đã 
 [USACO Guide — Introduction to Prefix Sums](https://www.youtube.com/watch?v=f0bfiuDjq9A).
 
 Hãy đặt hai dải cạnh nhau: `pref[4]` chứa các vị trí `1, 2, 3, 4`, còn `pref[1]` chỉ chứa vị trí `1`. Gạch phần chung đi sẽ còn đúng `2, 3, 4`. Bảng trong bài chính là các giá trị của hai dải ấy, nên có thể đối chiếu trực quan trước khi xem cách cài đặt.
+
+### Một bộ kiểm tra có số âm
+
+Với dãy `3, -2, 5` đánh số từ 1, mảng tiền tố là `0, 3, 1, 6`. Tổng đoạn `[1,1]` bằng 3, `[2,3]` bằng 3 và `[1,3]` bằng 6. So sánh cả sáu đoạn không rỗng với phép cộng trực tiếp để kiểm tra công thức, thay vì chỉ thử cả dãy. Số âm không làm phép trừ hai tổng tiền tố mất tính đúng.
 
 ## Tự kiểm tra
 

@@ -1,20 +1,20 @@
-So sánh nhiều đoạn của một xâu bằng cách đọc lại từng kí tự có thể tốn nhiều thời gian. Hashing tạo một giá trị đại diện để loại nhanh những đoạn chắc chắn khác nhau. Lợi ích đi cùng một giới hạn quan trọng: hai đoạn có cùng mã băm vẫn có thể khác nội dung, gọi là va chạm.
+So sánh nhiều đoạn của một xâu bằng cách đọc lại từng ký tự có thể tốn nhiều thời gian. Hashing tạo một giá trị đại diện để loại nhanh những đoạn chắc chắn khác nhau. Lợi ích đi cùng một giới hạn quan trọng: hai đoạn có cùng mã băm vẫn có thể khác nội dung, gọi là va chạm.
 
 ## Tư duy
 
 - Tách chi phí xây thông tin dùng chung khỏi chi phí trả lời từng truy vấn.
-- Chọn cách biểu diễn giữ thứ tự kí tự, không chỉ tổng các mã kí tự.
+- Chọn cách biểu diễn giữ thứ tự ký tự, không chỉ tổng các mã ký tự.
 - Hiểu phép loại bỏ tiền tố bằng nhân lũy thừa rồi trừ.
 - Phân biệt bằng nhau chắc chắn với bằng nhau theo mã băm, lựa chọn mức kiểm chứng phù hợp.
 
 ## Nội dung học
 
-- Hash đa thức, cơ số B, modulo M và ánh xạ kí tự.
+- Hash đa thức, cơ số B, modulo M và ánh xạ ký tự.
 - Mảng hash tiền tố và mảng lũy thừa để lấy hash đoạn trong O(1).
 - Khoảng nửa mở `[l, r)`, chuẩn hóa phần dư sau phép trừ và so sánh độ dài.
-- Va chạm, hash đôi, cơ số ngẫu nhiên và kiểm tra kí tự khi cần kết quả chắc chắn.
+- Va chạm, hash đôi, cơ số ngẫu nhiên và kiểm tra ký tự khi cần kết quả chắc chắn.
 
-## Vì sao không chỉ cộng kí tự?
+## Vì sao không chỉ cộng ký tự?
 
 Nếu a có mã 1, b có mã 2, tổng mã của `ab` và `ba` đều bằng 3. Tổng đã làm mất thứ tự. Thay bằng `H(ab) = 1·B + 2`, `H(ba) = 2·B + 1`; cơ số B làm vị trí ảnh hưởng kết quả.
 
@@ -55,7 +55,7 @@ struct StringHash {
 };
 ```
 
-`h[i]` là hash của i kí tự đầu, không phải của kí tự thứ i. Đoạn rỗng cho hash 0. Chỉ so sánh hai đoạn khi đã kiểm tra cùng độ dài và cùng quy tắc hash.
+`h[i]` là hash của i ký tự đầu, không phải của ký tự thứ i. Đoạn rỗng cho hash 0. Chỉ so sánh hai đoạn khi đã kiểm tra cùng độ dài và cùng quy tắc hash.
 
 ## Điều gì chắc chắn, điều gì cần thận trọng?
 
@@ -63,15 +63,23 @@ Nếu hai đoạn cùng độ dài có hash khác nhau, chúng chắc chắn kh�
 
 Hash đôi và lựa chọn cơ số ngẫu nhiên giảm rủi ro trong những điều kiện phù hợp, nhưng không biến thuật toán xác suất thành chứng minh tuyệt đối. Không nói xác suất luôn bằng `1/M` mà không nêu mô hình ngẫu nhiên và số lần so sánh. Với dữ liệu cố tình gây va chạm, cơ số cố định có thể bị khai thác.
 
-Nếu kết quả phải chắc chắn, dùng hash để lọc rồi so sánh kí tự khi hash bằng nhau, hoặc chọn thuật toán xâu xác định phù hợp. Kiểm tra lại kí tự có thể làm tổng chi phí tăng khi nhiều đoạn giống nhau; cần ghi điều đó trong phân tích.
+Nếu kết quả phải chắc chắn, dùng hash để lọc rồi so sánh ký tự khi hash bằng nhau, hoặc chọn thuật toán xâu xác định phù hợp. Kiểm tra lại ký tự có thể làm tổng chi phí tăng khi nhiều đoạn giống nhau; cần ghi điều đó trong phân tích.
 
-## Chi phí và luyện tập
+## Chi phí
 
-Tiền xử lý O(n) thời gian, O(n) bộ nhớ; mỗi lần lấy hash O(1). q truy vấn chỉ so hash mất O(n + q), chưa gồm chi phí xác minh kí tự. Các số modulo thuộc hashing thuật toán, không dùng mã này để bảo vệ mật khẩu.
+Tiền xử lý O(n) thời gian, O(n) bộ nhớ; mỗi lần lấy hash O(1). q truy vấn chỉ so hash mất O(n + q), chưa gồm chi phí xác minh ký tự. Các số modulo thuộc hashing thuật toán, không dùng mã này để bảo vệ mật khẩu.
+
+## Luyện tập
 
 - Tính tay hash của hai đoạn `aba` trong `ababa` rồi đối chiếu kết quả.
 - Tạo hàm so sánh đoạn kiểm tra độ dài trước hash.
 - Dùng modulo rất nhỏ để chủ động tìm một va chạm và giải thích giới hạn của kết luận.
+
+### Tự tạo một va chạm có thể tính tay
+
+Chỉ trong phép thử này, chọn `B = 31`, `M = 5`, mã `a = 1` và `f = 6`. Theo cùng quy tắc nhân cơ số rồi cộng ký tự của bài, `H(aa) = 32 mod 5 = 2` và `H(af) = 37 mod 5 = 2`. Hai xâu cùng độ dài, cùng hash nhưng khác nhau. Đây là ví dụ kiểm chứng giới hạn của hash, không phải đề xuất đổi modulo trong mã minh họa.
+
+Một tài liệu khác có thể gán lũy thừa thấp cho ký tự đầu. Khi đó công thức lấy hoặc dịch hash phải đi cùng quy ước ấy; không trộn nó với cách nhân cơ số ở bài này.
 
 ## Tự kiểm tra
 

@@ -87,9 +87,11 @@ Một phần tử không được đứng trước chính nó: `truoc(a, a)` ph�
 
 `sort` không bảo đảm giữ thứ tự ban đầu giữa các bản ghi tương đương theo comparator. Nếu đề cần thứ tự gốc trong nhóm hòa, đưa vị trí gốc vào quy tắc hoặc dùng `stable_sort` theo đúng mục tiêu. Không tự thêm tiêu chí hòa điểm nếu đề đã quy định khác.
 
-## Chi phí và luyện tập
+## Chi phí
 
 Sắp xếp chọn luôn dùng `O(n²)` phép so sánh và `O(1)` bộ nhớ phụ. `sort` dùng `O(n log n)` phép so sánh; chi phí thực tế còn phụ thuộc comparator. Với khóa xâu, so sánh có thể đọc nhiều ký tự. Thử dãy rỗng, một phần tử, đã tăng, giảm và toàn giá trị bằng nhau.
+
+## Luyện tập
 
 - Tự truy vết sắp xếp chèn trên `4, 1, 3, 2`.
 - Xếp các đoạn theo đầu trái tăng, hòa đầu trái thì đầu phải giảm.

@@ -99,7 +99,7 @@ Cần có `1 ≤ x1 ≤ x2 ≤ h` và `1 ≤ y1 ≤ y2 ≤ c`. Bảng rỗng kh�
 
 Những ca kiểm tra dễ phát hiện lỗi là một ô ở góc, toàn hàng đầu, toàn cột đầu và cả bảng. Đừng hoán đổi cận hàng với cận cột chỉ vì một ví dụ dùng bảng vuông; bảng chữ nhật giúp thấy lỗi ấy rõ hơn.
 
-## Thực hành
+## Luyện tập
 
 - Tính tổng riêng ô `(2, 2)`, cả hàng 1 và cả cột 4; kết quả tương ứng là 5, 8 và 3.
 - Tính vùng từ `(1, 2)` đến `(3, 3)`; kiểm tra bằng cộng trực tiếp, kết quả là 7.

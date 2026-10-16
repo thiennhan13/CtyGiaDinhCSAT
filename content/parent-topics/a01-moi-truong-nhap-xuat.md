@@ -83,6 +83,10 @@ Chương trình giả sử dữ liệu đáp ứng giới hạn và có đủ ha
 - Viết bảng ba ca thử trước khi chạy: một kích thước nhỏ, một hình vuông và hai cạnh khác nhau.
 - Chạy cùng lời giải với nhập/xuất chuẩn rồi với hai tệp thử; xác định nơi kết quả xuất hiện trong mỗi cách.
 
+### Từ chạy thử đến nộp bài
+
+Trước khi nộp, đọc lại định dạng Input/Output và bỏ lời nhắc như “Nhập n:” nếu đề chỉ yêu cầu in đáp án. Chạy được ví dụ mẫu mới kiểm tra một trường hợp; hãy tự tạo thêm một đầu vào nhỏ, tính kết quả bằng tay rồi đối chiếu. Khi kết quả khác nhau, giữ lại đầu vào đó để tìm nguyên nhân thay vì sửa chương trình theo phỏng đoán.
+
 ## Tự kiểm tra
 
 > **Câu hỏi 1:** Biên dịch thành công có chứng minh chương trình tính đúng không?

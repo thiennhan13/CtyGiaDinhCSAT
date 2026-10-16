@@ -102,6 +102,10 @@ Với H là nửa tổng, thời gian O(nH), bộ nhớ O(H). Đây là chi phí
 - Thử một gói, các gói bằng nhau và tổng lẻ.
 - Lưu lựa chọn để trả về hai tập thực tế, không chỉ độ lệch.
 
+### Nêu rõ một cách đổi tiền là gì
+
+Với các mệnh giá khác nhau `{1,2}` và tổng 3, có hai tổ hợp: `1+1+1`, `1+2`; nếu xét thứ tự thì có ba chuỗi vì thêm `2+1`. Trước khi viết vòng lặp, hãy ghi rõ hai cách chỉ khác thứ tự có được coi là khác nhau không. Nếu đầu vào liệt kê lặp cùng một mệnh giá và đề coi chúng là cùng một loại xu, phải gộp loại trước khi đếm tổ hợp; điều này khác bài các gói kẹo, nơi mỗi vị trí là một vật riêng.
+
 ## Tự kiểm tra
 
 > **Câu hỏi 1:** Vì sao chia gói kẹo duyệt tổng giảm?

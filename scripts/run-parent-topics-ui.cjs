@@ -45,6 +45,7 @@ const modes = Object.fromEntries(['valid', 'excluded', 'old', 'expired', 'revoke
   return [mode, { token, hash: crypto.createHash('sha256').update(token).digest('hex') }];
 }));
 const filter = process.env.PARENT_TOPICS_QA_FILTER ? new RegExp(process.env.PARENT_TOPICS_QA_FILTER) : null;
+const demo = process.env.PARENT_TOPICS_QA_DEMO === '1';
 const report = { filter: filter?.source || null, assertions: 0, checks: [], failures: [], browserErrors: [], unexpectedRequests: [], mockRequests: [] };
 const check = (value, message) => { report.assertions++; assert.ok(value, message); };
 // Synthetic Auth transport only; this does not certify a real Supabase login.
@@ -137,7 +138,7 @@ async function main() {
     log = (await fs.open(path.join(output, 'server.log'), 'w')).createWriteStream();
     const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: mockOrigin, NEXT_PUBLIC_SUPABASE_ANON_KEY: 'local-qa-anon-placeholder',
       SUPABASE_SERVICE_ROLE_KEY: 'local-qa-service-placeholder', APP_ORIGIN: origin,
-      CONSULTATIONS_ENABLED: 'false', CONSULTATIONS_EMAIL_ENABLED: 'false', NEXT_TELEMETRY_DISABLED: '1' };
+      CONSULTATIONS_ENABLED: 'false', CONSULTATIONS_EMAIL_ENABLED: 'false', TURNSTILE_LOGIN_ENABLED: 'false', NEXT_TELEMETRY_DISABLED: '1' };
     preview = spawn(process.execPath, [path.join(root, 'node_modules/next/dist/bin/next'), 'start', '--hostname', '127.0.0.1', '--port', String(port)],
       { cwd: root, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     preview.stdout.pipe(log, { end: false }); preview.stderr.pipe(log, { end: false });
@@ -148,7 +149,7 @@ async function main() {
       await new Promise(resolve => setTimeout(resolve, 500));
     }
     check(ready, 'Isolated preview started.');
-    browser = await chromium.launch({ headless: true, channel: process.env.CSAT_BROWSER_CHANNEL || 'msedge' });
+    browser = await chromium.launch({ headless: !demo, channel: process.env.CSAT_BROWSER_CHANNEL || 'msedge' });
     report.runtime = process.version;
     report.browser = { channel: process.env.CSAT_BROWSER_CHANNEL || 'msedge', version: browser.version() };
     async function context(mode = 'valid', options = {}, role = 'parent') {
@@ -156,6 +157,7 @@ async function main() {
       await result.route('**/*', route => {
         const request = route.request(), url = new URL(request.url());
         if (['data:', 'blob:'].includes(url.protocol)) return route.continue();
+        if (demo && url.origin === 'https://csatoj.vn' && ['GET', 'HEAD'].includes(request.method())) return route.continue();
         if (url.origin !== origin) return route.abort('blockedbyclient');
         if (!['GET', 'HEAD'].includes(request.method())) {
           report.unexpectedRequests.push({ surface: 'browser', path: url.pathname, method: request.method() });
@@ -178,6 +180,15 @@ async function main() {
       await page.evaluate(() => document.fonts.ready);
       return response;
     };
+    if (demo) {
+      const demoContext = await context();
+      const demoPage = await demoContext.newPage();
+      await visit(demoPage, origin + '/parents?' + new URLSearchParams({ student: ids.student, month: '2026-09' }));
+      await demoPage.locator('#roadmap').scrollIntoViewIfNeeded();
+      console.log('Synthetic parent demo: ' + demoPage.url() + ' — close this Edge window to stop the fixture.');
+      await new Promise(resolve => browser.once('disconnected', resolve));
+      return;
+    }
     async function exportReview(slug) {
       const review = path.join(output, 'review');
       await fs.mkdir(review, { recursive: true });
@@ -282,6 +293,13 @@ async function main() {
         check(url.searchParams.get('student') === ids.student && url.searchParams.get('class') === classId && url.searchParams.get('month') === '2026-09' && url.searchParams.get('page') === '2', 'Article link carries dashboard context.');
       }
       check(!hrefs.some(href => /c01-cong-don-hai-chieu|d03-cai-tui-khong-gioi-han/.test(href)), 'Dashboard opens each series from its first article.');
+      const practice = await page.locator('#roadmap .parent-practice-link').evaluateAll(nodes => nodes.map(node => ({ href: node.href, rel: node.rel, target: node.target })));
+      check(new Set(practice.map(link => link.href)).size === 43, 'All 43 published topics have practice links.');
+      check(practice.every(link => link.href.startsWith('https://csatoj.vn/problems/?tag=') && !/student|class|month|page=/.test(link.href) && link.target === '_blank' && link.rel.includes('noreferrer')), 'Practice links carry no parent context and open safely.');
+      const focus = await basic.locator('.parent-roadmap-context>div').first().innerText();
+      await basic.locator('.roadmap-stage').last().click();
+      check(await basic.locator('.parent-roadmap-context>div').first().innerText() === focus, 'Browsing another stage does not change class focus.');
+      check((await basic.locator('.parent-roadmap-context>div').last().innerText()).includes(standards[0].stages.at(-1).title), 'Viewed stage is announced separately.');
       await visit(page, dashboard('2026-08'));
       check(await page.locator('#roadmap > article').first().locator('.roadmap-stage[aria-pressed="true"]').innerText() === current, 'Changing attendance month does not change current class stage.');
       await page.setViewportSize({ width: 375, height: 900 });
@@ -289,11 +307,37 @@ async function main() {
       await page.screenshot({ path: path.join(output, 'parent-dashboard-375.png'), fullPage: true });
       await page.setViewportSize({ width: 1440, height: 900 });
     });
-    for (const mode of ['excluded', 'old']) await run('dashboard has no article links for ' + mode, async () => {
+    for (const mode of ['excluded', 'old', 'draft']) await run('dashboard has no article links for ' + mode, async () => {
       const scope = await context(mode), p = await scope.newPage();
       await visit(p, origin + '/parents?student=' + ids.student);
       check(await p.locator('#roadmap .parent-read-topic').count() === 0, 'Unavailable/custom topics have no read-article links.');
+      check(await p.locator('#roadmap .parent-practice-link').count() === 0, 'Unavailable/custom topics have no inferred practice links.');
       await scope.close();
+    });
+    await run('parent roadmap responsive, color modes and keyboard', async () => {
+      await visit(page, origin + '/parents?student=' + ids.student);
+      const roadmap = page.locator('#roadmap > article').first();
+      for (const width of [320, 375, 768, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        for (const dark of [false, true]) {
+          await page.evaluate(dark => document.documentElement.classList.toggle('dark', dark), dark);
+          check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Roadmap fits ' + width + (dark ? ' dark' : ' light'));
+          await roadmap.scrollIntoViewIfNeeded();
+          await page.screenshot({ path: path.join(output, 'roadmap-' + width + (dark ? '-dark' : '-light') + '.png'), animations: 'disabled' });
+        }
+      }
+      const button = roadmap.locator('.roadmap-stage').last();
+      await button.focus();
+      await page.keyboard.press('Enter');
+      check(await button.getAttribute('aria-pressed') === 'true', 'Stage can be selected by keyboard.');
+      await page.setViewportSize({ width: 720, height: 450 });
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+      check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Roadmap reflows with enlarged text at half desktop width.');
+      await page.evaluate(() => { document.documentElement.style.fontSize = ''; document.documentElement.classList.remove('dark'); });
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.evaluate(() => { document.querySelector('.parent-portal').style.zoom = '2'; });
+      check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Roadmap at 200% CSS zoom does not overflow the viewport.');
+      await page.evaluate(() => { document.querySelector('.parent-portal').style.zoom = ''; });
     });
     for (const mode of ['zero', 'missingProgress']) await run('dashboard class-stage fallback: ' + mode, async () => {
       const scope = await context(mode), p = await scope.newPage();
@@ -315,6 +359,11 @@ async function main() {
         check(/noindex/.test(response.headers()['x-robots-tag'] || ''), 'No-index header.');
         check(await page.locator('h1').count() === 1, 'One article heading.');
         check(await page.locator('.parent-topic-content').isVisible(), 'Article content visible.');
+        const tag = require('../lib/knowledge-map-links.json')[library.find(item => item.slug === slug).topicCode].practiceTag;
+        const exercise = page.locator('.parent-topic-practice .parent-practice-action a');
+        check(await exercise.count() === 1, 'One practice action per article.');
+        check(await exercise.getAttribute('href') === `https://csatoj.vn/problems/?tag=${tag}&point_start=&point_end=`, 'Article links the matching topic tag, including series.');
+        check(await exercise.getAttribute('target') === '_blank' && (await exercise.getAttribute('rel')).includes('noreferrer'), 'External practice link has safe new-tab behavior.');
         check(!await page.locator('.contact-dock').isVisible(), 'Marketing contact dock does not cover private article.');
         check(await page.locator('.parent-codeblock pre code').count() > 0, 'Code or pseudocode present.');
         check((await page.locator('.parent-codeblock pre').allTextContents()).every(code => !/using\s+namespace\s+std\s*;/.test(code)), 'Namespace convention is implicit in displayed code.');
@@ -377,11 +426,19 @@ async function main() {
       await page.setViewportSize({ width: 720, height: 450 });
       await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
       check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Landscape enlarged-text reflow.');
-      await page.evaluate(() => { document.documentElement.style.fontSize = ''; document.documentElement.classList.add('dark'); });
+      await page.evaluate(() => { document.documentElement.style.fontSize = ''; document.querySelector('.parent-portal').style.zoom = '2'; });
+      await page.setViewportSize({ width: 1440, height: 900 });
+      check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Article remains readable at 200% CSS zoom.');
+      await page.evaluate(() => { document.querySelector('.parent-portal').style.zoom = ''; document.documentElement.classList.add('dark'); });
+      await page.setViewportSize({ width: 720, height: 450 });
       await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
       check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Dark/reduced-motion remains readable.');
       check(await page.locator('.parent-topic-header').evaluate(node => getComputedStyle(node).animationName === 'none'), 'Reduced motion disables reveal animation.');
       await page.screenshot({ path: path.join(output, 'article-dark-reduced.png'), fullPage: true });
+      await page.locator('.parent-topic-practice').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: path.join(output, 'article-practice-dark.png') });
+      await page.locator('.parent-practice-action').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: path.join(output, 'article-practice-button-dark.png'), animations: 'disabled' });
       await page.keyboard.press('Tab'); check(await page.evaluate(() => document.activeElement !== document.body), 'Keyboard focus is available.');
       const code = page.locator('.parent-codeblock').first();
       const copy = code.getByRole('button');
@@ -424,8 +481,15 @@ async function main() {
       await p.screenshot({ path: path.join(output, 'article-no-js-375.png'), fullPage: true });
       await p.emulateMedia({ media: 'print' });
       check(await p.locator('.parent-topic-answer').last().isVisible(), 'Print includes answers even when disclosures were closed.');
+      check(!await p.locator('.parent-session-toolbar').isVisible() && !await p.locator('.parent-topic-back').isVisible(), 'Printed article hides session and navigation controls.');
       await p.pdf({ path: path.join(output, 'article-a4.pdf'), format: 'A4', printBackground: true });
       check(await p.locator('.parent-codeblock pre').first().evaluate(node => ['pre-wrap', 'break-spaces'].includes(getComputedStyle(node).whiteSpace)), 'Printed code wraps.');
+      await p.emulateMedia({ media: 'screen' });
+      await visit(p, origin + '/parents?student=' + ids.student);
+      const all = p.locator('.roadmap-all').first();
+      await all.locator('summary').click();
+      check(await all.locator('.parent-practice-link').first().isVisible(), 'No-JS full roadmap exposes practice links.');
+      check(await all.locator('.parent-read-topic').first().isVisible(), 'No-JS full roadmap exposes articles.');
       await nojs.close();
     });
     await c.close();
@@ -443,7 +507,7 @@ async function main() {
     }
     log?.end();
     if (mock.listening) await new Promise(resolve => mock.close(resolve));
-    await fs.writeFile(path.join(output, filter ? 'report-targeted.json' : 'report.json'), JSON.stringify(report, null, 2));
+    await fs.writeFile(path.join(output, demo ? 'report-demo.json' : filter ? 'report-targeted.json' : 'report.json'), JSON.stringify(report, null, 2));
   }
   if (report.failures.length) throw Error(`${report.failures.length} parent topic QA checks failed; see scratch/parent-topics-qa/report.json.`);
   console.log(`Parent topic QA passed: ${report.checks.length} checks, ${report.assertions} assertions. Synthetic data only.`);

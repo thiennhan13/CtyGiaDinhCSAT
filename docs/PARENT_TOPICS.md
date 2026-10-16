@@ -1,19 +1,23 @@
 # Chuyên đề học tập dành cho phụ huynh
 
-**Quyết định hiện hành:** phụ huynh tra cứu chỉ bằng số điện thoại, không mật khẩu/OTP/Auth; gia sư/admin giữ Auth. Migration27 thay luồng của 26, dùng chung giới hạn thử đăng nhập lưu trong DB. Xem [tra cứu bằng số điện thoại](PARENT_PHONE_ACCESS.md) để chuyển đổi và hiểu giới hạn danh tính. Bằng chứng Auth/26 bên dưới là lịch sử, không phải hướng triển khai tiếp.
+Cơ chế truy cập ở [PARENT_PHONE_ACCESS](PARENT_PHONE_ACCESS.md); CAPTCHA ở [LOGIN_CAPTCHA](LOGIN_CAPTCHA.md). Trạng thái phát hành/kiểm chứng ở [PROJECT_STATUS](PROJECT_STATUS.md).
 
 
 ## Quyết định và phạm vi
 
 Trang phụ huynh giữ tóm tắt, định hướng và chặng lớp ngay sau nhận xét. Nút **Đọc chuyên đề** mở bài riêng trong Portal. Thư viện đủ 43 chủ đề A9/B15/C19, gồm 54 bài: B09 bốn bài; C01 hai; C07 ba; C09/C11/D03/D06/D07 mỗi chủ đề hai; còn lại một. Series không tăng số chủ đề hoặc quy định thêm số buổi.
 
-Bộ mẫu A04, B14, C01 và D03 đã được chủ trung tâm duyệt kế hoạch để nhân rộng, kèm quy tắc biên tập mới. Thư viện triển khai đủ 54 bài cho 43 chủ đề; E/K vẫn bổ sung sau. Mã ứng dụng 3b3258d đã phát hành production 08/10/2026; bằng chứng và giới hạn nghiệm thu tại PROJECT_STATUS.
+Bộ mẫu A04, B14, C01 và D03 đã được chủ trung tâm duyệt kế hoạch để nhân rộng, kèm quy tắc biên tập mới. Thư viện triển khai đủ 54 bài cho 43 chủ đề; E/K vẫn bổ sung sau.
 
 VNOI là nguồn tham khảo cách lập luận; USACO Guide/Viblo đối chiếu kỹ thuật; CS50 hỗ trợ nhập môn. Nội dung, ví dụ và code được viết riêng. Tư duy và Nội dung học mỗi phần 3–5 ý, tiếp nối bằng bài toán, nhận xét, cách giải, tính đúng, code/mã giả, độ phức tạp, trường hợp biên và thực hành. Tiếng Việt mạch lạc, giải nghĩa thuật ngữ, không ghi phiên bản C++ trên bài. Code trọng tâm viết thoáng; ngầm hiểu namespace std, không hiển thị dòng khai báo hoặc tiền tố `std::`. Giữ giả thiết đầu vào và giải thích ngữ cảnh của đoạn mã; khung biên dịch kiểm chứng bổ sung namespace này.
 
 Cuối mỗi bài có **Tự kiểm tra** với hai câu hỏi ngắn về lý thuyết, chi phí hoặc điều kiện áp dụng. Đáp án mở bằng native disclosure, đóng mặc định, dùng được bằng bàn phím và khi không JavaScript; bản in hiện đáp án. Markdown dùng hai blockquote có nhãn `Câu hỏi 1:`/`Câu hỏi 2:` và `Trả lời:`, renderer chuyển cấu trúc đã nhận diện sang `details`, không cho chạy HTML tùy ý. **Nguồn tham khảo thêm** chỉ ghi tên và liên kết. Bảng/sơ đồ giải thích trực tiếp phần trừu tượng; liên kết YouTube thật đặt gần phần liên quan, không nhúng player hoặc tải video về repo. Xác minh liên kết không đồng nghĩa đã xem toàn video. Nguồn/giới hạn kiểm chứng tại [nghiên cứu](PARENT_TOPIC_RESEARCH.md).
 
 ## Nguồn và ranh giới
+
+Đợt chuẩn hóa có [bảng đối chiếu 54 bài](PARENT_LESSON_AUDIT.md) với khung chuẩn, roadmap và PDF, kèm phản ví dụ/đề xuất ngoài khung. Mỗi bài có mục **Luyện tập**, giữ hoạt động hiện có và nút **Bài tập cùng chủ đề trên CSATOJ**. Series dùng chung tag chủ đề, không coi là bài giao riêng hoặc bằng chứng thành thạo.
+
+`lib/csatoj-practice.ts` tạo URL từ mapping tag đã xác minh trong `lib/knowledge-map-links.json`; Tự học và Portal dùng chung helper. Renderer bài riêng không import dữ liệu toàn trang Tự học. Không thêm URL vào 54 Markdown; mã không có mapping hợp lệ trả về `undefined`. Mapping mới chỉ được đưa vào nguồn này sau khi kiểm đích. Nút mở tab mới, không gửi ngữ cảnh học sinh/lớp/tháng hoặc referrer sang OJ.
 
 - `content/parent-topics/*.md`: toàn văn, Markdown không HTML/MDX. `lib/parent-topic-catalog/{ab,bc,cd}.json` giữ metadata; `lib/parent-topics.ts` kiểm tra kiểu và ghép danh mục theo mã/thứ tự. Không lưu dữ liệu học sinh hoặc đưa toàn văn thư viện vào client.
 - Khung chuẩn vẫn là `lib/learning-curriculum-20260922.json`. Chỉ ghép bài khi program/source/toàn bộ stages trùng khung chuẩn, body và template có cùng ID; không ghép theo tên gần giống. Khác thứ tự khóa JSONB không ảnh hưởng; mã, thứ tự hoặc nội dung khác thì dùng mô tả hiện có.
@@ -30,36 +34,37 @@ Series mở từ bài đầu, có danh sách cùng chuyên đề và bài trư�
 
 ## Chặng lớp theo buổi đã hoàn thành
 
-Migration `20261008_23_parent_class_progress.sql` mở rộng RPC bằng `class_progress?` gồm class_id/completed_sessions/as_of. Migration chỉ phụ thuộc khung 20, bảo toàn projection/quyền hiện hành và các trường 21/22 khi có; đã áp production 08/10/2026. Chạy 18/19/21/22 sau 23 vẫn giữ aggregate, được kiểm chứng bằng fixture thử. Count mọi session completed đã kết thúc theo giờ Việt Nam của lớp từ đầu lịch sử; bỏ cancelled/future, không theo tháng hoặc điểm danh cá nhân. Lớp liên kết active và giáo án class published mới có aggregate.
+Roadmap nhận `practiceLinks` tùy chọn và `variant="parent"`; caller khác giữ mặc định. Trang phụ huynh chỉ truyền liên kết cho khung chuẩn đã công bố và các chủ đề trong giáo án hiệu lực. **Chặng đang tập trung** tách khỏi **Chặng đang xem**; xem chặng không ghi tiến độ. Chủ đề mở bằng native disclosure, có hai hành động đọc và luyện tập. Khi không JS, phần toàn bộ nội dung vẫn mở được.
+
+CSS mới chỉ nằm trong `.parent-portal .parent-roadmap` và phần đọc chuyên đề: kem/cobalt, lime cho nhãn và tự kiểm, cam cho trọng tâm/luyện tập, viền và bóng cứng. Bài dài giữ nền sáng, có token dark tương ứng; không đổi nhận xét, buổi học, phí hay liên hệ.
+
+Migration `20261008_23_parent_class_progress.sql` mở rộng RPC bằng `class_progress?` gồm class_id/completed_sessions/as_of. Migration chỉ phụ thuộc khung 20, bảo toàn projection/quyền hiện hành và các trường 21/22 khi có. Chạy 18/19/21/22 sau 23 vẫn giữ aggregate, được kiểm chứng bằng fixture thử. Count mọi session completed đã kết thúc theo giờ Việt Nam của lớp từ đầu lịch sử; bỏ cancelled/future, không theo tháng hoặc điểm danh cá nhân. Lớp liên kết active và giáo án class published mới có aggregate.
 
 Chặng là chỉ báo định hướng theo giáo án hiệu lực: N buổi tương ứng chủ đề thứ N, hiển thị toàn chặng chứa chủ đề; zero là chuẩn bị chặng đầu, vượt số chủ đề giữ chặng cuối. Thiếu aggregate không coi là zero: fallback chặng gia sư công bố, nếu thiếu chỉ đọc lộ trình. Không ghi tự động, không suy thành thạo hoặc hoàn tất khóa. Không sửa buổi, học phí, snapshot hay bản công bố.
 
-## Kiểm chứng và phát hành
+## Renderer và nguồn nội dung
 
-Node24; kiểm tra quyền route và RPC, hiệu lực A/B/exclusions, JSONB ordering, fallback backend cũ, series/link/file integrity. Browser fixture qua RPC giả loopback dùng route thật, Microsoft Edge; không có route bypass và không đọc hồ sơ thật. Runner `scripts/run-parent-topics-ui.cjs` dùng bản build, output/HTML duyệt chỉ trong scratch.
+Giữ Markdown trong repo, không database/CMS. Renderer server chỉ import C++/github-dark và engine Oniguruma của Shiki; tái sử dụng highlighter trên worker. Cache tối đa 54 Promise thân bài/mục lục theo nội dung và mã chủ đề công khai, xóa lỗi render khỏi cache. Không cache chung học sinh/lớp/cookie/URL ngữ cảnh hoặc kết quả RPC.
 
-Kiểm thử repo/database/type/lint/build và browser không thay nghiệm thu staging. Áp migration/deploy production cần phạm vi ủy quyền riêng. Giới hạn xác minh danh tính lookup SEC-02 vẫn ở [trạng thái](PROJECT_STATUS.md), không coi trang private mới là đã giải quyết.
+Route kiểm phiên, liên kết và bản công bố **trước mỗi lần đọc**, kể cả khi thân bài đã cache. Phản hồi private/no-store, không CDN cache. Next file tracing đóng gói Markdown; không chạy C++ trên Vercel.
 
-Node 24.19.0 local: guard 524 tệp không có findings; repo tests 11/11 và database/API 242/242 không skip; typecheck, lint strict và build đạt. Test xác minh đủ 43 mã/54 bài, không bài mồ côi, thứ tự chuỗi và hai câu hỏi có đáp án từng bài. File tracing của route bao gồm toàn bộ Markdown.
+Đối chiếu renderer đã ghi nhận: tracing giảm khoảng 13,6 xuống 4,9 MiB, gồm đủ 54 Markdown; đó không phải kích thước Function, RAM hoặc cold start thật. [Shiki performance](https://shiki.style/guide/best-performance).
 
-Compiler portable Zig 0.15.2/Clang: **89/89 khối C++ biên dịch thành object đạt**, thêm header/`main` và fixture đúng điều kiện cho các đoạn rời. Chạy C++ thực đối chiếu với cách giải độc lập đạt **78.321 kiểm tra**: modulo sát giới hạn số nguyên, lũy thừa/cơ số, cộng dồn, hai con trỏ, nhị phân trên đáp án, cái túi, tham lam, LIS/LCS và truy vết, khoảng cách chỉnh sửa, chọn đúng k phần tử, gộp đoạn, đường đi và số học. Vòng cập nhật cái túi lấy trực tiếp từ bài, đưa đầu vào thử đa dạng. Kết quả không thay đánh giá sư phạm hoặc chứng minh cho mọi dữ liệu; nguồn và kiểm chứng độc lập Node ghi trong [nghiên cứu](PARENT_TOPIC_RESEARCH.md). Công cụ/báo cáo compiler ở scratch, không là dependency runtime.
+## Biên tập và kiểm chứng
 
-Phát hành dùng Next.js và eslint-config-next 16.3.8 sau khi đối chiếu advisory chính thức; audit không còn mục Next.js. Audit toàn repo 08/10/2026 còn 28 cảnh báo (2 critical, 18 high, 7 moderate, 1 low), gồm dependency công cụ; chưa xem đây là chứng nhận an toàn toàn bộ. Không nâng hàng loạt hoặc bỏ qua kiểm tra quyền.
+1. Sửa Markdown và metadata đúng mã/thứ tự; không đổi khung giáo án chỉ vì chia thêm bài.
+2. Kiểm đủ 43 mã/54 bài, liên kết bài đầu, trước/sau, không bài mồ côi và hai câu hỏi có đáp án.
+3. Kiểm ví dụ/code bằng dữ liệu nhỏ, biên và cách giải độc lập; đặc biệt modulo, nhị phân, cộng dồn/mảng hiệu, hướng duyệt cái túi.
+4. Kiểm quyền qua route thật: phiên thiếu/hết hạn/thu hồi, sai học sinh/lớp, unpublished/excluded/custom và RSC prefetch không trả bài.
+5. QA đọc responsive/dark/reduced motion/keyboard/no-JS/print/copy; câu trả lời đóng mặc định, bản in hiện đáp án.
+6. Kiểm aggregate chặng: zero, nhiều lớp, đổi tháng, nghỉ riêng, vượt số chủ đề và backend thiếu trường.
 
-Browser QA local 08/10/2026 trên bản build placeholder qua mock RPC loopback và Edge: **20 nhóm/3.546 assertions đạt**, không browser errors hoặc thao tác backend ngoài dự kiến. Bao gồm cookie hết hạn/thu hồi, RSC prefetch không vượt quyền, unpublished/excluded/custom/wrong student/class, 54 bài và 43 liên kết bài đầu, chặng 5 buổi/zero/fallback/đổi tháng, 320/375/768/1440 và reflow 200%, keyboard, no-JS, dark/reduced motion, copy và A4. Hai đáp án đóng mặc định, Enter/Space mở và đóng, không JavaScript vẫn mở; bản in hiện đáp án ngay cả khi trước đó đóng. Đã xem ảnh desktop/mobile và phần hỏi–đáp. Clipboard Windows chỉ chuẩn hóa LF/CRLF khi so sánh, giữ nguyên chữ và thụt dòng.
+Lần biên soạn đầy đủ đã biên dịch **89/89 khối C++** và đối chiếu độc lập **78.321 trường hợp**; khung thử bổ sung header/namespace/main cho đoạn rời. Đây là bằng chứng cho bộ bài đã thử, không chứng minh mọi dữ liệu hoặc thay review sư phạm. [Nguồn và giới hạn kiểm chứng](PARENT_TOPIC_RESEARCH.md). Công cụ compiler/HTML duyệt/báo cáo ở scratch, không là runtime.
 
-Sau khi tinh chỉnh cách gọi tổng tập con và bảng D07 chỉ tới tổng 7, đã đọc/xuất lại hai bài D04/D07 trên Edge: một nhóm có lọc/128 assertions đạt, không lỗi browser/request ngoài dự kiến. Không cộng kiểm tra này vào số nhóm toàn thư viện.
+Runner `scripts/run-parent-topics-ui.cjs` dùng build placeholder, mock RPC loopback và Edge local; CI dùng Chromium. Build cần URL giả `http://127.0.0.1:54329` trùng mock port do NEXT_PUBLIC đóng băng khi build; key placeholder/email tắt. Runner từ chối port đang có chủ, không mở cổng đăng nhập thay thế.
 
-Bộ HTML duyệt và ảnh/PDF/báo cáo ở `scratch/parent-topics-qa/`, ngoài Git, chỉ dữ liệu giả. HTML offline không dùng để kiểm chứng quyền; quyền được kiểm chứng trên route thật trong runner. Chạy runner sau build fixture với `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54329`, các key placeholder/email tắt và Node24; Next đóng băng NEXT_PUBLIC URL nên URL build phải trùng mock port. Runner fail khi port đã có chủ, không tự gọi server đó. Không mở server fixture thành một cổng đăng nhập thay thế cho người dùng.
+Khi chỉ biên tập vài bài, dùng `PARENT_TOPICS_QA_ARTICLE_SLUGS` (slug cách nhau dấu phẩy) và `PARENT_TOPICS_QA_FILTER='articles, HTTP'`. Slug rỗng/lạ bị từ chối. Không báo ca có lọc là đã chạy cả thư viện; HTML offline không kiểm chứng quyền. Test fixture không thay Supabase staging hoặc hồ sơ thật.
 
-Nếu chỉ biên tập một vài bài, dùng `PARENT_TOPICS_QA_ARTICLE_SLUGS` (danh sách slug phân cách dấu phẩy) cùng `PARENT_TOPICS_QA_FILTER='articles, HTTP'` để đọc và xuất lại đúng những bài ấy. Slug rỗng hoặc lạ bị từ chối. Kiểm tra có lọc không được báo là đã chạy lại cả 20 nhóm.
+Demo local: sau build placeholder, chạy runner với `PARENT_TOPICS_QA_DEMO=1` (có thể đặt `CSAT_PARENT_QA_PORT`). Runner mở cửa sổ Edge bằng phiên giả, giữ mock RPC loopback; đóng cửa sổ sẽ dọn server do runner tạo. Chế độ này không chạy suite và ghi `report-demo.json` riêng, không ghi đè báo cáo QA. Không có route đăng nhập thay thế hoặc thay đổi quyền ở runtime; liên kết demo chỉ có phiên trong cửa sổ Edge đó.
 
-## Renderer và nguồn nội dung đã chốt
-
-Chủ trung tâm chọn giữ Markdown trong repo, không triển khai database/CMS cho thư viện. 54 bài khoảng 334 KiB; biên tập bằng Markdown, catalog có kiểu dữ liệu và Git review.
-
-Renderer server chỉ import C++/github-dark và engine Oniguruma của Shiki; giữ nguyên token/màu, kiểm chứng lossless 89 khối code. Một highlighter dùng lại trên mỗi worker. Cache tối đa 54 Promise của phần thân bài và mục lục theo nội dung Markdown; lỗi render bị xóa khỏi cache. Cache không có tên lớp, học sinh, cookie, URL ngữ cảnh hoặc dữ liệu RPC. Route vẫn kiểm tra phiên, liên kết và bản công bố trước mỗi lần đọc; phản hồi vẫn private/no-store. Cache này là bộ nhớ của worker, không phải CDN hay cache phiên.
-
-Đo file tracing local Node24/Next16.3.8: 287 file, 5.129.386 byte (~4,9 MiB), Shiki 28 file/1.786.539 byte (~1,7 MiB), đủ 54 Markdown. Trước tối ưu: 14.224.873 byte (~13,6 MiB), Shiki 10.940.943 byte. Tổng giảm khoảng 64%, phần Shiki giảm khoảng 84%; số liệu tracing không phải kích thước Function Vercel, RAM hay cold start thực tế. HTML bài khoảng 58–93 KB, gzip ước lượng 12–18 KB trước tối ưu, chưa gồm asset tải riêng. Không chạy chương trình C++ trên Vercel. Theo [Shiki](https://shiki.style/guide/best-performance), import hẹp và tái sử dụng instance phù hợp mục tiêu giảm tải.
-
-Phát hành 08/10/2026: Node24.19.0, guard/repo11 tests, database/API243 tests không skip, typecheck/lint strict/build đạt. Edge: phụ huynh20 nhóm/3.600 assertions; public40 nhóm/32 bố cục/478 assertions. CI dùng Chromium trên runner riêng; local tiếp tục Edge. Phần phụ huynh private cũng chạy trong CI bằng mock RPC/dữ liệu giả. Production đã áp duy nhất migration23, lưu cấu trúc/grants RPC và rollback SQL nội bộ; không sao lưu hồ sơ trong đợt này. Đối chiếu bảng ứng dụng, projection và quyền trước/sau đạt, phiên không hợp lệ vẫn bị từ chối. URL deployment/CI và giới hạn nghiệm thu được duy trì trong PROJECT_STATUS.
+Giao diện phụ huynh dùng nền chung `SiteBackground`; khối Gia sư chỉ giữ hồ sơ được phân công, bỏ ô gợi ý nội dung trao đổi/nút sao chép liên hệ. Các đoạn dẫn lặp được rút gọn; giữ cảnh báo học phí tạm tính, dữ liệu thiếu và chặng không tương đương thành thạo. Quyền, phiên và dữ liệu RPC không thay đổi.

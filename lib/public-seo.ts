@@ -27,7 +27,7 @@ export const publicCourseDescriptions: Record<PublicCourseCode, string> = {
 export const publicPagePaths = [
   '/', '/hoc-lieu-mien-phi', '/thanh-tich', '/gia-su', '/bai-dang',
   ...publicPosts.map(post => `/bai-dang/${post.slug}`),
-  '/dang-ky-hoc', '/lo-trinh',
+  '/dang-ky-hoc', '/lo-trinh', '/tu-hoc',
   ...publicCourses.map(course => `/lo-trinh/${course.code.toLowerCase()}`),
 ];
 

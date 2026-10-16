@@ -106,3 +106,9 @@ Tiêu đề lớp/tư vấn, menu, form, tên học sinh không glyph. Những n
 Nút lên/xuống ở lề phải là overlay, có thể đè nội dung theo yêu cầu, không dành thanh/cột dọc hoặc giảm wrap. Lightbox có đóng/Escape/focus-return, no-JS mở WebP trực tiếp; không khóa cuộn trang bằng sửa root.
 
 Chỉ đưa media đã chọn/tối ưu vào runtime. Raw poster/video, prototype/ảnh QA/manifest nội bộ ngoài Git và gói deploy. SVG/CSS trang trí không cần tạo bitmap. No-JS/reduced motion/print đọc đầy đủ; observer/listener/rAF có cleanup. Xem [motion workflow](UI_MOTION_WORKFLOW.md) và [frontend workflow](FRONTEND_WORKFLOW.md).
+
+## Menu và nền dùng chung
+
+Menu theo thứ tự Lộ trình → Đăng ký học → Thành tích → Đội ngũ → Bài đăng → Tự học, sau đó Trang liên lạc/CSATOJ. Logo dẫn về giới thiệu, không có nút Giới thiệu riêng. Icon Lucide 18 px, nét 2.4, màu theo mục; nhãn chữ đậm 700 và trạng thái hiện tại không chỉ dùng màu. Caption cạnh logo luôn có trên desktop, ẩn ở mobile <=600 px. Menu thu gọn <=1280 px, max-width 1619.2 px (tăng 15%), giới hạn viewport trừ 32 px; chiều cao desktop/tablet/mobile 81/78/68 px. Khi không JS, cho menu tăng chiều cao để mọi liên kết truy cập được.
+
+`SiteBackground` dùng CSS Module riêng cho public và ParentShell, không mang typography marketing vào báo cáo. Lưới chấm 16.5 px, alpha sáng/tối .054/.0675; watermark rộng 66.5vw, alpha .0765/.162. Hai hình tròn bên phải: hình lớn top -12vw, hình nhỏ 16.5vw/top 19vw; hạ xuống và giảm phần giao so với demo đã duyệt. Mobile <=760 px giữ một hình; nền không tương tác và ẩn khi in. Thẻ phụ huynh giữ mặt đặc.

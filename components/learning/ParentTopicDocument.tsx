@@ -8,6 +8,8 @@ import type { Plugin } from 'unified';
 import { headingId, type TopicHeading } from '@/lib/parent-topic-document';
 import { ParentCodeCopy } from './ParentCodeCopy';
 import { prepareParentQuestions } from '@/lib/parent-topic-questions';
+import { prepareParentPractice } from '@/lib/parent-topic-practice';
+import { csatojPracticeUrl } from '@/lib/csatoj-practice';
 
 function textOf(node: Root | Element | Text): string {
   if (node.type === 'text') return node.value;
@@ -19,10 +21,11 @@ function textOf(node: Root | Element | Text): string {
 const documents = new Map<string, Promise<{ document: ReactElement; headings: TopicHeading[] }>>();
 const maxDocuments = 54;
 
-async function renderDocument(markdown: string) {
+async function renderDocument(markdown: string, topicCode: string) {
   const headings: TopicHeading[] = [];
   const prepareDocument: Plugin<[], Root> = () => async tree => {
     prepareParentQuestions(tree);
+    prepareParentPractice(tree, csatojPracticeUrl(topicCode));
     async function visit(node: Root | Element) {
       for (const child of node.children) {
         if (child.type !== 'element') continue;
@@ -57,20 +60,22 @@ async function renderDocument(markdown: string) {
     components: {
       pre: ({ node, children }) => <div className="parent-codeblock"><div className="parent-code-toolbar"><span>{String(node?.properties['data-code-label'] ?? 'Mã giả')}</span><ParentCodeCopy code={String(node?.properties['data-raw-code'] ?? '')}/></div><pre tabIndex={0} aria-label={node?.properties['data-code-label'] === 'Sơ đồ' ? 'Sơ đồ minh họa' : 'Mã minh họa'}>{children}</pre></div>,
       table: ({ children }) => <div className="parent-topic-table" tabIndex={0} role="region" aria-label="Bảng minh họa"><table>{children}</table></div>,
-      a: ({ href, children }) => <a href={href} {...(href?.startsWith('https://') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{children}</a>,
+      a: ({ href, children, 'aria-label': ariaLabel }) => <a href={href} aria-label={ariaLabel} {...(href?.startsWith('https://') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{children}</a>,
     },
   });
   return { document, headings };
 }
 
-export async function ParentTopicDocument({ markdown }: { markdown: string }) {
-  let pending = documents.get(markdown);
+export async function ParentTopicDocument({ markdown, topicCode }: { markdown: string; topicCode: string }) {
+  // The topic identity selects a public practice tag, never a student/class context.
+  const cacheKey = topicCode + '\n' + markdown;
+  let pending = documents.get(cacheKey);
   if (!pending) {
-    pending = renderDocument(markdown);
-    documents.set(markdown, pending);
+    pending = renderDocument(markdown, topicCode);
+    documents.set(cacheKey, pending);
     if (documents.size > maxDocuments) documents.delete(documents.keys().next().value!);
     // A failed render must not poison subsequent requests.
-    void pending.catch(() => { if (documents.get(markdown) === pending) documents.delete(markdown); });
+    void pending.catch(() => { if (documents.get(cacheKey) === pending) documents.delete(cacheKey); });
   }
   const { document, headings } = await pending;
   const contents = <nav aria-label="Mục lục bài viết">{headings.map(heading => <a key={heading.id} href={'#' + heading.id} className={heading.depth === 3 ? 'is-subheading' : undefined}>{heading.title}</a>)}</nav>;

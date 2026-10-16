@@ -102,11 +102,15 @@ Khởi tạo mọi `dp[cap] = 0` phù hợp với yêu cầu **không vượt s�
 
 Nên thử `W = 0`, không có vật, mọi vật quá nặng, một vật vừa đủ sức chứa và một vật nhẹ có giá trị lớn. Hai vật có cùng thông số vẫn là hai vật riêng biệt, mỗi vật được chọn tối đa một lần. Trọng lượng 0 nằm ngoài giả thiết của bài và không nên tự đưa vào mà bỏ qua tác động đến công thức.
 
-## Thực hành
+## Luyện tập
 
 - Chỉ có một vật trọng lượng 2, giá trị 4 và sức chứa 6: đáp án 0/1 là 4, không phải 12. Dùng trường hợp này để kiểm tra hướng duyệt.
 - Với ba vật A, B, C, đổi sức chứa thành 5; đáp án là 9. Giải thích quyết định tại ô tương ứng của bảng.
 - Đặt sức chứa bằng 4: chọn C cho giá trị 7, tốt hơn chọn A hoặc B riêng lẻ. Viết hai nhánh dẫn đến kết quả đó.
+
+### Phản ví dụ cho hướng duyệt tăng
+
+Chỉ có một vật trọng lượng 2, giá trị 3 và sức chứa 4. Bài 0/1 có đáp án 3. Nếu duyệt sức chứa tăng, `dp[2]` vừa thành 3 lại được dùng để cập nhật `dp[4]` thành 6 trong cùng lượt xét vật. Kết quả 6 đã dùng vật hai lần. Duyệt giảm giữ `dp[cap - w]` ở trạng thái trước khi xét vật ấy.
 
 ## Tự kiểm tra
 

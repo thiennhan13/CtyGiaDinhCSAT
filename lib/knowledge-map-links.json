@@ -1,0 +1,273 @@
+{
+  "A01": {
+    "prerequisites": [],
+    "practiceTag": 54
+  },
+  "A02": {
+    "prerequisites": [
+      "A01"
+    ],
+    "practiceTag": 55
+  },
+  "A03": {
+    "prerequisites": [
+      "A02"
+    ],
+    "practiceTag": 56
+  },
+  "A04": {
+    "prerequisites": [
+      "A03"
+    ],
+    "practiceTag": 57
+  },
+  "A05": {
+    "prerequisites": [
+      "A04"
+    ],
+    "practiceTag": 58
+  },
+  "A06": {
+    "prerequisites": [
+      "A05"
+    ],
+    "practiceTag": 59
+  },
+  "A07": {
+    "prerequisites": [
+      "A05"
+    ],
+    "practiceTag": 60
+  },
+  "A08": {
+    "prerequisites": [
+      "A04"
+    ],
+    "practiceTag": 61
+  },
+  "A09": {
+    "prerequisites": [
+      "A04"
+    ],
+    "practiceTag": 62
+  },
+  "B01": {
+    "prerequisites": [
+      "A04",
+      "A05"
+    ],
+    "practiceTag": 63
+  },
+  "B02": {
+    "prerequisites": [
+      "A05"
+    ],
+    "practiceTag": 95
+  },
+  "B10": {
+    "prerequisites": [
+      "A06"
+    ],
+    "practiceTag": 70
+  },
+  "B11": {
+    "prerequisites": [
+      "A05"
+    ],
+    "practiceTag": 71
+  },
+  "B12": {
+    "prerequisites": [
+      "B02"
+    ],
+    "practiceTag": 72
+  },
+  "B13": {
+    "prerequisites": [
+      "A06"
+    ],
+    "practiceTag": 73
+  },
+  "B14": {
+    "prerequisites": [
+      "B13"
+    ],
+    "practiceTag": 74
+  },
+  "B15": {
+    "prerequisites": [
+      "A09",
+      "B01"
+    ],
+    "practiceTag": 75
+  },
+  "B03": {
+    "prerequisites": [
+      "A02",
+      "A03"
+    ],
+    "practiceTag": 94
+  },
+  "B04": {
+    "prerequisites": [
+      "A04"
+    ],
+    "practiceTag": 64
+  },
+  "B05": {
+    "prerequisites": [
+      "B04",
+      "B02"
+    ],
+    "practiceTag": 65
+  },
+  "B06": {
+    "prerequisites": [
+      "A04"
+    ],
+    "practiceTag": 66
+  },
+  "B07": {
+    "prerequisites": [
+      "B04"
+    ],
+    "practiceTag": 67
+  },
+  "B08": {
+    "prerequisites": [
+      "B07"
+    ],
+    "practiceTag": 68
+  },
+  "B09": {
+    "prerequisites": [
+      "A04",
+      "A09"
+    ],
+    "practiceTag": 69
+  },
+  "C01": {
+    "prerequisites": [
+      "A07"
+    ],
+    "practiceTag": 76
+  },
+  "C02": {
+    "prerequisites": [
+      "C01"
+    ],
+    "practiceTag": 77
+  },
+  "C03": {
+    "prerequisites": [
+      "B13",
+      "B02"
+    ],
+    "practiceTag": 78
+  },
+  "C04": {
+    "prerequisites": [
+      "B10",
+      "B11",
+      "B13"
+    ],
+    "practiceTag": 79
+  },
+  "C05": {
+    "prerequisites": [
+      "B12"
+    ],
+    "practiceTag": 80
+  },
+  "C06": {
+    "prerequisites": [
+      "B10",
+      "B13"
+    ],
+    "practiceTag": 81
+  },
+  "C07": {
+    "prerequisites": [
+      "A08",
+      "B13"
+    ],
+    "practiceTag": 82
+  },
+  "C08": {
+    "prerequisites": [
+      "C07"
+    ],
+    "practiceTag": 83
+  },
+  "C09": {
+    "prerequisites": [
+      "C08"
+    ],
+    "practiceTag": 84
+  },
+  "C10": {
+    "prerequisites": [
+      "B13"
+    ],
+    "practiceTag": 85
+  },
+  "C11": {
+    "prerequisites": [
+      "B14"
+    ],
+    "practiceTag": 86
+  },
+  "C12": {
+    "prerequisites": [
+      "B09",
+      "A09",
+      "C01"
+    ],
+    "practiceTag": 96
+  },
+  "D01": {
+    "prerequisites": [
+      "C07",
+      "A07"
+    ],
+    "practiceTag": 87
+  },
+  "D02": {
+    "prerequisites": [
+      "D01",
+      "A07"
+    ],
+    "practiceTag": 88
+  },
+  "D03": {
+    "prerequisites": [
+      "D01"
+    ],
+    "practiceTag": 89
+  },
+  "D04": {
+    "prerequisites": [
+      "D03"
+    ],
+    "practiceTag": 90
+  },
+  "D05": {
+    "prerequisites": [
+      "D01"
+    ],
+    "practiceTag": 91
+  },
+  "D06": {
+    "prerequisites": [
+      "D01",
+      "A09"
+    ],
+    "practiceTag": 92
+  },
+  "D07": {
+    "prerequisites": [
+      "D02"
+    ],
+    "practiceTag": 93
+  }
+}

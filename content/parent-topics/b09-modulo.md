@@ -59,13 +59,25 @@ Trong nhánh đầu, `a + b` ít nhất bằng `m`, nên đáp án là `a + b - 
 
 Với `m = 1`, mọi kết quả chuẩn hóa và phép cộng trên đều bằng 0. `m = 0` không hợp lệ: không được thực hiện `% 0`. Lấy modulo sau phép nhân cũng không sửa được một phép nhân đã tràn; vấn đề ấy được xử lý ở bài nhân bằng chia đôi và nhân đôi.
 
-## Chi phí và luyện tập
+## Chi phí
 
 Chuẩn hóa hoặc cộng hai số dư dùng số phép toán cố định, tức `O(1)` thời gian và bộ nhớ phụ. Xử lý tổng của `n` số bằng cách cập nhật số dư sau mỗi số có thời gian `O(n)` và bộ nhớ phụ `O(1)`.
+
+## Luyện tập
 
 - Tìm vị trí sau khi đi lùi 10 bước từ vị trí 2 trên vòng 7 ô.
 - Tính số dư của tổng nhiều số; so sánh với phép tính trực tiếp trên dữ liệu nhỏ.
 - Đếm các số thuộc cùng nhóm số dư và giải thích vì sao nhóm đó liên quan đến chu kỳ.
+
+### Ba ca kiểm tra nhỏ
+
+| Phép tính | Kết quả chuẩn | Điều cần kiểm tra |
+|---|---:|---|
+| Chuẩn hóa -10 theo modulo 7 | 4 | Phân biệt `%` của số âm với số dư chuẩn |
+| Cộng hai số dư 6 và 6 theo modulo 7 | 5 | Có bước bỏ đi một lần số chia |
+| Chuẩn hóa một số nguyên theo modulo 1 | 0 | Miền số dư chỉ có 0 |
+
+Không đưa modulo 0 vào lời gọi hàm. Với số lớn, kiểm tra miền của phép tính trung gian trước khi lấy dư; số dư nhỏ không có nghĩa phép nhân trước đó an toàn.
 
 ## Tự kiểm tra
 
