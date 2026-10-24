@@ -191,7 +191,7 @@ test('registered phone creates a random HttpOnly lookup session without Auth',as
 test('invalid input, unavailable DB, inactive contact and rate limits fail closed',async()=>{
  for(const body of [{phone:'0912345678',password:'obsolete'},{phone:'bad'}])assert.equal((await post(login,state(),body)).status,400);
  for(const [overrides,status] of [[{rpcError:{code:'offline'}},503],[{rpcResults:{start_parent_phone_session:'not_found'}},401],[{rpcResults:{start_parent_phone_session:'unexpected'}},503],[{rpcResults:{start_parent_phone_session:'rate_limited'}},429]]){
-  const s=state(overrides),r=await post(login,s,{phone:'0912345678'});assert.equal(r.status,status);assert.equal(s.cookies.length,0);if(status===429)assert.equal(r.headers.get('retry-after'),'900');
+  const s=state(overrides),r=await post(login,s,{phone:'0912345678'});assert.equal(r.status,status);assert.equal(s.cookies.length,0);if(status===429){assert.equal(r.headers.get('retry-after'),'900');assert.match((await r.json()).error,/vượt quá.*15 phút/);}
  }
 });
 
@@ -262,7 +262,7 @@ test('staff login performs durable limiting and refuses inactive or unlinked tut
  const route='app/api/auth/login/route.ts',body={email:'staff@example.test',password:'synthetic-only'};
  const admin=state({targetUser:{id:id(1),app_metadata:{role:'admin'}}});
  assert.equal((await post(route,admin,body)).status,200);assert.equal(did(admin,'consume_auth_attempt').length,1);
- const limited=state({rpcResults:{consume_auth_attempt:false}});assert.equal((await post(route,limited,body)).status,429);assert.equal(did(limited,'login').length,0);
+ const limited=state({rpcResults:{consume_auth_attempt:false}}),limitedResponse=await post(route,limited,body);assert.equal(limitedResponse.status,429);assert.equal(limitedResponse.headers.get('retry-after'),'900');assert.match((await limitedResponse.json()).error,/vượt quá.*15 phút/);assert.equal(did(limited,'login').length,0);
  for(const profile of [[],[{auth_uid:id(3),status:'inactive',is_deleted:false}],[{auth_uid:id(3),status:'active',is_deleted:true}]]){
   const s=state({targetUser:{id:id(3),app_metadata:{role:'tutor'}},tutors:profile});assert.equal((await post(route,s,body)).status,403);assert.equal(did(s,'logout').length,1);
  }

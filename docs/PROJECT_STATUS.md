@@ -1,5 +1,11 @@
 # Tiến độ và việc tiếp theo
 
+## Chẩn đoán CAPTCHA và budget đăng nhập — local, chưa phát hành
+
+Bổ sung mã Cloudflare đã lọc vào thông báo hỗ trợ/log Console, mã ứng dụng riêng cho lỗi tải/khởi tạo/timeout; không ghi credential/token, không thêm API thu thập log. [Chi tiết](LOGIN_CAPTCHA.md). Migration 29 nâng định danh lên 20 lượt/15 phút, giữ nguồn 50 và bộ đếm/phiên; phụ thuộc 27, độc lập OJ 28. Hai API đăng nhập trả 429 với thông báo vượt giới hạn thông tin hoặc mạng đang sử dụng, chờ 15 phút và liên hệ CSAT; giữ Retry-After=900. Chưa áp SQL hoặc phát hành lên production.
+
+Kiểm chứng local 24/10/2026, Node 24.22.1: guard 637 tệp không finding; repo 34/34; database/API 275/275, gồm PostgreSQL 17 native (hai lượt cạnh tranh ở ngưỡng 20 và restore); API sau cập nhật thông báo 25/25; typecheck, lint strict, build Webpack (75 trang sinh) đạt. Edge với widget/API giả đạt 47 assertions: mã lỗi, lọc payload/log, xóa token, retry/expiry, thông báo 429 hai form, 320–1440px và no-JS. Ảnh/báo cáo ở `scratch/login-captcha-qa`, không đưa vào runtime. Lượt mặc định Turbopack vẫn lỗi resolver font Archivo đã có trước; chưa xác nhận pipeline build mặc định xanh. Không kiểm bằng tài khoản thật, không tắt CAPTCHA, không đổi cấu hình Supabase/Cloudflare.
+
 Đầu mối cho trạng thái triển khai, bằng chứng và backlog. [Quyết định](DECISIONS.md) và [kiến trúc](ARCHITECTURE.md) mô tả hướng đi và hợp đồng; không thay bằng chứng môi trường. Đây là tổng hợp các lần kiểm chứng đã ghi nhận, không phải kiểm tra production liên tục.
 
 ## Trạng thái theo chức năng

@@ -23,10 +23,14 @@ Theo yêu cầu của chủ trung tâm, phụ huynh chỉ nhập số điện th
 
 | Phạm vi | Giới hạn |
 |---|---|
-| Một số điện thoại hoặc email | 10 lượt / 15 phút |
+| Một số điện thoại hoặc email | 20 lượt / 15 phút sau migration 29; trước đó là 10 |
 | Cùng nguồn truy cập, cộng cả hai luồng | 50 lượt / 15 phút |
 
 Đếm cả lượt thành công và số không tìm thấy. Mỗi worker dùng cùng database, không reset khi cold start. Vượt giới hạn trả 429 với Retry-After=900; lỗi hệ thống giới hạn trả 503, không tiếp tục đăng nhập. Nguồn production lấy từ header Vercel tin cậy; local dùng một nhóm `local`. Hai role có namespace định danh riêng, nhưng cùng khóa nguồn. NAT có thể dùng chung ngân sách; đây là giới hạn đã chọn, không phải CAPTCHA hoặc chống DDoS.
+
+Theo yêu cầu ngày 24/10/2026, [migration 29](../database/migrations/20261024_29_login_identity_budget.sql) nâng riêng budget định danh lên 20. Phụ thuộc 27, độc lập migration OJ 28; không sửa migration 26 đã phát hành, không xóa bộ đếm/phiên, không đổi cửa sổ 15 phút hoặc budget nguồn 50. Deploy ứng dụng không tự áp SQL. Trạng thái môi trường ở PROJECT_STATUS; chưa coi mức 20 có hiệu lực trên production khi chỉ có mã local.
+
+Hai form hiển thị lỗi 429: “Đã vượt quá số lượt đăng nhập cho phép với thông tin hoặc mạng đang sử dụng. Vui lòng chờ 15 phút rồi thử lại. Nếu cần hỗ trợ, hãy liên hệ CSAT.” RPC trả boolean/trạng thái chung nên không khẳng định đã chạm đúng ngưỡng 20 của định danh hay 50 của nguồn. Thời gian chờ 15 phút là hướng dẫn an toàn theo cửa sổ hiện hành, không phải đồng hồ đếm ngược chính xác của bộ đếm. Giữ dữ liệu nhập và yêu cầu xác minh CAPTCHA mới sau lần gửi lỗi; không tự động gửi lại.
 
 Giới hạn này bảo vệ endpoint website. Supabase Auth của gia sư vẫn có endpoint riêng và giới hạn của nhà cung cấp; không tuyên bố lớp API này kiểm soát mọi yêu cầu trực tiếp tới Supabase.
 

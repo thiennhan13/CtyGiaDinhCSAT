@@ -2,6 +2,8 @@
 
 ## Migration là gì?
 
+Migration đăng nhập [29](migrations/20261024_29_login_identity_budget.sql) nâng budget định danh từ 10 lên 20 trong 15 phút, giữ nguồn 50 và bộ đếm/phiên hiện có. Phụ thuộc 27, độc lập OJ 28 (có thể áp trước hoặc sau 28); chưa áp production. Chỉ thay `consume_auth_attempt`, giữ chữ ký và quyền service role. Kiểm thử `login-identity-budget.test.cjs` và PostgreSQL native kiểm biên, bảo toàn bộ đếm và tranh chấp lượt 20.
+
 Migration là bản SQL thay đổi cấu trúc, quyền/RPC hoặc dữ liệu có kiểm soát. Deploy Next.js lên Vercel **không tự chạy migration**. Nguồn thứ tự/phụ thuộc là file SQL trong `migrations/`; trạng thái môi trường lấy từ registry và kiểm chứng thực tế, không lấy số file lớn nhất.
 
 ```sql

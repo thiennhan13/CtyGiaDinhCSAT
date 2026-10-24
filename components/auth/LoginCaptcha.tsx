@@ -45,14 +45,21 @@ export function LoginCaptcha({ siteKey, action, onToken }: {
     let disposed = false, widget: string | undefined, api: Turnstile | undefined;
     let observer: ResizeObserver | undefined;
     let size: 'compact' | 'flexible' | undefined;
+    const loggedCodes = new Set<string>();
     onToken('');
     setFailed(false);
     setMessage('Đang tải xác minh bảo mật…');
-    const fail = () => {
+    const fail = (code: string) => {
       if (disposed) return;
-      onToken(''); setFailed(true); setMessage('Chưa xác minh được. Vui lòng thử lại hoặc liên hệ CSAT.');
+      onToken(''); setFailed(true);
+      setMessage(`Chưa xác minh được. Vui lòng thử lại hoặc gửi mã hỗ trợ ${code} cho CSAT.`);
+      if (!loggedCodes.has(code)) {
+        // Only allowlisted codes reach this logger; never log callback payloads or credentials.
+        console.warn('[CSAT Turnstile]', { code, action });
+        loggedCodes.add(code);
+      }
     };
-    if (!siteKey) fail();
+    if (!siteKey) fail('CSAT-CONFIG');
     else loadTurnstile().then(value => {
       if (disposed || !container.current) return;
       api = value;
@@ -68,14 +75,18 @@ export function LoginCaptcha({ siteKey, action, onToken }: {
         'response-field': false,
         callback: (token: string) => { if (!disposed) { onToken(token); setMessage(''); setFailed(false); } },
         'expired-callback': () => { if (!disposed) { onToken(''); setMessage('Xác minh đã hết hạn. Vui lòng xác minh lại.'); } },
-        'timeout-callback': fail,
-        'error-callback': () => { fail(); return true; },
+        'timeout-callback': () => fail('CSAT-TIMEOUT'),
+        'error-callback': (code: unknown) => {
+          // Cloudflare client codes have six digits. Reject arbitrary text from external scripts.
+          fail(typeof code === 'string' && /^\d{6}$/.test(code) ? `CF-${code}` : 'CSAT-WIDGET');
+          return true;
+        },
         });
       };
-      render();
-      observer = new ResizeObserver(() => { try { render(); } catch { fail(); } });
+      try { render(); } catch { fail('CSAT-RENDER'); return; }
+      observer = new ResizeObserver(() => { try { render(); } catch { fail('CSAT-RENDER'); } });
       observer.observe(container.current);
-    }).catch(fail);
+    }).catch(() => fail('CSAT-LOAD'));
     return () => { disposed = true; observer?.disconnect(); if (widget !== undefined) api?.remove(widget); onToken(''); };
   }, [siteKey, action, onToken, retry]);
 

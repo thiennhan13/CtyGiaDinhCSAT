@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     if (!captcha.ok) return reply({ error: captcha.error }, captcha.status);
     const limit = await createAdminClient().rpc('consume_auth_attempt', authAttemptKeys(request, 'staff:' + input.data.email));
     if (limit.error) return reply({ error: 'Chưa đăng nhập được. Vui lòng thử lại.' }, 503);
-    if (!limit.data) return reply({ error: 'Vui lòng thử lại sau 15 phút.' }, 429);
+    if (!limit.data) return reply({ error: 'Đã vượt quá số lượt đăng nhập cho phép với thông tin hoặc mạng đang sử dụng. Vui lòng chờ 15 phút rồi thử lại. Nếu cần hỗ trợ, hãy liên hệ CSAT.' }, 429);
     const db = await createClient();
     const signed = await db.auth.signInWithPassword({ email: input.data.email, password: input.data.password });
     if (signed.error) return reply({ error: 'Email hoặc mật khẩu không chính xác.' }, 401);

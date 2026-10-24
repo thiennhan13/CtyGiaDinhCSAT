@@ -160,10 +160,18 @@ test('PostgreSQL 17: concurrent accounting, learning drafts and email leases; ba
   const links=await Promise.all([value(a,'select link_parent_auth($1,$2,$3)',[id(880),id(880),'0987654321']),value(b,'select link_parent_auth($1,$2,$3)',[id(880),id(880),'0987654321'])]);
   assert.deepEqual(links,[true,true]);
 
-  // Migration 27: both entry points contend for the same durable source budget.
+  // Migration 29: identity slot 20 remains atomic across different source IPs.
   await a.exec('reset role');
   await a.exec(fs.readFileSync(path.join(__dirname,'../migrations/20261014_27_parent_phone_access.sql'),'utf8'));
+  await a.exec(fs.readFileSync(path.join(__dirname,'../migrations/20261024_29_login_identity_budget.sql'),'utf8'));
   for(const worker of [a,b])await worker.exec('set role service_role');
+  for(let n=1;n<=19;n++)assert.equal(await value(a,'select consume_auth_attempt($1,$2)',['1'.repeat(64),'2'.repeat(64)]),true);
+  const identityRace=await Promise.all([
+   value(a,'select consume_auth_attempt($1,$2)',['3'.repeat(64),'2'.repeat(64)]),
+   value(b,'select consume_auth_attempt($1,$2)',['4'.repeat(64),'2'.repeat(64)]),
+  ]);
+  assert.equal(identityRace.filter(Boolean).length,1);
+  // Both entry points still contend for the shared 50-attempt source budget.
   const sharedSource='f'.repeat(64);
   for(let n=1;n<=49;n++)assert.equal(await value(a,'select consume_auth_attempt($1,$2)',[sharedSource,n.toString(16).padStart(64,'0')]),true);
   const sharedAttempts=await Promise.all([

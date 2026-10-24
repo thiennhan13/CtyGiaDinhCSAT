@@ -39,6 +39,14 @@ Preview/local dùng cấu hình riêng và [test keys chính thức](https://dev
 
 ## Kiểm chứng và phát hành
 
+### Mã hỗ trợ và log trình duyệt
+
+Bản sửa local hiển thị mã dưới widget: `CF-200500` là ví dụ mã sáu chữ số Cloudflare thực trả về, không suy đoán mã từ ảnh. Lỗi ứng dụng dùng mã riêng: `CSAT-LOAD` (tải script/API không thành công), `CSAT-CONFIG` (thiếu cấu hình widget), `CSAT-RENDER` (khởi tạo widget lỗi), `CSAT-TIMEOUT` (hết thời gian tương tác), `CSAT-WIDGET` (callback không có mã Cloudflare hợp lệ).
+
+Console trình duyệt ghi warning `[CSAT Turnstile]` với đúng `{code, action}`; một mã chỉ ghi một lần trong mỗi lần khởi tạo/thử lại. Không ghi token, site key, secret, URL, email, mật khẩu hoặc payload lỗi thô. Chỉ mã Cloudflare đúng sáu chữ số được đưa vào thông báo/log. Không thêm endpoint thu thập log hoặc gửi log trình duyệt lên Vercel. Khi hỗ trợ từ xa, lấy mã người dùng nhìn thấy hoặc warning này; `staff_login` là tên action cho gia sư/admin, không phải role tài khoản.
+
+Lỗi xóa token, khóa nút đăng nhập; thử lại giữ trường nhập, xóa mã cũ và xác minh lại. Thành công tự động từ widget cũng xóa thông báo lỗi. Việc thêm mã giúp chẩn đoán, không tự khắc phục lỗi kết nối Cloudflare trên thiết bị. [Quy ước callback và mã lỗi](https://developers.cloudflare.com/turnstile/troubleshooting/client-side-errors/).
+
 Node24: build, typecheck, lint strict, guard, database/API **270/270**, repo **20/20** đạt; kiểm thử API thêm cấu hình thiếu, secret không xuất ra props, hostname/action/thời hạn, network/JSON lỗi, test key trên hostname triển khai, replay và Origin sai. Edge fixture đạt **30 assertions** ở 320/375/768/1440: hai vai trò, chỉ tải ở login, giữ dữ liệu sau lỗi, reset token, đổi vai trò, hết hạn, retry tải script, không JS và không tràn ngang. Đã xem ảnh mobile; đây là widget giả, không chứng minh Cloudflare thật hoạt động. Khi CAPTCHA tắt, HTTP SEO/header (15 URL) và hai nhóm Edge đăng nhập/hiệu ứng chữ (33 assertions) cũng đạt.
 
 Sau khi chủ tài khoản lưu cấu hình và phát hành mã mới: kiểm Managed widget thật trên tên miền, xác minh cho cả hai vai trò bằng tài khoản được phép; sai token/thiếu token phải bị chặn, lỗi mật khẩu/số liên hệ phải cho thử lại; theo dõi Turnstile Analytics theo action. Không dùng học sinh/học phí thật làm fixture hoặc ghi credential vào báo cáo. Đã kiểm widget thật và từ chối request thiếu token; chưa gửi thông tin tài khoản thật. Bản vá c6fc0cc khởi tạo API sau sự kiện script load, bỏ ready() không tương thích async/defer; fixture tái hiện giới hạn này và bộ 30 assertions được chạy trong CI.

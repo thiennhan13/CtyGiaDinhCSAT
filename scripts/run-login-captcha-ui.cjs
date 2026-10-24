@@ -16,7 +16,10 @@ const widgetScript = `(() => {
   box.style.cssText='border:1px solid #aaa;padding:12px;box-sizing:border-box;width:'+(options.size==='compact'?'150px':'100%');
   const solve=document.createElement('button');solve.type='button';solve.textContent='Xác minh thử nghiệm';solve.onclick=()=>options.callback('fixture-'+options.action+'-'+id);
   const expire=document.createElement('button');expire.type='button';expire.textContent='Hết hạn thử nghiệm';expire.onclick=()=>options['expired-callback']();
-  box.append(solve,expire);container.append(box);widgets.set(id,box);return id;
+  const error=document.createElement('button');error.type='button';error.textContent='Lỗi Cloudflare thử nghiệm';error.onclick=()=>options['error-callback']('200500');
+  const unsafe=document.createElement('button');unsafe.type='button';unsafe.textContent='Lỗi không hợp lệ thử nghiệm';unsafe.onclick=()=>options['error-callback']('private-payload@example.test');
+  const timeout=document.createElement('button');timeout.type='button';timeout.textContent='Quá hạn thử nghiệm';timeout.onclick=()=>options['timeout-callback']();
+  box.append(solve,expire,error,unsafe,timeout);container.append(box);widgets.set(id,box);return id;
  },remove(id){widgets.get(id)?.remove();widgets.delete(id);}};
 })();`;
 
@@ -31,10 +34,13 @@ async function main() {
     for (let i = 0; i < 60; i++) { try { if ((await fetch(origin + '/login')).ok) { ready = true; break; } } catch {} await new Promise(r => setTimeout(r, 500)); }
     check(ready, 'Preview started');
     browser = await chromium.launch({ headless: true, channel: process.env.CSAT_BROWSER_CHANNEL || 'msedge' });
-    async function context(failFirst = false, javaScriptEnabled = true) {
+    async function context(failFirst = false, javaScriptEnabled = true, rateLimited = false) {
       const c = await browser.newContext({ viewport: { width: 1440, height: 1000 }, javaScriptEnabled });
-      const activity = { scripts: 0, posts: [], errors: [], unexpected: [] };
-      c.on('page', p => p.on('pageerror', e => activity.errors.push(e.message)));
+      const activity = { scripts: 0, posts: [], errors: [], unexpected: [], logs: [] };
+      c.on('page', p => {
+        p.on('pageerror', e => activity.errors.push(e.message));
+        p.on('console', message => { if (message.text().startsWith('[CSAT Turnstile]')) activity.logs.push(message.text()); });
+      });
       await c.route('**/*', async route => {
         const request = route.request(), url = new URL(request.url());
         if (url.href === 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit') {
@@ -45,7 +51,7 @@ async function main() {
         if (url.origin !== origin) { activity.unexpected.push(url.origin); return route.abort(); }
         if (['/api/auth/login', '/api/parents/auth'].includes(url.pathname) && request.method() === 'POST') {
           activity.posts.push({ path: url.pathname, data: request.postDataJSON() });
-          return route.fulfill({ status: 401, json: { error: 'Đăng nhập thử nghiệm bị từ chối.' } });
+          return route.fulfill({ status: rateLimited ? 429 : 401, headers: rateLimited ? { 'Retry-After': '900' } : {}, json: { error: rateLimited ? 'Đã vượt quá số lượt đăng nhập cho phép với thông tin hoặc mạng đang sử dụng. Vui lòng chờ 15 phút rồi thử lại. Nếu cần hỗ trợ, hãy liên hệ CSAT.' : 'Đăng nhập thử nghiệm bị từ chối.' } });
         }
         if (!['GET', 'HEAD'].includes(request.method())) { activity.unexpected.push(url.pathname); return route.abort(); }
         return route.continue();
@@ -83,11 +89,32 @@ async function main() {
     await staff.getByRole('button', { name: 'Đăng nhập hệ thống' }).click(); await staff.getByRole('alert').waitFor();
     check(activity.posts[1].data.captchaToken.startsWith('fixture-staff_login-'), 'Staff sends different action token');
     check(await staff.locator('#tutor-email').inputValue() === 'tutor@example.test', 'Email survives failed login');
+    await staff.getByRole('button', { name: 'Xác minh thử nghiệm', exact: true }).click();
+    await staff.getByRole('button', { name: 'Lỗi Cloudflare thử nghiệm', exact: true }).click();
+    await staff.getByRole('status').filter({ hasText: 'CF-200500' }).waitFor();
+    check(await staff.getByRole('button', { name: 'Đăng nhập hệ thống' }).isDisabled(), 'Widget error clears previous valid token');
+    await staff.getByRole('button', { name: 'Lỗi Cloudflare thử nghiệm', exact: true }).click();
+    check(activity.logs.filter(line => line.includes('CF-200500')).length === 1, 'Repeated error logged once per attempt');
+    check(activity.logs.some(line => line.includes('staff_login')), 'Safe log identifies login form');
+    await staff.getByRole('button', { name: 'Lỗi không hợp lệ thử nghiệm', exact: true }).click();
+    await staff.getByRole('status').filter({ hasText: 'CSAT-WIDGET' }).waitFor();
+    check(!activity.logs.join('\n').includes('private-payload') && !(await staff.textContent()).includes('private-payload'), 'Arbitrary callback payload never reaches logs or UI');
+    check(!activity.logs.join('\n').includes('tutor@example.test') && !activity.logs.join('\n').includes('synthetic-password') && !activity.logs.join('\n').includes('fixture-staff_login'), 'No credentials or token logged');
+    await staff.getByRole('button', { name: 'Quá hạn thử nghiệm', exact: true }).click();
+    await staff.getByRole('status').filter({ hasText: 'CSAT-TIMEOUT' }).waitFor();
+    check(activity.logs.some(line => line.includes('CSAT-TIMEOUT')), 'Timeout has distinct application support code');
     for (const width of [320, 375, 768, 1440]) {
       await p.setViewportSize({ width, height: 1000 }); await p.waitForTimeout(150);
+      await staff.getByRole('button', { name: 'Lỗi Cloudflare thử nghiệm', exact: true }).click();
+      await staff.getByRole('status').filter({ hasText: 'CF-200500' }).waitFor();
       check(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'No overflow at ' + width);
       await p.screenshot({ path: path.join(output, 'login-' + width + '.png'), fullPage: true });
     }
+    await staff.getByRole('button', { name: 'Thử lại xác minh' }).click();
+    check(!(await staff.textContent()).includes('CF-200500'), 'Retry clears old support code');
+    check(await staff.locator('#tutor-email').inputValue() === 'tutor@example.test', 'Widget retry retains email');
+    await staff.getByRole('button', { name: 'Xác minh thử nghiệm', exact: true }).click();
+    check(await staff.getByRole('button', { name: 'Đăng nhập hệ thống' }).isEnabled(), 'Successful retry enables login');
     await p.getByRole('radio', { name: 'Phụ huynh', exact: true }).check();
     check(await parent.locator('#parent-phone').inputValue() === '0912345678', 'Role switch retains input');
     check(await parent.getByRole('button', { name: 'Đăng nhập', exact: true }).isDisabled(), 'Role switch discards old verification');
@@ -95,11 +122,31 @@ async function main() {
     await c.close();
     const retry = await context(true);
     await retry.p.goto(origin + '/login', { waitUntil: 'networkidle' });
+    await retry.p.getByRole('status').filter({ hasText: 'CSAT-LOAD' }).waitFor();
+    check(retry.activity.logs.some(line => line.includes('CSAT-LOAD')), 'Script loading failure has safe application code');
     await retry.p.getByRole('button', { name: 'Thử lại xác minh' }).click();
     await retry.p.getByRole('button', { name: 'Xác minh thử nghiệm' }).waitFor();
     check(retry.activity.scripts === 2, 'Failed script can be retried');
     check(retry.activity.posts.length === 0, 'Script failure cannot submit login');
     await retry.c.close();
+    const limited = await context(false, true, true);
+    await limited.p.goto(origin + '/login', { waitUntil: 'networkidle' });
+    await limited.p.setViewportSize({ width: 320, height: 900 });
+    for (const role of ['Phụ huynh', 'Gia sư / Admin']) {
+      await limited.p.getByRole('radio', { name: role, exact: true }).check();
+      const form = limited.p.locator(role === 'Phụ huynh' ? '#entry-parent' : '#entry-tutor');
+      if (role === 'Phụ huynh') await form.locator('#parent-phone').fill('0912345678');
+      else { await form.locator('#tutor-email').fill('tutor@example.test'); await form.locator('#tutor-password').fill('synthetic-password'); }
+      await form.getByRole('button', { name: 'Xác minh thử nghiệm', exact: true }).click();
+      await form.getByRole('button', { name: role === 'Phụ huynh' ? 'Đăng nhập' : 'Đăng nhập hệ thống', exact: true }).click();
+      await form.getByRole('alert').filter({ hasText: 'Đã vượt quá' }).waitFor();
+      check((await form.getByRole('alert').textContent()).includes('15 phút'), '429 shows reason and waiting time for '+role);
+      check(await limited.p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), '429 message wraps at 320px');
+      check(await form.getByRole('button', { name: role === 'Phụ huynh' ? 'Đăng nhập' : 'Đăng nhập hệ thống', exact: true }).isDisabled(), '429 resets CAPTCHA');
+      await limited.p.screenshot({ path: path.join(output, role === 'Phụ huynh' ? 'rate-limit-parent.png' : 'rate-limit-tutor.png'), fullPage: true });
+    }
+    check(limited.activity.posts.length === 2, 'No automatic login retry after 429');
+    await limited.c.close();
     const nojs = await context(false, false);
     await nojs.p.goto(origin + '/login', { waitUntil: 'networkidle' });
     check(!await nojs.p.locator('.contact-entry-forms').isVisible(), 'No-JS uses contact fallback');

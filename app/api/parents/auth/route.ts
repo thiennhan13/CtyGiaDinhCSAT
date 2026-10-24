@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       ...authAttemptKeys(request, 'parent:' + parsed.data.phone),
     });
     if (error) return response({ error: 'Chưa mở được tra cứu. Vui lòng thử lại sau.' }, 503);
-    if (data === 'rate_limited') return response({ error: 'Bạn đã thử nhiều lần. Vui lòng thử lại sau 15 phút.' }, 429);
+    if (data === 'rate_limited') return response({ error: 'Đã vượt quá số lượt đăng nhập cho phép với thông tin hoặc mạng đang sử dụng. Vui lòng chờ 15 phút rồi thử lại. Nếu cần hỗ trợ, hãy liên hệ CSAT.' }, 429);
     if (data === 'not_found') return response({ error: 'Chưa mở được tra cứu với số điện thoại này. Vui lòng kiểm tra hoặc liên hệ CSAT.' }, 401);
     if (data !== 'ok') return response({ error: 'Chưa mở được tra cứu. Vui lòng thử lại sau.' }, 503);
     const previousHash = await readLookupHash();
