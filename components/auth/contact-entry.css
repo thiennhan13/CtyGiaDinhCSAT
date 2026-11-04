@@ -12,6 +12,12 @@
 .contact-role-switch input{position:absolute;opacity:0;width:1px;height:1px}
 .contact-role-switch label:focus-within{outline:2px solid var(--primary);outline-offset:3px}
 .contact-form-intro{color:var(--muted-foreground);font-size:14px;line-height:1.6;margin-bottom:20px}
+.parent-google-button{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:64px;padding:16px 14px;border:1px solid #747775;border-radius:6px;background:#fff;color:#1f1f1f;box-shadow:3px 3px 0 var(--foreground);font:600 clamp(14px,3.7vw,18px)/1.5 var(--font-heading),"Archivo",sans-serif;text-align:center;cursor:pointer;transition:background 150ms,box-shadow 150ms}
+.parent-google-button img{width:20px;height:20px;object-fit:contain;flex:none}
+.parent-google-button:hover:not(:disabled){background:#f8fafd;box-shadow:4px 4px 0 var(--foreground)}
+.parent-google-button:active:not(:disabled){box-shadow:1px 1px 0 var(--foreground)}
+.parent-google-button:focus-visible{outline:3px solid var(--primary);outline-offset:4px}
+.parent-google-button:disabled{cursor:not-allowed;box-shadow:none;border-color:#c4c7c5;color:#5f6368}
 .contact-entry-help{margin-top:25px;padding-top:18px;border-top:1px solid var(--border);font-size:13px;color:var(--muted-foreground);line-height:1.7}
 .contact-entry-help a{color:var(--primary);font-weight:650;text-underline-offset:4px}
 .contact-entry-art{position:relative;max-width:450px;min-height:240px;margin-top:35px;display:grid;place-items:center;isolation:isolate}
@@ -22,4 +28,4 @@
 .contact-entry-art>span svg{width:22px;height:22px;color:var(--primary)}
 @media(max-width:900px){.contact-entry-main{grid-template-columns:1fr;max-width:700px;gap:32px;padding:36px 24px 64px}.contact-entry-copy h1{font-size:clamp(38px,8vw,64px)}.contact-entry-art{display:none}.contact-entry-card{max-width:none}}
 @media(max-width:400px){.contact-entry-card{padding:24px}.contact-entry-main{padding-inline:18px}.contact-role-switch label{font-size:12px}}
-@media(prefers-reduced-motion:reduce){.contact-role-switch label{transition:none}}
+@media(prefers-reduced-motion:reduce){.contact-role-switch label,.parent-google-button{transition:none}}

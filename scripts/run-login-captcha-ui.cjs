@@ -68,12 +68,30 @@ async function main() {
     check(!((await response.text()).includes(secret)), 'Secret never serialized');
     check(response.headers()['content-security-policy-report-only'].includes('frame-src https://challenges.cloudflare.com'), 'CSP permits challenge iframe');
     const parent = p.locator('#entry-parent');
-    const google = parent.getByRole('button', { name: 'Tiếp tục với Google', exact: true });
+    const google = parent.getByRole('button', { name: 'Đăng nhập bằng Google', exact: true });
     check(await parent.locator('input').count() === 0, 'Phone is requested only after Google authentication');
     check(await google.isDisabled(), 'Requires token');
+    check(await google.evaluate(node => !!(node.compareDocumentPosition(node.closest('form').querySelector('[data-login-captcha]')) & Node.DOCUMENT_POSITION_FOLLOWING)), 'Google action precedes Cloudflare in reading and focus order');
+    check((await google.boundingBox()).height >= 64, 'Google action is a large touch target');
+    check(await google.locator('img[alt=""]').evaluate(image => image.complete && image.naturalWidth > 0), 'Official Google icon loads locally');
     await parent.getByRole('button', { name: 'Xác minh thử nghiệm' }).click();
     await parent.getByRole('button', { name: 'Hết hạn thử nghiệm' }).click();
     check(await google.isDisabled(), 'Expired token cleared');
+    for (const width of [320, 375, 768, 1440]) {
+      await p.setViewportSize({ width, height: 1000 }); await p.waitForTimeout(150);
+      await parent.getByRole('button', { name: 'Xác minh thử nghiệm', exact: true }).click();
+      check(await google.isEnabled(), 'Google action enables only after verification at ' + width);
+      await google.focus();
+      await p.keyboard.press('Shift+Tab'); await p.keyboard.press('Tab');
+      check(await google.evaluate(node => node === document.activeElement), 'Keyboard reaches the Google action');
+      for (const dark of [false, true]) {
+        await p.evaluate(dark => document.documentElement.classList.toggle('dark', dark), dark);
+        check(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Google entry fits ' + width + (dark ? ' dark' : ' light'));
+        check(await google.evaluate(node => getComputedStyle(node).outlineStyle !== 'none'), 'Keyboard focus remains visible');
+        await parent.screenshot({ path: path.join(output, 'google-' + width + (dark ? '-dark' : '-light') + '.png') });
+      }
+    }
+    await p.evaluate(() => document.documentElement.classList.remove('dark'));
     await parent.getByRole('button', { name: 'Xác minh thử nghiệm' }).click();
     await google.click();
     await parent.getByRole('alert').waitFor();
@@ -138,11 +156,11 @@ async function main() {
       const form = limited.p.locator(role === 'Phụ huynh' ? '#entry-parent' : '#entry-tutor');
       if (role !== 'Phụ huynh') { await form.locator('#tutor-email').fill('tutor@example.test'); await form.locator('#tutor-password').fill('synthetic-password'); }
       await form.getByRole('button', { name: 'Xác minh thử nghiệm', exact: true }).click();
-      await form.getByRole('button', { name: role === 'Phụ huynh' ? 'Tiếp tục với Google' : 'Đăng nhập hệ thống', exact: true }).click();
+      await form.getByRole('button', { name: role === 'Phụ huynh' ? 'Đăng nhập bằng Google' : 'Đăng nhập hệ thống', exact: true }).click();
       await form.getByRole('alert').filter({ hasText: 'Đã vượt quá' }).waitFor();
       check((await form.getByRole('alert').textContent()).includes('15 phút'), '429 shows reason and waiting time for '+role);
       check(await limited.p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), '429 message wraps at 320px');
-      check(await form.getByRole('button', { name: role === 'Phụ huynh' ? 'Tiếp tục với Google' : 'Đăng nhập hệ thống', exact: true }).isDisabled(), '429 resets CAPTCHA');
+      check(await form.getByRole('button', { name: role === 'Phụ huynh' ? 'Đăng nhập bằng Google' : 'Đăng nhập hệ thống', exact: true }).isDisabled(), '429 resets CAPTCHA');
       await limited.p.screenshot({ path: path.join(output, role === 'Phụ huynh' ? 'rate-limit-parent.png' : 'rate-limit-tutor.png'), fullPage: true });
     }
     check(limited.activity.posts.length === 2, 'No automatic login retry after 429');

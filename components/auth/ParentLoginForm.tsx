@@ -17,8 +17,14 @@ export function ParentLoginForm({ captcha, active = true }: { captcha?: LoginCap
   }
   return <form onSubmit={login} className="space-y-4">
     <p className="text-sm text-muted-foreground">Đăng nhập Google, sau đó nhập số điện thoại đã đăng ký với CSAT để liên kết hồ sơ của con.</p>
+    <button className="parent-google-button" disabled={busy || !verification.ready} type="submit" aria-busy={busy} aria-describedby={captcha?.enabled ? 'parent-google-verification-help' : undefined}>
+      {/* Official Google sign-in asset; decorative alongside the visible label. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/images/auth/google-g.png" width={20} height={20} alt="" aria-hidden="true" />
+      <span>{busy ? 'Đang mở Google…' : 'Đăng nhập bằng Google'}</span>
+    </button>
+    {captcha?.enabled && <p id="parent-google-verification-help" className="text-sm text-muted-foreground">Hoàn tất xác minh bên dưới để đăng nhập.</p>}
     {error && <p role="alert" className="rounded-lg border border-destructive p-3 text-destructive">{error}</p>}
     {verification.widget}
-    <button className="csat-btn csat-btn--primary min-h-11 w-full" disabled={busy || !verification.ready} type="submit">{busy ? 'Đang mở Google…' : 'Tiếp tục với Google'}</button>
   </form>;
 }

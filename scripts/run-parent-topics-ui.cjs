@@ -39,7 +39,7 @@ const allArticles = library.map(article => [article.slug, /^[AB]/.test(article.t
 const requestedSlugs = process.env.PARENT_TOPICS_QA_ARTICLE_SLUGS?.split(',').map(slug => slug.trim()).filter(Boolean);
 if (requestedSlugs && (!requestedSlugs.length || requestedSlugs.some(slug => !library.some(article => article.slug === slug)))) throw Error('Unknown or empty article selection.');
 const articlesToReview = requestedSlugs ? allArticles.filter(([slug]) => requestedSlugs.includes(slug)) : allArticles;
-const modes = ['valid', 'excluded', 'old', 'expired', 'revoked', 'withdrawn', 'draft', 'nullStudent', 'zero', 'missingProgress'];
+const modes = ['valid', 'excluded', 'old', 'expired', 'revoked', 'withdrawn', 'draft', 'nullStudent', 'zero', 'missingProgress', 'refresh', 'unlinked'];
 const filter = process.env.PARENT_TOPICS_QA_FILTER ? new RegExp(process.env.PARENT_TOPICS_QA_FILTER) : null;
 const demo = process.env.PARENT_TOPICS_QA_DEMO === '1';
 const report = { filter: filter?.source || null, assertions: 0, checks: [], failures: [], browserErrors: [], unexpectedRequests: [], mockRequests: [] };
@@ -47,10 +47,10 @@ const check = (value, message) => { report.assertions++; assert.ok(value, messag
 // Synthetic Auth transport only; this does not certify a real Supabase login.
 const sessions = Object.fromEntries(['parent', 'admin'].flatMap(role => modes.map(mode => {
   const user = { id: ids.parent, aud: 'authenticated', role: 'authenticated', app_metadata: { role }, user_metadata: { name: 'Người dùng dữ liệu giả' }, created_at: '2026-01-01T00:00:00Z' };
-  const expires = Math.floor(Date.now() / 1000) + 7200;
+  const expires = Math.floor(Date.now() / 1000) + (mode === 'refresh' ? -120 : 7200);
   const encode = value => Buffer.from(JSON.stringify(value)).toString('base64url');
   const access_token = encode({ alg: 'HS256', typ: 'JWT' }) + '.' + encode({ sub: user.id, aud: 'authenticated', role: 'authenticated', session_id: ids.session, app_metadata: user.app_metadata, exp: expires, iat: expires - 7200 }) + '.' + Buffer.from('synthetic-fixture-signature-' + mode).toString('base64url');
-  return [role + ':' + mode, { access_token, token_type: 'bearer', refresh_token: 'synthetic-unused-refresh', expires_in: 7200, expires_at: expires, user }];
+  return [role + ':' + mode, { access_token, token_type: 'bearer', refresh_token: 'synthetic-refresh-' + role + '-' + mode, expires_in: 7200, expires_at: expires, user }];
 })));
 const authCookie = (mode = 'valid', role = 'parent') => ({ name: 'sb-127-auth-token', value: 'base64-' + Buffer.from(JSON.stringify(sessions[role + ':' + mode])).toString('base64url'), domain: '127.0.0.1', path: '/', httpOnly: true, sameSite: 'Lax' });
 async function run(name, fn) {
@@ -98,6 +98,16 @@ async function main() {
     res.setHeader('Content-Type', 'application/json');
     const entry = Object.entries(sessions).find(([, value]) => req.headers.authorization === 'Bearer ' + value.access_token);
     const mode = entry?.[0].split(':')[1];
+    if (req.url === '/auth/v1/token?grant_type=refresh_token' && req.method === 'POST') {
+      let body = ''; for await (const chunk of req) body += chunk;
+      const input = JSON.parse(body), old = Object.entries(sessions).find(([, session]) => session.refresh_token === input.refresh_token);
+      if (!old || !old[0].endsWith(':refresh')) { res.writeHead(400); res.end(JSON.stringify({ message: 'Synthetic refresh denied.' })); return; }
+      report.refreshes = (report.refreshes || 0) + 1;
+      res.end(JSON.stringify(sessions[old[0].split(':')[0] + ':valid'])); return;
+    }
+    if (req.url === '/auth/v1/logout?scope=local' && req.method === 'POST') {
+      res.end('{}'); return;
+    }
     if (req.url === '/auth/v1/user' && req.method === 'GET') {
       if (!entry || mode === 'expired') { res.writeHead(401); res.end(JSON.stringify({ message: 'Unknown or expired synthetic Auth token.' })); return; }
       res.end(JSON.stringify(entry[1].user)); return;
@@ -110,7 +120,7 @@ async function main() {
       let body = ''; for await (const chunk of req) body += chunk;
       const args = JSON.parse(body);
       if (req.url === '/rest/v1/rpc/parent_access') {
-        res.end(JSON.stringify({ state: mode === 'revoked' ? 'blocked' : mode ? 'active' : 'unlinked', student_id: mode ? ids.student : undefined })); return;
+        res.end(JSON.stringify({ state: mode === 'revoked' ? 'blocked' : !mode || mode === 'unlinked' ? 'unlinked' : 'active', student_id: mode && mode !== 'unlinked' ? ids.student : undefined })); return;
       }
       // Report only synthetic argument metadata, never cookies or token hashes.
       report.mockRequests.push({ mode: mode || 'unknown', student: args.p_student_id, month: args.p_month, page: args.p_review_page });
@@ -251,6 +261,48 @@ async function main() {
       const wrongRole = await context('valid', {}, 'admin'), adminPage = await wrongRole.newPage();
       await visit(adminPage, articleUrl(...samples[0])); check(new URL(adminPage.url()).pathname.includes('/parents/chuyen-de/'), 'Staff can read an article only through additional parent access.');
       await wrongRole.close();
+    });
+    await run('remembered parent session refreshes, survives reopening and ends on logout', async () => {
+      const initialRefreshes = report.refreshes || 0;
+      const c = await context('refresh'), p = await c.newPage();
+      await visit(p, origin + '/login');
+      check(new URL(p.url()).pathname === '/parents', 'Expired access token resumes through refresh without Google or CAPTCHA.');
+      check((report.refreshes || 0) === initialRefreshes + 1, 'Refresh token is exchanged once.');
+      const saved = await c.storageState();
+      const authCookies = saved.cookies.filter(cookie => cookie.name.startsWith('sb-127-auth-token'));
+      check(authCookies.length > 0 && authCookies.every(cookie => cookie.expires > Date.now() / 1000 + 86400), 'Real SSR refresh writes persistent Auth cookies.');
+      await c.close();
+      const reopened = await context(null, { storageState: saved }), page = await reopened.newPage();
+      await visit(page, origin + '/login');
+      check(new URL(page.url()).pathname === '/parents', 'A reopened browser with stored cookies resumes the parent portal.');
+      await page.reload({ waitUntil: 'networkidle' });
+      check(new URL(page.url()).pathname === '/parents', 'Reload keeps the parent session.');
+      check((report.refreshes || 0) === initialRefreshes + 1, 'Revisiting does not start OAuth or refresh a healthy session again.');
+      await reopened.route(origin + '/api/parents/logout', route => route.continue());
+      await page.getByRole('button', { name: 'Đóng tra cứu', exact: true }).first().click();
+      await page.waitForURL(url => url.pathname === '/login');
+      check(await page.getByRole('button', { name: 'Đăng nhập bằng Google', exact: true }).isVisible(), 'Explicit logout returns to Google entry.');
+      await visit(page, origin + '/parents');
+      check(new URL(page.url()).pathname === '/login', 'Logout prevents automatic re-entry.');
+      await reopened.close();
+    });
+    await run('remembered parent access states and explicit staff entry avoid redirect loops', async () => {
+      for (const mode of ['valid', 'unlinked', 'revoked', 'expired']) {
+        const c = await context(mode), p = await c.newPage();
+        await visit(p, origin + '/login');
+        check(new URL(p.url()).pathname === (mode === 'expired' ? '/login' : '/parents'), 'Login resumes verified identity: ' + mode);
+        if (mode === 'unlinked') check(await p.getByLabel('Số điện thoại', { exact: true }).isVisible(), 'New Google session resumes phone linking.');
+        if (mode === 'revoked') check(await p.locator('.parent-topic-content').count() === 0 && (await p.locator('main').innerText()).includes('bị khóa'), 'Remembering Auth does not reopen blocked access.');
+        if (mode === 'valid') {
+          await visit(p, origin + '/login?role=tutor');
+          check(new URL(p.url()).pathname === '/login' && await p.locator('#entry-tutor').isVisible(), 'Explicit staff login remains available.');
+        }
+        await c.close();
+      }
+      const staff = await context('unlinked', {}, 'admin'), page = await staff.newPage();
+      await visit(page, origin + '/login');
+      check(await page.getByRole('button', { name: 'Đăng nhập bằng Google', exact: true }).isVisible(), 'An unlinked staff identity can still start its Google parent flow.');
+      await staff.close();
     });
     for (const mode of ['expired', 'revoked', 'excluded', 'old', 'withdrawn', 'draft', 'nullStudent']) await run('private article denied: ' + mode, async () => {
       const c = await context(mode), p = await c.newPage();

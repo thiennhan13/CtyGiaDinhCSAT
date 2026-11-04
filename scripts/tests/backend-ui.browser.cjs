@@ -89,14 +89,14 @@ module.exports = async function backendUi({ context, origin, run, check, output 
       await p.goto(origin + '/login', { waitUntil: 'networkidle' });
       const form = p.locator('#entry-parent form');
       check(await form.locator('input').count() === 0, 'Parent entry waits for Google before requesting phone');
-      await form.getByRole('button', { name: 'Tiếp tục với Google', exact: true }).focus(); await p.keyboard.press('Enter');
+      await form.getByRole('button', { name: 'Đăng nhập bằng Google', exact: true }).focus(); await p.keyboard.press('Enter');
       await form.getByRole('button', { name: 'Đang mở Google…' }).waitFor();
       check(await form.getByRole('button', { name: 'Đang mở Google…' }).isDisabled(), 'Login pending disabled');
       await form.getByRole('alert').waitFor();
-      check(loginRequests === 1 && await form.getByRole('button', { name: 'Tiếp tục với Google', exact: true }).isEnabled(), 'Failed Google start permits explicit retry');
+      check(loginRequests === 1 && await form.getByRole('button', { name: 'Đăng nhập bằng Google', exact: true }).isEnabled(), 'Failed Google start permits explicit retry');
       check(!p.url().includes('Fixture') && !p.url().includes('0912345678'), 'Credentials never enter login URL');
       await layout(p, 'backend-login', width);
-      await form.getByRole('button', { name: 'Tiếp tục với Google', exact: true }).click();
+      await form.getByRole('button', { name: 'Đăng nhập bằng Google', exact: true }).click();
       await p.waitForURL(url => url.pathname === '/parents');
       await p.getByText('Học sinh dữ liệu giả', { exact: true }).first().waitFor();
       check(!p.url().includes('Fixture') && !p.url().includes('0912345678'), 'Login success navigates without credentials');
