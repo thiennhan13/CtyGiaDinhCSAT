@@ -16,6 +16,8 @@ Reset độc lập migration. Quyết định04/11 thay phạm vi giữ lớp03/
 
 Một ứng dụng Next.js phục vụ website công khai và admin/gia sư/phụ huynh. Không cần tách dịch vụ hoặc repository chỉ để chia frontend/backend. Trạng thái triển khai ở [PROJECT_STATUS](PROJECT_STATUS.md), quy trình ở [frontend](FRONTEND_WORKFLOW.md) và [backend](BACKEND_WORKFLOW.md).
 
+Workspace OJ kiểm cấu hình tại máy chủ và chỉ trả boolean `connection_ready` cho admin, không trả giá trị env/key. UI cảnh báo và chặn lưu kết nối khi cấu hình chưa hợp lệ; API vẫn kiểm lại độc lập trước ghi pending/gọi OJ. Boolean không xác nhận kết nối mạng hoặc grant. Nút Lưu kết nối thực hiện exchange rồi lưu mapping, retry giữ UUID/mã và Kiểm tra kết quả phục hồi qua receipt.
+
 ## Phân chia trách nhiệm
 
 | Tầng | Trách nhiệm | Ranh giới |

@@ -36,12 +36,18 @@ const json=(route,body,status=200)=>route.fulfill({status,contentType:'applicati
   const context=await browser.newContext({viewport:{width:1440,height:1000}});
   await context.addCookies([{name:'sb-127-auth-token',value:'base64-'+encode(auth),domain:'127.0.0.1',path:'/',httpOnly:true,sameSite:'Lax'}]);
   await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
-  let writes=0,reads=0,denied=false,paid=false;
+  let writes=0,reads=0,denied=false,paid=false,connectionReady=false,exchangeId=null;
   await context.route(origin+'/api/oj/links**',async route=>{
-   if(route.request().method()==='POST'){writes++;const body=route.request().postDataJSON();assert.equal(body.action,'exchange');assert.equal(body.studentId,id(10));assert.equal(body.code.length,43);assert.match(body.requestId,/^[a-f0-9-]{36}$/);Object.assign(workspace.students[0],{username:'student_fixture',state:'active',revision:1});return json(route,{success:true});}
-   return json(route,workspace);
+   if(route.request().method()==='POST'){
+    writes++;const body=route.request().postDataJSON();
+    if(body.action==='recover'){assert.equal(body.requestId,exchangeId);workspace.students[0].pending_request=null;return json(route,{success:true});}
+    assert.equal(body.action,'exchange');assert.equal(body.studentId,id(10));assert.equal(body.code.length,43);assert.match(body.requestId,/^[a-f0-9-]{36}$/);
+    if(writes===1){exchangeId=body.requestId;workspace.students[0].pending_request=exchangeId;return json(route,{error:'Chưa kết nối được CSATOJ. Thử đồng bộ lại.'},503);}
+    assert.equal(body.requestId,exchangeId);Object.assign(workspace.students[0],{username:'student_fixture',state:'active',revision:1,pending_request:null});return json(route,{success:true});
+   }
+   return json(route,{...workspace,connection_ready:connectionReady});
   });
-  const ojRead=route=>{reads++;if(denied)return json(route,{error:'Quyền truy cập đã được thu hồi.'},403);return json(route,new URL(route.request().url()).searchParams.get('kind')==='contests'?{connected:true,data:{account,items:[contest],next_cursor:null}}:parentData);};
+  const ojRead=route=>{reads++;if(denied)return json(route,{error:'Quyền truy cập đã được thu hồi.'},403);if(!workspace.students[0].username)return json(route,{connected:false});return json(route,new URL(route.request().url()).searchParams.get('kind')==='contests'?{connected:true,data:{account,items:[contest],next_cursor:null}}:parentData);};
   await context.route(origin+'/api/parents/oj**',ojRead);await context.route(origin+'/api/oj/accounts**',ojRead);
   await context.route(origin+'/api/parents/link',route=>{console.log('claim requested');return json(route,{error:'Số điện thoại đã được liên kết với tài khoản khác.',code:'PHONE_ALREADY_LINKED'},409);});
   await context.route(origin+'/api/tutor/payments',route=>{
@@ -59,8 +65,18 @@ const json=(route,body,status=200)=>route.fulfill({status,contentType:'applicati
   await page.goto(origin+'/admin/oj',{waitUntil:'networkidle'});console.log('admin loaded');await page.getByRole('heading',{name:'Kết nối CSATOJ',exact:true}).waitFor();
   await page.getByLabel('Học sinh',{exact:true}).selectOption(id(10));
   await page.getByLabel('Mã kết nối từ admin OJ').fill('a'.repeat(43));await page.getByLabel('Lý do liên kết').fill('Kiểm thử giao diện');
-  await page.getByRole('button',{name:'Đổi mã / thử lại cùng thao tác',exact:true}).click();await page.getByText('Đã cập nhật liên kết.',{exact:true}).waitFor();assert.equal(writes,1);
+  await page.getByRole('heading',{name:'Chưa bật kết nối CSATOJ',exact:true}).waitFor();assert(await page.getByRole('button',{name:'Lưu kết nối',exact:true}).isDisabled());assert.equal(writes,0);
+  await page.setViewportSize({width:320,height:1000});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.screenshot({path:path.join(output,'disabled-320.png'),fullPage:true});
+  connectionReady=true;await page.reload({waitUntil:'networkidle'});await page.getByLabel('Học sinh',{exact:true}).selectOption(id(10));
+  await page.getByLabel('Mã kết nối từ admin OJ').fill('a'.repeat(43));await page.getByLabel('Lý do liên kết').fill('Kiểm thử giao diện');
+  const save=page.getByRole('button',{name:'Lưu kết nối',exact:true});assert(await save.isEnabled());assert((await save.boundingBox()).height>=48);assert.notEqual(await save.evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
+  await save.focus();await page.keyboard.press('Enter');await page.getByRole('alert').filter({hasText:'Chưa kết nối được CSATOJ'}).waitFor();
+  assert.equal(await page.getByLabel('Mã kết nối từ admin OJ').inputValue(),'a'.repeat(43));await page.getByRole('button',{name:'Thử lại kết nối',exact:true}).click();
+  await page.getByText('Đã lưu kết nối.',{exact:true}).waitFor();assert.equal(writes,2);
+  workspace.students[0].pending_request=exchangeId;await page.reload({waitUntil:'networkidle'});await page.getByLabel('Học sinh',{exact:true}).selectOption(id(10));
+  assert.equal(await page.getByLabel('Mã kết nối từ admin OJ').inputValue(),'');await page.getByRole('button',{name:'Kiểm tra kết quả',exact:true}).click();await page.getByText('Đã lưu kết nối.',{exact:true}).waitFor();assert.equal(writes,3);
   for(const width of [320,375,768,1440]){await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'admin overflow '+width);await page.screenshot({path:path.join(output,'admin-'+width+'.png'),fullPage:true});}
+  await page.evaluate(()=>document.documentElement.classList.add('dark'));await page.setViewportSize({width:320,height:1000});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.screenshot({path:path.join(output,'admin-dark-320.png'),fullPage:true});await page.evaluate(()=>document.documentElement.classList.remove('dark'));
   await page.goto(origin+'/parents?month=2026-06',{waitUntil:'networkidle'});await page.locator('#oj').scrollIntoViewIfNeeded();await page.locator('#oj').getByText('student_fixture',{exact:true}).waitFor();
   await page.locator('#oj').getByRole('button',{name:'Lịch sử contest'}).click();await page.locator('#oj').getByText('2 / 10',{exact:true}).waitFor();assert(await page.locator('#oj').getByText('5 / 50',{exact:true}).isVisible());
   for(const width of [320,375,768,1440]){await page.setViewportSize({width,height:1000});await page.locator('#oj').scrollIntoViewIfNeeded();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'parent overflow '+width);await page.locator('#oj').screenshot({path:path.join(output,'parent-'+width+'.png')});}
@@ -75,7 +91,7 @@ const json=(route,body,status=200)=>route.fulfill({status,contentType:'applicati
   await page.goto(origin+'/parents',{waitUntil:'networkidle'});await page.locator('#contact').getByText('Chứng chỉ thử 1',{exact:true}).waitFor();await page.locator('#contact').getByText('Chứng chỉ thử 2',{exact:true}).waitFor();
   await page.setViewportSize({width:320,height:1000});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.locator('#contact').screenshot({path:path.join(output,'certificates-320.png')});
   await page.goto(origin+'/admin/parents/provisioning',{waitUntil:'networkidle'});await page.getByText(/Phụ huynh đăng nhập Google rồi nhập số điện thoại khớp hồ sơ/).waitFor();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'reconciliation mobile overflow');
-  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,viewports:[320,375,768,1440],checks:['exchange UUID','single write','class and contest ranks','no polling','revocation clears data','phone conflict','full receipt confirmation','keyboard','reduced motion','certificates form to parent card','Google reconciliation copy'],output}));
+  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,viewports:[320,375,768,1440],checks:['disabled configuration prevents writes','visible save button','retry preserves code and UUID','receipt recovery without code','class and contest ranks','no polling','revocation clears data','phone conflict','full receipt confirmation','keyboard','reduced motion','certificates form to parent card','Google reconciliation copy'],output}));
  }catch(error){if(page){console.error('URL',page.url());await page.screenshot({path:path.join(output,'failure.png'),fullPage:true,timeout:5000}).catch(()=>{});console.error((await page.locator('body').innerText({timeout:5000}).catch(()=>'' )).slice(-4000));}console.error(errors);throw error;
  }finally{await browser?.close();if(server?.pid)try{if(process.platform==='win32')execFileSync('taskkill',['/PID',String(server.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});else process.kill(-server.pid,'SIGTERM');}catch{server.kill();}mock.close();log.end();}
 })().catch(e=>{console.error(e.message);process.exitCode=1;});

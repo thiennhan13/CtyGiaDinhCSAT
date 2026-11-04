@@ -19,7 +19,12 @@ export async function GET(request: Request) {
   const classId = z.uuid().nullable().safeParse(params.get('class'));
   if (!classId.success) return NextResponse.json({ error: 'Lớp không hợp lệ.' }, { status: 422 });
   const result = await session.supabase.rpc('oj_grants_workspace', { p_class: classId.data, p_search: (params.get('q') || '').slice(0, 80) });
-  return result.error ? businessError(result.error) : json(result.data);
+  if (result.error) return businessError(result.error);
+  if (session.user.app_metadata?.role !== 'admin') return json(result.data);
+  // Configuration validity only; keys and instance values never leave the server.
+  let connectionReady = false;
+  try { ojConfig(); connectionReady = true; } catch { /* Disabled or incomplete configuration. */ }
+  return json({ ...result.data, connection_ready: connectionReady });
 }
 export async function POST(request: Request) {
   const session = await businessSession(false, request); if (session.response) return session.response;

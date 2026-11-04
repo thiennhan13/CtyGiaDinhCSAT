@@ -28,6 +28,28 @@ function reader({rpc,remote,access=context.access}={}){
  }).readOJAccount;
 }
 const request=q=>new Request(`https://portal.test/api/parents/oj?student=${id(10)}${q||''}`);
+test('workspace reports configuration validity to admin only and disabled exchange performs no writes',async()=>{
+ let role='admin',configured=false,configReads=0,rpcCalls=0;
+ const config={...backend,ojConfig:()=>{configReads++;if(!configured)throw new OJError('not_configured');return backend.ojConfig();}};
+ const api=load('app/api/oj/links/route.ts',{
+  '@/lib/business-api':{businessSession:async()=>({user:{app_metadata:{role}},supabase:{rpc:async()=>{rpcCalls++;return {data:{students:[],classes:[],sessions:[]}};}}}),businessError:denied},
+  '@/lib/supabase/service':{createAdminClient:()=>{throw Error('No service writes expected');}},
+  '@/lib/csat-oj-server':config,'@/lib/oj-grants-server':{grantErrorResponse:errorResponse,grantRequest:()=>{throw Error('No remote requests expected');}}
+ });
+ const get=()=>api.GET(new Request('https://portal.test/api/oj/links'));
+ let res=await get();assert.equal((await res.json()).connection_ready,false);assert.match(res.headers.get('Cache-Control'),/private, no-store/);
+ const before=rpcCalls;
+ res=await api.POST(new Request('https://portal.test/api/oj/links',{method:'POST',body:JSON.stringify({action:'exchange',studentId:id(10),code:'a'.repeat(43),requestId:id(100),revision:0,reason:'Fixture'})}));
+ assert.equal(res.status,503);assert.equal((await res.json()).code,'not_configured');assert.equal(rpcCalls,before);
+ configured=true;const data=await (await get()).json();assert.equal(data.connection_ready,true);assert.deepEqual(Object.keys(data).sort(),['classes','connection_ready','sessions','students']);
+ role='tutor';const configBefore=configReads;assert.equal((await (await get()).json()).connection_ready,undefined);assert.equal(configReads,configBefore);
+});
+test('OJ configuration requires enabled flag, valid origin and instance, and distinct read/manage keys',()=>{
+ const valid={CSAT_OJ_ENABLED:'true',CSAT_OJ_ORIGIN:'https://oj.example.test',CSAT_OJ_INSTANCE_ID:id(90),CSAT_OJ_READ_KEY:'r'.repeat(32),CSAT_OJ_MANAGE_KEY:'m'.repeat(32)};
+ const config=env=>load('lib/csat-oj-server.ts',{}, {process:{env}}).ojConfig;
+ assert.equal(config(valid)().instance,id(90));
+ for(const change of [{CSAT_OJ_ENABLED:'false'},{CSAT_OJ_INSTANCE_ID:''},{CSAT_OJ_ORIGIN:'http://oj.example.test'},{CSAT_OJ_ORIGIN:'https://oj.example.test/api/'},{CSAT_OJ_READ_KEY:''},{CSAT_OJ_MANAGE_KEY:'r'.repeat(32)}])assert.throws(config({...valid,...change}),e=>e.code==='not_configured');
+});
 test('parent reader denies forged IDs and rechecks DB permission after HTTP',async()=>{
  let reads=0,fetches=0;
  const read=reader({rpc:async()=>++reads===1?{data:context}:{error:{code:'42501'}},remote:async()=>{fetches++;return {data:{account:{profile_id:7}}};}});

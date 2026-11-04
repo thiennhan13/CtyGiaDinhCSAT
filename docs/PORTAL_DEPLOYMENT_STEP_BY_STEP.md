@@ -110,10 +110,28 @@ Cloudflare Turnstile: tạo/chọn widget dành cho phát triển, cho phép hos
 1. Quản trị OJ chuẩn bị instance thử, read key và manage key riêng theo [hợp đồng OJ](CSATOJ_INTEGRATION.md). Không dùng global sync key.
 2. Đặt server env `CSAT_OJ_ORIGIN` (HTTPS origin), `CSAT_OJ_INSTANCE_ID`, `CSAT_OJ_READ_KEY`, `CSAT_OJ_MANAGE_KEY` cho local/Preview thử; sau khi đủ cấu hình đặt `CSAT_OJ_ENABLED=true`, khởi động lại ứng dụng.
 3. Admin tạo học sinh giả tại Portal. Admin OJ tạo mã kết nối của tài khoản học sinh thử đó.
-4. Portal → `/admin/oj` → chọn đúng học sinh → nhập mã. Nếu timeout, dùng đối soát receipt cùng thao tác; không đổi mã/lặp yêu cầu mới để thử mù.
+4. Portal → `/admin/oj` → chọn đúng học sinh → nhập mã43 ký tự và lý do → **Lưu kết nối**. Nút này đổi mã với OJ rồi lưu mapping vào Portal; không có bước lưu riêng. Nếu timeout, **Kiểm tra kết quả** đối soát receipt không cần mã; **Thử lại kết nối** dùng cùng mã/UUID. Không đổi mã/lặp yêu cầu mới để thử mù.
 5. Gắn organization ID cho lớp và hai contest ID cho buổi theo UI/quyền. Dùng phụ huynh thử đã liên kết để xem số bài, contest, hạng và tình trạng grant.
 
 **Đạt khi:** admin/phụ huynh thấy cùng tài khoản; thu hồi grant làm mất dữ liệu OJ; OJ lỗi vẫn đọc được phần Portal. Không chạy test quota/thử lỗi bằng tài khoản học sinh thật.
+
+### Khi báo “Kết nối CSATOJ chưa được bật”
+
+Đây là lỗi kiểm cấu hình backend Portal, xảy ra trước khi tạo pending operation hoặc gọi OJ. Không chứng minh mã kết nối sai và không liên quan Google OAuth. Kiểm đúng Vercel project của `portal.csatoj.vn`, Environment Variables, môi trường **Production**:
+
+| Biến Portal | Giá trị/nguồn |
+|---|---|
+| `CSAT_OJ_ENABLED` | Chuỗi `true` |
+| `CSAT_OJ_ORIGIN` | `https://csatoj.vn`, không thêm `/api/csat/v2/` |
+| `CSAT_OJ_INSTANCE_ID` | UUID `CSAT_PORTAL_INSTANCE_ID` đang dùng ở OJ |
+| `CSAT_OJ_READ_KEY` | `CSAT_PORTAL_READ_KEY` của OJ |
+| `CSAT_OJ_MANAGE_KEY` | `CSAT_PORTAL_MANAGE_KEY` của OJ |
+
+Hai key32–512 ký tự và khác nhau. Giữ instance/key hiện có nếu hợp lệ, không tự tạo một bộ khác chỉ ở Portal. Nhập key trực tiếp trong dashboard, không gửi qua chat hoặc thêm `NEXT_PUBLIC_`. Lưu biến rồi **Redeploy**: deployment cũ không tự nhận thay đổi env ([hướng dẫn Vercel](https://vercel.com/docs/environment-variables/managing-environment-variables)).
+
+Người vận hành OJ kiểm cấu hình đang chạy: `CSAT_PORTAL_ACCOUNT_ACCESS_MODE='grants'`, `CSAT_PORTAL_CONNECTIONS_ENABLED=True`, `CSAT_PORTAL_ACCOUNTS_ENABLED=True`; hai cờ cũ `CSAT_PORTAL_V2_ENABLED`/`CSAT_PORTAL_API_ENABLED` giữ `False`. Reload dịch vụ theo runbook OJ sau đổi cấu hình. Instance và key phải khớp hai phía. Không dùng global sync key/API cũ.
+
+Sau redeploy, mở lại `/admin/oj`. Banner cấu hình tắt/không hợp lệ phải hết; đây mới là kiểm hợp lệ biến, chưa chứng minh OJ truy cập được. Tạo mã mới trên OJ ngay trước khi nhập (dùng một lần/10 phút), chọn đúng học sinh, nhập mã/lý do rồi **Lưu kết nối**. Đạt khi thấy đúng username đã lưu và đọc được số liệu. Không cần chạy lại migration32 để chữa lỗi env.
 
 ## Bước 7 — Nghiệm thu thử và chuẩn bị phát hành
 
