@@ -77,3 +77,12 @@
 
 /* Shared decorative canvas stays behind solid, readable report cards. */
 .parent-portal{position:relative;isolation:isolate;background:transparent;overflow-x:clip}
+
+/* Report headings use the approved brand surfaces, scoped away from public pages. */
+.parent-portal .parent-section-title{display:inline-block;max-width:100%;padding:10px 16px;border:2px solid var(--foreground);border-radius:5px;box-shadow:3px 3px 0 var(--foreground);font-size:clamp(20px,2.2vw,26px);font-weight:850;line-height:1.3;overflow-wrap:anywhere;text-wrap:balance}
+.parent-portal .parent-section-title--blue{background:var(--csat-blue);color:#f8f7f2}
+.parent-portal .parent-section-title--lime{background:var(--csat-lime);color:#191917}
+.parent-portal .parent-section-title--mint{background:var(--csat-mint);color:var(--foreground)}
+.parent-portal .parent-section-title+p{margin-top:16px}
+@media(max-width:767px){.parent-portal .parent-section-title{padding:9px 12px}}
+@media print{.parent-portal .parent-section-title{background:white!important;color:#111!important;box-shadow:none;border-color:#111}}

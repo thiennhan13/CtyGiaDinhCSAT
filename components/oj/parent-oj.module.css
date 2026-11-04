@@ -1,0 +1,55 @@
+.header, .activityHeading { display:flex; flex-wrap:wrap; align-items:start; justify-content:space-between; gap:16px; }
+.intro, .hint, .range { color:var(--muted-foreground); font-size:14px; line-height:1.65; }
+.metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.metric { min-width:0; padding:18px; border:2px solid var(--foreground); border-radius:6px; box-shadow:3px 3px 0 var(--foreground); }
+.metric dt { font-weight:750; }
+.metric dd { margin-block:10px; font-size:clamp(24px,3vw,36px); font-weight:850; line-height:1.2; overflow-wrap:anywhere; }
+.metric p { font-size:13px; line-height:1.6; }
+.metric:first-child { background:var(--csat-lime); color:#191917; }
+.metric:nth-child(2) { background:var(--csat-blue); color:#f8f7f2; }
+.metric:nth-child(3) { background:var(--csat-mint); }
+.activity { border-top:2px solid var(--border); padding-top:24px; display:grid; gap:14px; min-width:0; }
+.subheading { font-size:20px; line-height:1.4; font-weight:800; }
+.activityHeading > div { flex:1 1 260px; }
+.activityHeading p { margin-top:6px; font-size:14px; }
+.activityHeading label { font-size:13px; font-weight:700; max-width:100%; }
+.activityHeading select { display:block; min-height:44px; margin-top:6px; width:100%; padding:8px 12px; border:1px solid var(--foreground); border-radius:5px; background:var(--background); }
+.activityTotals { display:flex; flex-wrap:wrap; gap:12px 28px; }
+.activityTotals dd { font-size:22px; font-weight:800; }
+.calendarLayout { display:flex; min-width:0; gap:8px; }
+.calendarScroll { min-width:0; overflow-x:auto; padding:6px 4px 10px; }
+.months { position:relative; height:26px; font-size:11px; }
+.months span { position:absolute; white-space:nowrap; }
+.weekdays { display:grid; grid-template-rows:repeat(7,14px); gap:3px; padding-top:32px; flex-shrink:0; font-size:10px; line-height:14px; }
+.calendar { display:grid; grid-template-rows:repeat(7,14px); grid-auto-flow:column; gap:3px; width:max-content; padding:1px; }
+.day { display:inline-block; width:14px; height:14px; border:1px solid color-mix(in srgb,var(--foreground) 25%,transparent); border-radius:3px; background:var(--secondary); padding:0; }
+button.day { cursor:pointer; }
+.day[data-level="1"] { background:color-mix(in srgb,var(--csat-blue) 25%,var(--card)); }
+.day[data-level="2"] { background:color-mix(in srgb,var(--csat-blue) 45%,var(--card)); }
+.day[data-level="3"] { background:color-mix(in srgb,var(--csat-blue) 70%,var(--card)); }
+.day[data-level="4"] { background:var(--csat-blue); }
+.day[data-level="unknown"] { background:repeating-linear-gradient(45deg,var(--secondary) 0 2px,var(--muted-foreground) 2px 3px); }
+.day:focus-visible { outline:2px solid var(--foreground); outline-offset:2px; position:relative; z-index:1; }
+.selectedDay { min-height:26px; font-size:14px; font-weight:700; }
+.legend { display:flex; flex-wrap:wrap; gap:8px 14px; font-size:12px; }
+.legend span { display:inline-flex; align-items:center; gap:5px; }
+.dailyTable summary, .competition summary { cursor:pointer; font-weight:750; min-height:44px; padding-block:10px; }
+.dailyTable > div { max-height:320px; overflow:auto; }
+.dailyTable table { width:100%; text-align:left; font-size:14px; }
+.dailyTable :is(th,td) { padding:8px; border-bottom:1px solid var(--border); }
+.competition { border:1px solid var(--border); border-radius:6px; padding:6px 16px; }
+.competition dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; padding-block:12px; }
+.competition dt { font-weight:750; }
+.competition dd { font-size:22px; font-weight:800; margin-block:6px; }
+.competition p { font-size:14px; line-height:1.6; }
+.actions { display:flex; flex-wrap:wrap; gap:12px; }
+.action { min-height:44px; padding:9px 14px; border:1.5px solid var(--foreground); border-radius:5px; font-weight:700; font-size:14px; background:var(--background); cursor:pointer; }
+.action:disabled { cursor:not-allowed; opacity:.55; }
+.action:focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
+.result { border:1.5px solid var(--foreground); border-radius:6px; padding:18px; display:grid; gap:12px; }
+.result h4 { font-weight:800; }
+.result dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.result dt { font-size:13px; }
+.result dd { font-weight:800; font-size:20px; }
+@media(max-width:600px) { .metrics { grid-template-columns:1fr; } .metric { padding:16px; } .metric dd { font-size:30px; } .competition dl, .result dl { grid-template-columns:1fr; } }
+@media print { .calendarScroll { overflow:visible; } .calendarLayout { transform-origin:left top; } .metric { box-shadow:none; } .action, .activityHeading label, .dailyTable { display:none; } }

@@ -3,6 +3,7 @@
 - [Google, CSATOJ grants, gia sư thu tiền và reset: runbook hiện hành](PORTAL_GOOGLE_GRANTS_ROLLOUT.md).
 - [Kết nối local, trạng thái SQL đã đọc, Google OAuth và chuẩn bị hồ sơ gia sư](LOCAL_DATABASE_GOOGLE_TUTOR_SETUP.md).
 - [Triển khai từng bước: môi trường thử, SQL, Google, OJ và nhập18 hồ sơ gia sư](PORTAL_DEPLOYMENT_STEP_BY_STEP.md).
+- [Dữ liệu OJ cho phụ huynh: nhãn Việt hóa, xếp hạng và contract lịch lượt nộp theo ngày](CSATOJ_PARENT_DATA_CONTRACT.md).
 
 Mỗi tài liệu sở hữu một loại thông tin. Bắt đầu từ [HANDOFF](HANDOFF.md), đọc sâu theo nhiệm vụ; không nạp toàn bộ hồ sơ lịch sử.
 

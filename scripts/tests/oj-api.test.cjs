@@ -103,3 +103,32 @@ test('schemas preserve withheld/frozen null values and strip uncontracted fields
  const item={contest:{contest_id:1,key:'fixture',name:'Fixture',url:'/contest/fixture',start_time:'2026-06-01',end_time:'2026-06-02'},status:'withheld',participation:null,metrics:null,rating:null,private_roster:[8]};
  const parsed=schemas.ojParticipation.parse(item);assert.equal(parsed.metrics,null);assert.equal(parsed.private_roster,undefined);
 });
+test('daily activity validates real dates, dense leap-year ranges, unknowns and totals without treating attempts as solved problems',()=>{
+ const {ojActivity,ojSummary}=load('lib/oj-grants.ts');
+ const days=[{date:'2024-02-28',submission_count:5},{date:'2024-02-29',submission_count:0},{date:'2024-03-01',submission_count:2}];
+ const base={metric:'submission_count',timezone:'Asia/Ho_Chi_Minh',start_date:'2024-02-28',end_date:'2024-03-01',status:'available',available_years:[2024],days,total_submissions:7,active_days:2};
+ assert.equal(ojActivity.parse(base).total_submissions,7);
+ for(const change of [{metric:'solved_count'},{timezone:'UTC'},{days:days.filter(d=>d.date!=='2024-02-29')},{days:[days[0],days[0],days[2]]},{total_submissions:2},{active_days:3},{start_date:'2024-03-02'},{start_date:'not-a-date'},{end_date:'2024-13-01'},{end_date:'2025-03-01'},{available_years:[2024,2024]}])assert.equal(ojActivity.safeParse({...base,...change}).success,false);
+ const unknown={...base,status:'limited',days:[days[0],{...days[1],submission_count:null},days[2]],total_submissions:null,active_days:null};
+ assert.equal(ojActivity.parse(unknown).days[1].submission_count,null);
+ assert.equal(ojActivity.safeParse({...unknown,status:'available'}).success,false);
+ assert.equal(ojActivity.safeParse({...unknown,total_submissions:7}).success,false);
+ assert.equal(ojActivity.parse({...base,status:'unavailable',days:[],total_submissions:null,active_days:null}).days.length,0);
+ const stats={submission_count:7,attempted_count:3,solved_count:1,last_submission_at:null};
+ const summary={account:{profile_id:7,username:'fixture',url:'/user/fixture'},learning:{scope:'learning',public_practice:stats,practice:stats,learning_total:stats},site:{points:0,performance_points:0,problem_count:1,rating:null,performance_rank:null,rating_rank:null,rank_status:'listed'},counts:{organizations:0,live_contests:0,virtual_participations:0,registered_contests:0}};
+ assert.equal(ojSummary.parse(summary).activity,undefined);assert.equal(ojSummary.parse({...summary,activity:base}).activity.total_submissions,7);
+});
+test('activity year reuses summary date filters and rechecks access; invalid years never fetch',async()=>{
+ let reads=0,fetches=0;
+ const read=reader({rpc:async()=>({data:++reads===1?context:{...context,mapping:{...context.mapping,revision:2}}}),remote:async(path,schema,options)=>{
+  fetches++;const url=new URL('https://oj.test/'+path);assert.equal(url.pathname,'/accounts/7/');assert.equal(url.searchParams.get('from'),'2024-01-01T00:00:00+07:00');assert.equal(url.searchParams.get('until'),'2025-01-01T00:00:00+07:00');assert.equal(options.revision,2);
+  return {as_of:'2026-06-01T00:00:00Z',data:{account:{profile_id:7}}};
+ }});
+ assert.equal((await read(request('&kind=activity&year=2024'),true)).status,409);assert.equal(fetches,1);assert.equal(reads,2);
+ for(const query of ['&kind=activity&year=1999','&kind=activity&year=9999','&kind=summary&year=2024'])assert.equal((await read(request(query),true)).status,422);
+ assert.equal(fetches,1);
+ const legacy=await reader()(request('&kind=activity'),true);assert.equal(legacy.status,200);assert.equal((await legacy.json()).data.activity,null);
+ const wrongPeriod=await reader({remote:async()=>({data:{account:{profile_id:7},activity:{start_date:'2025-01-01',end_date:'2025-12-31'}}})})(request('&kind=activity&year=2024'),true);
+ assert.equal(wrongPeriod.status,503);assert.equal((await wrongPeriod.json()).code,'invalid_response');
+ assert.equal((await reader()(new Request(`https://portal.test/api?student=${id(11)}&kind=activity&year=2024`),true)).status,403);
+});

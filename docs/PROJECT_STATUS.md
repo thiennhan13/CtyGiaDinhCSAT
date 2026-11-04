@@ -1,5 +1,13 @@
 # Tiến độ và việc tiếp theo
 
+## Phụ huynh — tiêu đề màu, OJ gọn/Việt hóa và lịch lượt nộp
+
+Theo lựa chọn bản gọn có giải thích phụ,7 tiêu đề chính dùng cobalt/lime/mint, viền và bóng rõ trong phạm vi ParentShell. OJ giữ3 chỉ số tích lũy bài đã thử/giải đúng/lượt nộp; hạng lớp/toàn cuộc thi gắn đúng buổi/cuộc thi, không tổng hợp hạng khác thang điểm. Điểm rating và hạng rating nằm trong Chi tiết thi đấu; không hiển thị performance. Có nhãn riêng cho chưa có điểm, chưa được xếp hạng, unlisted, frozen và thiếu roster.
+
+Đã có heatmap đếm lượt nộp theo ngày với chọn12 tháng/năm, giờ Việt Nam,5 mức màu, số liệu ngày qua chuột/chạm/bàn phím mũi tên và bảng thay thế. Phân biệt0/null/limited/unavailable; đổi năm không thay3 chỉ số tổng quan, lỗi giữ dữ liệu cũ, thu hồi xóa cả lịch. Adapter tái dùng summary/from/until hiện có và nhận optional activity, không thêm endpoint upstream hoặc migration. **OJ còn phải triển khai activity và nghiệm thu dữ liệu thật**; API cũ không có trường này hiện thông báo thiếu dữ liệu, không dựng lịch0. [Contract bàn giao đầy đủ](CSATOJ_PARENT_DATA_CONTRACT.md).
+
+Node24: repo40/40 và database/API291/291 không skip, guard677 tệp không finding, typecheck/lint strict/build Turbopack đạt. Edge fixture320/375/768/1440 đạt:7 tiêu đề màu,3 chỉ số, chi tiết rating thu gọn,365/366 ngày,0/null, API cũ, đổi năm/lỗi mạng, bàn phím, sáng/tối, no polling và thu hồi quyền; đã xem ảnh desktop/mobile và sửa tương phản chữ trên cobalt trong dark mode. Chưa ghi Supabase/Storage/OJ hoặc xác nhận giao diện production; heatmap thật chờ API OJ bổ sung đúng contract.
+
 ## Chính sách tư vấn Messenger — đã duyệt phát hành
 
 Chuẩn bị route `/chinh-sach-quyen-rieng-tu` cho quảng cáo Leads qua Messenger, mục lục và liên hệ email/Zalo, liên kết footer/sitemap và bypass Auth cho đúng route công khai. Nội dung giới hạn trong tư vấn Messenger; không thay thông báo của các form/Portal. Thời hạn90 ngày cho khách chưa đăng ký được chủ trung tâm đồng ý trong cuộc trao đổi04/11/2026. Người chịu trách nhiệm Nguyễn Cảnh Thọ và địa chỉ48 Yên Lạc, Phường Hai Bà Trưng, Hà Nội đã được chủ trung tâm cung cấp; đã được chủ trung tâm duyệt công khai ngày04/11/2026. Đang chuẩn bị phát hành; chưa có bằng chứng URL production. Không chấp nhận điều khoản Meta hoặc đăng quảng cáo trong đợt công bố chính sách. Bằng chứng local được ghi tại `docs/MESSENGER_PRIVACY_PREVIEW.md`.

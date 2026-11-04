@@ -1,5 +1,7 @@
 # Tích hợp CSATOJ accounts/grants
 
+Trang phụ huynh dùng bản gọn/Việt hóa:3 chỉ số bài/lượt nộp, lịch hoạt động, hạng theo buổi; rating trong chi tiết và không hiển thị performance. [Hợp đồng dữ liệu phụ huynh và phần mở rộng activity](CSATOJ_PARENT_DATA_CONTRACT.md) tổng kết trường cần từ OJ. Portal tương thích API chưa có activity; backend OJ vẫn cần triển khai trường mới và nghiệm thu thật. Không thêm endpoint heatmap giả định.
+
 Mã local đã chuyển sang hợp đồng `connections/exchange`, receipt cùng UUID và `accounts`. [Cấu hình, luồng dữ liệu, xử lý lỗi và phát hành](PORTAL_GOOGLE_GRANTS_ROLLOUT.md#cấu-hình-và-vận-hành-oj).
 
 Nguồn đọc phía OJ: `PORTAL_HANDOFF.md` → `PORTAL_CONNECTION_API.md` → `PORTAL_ACCOUNT_API.md`. Admin đổi mã để gắn student; Google/phone của parent là quyền độc lập tại Portal. Không dùng mã OJ để cấp quyền parent.

@@ -18,6 +18,8 @@ Một ứng dụng Next.js phục vụ website công khai và admin/gia sư/ph�
 
 Workspace OJ kiểm cấu hình tại máy chủ và chỉ trả boolean `connection_ready` cho admin, không trả giá trị env/key. UI cảnh báo và chặn lưu kết nối khi cấu hình chưa hợp lệ; API vẫn kiểm lại độc lập trước ghi pending/gọi OJ. Boolean không xác nhận kết nối mạng hoặc grant. Nút Lưu kết nối thực hiện exchange rồi lưu mapping, retry giữ UUID/mã và Kiểm tra kết quả phục hồi qua receipt.
 
+UI OJ phụ huynh ưu tiên3 số tích lũy bài đã thử/giải đúng/lượt nộp, lịch lượt nộp và hạng theo từng buổi/cuộc thi; rating nằm trong disclosure, performance không hiển thị. Summary nhận phần mở rộng optional `activity`, kiểm ngày liên tiếp/tổng/null/timezone. `kind=activity&year` ở API Portal dùng bộ lọc from/until của summary OJ hiện có, cùng quyền/grant và kiểm trước/sau fetch; chỉ cập nhật lịch, không thay tổng quan. Heatmap không có dữ liệu thì báo thiếu, không giả ô0. [Contract và trạng thái OJ chưa triển khai](CSATOJ_PARENT_DATA_CONTRACT.md).
+
 ## Phân chia trách nhiệm
 
 | Tầng | Trách nhiệm | Ranh giới |

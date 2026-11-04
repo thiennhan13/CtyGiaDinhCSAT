@@ -55,6 +55,8 @@ Chặng lớp dựa số buổi completed đã kết thúc từ đầu lớp, kh
 
 ## Duy trì quyết định
 
+Trang phụ huynh theo lựa chọn04/11: bản gọn, Việt hóa và giải thích phụ. Tổng quan OJ giữ bài đã làm thử/bài giải đúng/lượt nộp; bổ sung lịch **lượt nộp theo ngày**, không phải lịch bài AC. Hạng lớp/toàn cuộc thi theo đúng buổi/cuộc thi. Điểm và hạng rating chuyển vào Chi tiết thi đấu, bỏ performance khỏi UI, giữ API tương thích. Tiêu đề dùng cobalt/lime/mint, viền và bóng rõ theo palette hiện hành. [Contract OJ](CSATOJ_PARENT_DATA_CONTRACT.md) chốt dữ liệu Portal cần; activity là phần mở rộng OJ còn phải triển khai/nghiệm thu, không tự suy lịch từ số bài đúng.
+
 Cập nhật mục tương ứng khi có lựa chọn mới, bỏ phương án hết hiệu lực khỏi hướng dẫn hiện hành và dẫn đúng tài liệu nghiệp vụ. Git giữ lịch sử; tài liệu vận hành giữ bằng chứng tối thiểu. Phân biệt rõ **đã chốt**, **đã triển khai** và **đã nghiệm thu**.
 
 ## Trang Tự học
