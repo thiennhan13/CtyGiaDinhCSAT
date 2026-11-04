@@ -1,7 +1,7 @@
 // Isolated browser transport fixtures; no real users, Supabase or OJ requests.
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),net=require('node:net');
 const {spawn,execFileSync}=require('node:child_process'),assert=require('node:assert/strict');
-const root=path.resolve(__dirname,'..'),output=path.join(root,'scratch/oj-ui');
+const root=path.resolve(__dirname,'..'),output=path.join(root,process.env.CSAT_UI_OUTPUT||'scratch/oj-ui');
 const {chromium}=require(root+'/node_modules/playwright');
 const id=n=>`20000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const exp=Math.floor(Date.now()/1000)+7200,encode=v=>Buffer.from(JSON.stringify(v)).toString('base64url');
@@ -9,7 +9,7 @@ const user={id:id(1),aud:'authenticated',role:'authenticated',app_metadata:{role
 const token=encode({alg:'HS256',typ:'JWT'})+'.'+encode({sub:id(1),aud:'authenticated',role:'authenticated',exp,iat:exp-7200})+'.'+Buffer.from('fixture-only').toString('base64url');
 const auth={access_token:token,token_type:'bearer',refresh_token:'unused-fixture',expires_in:7200,expires_at:exp,user};
 const student={student_id:id(10),name:'Học sinh kiểm thử',date_of_birth:null,province:null,status:'Đang học',parent_name:'Phụ huynh kiểm thử',parent_number:'0912345678'};
-const portal={parent:{name:'Phụ huynh kiểm thử',phone:'0912345678'},student,students:[student],month:'2026-06',reviewPage:0,reviewCount:0,reviews:[],plans:[],enrolledClasses:[],attendanceCount:0,attendance:[],invoices:[],provisional:[],tutors:[],class_progress:[],contact:{label:'CSAT',url:'https://example.test'}};
+const portal={parent:{name:'Phụ huynh kiểm thử',phone:'0912345678'},student,students:[student],month:'2026-06',reviewPage:0,reviewCount:0,reviews:[],plans:[],enrolledClasses:[],attendanceCount:1,attendance:[{session_id:id(40),class_name:'Lớp lập trình kiểm thử',date:'2026-06-01',start_time:'18:00:00',end_time:'19:30:00',session_status:'completed',status:'attended',lesson:null,tuition_amount:100000,billing_period:null}],invoices:[],provisional:[],tutors:[],class_progress:[],contact:{label:'CSAT',url:'https://example.test'}};
 const workspace={classes:[{class_id:id(30),name:'Lớp lập trình kiểm thử',organization_id:null,revision:0}],students:[{...student,username:null,state:null,revision:0,pending_request:null}],sessions:[{session_id:id(40),date:'2026-06-01',start_time:'18:00:00',contest_ids:[1,2],revision:1}]};
 const stats={submission_count:1200,attempted_count:12,solved_count:8,last_submission_at:null,status:'available'};
 function activityFixture(start,end,mode='available'){
@@ -34,7 +34,13 @@ const json=(route,body,status=200)=>route.fulfill({status,contentType:'applicati
   await new Promise(r=>mock.listen(0,'127.0.0.1',r));const mockOrigin='http://127.0.0.1:'+mock.address().port;
   const origin='http://127.0.0.1:'+await port();
   const env={...process.env,NEXT_PUBLIC_SUPABASE_URL:mockOrigin,NEXT_PUBLIC_SUPABASE_ANON_KEY:'synthetic-anon',SUPABASE_SERVICE_ROLE_KEY:'synthetic-service',APP_ORIGIN:origin,CSAT_OJ_ENABLED:'false',CONSULTATIONS_ENABLED:'false',CONSULTATIONS_EMAIL_ENABLED:'false',TURNSTILE_LOGIN_ENABLED:'false',NEXT_TELEMETRY_DISABLED:'1'};
-  server=spawn(process.execPath,[root+'/node_modules/next/dist/bin/next','dev','--webpack','--hostname','127.0.0.1','--port',new URL(origin).port],{cwd:root,env,windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe']});server.stdout.pipe(log,{end:false});server.stderr.pipe(log,{end:false});
+  if(process.env.CSAT_UI_PRODUCTION){
+   // NEXT_PUBLIC values are compiled into the bundle; build against this exact loopback fixture.
+   const build=spawn(process.execPath,[root+'/node_modules/next/dist/bin/next','build'],{cwd:root,env,windowsHide:true,stdio:['ignore','pipe','pipe']});
+   build.stdout.pipe(log,{end:false});build.stderr.pipe(log,{end:false});
+   await new Promise((resolve,reject)=>{build.on('error',reject);build.on('exit',code=>code===0?resolve():reject(Error('Fixture production build failed: '+code)));});
+  }
+  server=spawn(process.execPath,[root+'/node_modules/next/dist/bin/next',...(process.env.CSAT_UI_PRODUCTION?['start']:['dev','--webpack']),'--hostname','127.0.0.1','--port',new URL(origin).port],{cwd:root,env,windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe']});server.stdout.pipe(log,{end:false});server.stderr.pipe(log,{end:false});
   let ready=false;for(let n=0;n<90;n++){if(server.exitCode!==null)throw Error('Preview exited');try{if((await fetch(origin+'/login')).ok){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,500));}assert(ready,'preview ready');
   browser=await chromium.launch({headless:true,channel:process.env.CSAT_BROWSER_CHANNEL||'msedge'});
   const context=await browser.newContext({viewport:{width:1440,height:1000}});
@@ -52,7 +58,7 @@ const json=(route,body,status=200)=>route.fulfill({status,contentType:'applicati
    return json(route,{...workspace,connection_ready:connectionReady});
   });
   const ojRead=route=>{reads++;if(denied)return json(route,{error:'Quyền truy cập đã được thu hồi.'},403);if(!workspace.students[0].username)return json(route,{connected:false});
-   const params=new URL(route.request().url()).searchParams;if(params.get('kind')==='contests')return json(route,{connected:true,data:{account,items:[contest],next_cursor:null}});
+   const params=new URL(route.request().url()).searchParams;if(params.get('kind')==='session')return json(route,{connected:true,data:{account,roster_complete:true,class_rank_basis:'session',contests:[contest],totals:{...stats,assigned_count:null}}});if(params.get('kind')==='contests')return json(route,{connected:true,data:{account,items:[contest],next_cursor:null}});
    if(activityMode==='error')return json(route,{error:'Chưa tải được lịch hoạt động.'},503);
    const year=params.get('year');return json(route,{...parentData,data:{...parentData.data,activity:activityMode==='legacy'?undefined:year?activityFixture(year+'-01-01',year+'-12-31',activityMode):parentData.data.activity}});
   };
@@ -85,26 +91,58 @@ const json=(route,body,status=200)=>route.fulfill({status,contentType:'applicati
   assert.equal(await page.getByLabel('Mã kết nối từ admin OJ').inputValue(),'');await page.getByRole('button',{name:'Kiểm tra kết quả',exact:true}).click();await page.getByText('Đã lưu kết nối.',{exact:true}).waitFor();assert.equal(writes,3);
   for(const width of [320,375,768,1440]){await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'admin overflow '+width);await page.screenshot({path:path.join(output,'admin-'+width+'.png'),fullPage:true});}
   await page.evaluate(()=>document.documentElement.classList.add('dark'));await page.setViewportSize({width:320,height:1000});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.screenshot({path:path.join(output,'admin-dark-320.png'),fullPage:true});await page.evaluate(()=>document.documentElement.classList.remove('dark'));
-  await page.goto(origin+'/parents?month=2026-06',{waitUntil:'networkidle'});await page.locator('#oj').scrollIntoViewIfNeeded();await page.locator('#oj').getByText('Tài khoản · student_fixture',{exact:true}).waitFor();
-  const panel=page.locator('#oj'),grid=panel.getByRole('group',{name:'Lịch lượt nộp bài theo ngày'});await grid.waitFor();assert.equal(await grid.getByRole('button').count(),365);
-  assert.equal(await page.locator('.parent-section-title').count(),7);assert.equal(await panel.getByRole('heading',{name:'Kết quả CSATOJ',exact:true}).evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(43, 80, 224)');
+  const parentReads=reads;await page.goto(origin+'/parents?month=2026-06#oj',{waitUntil:'networkidle'});await page.locator('#oj').scrollIntoViewIfNeeded();await page.locator('#oj').getByText('Tài khoản · student_fixture',{exact:true}).waitFor();assert.equal(reads,parentReads+1,'one shared summary request');
+  const panel=page.locator('#oj'),practice=page.locator('#practice'),grid=practice.getByRole('group',{name:'Lịch lượt nộp bài theo ngày'});await grid.waitFor();assert.equal(await grid.getByRole('button').count(),365);
+  assert.equal(await page.locator('.parent-section-title').count(),8);assert.equal(await panel.getByRole('heading',{name:'Kết quả CSATOJ',exact:true}).evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(43, 80, 224)');
   assert.equal(await panel.locator('dl').first().locator(':scope > div').count(),3);assert.equal(await panel.getByText('Hạng performance',{exact:true}).count(),0);
   const competition=panel.locator('details').filter({has:page.getByText('Chi tiết thi đấu',{exact:true})});assert.equal(await competition.getAttribute('open'),null);await competition.locator('summary').click();await competition.getByText('Hạng 5',{exact:true}).waitFor();await competition.locator('summary').click();
   await grid.getByRole('button').last().focus();await page.keyboard.press('ArrowLeft');assert.equal(await grid.getByRole('button').nth(357).evaluate(el=>el===document.activeElement),true);
   const mainTotal=await panel.locator('dl').first().innerText();
-  await Promise.all([page.waitForResponse(r=>r.url().includes('kind=activity')&&r.url().includes('year=2024')),panel.getByLabel('Thời gian hoạt động').selectOption('2024')]);await page.waitForFunction(()=>document.querySelectorAll('#oj [data-index]').length===366);assert.equal(await panel.locator('dl').first().innerText(),mainTotal);
-  activityMode='limited';await panel.getByLabel('Thời gian hoạt động').selectOption('2025');await grid.getByRole('button',{name:/11\/1\/2025: chưa có dữ liệu/}).waitFor();assert.equal(await grid.locator('[data-level="unknown"]').count(),1);
-  activityMode='error';await panel.getByLabel('Thời gian hoạt động').selectOption('2024');await panel.getByRole('alert').filter({hasText:'Chưa tải được lịch hoạt động.'}).waitFor();assert.equal(await panel.getByLabel('Thời gian hoạt động').inputValue(),'2025');assert.equal(await grid.locator('[data-level="unknown"]').count(),1);
-  activityMode='zero';await panel.getByLabel('Thời gian hoạt động').selectOption('2024');await page.waitForFunction(()=>document.querySelectorAll('#oj [data-index][data-level="0"]').length===366);
-  activityMode='legacy';await panel.getByRole('button',{name:'Làm mới',exact:true}).click();await panel.getByText(/CSATOJ chưa cung cấp dữ liệu lượt nộp theo ngày/).waitFor();assert.equal(await grid.count(),0);assert.equal(await panel.locator('dl').first().innerText(),mainTotal);
+  await Promise.all([page.waitForResponse(r=>r.url().includes('kind=activity')&&r.url().includes('year=2024')),practice.getByLabel('Thời gian hoạt động').selectOption('2024')]);await page.waitForFunction(()=>document.querySelectorAll('#practice [data-index]').length===366);assert.equal(await panel.locator('dl').first().innerText(),mainTotal);
+  activityMode='limited';await practice.getByLabel('Thời gian hoạt động').selectOption('2025');await grid.getByRole('button',{name:/11\/1\/2025: chưa có dữ liệu/}).waitFor();assert.equal(await grid.locator('[data-level="unknown"]').count(),1);
+  activityMode='error';await practice.getByLabel('Thời gian hoạt động').selectOption('2024');await practice.getByRole('alert').filter({hasText:'Chưa tải được lịch hoạt động.'}).waitFor();assert.equal(await practice.getByLabel('Thời gian hoạt động').inputValue(),'2025');assert.equal(await grid.locator('[data-level="unknown"]').count(),1);
+  activityMode='zero';await practice.getByLabel('Thời gian hoạt động').selectOption('2024');await page.waitForFunction(()=>document.querySelectorAll('#practice [data-index][data-level="0"]').length===366);
+  activityMode='legacy';await panel.getByRole('button',{name:'Làm mới',exact:true}).click();await practice.getByText(/CSATOJ chưa cung cấp dữ liệu lượt nộp theo ngày/).waitFor();assert.equal(await grid.count(),0);assert.equal(await panel.locator('dl').first().innerText(),mainTotal);
   activityMode='available';await panel.getByRole('button',{name:'Làm mới',exact:true}).click();await grid.waitFor();
   await panel.getByRole('button',{name:'Lịch sử cuộc thi'}).click();await panel.getByText('2 / 10',{exact:true}).waitFor();assert(await panel.getByText('5 / 50',{exact:true}).isVisible());
-  const captureStyle='.public-header-only, nextjs-portal { visibility:hidden!important; }';
-  for(const width of [320,375,768,1440]){await page.setViewportSize({width,height:1000});await page.locator('#oj').scrollIntoViewIfNeeded();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'parent overflow '+width);await page.locator('#oj').screenshot({path:path.join(output,'parent-'+width+'.png'),style:captureStyle});}
-  await page.evaluate(()=>document.documentElement.classList.add('dark'));await page.setViewportSize({width:320,height:1000});assert.equal(await panel.locator('dl').first().locator(':scope > div').nth(1).evaluate(el=>getComputedStyle(el).color),'rgb(248, 247, 242)');await panel.screenshot({path:path.join(output,'parent-dark-320.png'),style:captureStyle});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.evaluate(()=>document.documentElement.classList.remove('dark'));
+  assert.equal(await page.getByText('Xem bảng số liệu theo ngày',{exact:true}).count(),0);
+  assert.equal(await page.getByRole('button',{name:'Xem tổ chức đang tham gia'}).count(),0);
+  assert(await page.evaluate(()=>document.querySelector('#practice').compareDocumentPosition(document.querySelector('#reviews'))&Node.DOCUMENT_POSITION_FOLLOWING),'practice before reviews');
+  assert.deepEqual(await page.locator('main > section[id], main > div[id]').evaluateAll(els=>els.map(el=>el.id)),['practice','reviews','roadmap','development','attendance','oj','services']);
+  await panel.getByLabel('Buổi học',{exact:true}).selectOption(id(40));await panel.getByRole('button',{name:'Xem kết quả buổi',exact:true}).click();await panel.getByText('2 / 10',{exact:true}).first().waitFor();assert.equal(await panel.getByText('2 / 10',{exact:true}).count(),2);
+  const captureStyle='nextjs-portal { visibility:hidden!important; }';
+  for(const width of [320,375,390,768,1440]){
+   await page.setViewportSize({width,height:1000});await practice.scrollIntoViewIfNeeded();
+   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'parent overflow '+width);
+   assert(await grid.getByRole('button').evaluateAll(cells=>cells.every(cell=>{const r=cell.getBoundingClientRect();return Math.abs(r.width-r.height)<1;})),'square calendar cells '+width);
+   const edges=await grid.evaluate(el=>{const g=el.getBoundingClientRect(),p=el.parentElement.getBoundingClientRect();return {width:g.width,parent:p.width};});
+   if(width===1440)assert(Math.abs(edges.width-edges.parent)<12,'calendar fills available width');
+   await practice.screenshot({path:path.join(output,'practice-'+width+'.png'),style:captureStyle});
+   await panel.screenshot({path:path.join(output,'parent-'+width+'.png'),style:captureStyle});
+   await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:path.join(output,'report-'+width+'.png'),fullPage:true,style:captureStyle});
+   if(width<768){
+    const menu=page.getByRole('button',{name:'Nội dung theo dõi'});await menu.click();assert.equal(await menu.getAttribute('aria-expanded'),'true');
+    await page.getByRole('navigation',{name:'Nội dung phụ huynh'}).getByRole('link',{name:'Nhịp luyện tập',exact:true}).click();assert.equal(await menu.getAttribute('aria-expanded'),'false');
+   }else assert(await page.getByRole('navigation',{name:'Nội dung phụ huynh'}).isVisible());
+  }
+  await page.evaluate(()=>document.documentElement.classList.add('dark'));await page.setViewportSize({width:320,height:1000});assert.equal(await panel.locator('dl').first().locator(':scope > div').nth(1).evaluate(el=>getComputedStyle(el).color),'rgb(248, 247, 242)');
+  await practice.screenshot({path:path.join(output,'practice-dark-320.png'),style:captureStyle});await panel.screenshot({path:path.join(output,'parent-dark-320.png'),style:captureStyle});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.evaluate(()=>document.documentElement.classList.remove('dark'));
+  await page.evaluate(async()=>{await document.fonts.ready;if(![...document.fonts].some(font=>font.status==='loaded'&&font.family.includes('Archivo')))throw Error('Archivo not loaded');});
+  // Frozen render of this exact fixture, with the actual bundled CSS/fonts, for the taste inspector.
+  // Interaction/access tests above run against the live application, not this static export.
+  await page.evaluate(()=>scrollTo(0,0));await page.waitForTimeout(300);
+  const rendered=await page.evaluate(async()=>{
+   let css=Array.from(document.styleSheets).flatMap(sheet=>{try{return Array.from(sheet.cssRules,r=>r.cssText.replace(/url\(["']?([^"')]+)["']?\)/g,(_,url)=>`url("${new URL(url,sheet.href||location.href).href}")`));}catch{return [];}}).join('\n');
+   const urls=[...new Set([...css.matchAll(/url\(["']?([^"')]+)["']?\)/g)].map(m=>m[1]))];
+   for(const url of urls){if(url.startsWith('data:'))continue;try{const absolute=new URL(url,location.href);if(absolute.origin!==location.origin)continue;const blob=await (await fetch(absolute)).blob();const data=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.readAsDataURL(blob);});css=css.split(url).join(data);}catch{}}
+   const clone=document.documentElement.cloneNode(true);clone.querySelectorAll('script,link,style,nextjs-portal').forEach(el=>el.remove());
+   for(const img of clone.querySelectorAll('img')){const original=[...document.images].find(el=>el.getAttribute('src')===img.getAttribute('src'));if(!original)continue;try{const blob=await(await fetch(original.currentSrc||original.src)).blob();img.src=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.readAsDataURL(blob);});img.removeAttribute('srcset');}catch{}}
+   const style=document.createElement('style');style.textContent=css;clone.querySelector('head').append(style);return '<!doctype html>'+clone.outerHTML;
+  });
+  fs.writeFileSync(path.join(output,'rendered.html'),rendered);
   await page.emulateMedia({reducedMotion:'reduce'});await page.keyboard.press('Tab');assert(await page.evaluate(()=>document.activeElement!==document.body));
   const initialReads=reads;await page.waitForTimeout(11000);assert.equal(reads,initialReads,'no polling');
-  denied=true;await page.locator('#oj').getByRole('button',{name:'Làm mới'}).click();await page.getByText('Quyền truy cập đã được thu hồi.').waitFor();assert.equal(await page.locator('#oj').getByText('2 / 10',{exact:true}).count(),0);assert.equal(await grid.count(),0);
+  denied=true;await page.locator('#oj').getByRole('button',{name:'Làm mới'}).click();await panel.getByText('Quyền truy cập đã được thu hồi.').waitFor();assert.equal(await page.locator('#oj').getByText('2 / 10',{exact:true}).count(),0);assert.equal(await grid.count(),0);
   parentState='unlinked';await page.reload({waitUntil:'networkidle'});await page.getByLabel('Số điện thoại').fill('0912345678');await Promise.all([page.waitForResponse(r=>r.url().endsWith('/api/parents/link')),page.getByRole('button',{name:'Liên kết học sinh'}).click()]);await page.getByRole('alert').filter({hasText:'Số điện thoại đã được liên kết'}).waitFor();
   await page.goto(origin+'/tutor/payments',{waitUntil:'networkidle'});await page.getByRole('button',{name:'Đã thu tiền',exact:true}).click();await page.getByRole('region',{name:'Xác nhận thu tiền'}).waitFor();assert.equal(paid,false);await page.getByRole('button',{name:'Xác nhận đã thu đủ'}).click();await page.getByText('Đã ghi nhận tiền đã thu.',{exact:true}).waitFor();assert.equal(paid,true);
   assert(await page.getByRole('button',{name:'Đã thu tiền',exact:true}).isDisabled());
@@ -113,7 +151,7 @@ const json=(route,body,status=200)=>route.fulfill({status,contentType:'applicati
   await page.goto(origin+'/parents',{waitUntil:'networkidle'});await page.locator('#contact').getByText('Chứng chỉ thử 1',{exact:true}).waitFor();await page.locator('#contact').getByText('Chứng chỉ thử 2',{exact:true}).waitFor();
   await page.setViewportSize({width:320,height:1000});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.locator('#contact').screenshot({path:path.join(output,'certificates-320.png')});
   await page.goto(origin+'/admin/parents/provisioning',{waitUntil:'networkidle'});await page.getByText(/Phụ huynh đăng nhập Google rồi nhập số điện thoại khớp hồ sơ/).waitFor();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'reconciliation mobile overflow');
-  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,viewports:[320,375,768,1440],checks:['disabled configuration prevents writes','visible save button','retry preserves code and UUID','receipt recovery without code','three parent metrics','collapsed Vietnamese rating details','daily submission counts','leap year','unknown versus zero','legacy activity absent','year failure retains data','roving calendar keyboard','light/dark contrast','class and contest ranks','no polling','revocation clears heatmap and results','phone conflict','full receipt confirmation','reduced motion','certificates form to parent card'],output}));
+  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,viewports:[320,375,390,768,1440],checks:['disabled configuration prevents writes','visible save button','retry preserves code and UUID','receipt recovery without code','practice first with shared request state','OJ anchor lazy-loads shared data','full-width square calendar at every viewport','grouped left navigation and mobile toggle','removed daily table and organizations','three parent metrics','collapsed Vietnamese rating details','daily submission counts','leap year','unknown versus zero','legacy activity absent','year failure retains data','roving calendar keyboard','light/dark contrast','session selector and results','class and contest ranks','no polling','revocation clears heatmap and results','phone conflict','full receipt confirmation','reduced motion','certificates form to parent card'],output}));
  }catch(error){if(page){console.error('URL',page.url());await page.screenshot({path:path.join(output,'failure.png'),fullPage:true,timeout:5000}).catch(()=>{});console.error((await page.locator('body').innerText({timeout:5000}).catch(()=>'' )).slice(-4000));}console.error(errors);throw error;
  }finally{await browser?.close();if(server?.pid)try{if(process.platform==='win32')execFileSync('taskkill',['/PID',String(server.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});else process.kill(-server.pid,'SIGTERM');}catch{server.kill();}mock.close();log.end();}
 })().catch(e=>{console.error(e.message);process.exitCode=1;});

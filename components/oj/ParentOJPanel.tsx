@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { OJSummary, OJParticipation, OJClassResults, OJActivity } from '@/lib/oj-grants';
 import { SubmissionHeatmap } from './SubmissionHeatmap';
 import styles from './parent-oj.module.css';
@@ -19,9 +19,10 @@ export function ContestRows({ items }: { items: OJParticipation[] }) {
     </>}
   </article>)}{!items.length && <p>Chưa có lượt tham gia trong danh sách này.</p>}</div>;
 }
-export function ParentOJPanel({ studentId, month: _month, sessions = [], staff = false }: { studentId: string; month?: string; sessions?: { session_id: string; date: string; class_name?: string }[]; staff?: boolean }) {
-  const root = useRef<HTMLElement>(null), controller = useRef<AbortController | null>(null), cooldown = useRef(0);
-  const [summary, setSummary] = useState<Envelope<OJSummary> | null>(null), [contests, setContests] = useState<Page | null>(null), [organizations, setOrganizations] = useState<Organizations | null>(null), [results, setResults] = useState<OJClassResults | null>(null);
+type PanelProps = { studentId: string; month?: string; sessions?: { session_id: string; date: string; class_name?: string }[]; staff?: boolean };
+function useOJData({ studentId, staff = false }: PanelProps) {
+  const root = useRef<HTMLElement>(null), resultsRoot = useRef<HTMLElement>(null), controller = useRef<AbortController | null>(null), cooldown = useRef(0);
+  const [summary, setSummary] = useState<Envelope<OJSummary> | null>(null), [contests, setContests] = useState<Page | null>(null), [results, setResults] = useState<OJClassResults | null>(null), [organizations, setOrganizations] = useState<Organizations | null>(null);
   const [activity, setActivity] = useState<OJActivity | null>(null), [activityYear, setActivityYear] = useState('');
   const [error, setError] = useState(''), [busy, setBusy] = useState(false), [session, setSession] = useState(''), [notice, setNotice] = useState('');
   const load = useCallback(async (kind = 'summary', cursor?: string, sessionId?: string, year?: string) => {
@@ -34,10 +35,10 @@ export function ParentOJPanel({ studentId, month: _month, sessions = [], staff =
       const data = await res.json();
       if (!res.ok) {
         if (res.status === 429) cooldown.current = Date.now() + Number(res.headers.get('Retry-After') || 60) * 1000;
-        if ([401, 403, 409].includes(res.status) || ['account_unavailable', 'grant_revoked', 'grant_revision_mismatch'].includes(data.code)) { setSummary(null); setContests(null); setOrganizations(null); setResults(null); setActivity(null); }
+        if ([401, 403, 409].includes(res.status) || ['account_unavailable', 'grant_revoked', 'grant_revision_mismatch'].includes(data.code)) { setSummary(null); setContests(null); setResults(null); setOrganizations(null); setActivity(null); }
         throw new Error(data.error || 'Chưa tải được dữ liệu CSATOJ.');
       }
-      if (!data.connected) { setSummary(data); setContests(null); setOrganizations(null); setResults(null); setActivity(null); setActivityYear(''); return; }
+      if (!data.connected) { setSummary(data); setContests(null); setResults(null); setOrganizations(null); setActivity(null); setActivityYear(''); return; }
       if (kind === 'summary') { setSummary(data); setActivity(data.data?.activity ?? null); setActivityYear(''); }
       else if (kind === 'activity') { setActivity(data.data?.activity ?? null); setActivityYear(year || ''); }
       else if (kind === 'contests') setContests(data.data);
@@ -49,21 +50,48 @@ export function ParentOJPanel({ studentId, month: _month, sessions = [], staff =
   useEffect(() => {
     const observer = new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting) && document.visibilityState === 'visible') { observer.disconnect(); void load(); } });
     if (root.current) observer.observe(root.current);
+    if (resultsRoot.current) observer.observe(resultsRoot.current);
     return () => { observer.disconnect(); controller.current?.abort(); };
   }, [load]);
+  return { root, resultsRoot, summary, contests, results, organizations, activity, activityYear, error, busy, session, setSession, setResults, notice, load };
+}
+const OJContext = createContext<ReturnType<typeof useOJData> | null>(null);
+export function ParentOJProvider({ children, ...props }: PanelProps & { children: ReactNode }) {
+  const value = useOJData(props);
+  return <OJContext.Provider value={value}>{children}</OJContext.Provider>;
+}
+function useOJ() {
+  const value = useContext(OJContext);
+  if (!value) throw new Error('OJ provider missing');
+  return value;
+}
+export function ParentOJActivity() {
+  const { root, summary, activity, activityYear, busy, error, load } = useOJ();
+  return <section ref={root} id="practice" className="parent-card parent-practice">
+    <div className={styles.header}><h2 className="parent-section-title parent-section-title--lime">Nhịp luyện tập của con</h2><button className={`${styles.action} ${styles.primaryAction}`} disabled={busy} onClick={() => activityYear ? load('activity', undefined, undefined, activityYear) : load()}>Làm mới hoạt động</button></div>
+    {busy && <p role="status">Đang tải hoạt động…</p>}{error && <p role="alert" className="text-destructive">{error}</p>}
+    {summary?.connected === false ? <p>Học sinh chưa có liên kết CSATOJ đang hoạt động. Vui lòng liên hệ CSAT.</p> : summary && <SubmissionHeatmap key={activity?.start_date + ':' + activity?.end_date} activity={activity} year={activityYear} busy={busy} onYearChange={year => void load('activity', undefined, undefined, year)} standalone={false}/>}
+  </section>;
+}
+export function ParentOJPanel(props: PanelProps) {
+  const context = useContext(OJContext);
+  return context ? <OJResults {...props} split/> : <ParentOJProvider {...props}><OJResults {...props}/></ParentOJProvider>;
+}
+function OJResults({ sessions = [], staff = false, split = false }: PanelProps & { split?: boolean }) {
+  const { root, resultsRoot, summary, contests, results, organizations, activity, activityYear, error, busy, session, setSession, setResults, notice, load } = useOJ();
   const data = summary?.data;
-  return <section ref={root} id={staff ? undefined : 'oj'} className="parent-card space-y-6"><div className={styles.header}><div><h2 className="parent-section-title parent-section-title--blue text-2xl font-bold">Kết quả CSATOJ</h2><p className={styles.intro}>Theo dõi việc làm bài và thi đấu của con, đọc cùng nhận xét của gia sư.</p></div><button type="button" className={styles.action} disabled={busy} onClick={() => load()}>Làm mới</button></div>
+  return <section ref={split ? resultsRoot : root} id={staff ? undefined : 'oj'} className="parent-card space-y-6"><div className={styles.header}><div><h2 className="parent-section-title parent-section-title--blue text-2xl font-bold">Kết quả CSATOJ</h2></div><button type="button" className={styles.action} disabled={busy} onClick={() => load()}>Làm mới</button></div>
     {busy && <p role="status">Đang tải dữ liệu CSATOJ…</p>}{error && <p role="alert" className="text-destructive">{error}</p>}{notice && <p role="status">{notice}</p>}
     {summary?.connected === false && <p>Học sinh chưa có liên kết CSATOJ đang hoạt động. Vui lòng liên hệ CSAT.</p>}
-    {data && <><div><h3 className="text-lg font-bold">Tài khoản · {data.account.username}</h3><p className={styles.hint}>Cập nhật: {summary?.as_of ? new Date(summary.as_of).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : 'Chưa có'}. Số liệu tích lũy trong phạm vi CSATOJ cho phép xem.</p></div>
+    {data && <><div><h3 className="text-lg font-bold">Tài khoản · {data.account.username}</h3><p className={styles.hint}>Cập nhật: {summary?.as_of ? new Date(summary.as_of).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : 'Chưa có'} · Tổng tích lũy</p></div>
       <dl className={styles.metrics}>{[
-        ['Bài đã làm thử', data.learning.learning_total.attempted_count, 'Số bài khác nhau con đã nộp, gồm cả bài đã giải đúng.'],
-        ['Bài giải đúng', data.learning.learning_total.solved_count, 'Bài đã được chấm đúng hoàn toàn. Mỗi bài chỉ tính một lần.'],
-        ['Lượt nộp', data.learning.learning_total.submission_count, 'Một bài có thể nộp nhiều lần; lượt nộp khác với số bài.'],
+        ['Bài đã làm thử', data.learning.learning_total.attempted_count, 'Bài khác nhau đã nộp'],
+        ['Bài giải đúng', data.learning.learning_total.solved_count, 'Mỗi bài tính một lần'],
+        ['Lượt nộp', data.learning.learning_total.submission_count, 'Gồm cả các lần nộp lại'],
       ].map(([label, n, hint]) => <div key={String(label)} className={styles.metric}><dt>{label}</dt><dd>{value(n as number | null)}</dd><p>{hint}</p></div>)}</dl>
       {data.learning.learning_total.status === 'limited' && <p role="status">Số liệu chưa đầy đủ: một phần kết quả cuộc thi đang ẩn hoặc chưa được công bố.</p>}
-      <SubmissionHeatmap key={activity?.start_date + ':' + activity?.end_date} activity={activity} year={activityYear} busy={busy} onYearChange={year => void load('activity', undefined, undefined, year)}/>
-      {sessions.length > 0 && <section className="space-y-3"><h3 className={styles.subheading}>Kết quả và xếp hạng theo buổi</h3><p className={styles.hint}>So sánh trong cùng cuộc thi: hạng trong lớp và hạng toàn cuộc thi là hai phạm vi khác nhau.</p><label className="block text-sm">Buổi học<select aria-label="Buổi học" className="mt-2 block min-h-11 w-full rounded-lg border bg-background p-2" value={session} onChange={e => { setSession(e.target.value); setResults(null); }}><option value="">Chọn buổi</option>{sessions.map(s => <option key={s.session_id} value={s.session_id}>{s.date} · {s.class_name || 'Buổi học'}</option>)}</select></label><button className={styles.action} disabled={busy || !session} onClick={() => load('session', undefined, session)}>Xem kết quả buổi</button>
+      {!split && <SubmissionHeatmap key={activity?.start_date + ':' + activity?.end_date} activity={activity} year={activityYear} busy={busy} onYearChange={year => void load('activity', undefined, undefined, year)}/>}
+      {sessions.length > 0 && <section className="space-y-3"><h3 className={styles.subheading}>Kết quả và xếp hạng theo buổi</h3><p className={styles.hint}>Hạng của con trong từng cuộc thi gắn với buổi học.</p><label className="block text-sm">Buổi học<select aria-label="Buổi học" className="mt-2 block min-h-11 w-full rounded-lg border bg-background p-2" value={session} onChange={e => { setSession(e.target.value); setResults(null); }}><option value="">Chọn buổi</option>{sessions.map(s => <option key={s.session_id} value={s.session_id}>{s.date} · {s.class_name || 'Buổi học'}</option>)}</select></label><button className={styles.action} disabled={busy || !session} onClick={() => load('session', undefined, session)}>Xem kết quả buổi</button>
         {results && <><p>{labels[results.totals.status || 'available'] || 'Dữ liệu chưa đầy đủ'} · {value(results.totals.solved_count)} bài giải đúng / {value(results.totals.attempted_count)} bài đã làm thử</p>{!results.roster_complete && <p>Chưa đủ liên kết học sinh của buổi này để tính hạng trong lớp. Hạng toàn cuộc thi vẫn hiển thị nếu được công bố.</p>}<ContestRows items={results.contests}/></>}
       </section>}
       <div className={styles.actions}><button className={styles.action} disabled={busy} onClick={() => load('contests')}>Lịch sử cuộc thi</button></div>
@@ -72,8 +100,7 @@ export function ParentOJPanel({ studentId, month: _month, sessions = [], staff =
         <div><dt>Điểm thi đấu (rating)</dt><dd>{data.site.rating === null ? 'Chưa có điểm thi đấu' : value(data.site.rating)}</dd><p>Chỉ số được cập nhật qua các cuộc thi có tính rating; đây là điểm, không phải thứ hạng.</p></div>
         <div><dt>Xếp hạng theo điểm thi đấu</dt><dd>{data.site.rank_status === 'unlisted' ? 'Không tham gia bảng xếp hạng' : data.site.rating_rank === null ? 'Chưa được xếp hạng' : `Hạng ${value(data.site.rating_rank)}`}</dd><p>Vị trí trên CSATOJ khi so điểm rating với các tài khoản được xếp hạng. Số hạng nhỏ hơn nghĩa là vị trí cao hơn.</p></div>
       </dl><p>Đã tham gia {value(data.counts.live_contests)} cuộc thi chính thức · {value(data.counts.virtual_participations)} lượt thi thử (ảo).</p>
-        <button className={styles.action} disabled={busy} onClick={() => load('organizations')}>Xem tổ chức đang tham gia</button>
-        {organizations && <section className="my-3 space-y-3"><h3 className="font-bold">Tổ chức trên CSATOJ</h3><ul className="list-disc pl-5">{organizations.items.map(o => <li key={o.organization_id}>{o.name}</li>)}</ul>{organizations.next_cursor && <button className={styles.action} disabled={busy} onClick={() => load('organizations', organizations.next_cursor!)}>Xem thêm tổ chức</button>}</section>}
+        {staff && <><button className={styles.action} disabled={busy} onClick={() => load('organizations')}>Xem tổ chức đang tham gia</button>{organizations && <section className="my-3 space-y-3"><h3 className="font-bold">Tổ chức trên CSATOJ</h3><ul className="list-disc pl-5">{organizations.items.map(o => <li key={o.organization_id}>{o.name}</li>)}</ul>{organizations.next_cursor && <button className={styles.action} disabled={busy} onClick={() => load('organizations', organizations.next_cursor!)}>Xem thêm tổ chức</button>}</section>}</>}
       </details>
     </>}
   </section>;

@@ -86,3 +86,36 @@
 .parent-portal .parent-section-title+p{margin-top:16px}
 @media(max-width:767px){.parent-portal .parent-section-title{padding:9px 12px}}
 @media print{.parent-portal .parent-section-title{background:white!important;color:#111!important;box-shadow:none;border-color:#111}}
+
+/* Parent report frame: retain the CSAT palette and deliberate hard edges. */
+.parent-shell{grid-template-columns:224px minmax(0,1fr);gap:28px}
+.parent-sidebar{max-height:calc(100dvh - 132px);overflow-y:auto;padding:0 4px 6px 0;scrollbar-width:thin}
+.parent-nav-group{border:2px solid var(--foreground);border-radius:5px;background:var(--card);margin-bottom:16px;overflow:hidden}
+.parent-nav-label{font-family:inherit;font-size:12px;letter-spacing:0;text-transform:none;font-weight:800;margin:0;padding:10px 12px;border-bottom:2px solid var(--foreground);color:#191917}
+.parent-nav-group--lime .parent-nav-label{background:var(--csat-lime)}
+.parent-nav-group--blue .parent-nav-label{background:var(--csat-blue);color:#f8f7f2}
+.parent-nav-group--mint .parent-nav-label{background:var(--csat-mint);color:var(--foreground)}
+.parent-sidebar nav .parent-nav-group>a{display:flex;align-items:center;gap:10px;min-height:48px;padding:10px 12px;font-size:13px;font-weight:650;text-decoration:none;color:var(--foreground);border:0;border-radius:0;margin:0}
+.parent-sidebar nav .parent-nav-group>a svg{flex-shrink:0}
+.parent-sidebar nav .parent-nav-group>a:hover{background:var(--accent)}
+.parent-sidebar nav .parent-nav-group>a[aria-current]{background:var(--secondary);color:var(--foreground);box-shadow:inset 4px 0 0 var(--primary);font-weight:850}
+.parent-card{border:2px solid var(--foreground);border-radius:7px;box-shadow:4px 4px 0 color-mix(in srgb,var(--foreground) 30%,transparent)}
+.parent-welcome h1{font-size:clamp(26px,3vw,36px);text-transform:none;letter-spacing:-.035em;margin-top:0}
+.parent-welcome .parent-eyebrow{display:none}
+.parent-profile{border:2px solid var(--foreground);border-radius:7px}
+.parent-profile-main{padding:20px 24px}
+.parent-portal .parent-eyebrow{font-family:inherit;font-size:11px;letter-spacing:0}
+.parent-metric-note{display:inline-flex;align-items:center;min-height:44px;font-size:13px}
+.parent-services{grid-template-columns:1fr}
+.parent-services .parent-card{padding:26px}
+.parent-services table{font-size:14px}
+.parent-services #tuition>.grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1100px){.parent-shell{grid-template-columns:200px minmax(0,1fr);gap:24px}.parent-services #tuition>.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:767px){.parent-shell{display:block}.parent-sidebar{max-height:none;overflow:visible;padding:0}.parent-sidebar nav{padding:0;border:0;background:transparent}.parent-menu-toggle{border:2px solid var(--foreground);border-radius:5px;background:var(--csat-lime);color:#191917;min-height:48px}.parent-nav-group{margin-bottom:12px}.parent-report{gap:24px}.parent-card,.parent-services .parent-card{padding:18px}.parent-welcome>p{display:none}.parent-profile-main{padding:18px}.parent-welcome h1{font-size:30px}}
+@media print{.parent-shell{display:block}.parent-card{box-shadow:none}.parent-services #tuition>.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.parent-welcome h1{font-size:clamp(26px,2.6vw,34px);line-height:1.2}
+.parent-profile-main{padding:16px 24px}
+.parent-profile h2{margin:0 0 4px}
+@media(max-width:767px){.parent-profile-main{padding:16px}.parent-welcome h1{font-size:28px}}
+.parent-attendance-table th,.parent-status,.parent-chips>span{font-size:12px}
+.parent-attendance-stats strong{font-family:inherit;font-variant-numeric:tabular-nums}

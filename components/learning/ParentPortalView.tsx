@@ -1,4 +1,4 @@
-import { ParentOJPanel } from '@/components/oj/ParentOJPanel';
+import { ParentOJPanel, ParentOJProvider, ParentOJActivity } from '@/components/oj/ParentOJPanel';
 import { ParentTutors } from '@/components/tutors/ParentTutors';
 import Link from 'next/link';
 import { classProgramLabel } from '@/lib/class-programs';
@@ -21,15 +21,16 @@ export function ParentPortalView({portal}:{portal:ParentLearningData}){
  const {student}=portal;
  const query=(page:number)=>'/parents?'+new URLSearchParams({student:student.student_id,month:portal.month,page:String(page)}).toString()+'#reviews';
  const totals=portal.invoices.reduce((s,p)=>({amount:s.amount+Number(p.amount),received:s.received+Number(p.amount)-Number(p.balance),owed:s.owed+Math.max(0,Number(p.balance)),credit:s.credit+Math.max(0,-Number(p.balance))}),{amount:0,received:0,owed:0,credit:0});
- return <ParentShell>
-   <header id="overview" className="parent-welcome"><div><p className="parent-eyebrow">CSAT / GIA ĐÌNH & HỌC TẬP</p><h1>Hành trình học tập<br/><span>của con.</span></h1></div><p className="text-lg font-bold">{student.name}</p></header>
+ return <ParentOJProvider key={student.student_id+portal.month} studentId={student.student_id}><ParentShell>
+   <header id="overview" className="parent-welcome"><h1>Hành trình học tập của con.</h1></header>
    <section className="parent-profile" aria-label="Thông tin học sinh"><div className="parent-profile-main"><div className="parent-avatar" aria-hidden="true">{student.name.trim().split(/\s+/).slice(-1)[0]?.slice(0,1)}</div><div className="min-w-0"><p className="parent-eyebrow">HỌC SINH</p><h2>{student.name}</h2><div className="parent-chips">{portal.enrolledClasses.map(c=><span key={c.class_id}>{c.classes?.name}</span>)}</div><a className="parent-metric-note underline" href="#oj">Xem kết quả CSATOJ</a></div></div><div className="parent-profile-goal"><p className="parent-eyebrow">ĐỒNG HÀNH CÙNG GIA ĐÌNH</p><a href="#reviews">Xem ghi nhận mới nhất ↓</a></div></section>
+   <ParentOJActivity/>
    <section id="reviews" className={card}><h2 className="parent-section-title parent-section-title--blue">Nhận xét từ gia sư</h2><p className="my-4 text-sm leading-7 text-muted-foreground">Mức độ nắm bài được ghi nhận qua bài làm và nhận xét của gia sư.</p>
     <div className="space-y-4">{portal.reviews.map(r=><article key={r.review_id} className="rounded-xl border p-5"><div className="mb-4 flex flex-wrap justify-between gap-3"><strong>{r.classes?.name} · {r.month_year}</strong><span className="text-xs text-muted-foreground">Gia sư: {r.tutors?.name || 'Chưa cập nhật'}</span></div><ReviewContent review={r}/></article>)}</div>
     {!portal.reviews.length && <p className="rounded-lg border border-dashed p-5 text-sm">Chưa có nhận xét tháng được công bố.</p>}
     <div className="mt-5 flex flex-wrap gap-3 print:hidden">{portal.reviewPage>0 && <Link className="csat-btn text-xs" href={query(portal.reviewPage-1)}>Mới hơn</Link>}{(portal.reviewPage+1)*12<portal.reviewCount && <Link className="csat-btn text-xs" href={query(portal.reviewPage+1)}>Nhận xét trước đó</Link>}</div>
    </section>
-   <section id="roadmap" className={card}><h2 className="parent-section-title parent-section-title--lime mb-5">Lộ trình và trọng tâm học tập</h2>
+   <section id="roadmap" className={card}><h2 className="parent-section-title parent-section-title--lime mb-4">Lộ trình và trọng tâm học tập</h2>
     {portal.plans.filter(p=>p.kind==='class').map(p=>{
       const progress=resolveParentCurriculumProgress(p.template,p.body,portal.class_progress?.find(item=>item.class_id===p.class_id));
       const articleLinks:Record<string,string>={};
@@ -51,7 +52,7 @@ export function ParentPortalView({portal}:{portal:ParentLearningData}){
    </section>
    <ParentOJPanel key={student.student_id+portal.month} studentId={student.student_id} month={portal.month} sessions={portal.attendance}/>
    <div id="services" className="parent-services">
-   <section id="contact" className={card}><h2 className="parent-section-title parent-section-title--lime mb-5">Gia sư</h2><ParentTutors tutors={portal.tutors}/></section>
+   <section id="contact" className={card}><h2 className="parent-section-title parent-section-title--lime mb-3">Gia sư</h2>{portal.tutors.length ? <ParentTutors tutors={portal.tutors}/> : <p className="text-sm text-muted-foreground">Thông tin gia sư sẽ được cập nhật.</p>}</section>
    <section id="tuition" className={card}><h2 className="parent-section-title parent-section-title--mint">Học phí</h2><p className="my-4 text-sm leading-7 text-muted-foreground">Khoản tạm tính chưa phải học phí đã chốt.</p>
     <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">{[['Đã chốt',totals.amount],['Đã ghi nhận thanh toán (ròng)',totals.received],['Còn phải đóng',totals.owed],['Dư / cần hoàn',totals.credit]].map(([label,value])=><div key={label} className="rounded-xl border bg-accent/40 p-4"><p className="text-xs">{label}</p><strong className="mt-2 block text-lg">{money(portal.invoices.length?Number(value):null)}</strong></div>)}</div>
     <h3 className="mb-3 font-bold">Các kỳ đã chốt</h3><div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b"><th className="p-3">Kỳ / lớp</th><th className="p-3">Học phí đã chốt</th><th className="p-3">Đã thanh toán (ròng)</th><th className="p-3">Số dư</th></tr></thead><tbody>{portal.invoices.map(p=><tr className="border-b" key={p.payment_id}><td className="p-3">{p.period}<span className="block text-xs text-muted-foreground">{p.class_name || 'Chưa có liên kết lớp'}</span></td><td className="p-3">{money(p.amount)}</td><td className="p-3">{money(Number(p.amount)-Number(p.balance))}</td><td className="p-3">{Number(p.balance)<0?'Dư / cần hoàn: ':Number(p.balance)>0?'Còn đóng: ':'Đã đủ: '}{money(Math.abs(Number(p.balance)))}</td></tr>)}</tbody></table></div>
@@ -60,5 +61,5 @@ export function ParentPortalView({portal}:{portal:ParentLearningData}){
    </section>
    </div>
    <footer className="parent-footer">CSAT · Gia đình và gia sư cùng đồng hành trong việc học của con.</footer>
- </ParentShell>;
+ </ParentShell></ParentOJProvider>;
 }

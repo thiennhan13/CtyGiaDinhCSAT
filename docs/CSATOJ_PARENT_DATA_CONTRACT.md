@@ -2,7 +2,7 @@
 
 ## Phạm vi giao diện đã chốt
 
-Chủ trung tâm chọn bản gọn, Việt hóa và có giải thích phụ. Tổng quan chỉ giữ **Bài đã làm thử**, **Bài giải đúng**, **Lượt nộp**; tiếp theo là lịch lượt nộp, kết quả/xếp hạng theo buổi và lịch sử cuộc thi. Điểm rating và hạng rating nằm trong **Chi tiết thi đấu**. Không hiển thị hạng performance, số cuộc thi mới đăng ký hoặc tổ chức ở hàng chỉ số chính; tổ chức vẫn xem được trong chi tiết khi cần đối chiếu. Không xóa trường API cũ chỉ vì UI ẩn chúng.
+Chủ trung tâm chọn bản gọn, Việt hóa và có giải thích phụ. Lịch **Nhịp luyện tập của con** nằm ngay sau hồ sơ học sinh, trọn chiều ngang nội dung. Các phần còn lại giữ thứ tự: nhận xét, lộ trình, định hướng, buổi học, kết quả OJ, gia sư và học phí. Kết quả OJ giữ **Bài đã làm thử**, **Bài giải đúng**, **Lượt nộp**, rồi kết quả/xếp hạng theo buổi và lịch sử cuộc thi. Điểm rating và hạng rating nằm trong **Chi tiết thi đấu**. Không hiển thị hạng performance, số cuộc thi mới đăng ký hoặc tổ chức ở hàng chỉ số chính; bỏ nút tổ chức và bảng số liệu ngày khỏi giao diện phụ huynh. Không xóa trường API cũ chỉ vì UI ẩn chúng.
 
 Tiêu đề dùng cobalt `#2b50e0`, lime `#d9e64c`, mint hiện có, viền rõ và bóng cứng; giữ Archivo. Màu phân cấp nội dung, không thay trạng thái công bố/quyền hoặc suy ra mức thành thạo. Số lượt nộp phản ánh hoạt động; tiến bộ cần đọc cùng bài giải đúng, kết quả từng cuộc thi và nhận xét gia sư.
 
@@ -23,7 +23,7 @@ Nguồn tham chiếu đã đọc trong repo OJ: `templates/user/user-about.html`
 | Cuộc thi | `accounts/<id>/contests/`, cursor, mode/state/status | Tên, thời gian, điểm, bài làm, số bài, hạng và mẫu số đúng lượt LIVE; thi thử tách riêng |
 | Kết quả lớp/buổi | `accounts/<id>/class-results/` | Portal cung cấp contest IDs và roster/grant lịch sử; OJ trả totals khử trùng, hạng lớp/toàn cuộc thi, `roster_complete`, `class_rank_basis` |
 | Điểm thi đấu | `site.rating`, `site.rating_rank`, `site.rank_status` | Rating là điểm; rating_rank là vị trí so điểm rating trên OJ, khác hạng trong một cuộc thi |
-| Đối chiếu | organizations; số cuộc thi chính thức/lượt thi thử | Dữ liệu phụ, tải theo thao tác; không chiếm hàng tổng quan |
+| Đối chiếu | organizations; số cuộc thi chính thức/lượt thi thử | Organizations giữ tương thích cho staff, không còn nút đọc ở phụ huynh; số cuộc thi nằm trong Chi tiết thi đấu |
 
 Không cần OJ xuất số điện thoại, Gmail phụ huynh, học phí/điểm danh Portal, hay danh tính/điểm của các bạn khác. Không yêu cầu một “hạng trong lớp tổng hợp” chưa có định nghĩa. Không cộng/đánh trung bình hạng hoặc điểm của nhiều cuộc thi khác thang điểm. Hạng lớp dùng người thi chính thức trong roster, không phải sĩ số toàn lớp; roster thiếu thì hạng lớp null, hạng toàn cuộc thi vẫn giữ nếu được phép.
 
@@ -80,6 +80,6 @@ Không polling; chỉ tải khi mở phần và khi làm mới/chọn năm. HTTP
 
 ## Cổng nghiệm thu hai phía
 
-OJ cần triển khai và kiểm `activity` trước khi có heatmap dữ liệu thật. Portal đã chuẩn bị kiểm: dữ liệu cũ không có field; năm nhuận; ngày liên tiếp/trùng/thiếu; tổng lệch; sai metric/timezone;0 khácnull; year sai/ngoài phạm vi; quyền đổi giữa fetch; đổi năm không thay tổng quan; lỗi mạng giữ lịch cũ; thu hồi xóa lịch; lịch dùng phím mũi tên và có bảng số liệu thay thế;320–1440px, sáng/tối/reduced motion.
+OJ cần triển khai và kiểm `activity` trước khi có heatmap dữ liệu thật. Portal đã chuẩn bị kiểm: dữ liệu cũ không có field; năm nhuận; ngày liên tiếp/trùng/thiếu; tổng lệch; sai metric/timezone;0 khácnull; year sai/ngoài phạm vi; quyền đổi giữa fetch; đổi năm không thay tổng quan; lỗi mạng giữ lịch cũ; thu hồi xóa lịch; lịch dùng phím mũi tên, tooltip và nhãn ngày đang chọn;320–1440px, sáng/tối/reduced motion.
 
 Phía OJ bổ sung kiểm DB thật: hai lượt cùng bài được tính2; rejudge không tăng count; qua nửa đêm Việt Nam; private/frozen/withheld và thu hồi không lộ count/ngày; year range/29-2/tài khoản không submission; query aggregation không N+1, quota/cache/no-store. Sau đó pilot cùng một học sinh và cùng khoảng ngày ở OJ/Portal để đối chiếu tổng, từng ngày, bài đã thử/AC và hạng lớp/toàn cuộc thi. Test local của Portal không thay bằng chứng này.
