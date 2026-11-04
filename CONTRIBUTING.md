@@ -2,7 +2,7 @@
 
 ## Onboarding
 
-1. Chủ repo cấp quyền tối thiểu cần thiết cho GitHub. Thành viên đọc README → PROJECT_STATUS → ARCHITECTURE → AGENTS → SECURITY.
+1. Chủ repo cấp quyền tối thiểu cần thiết cho GitHub. Thành viên đọc HANDOFF → README/AGENTS/SECURITY → PROJECT_STATUS/DECISIONS → ARCHITECTURE.
 2. Cài Node.js 24 theo .nvmrc/engines và Git; kiểm tra runtime thật rồi chạy `npm ci` và `npm ci --prefix database/tests`. Dùng lockfile đã có, không tự nâng toàn bộ dependency.
 3. Dùng project Supabase thử riêng hoặc fixture localhost. Mẫu `.env.example` không chứa khóa thật. Không ghi đè `.env.local` có sẵn; không đưa giá trị secret vào prompt.
 4. Database thử: xem [database/README.md](database/README.md). Người chỉ sửa nội dung/trang công khai có thể chạy `node scripts/preview-public-site.cjs` mà không cần DB thật.
@@ -41,7 +41,7 @@ npm run check:repo
 npm run test:repo
 npm run test:db
 npm run typecheck
-npm run lint
+npm run lint:strict
 npm run build
 ```
 
@@ -49,9 +49,9 @@ npm run build
 - `test:repo`: kiểm tra guard phát hiện dữ liệu bị cấm và index staged.
 - `test:db`: PGlite/API regressions và PostgreSQL native. Ca native chỉ chạy Windows; Ubuntu sẽ skip, nên CI có job Windows riêng.
 - Build phải có biến Supabase thử/placeholder. Không đổi `.env` production để chạy test; ưu tiên terminal có biến môi trường giả hoặc CI.
-- Runner UI ở `scripts/` cần Playwright/Chromium, một số còn dùng vị trí runtime Codex trên Windows; xem ARCHITECTURE. Không tuyên bố browser QA đạt nếu thiếu công cụ.
+- Runner UI ở `scripts/` dùng Playwright đã khóa; local dùng Edge có sẵn, CI cài Chromium. Các override runtime local chỉ là tùy chọn; xem CICD_SETUP. Không tuyên bố browser QA đạt nếu thiếu công cụ.
 
-Tài liệu thuần túy không cần test nghiệp vụ mới; thay workflow/guard cần kiểm tra chính guard và các lệnh workflow có thay đổi.
+Tài liệu thuần túy chỉ cần diff, liên kết và repo guard; không cần build/database/browser nếu không đổi hành vi. Thay workflow/guard cần kiểm tra chính guard và các lệnh workflow có thay đổi.
 
 ## Phát hành và xử lý lỗi
 

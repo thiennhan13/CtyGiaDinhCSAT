@@ -1,8 +1,14 @@
 # Database: đọc và thay đổi đúng phiên bản
 
+## Google, grants và reset
+
+Migration mới30–32 đã triển khai local: Google/phone claim một–một, contact/student atomic, certificates, tutor receipts và OJ accounts. [Runbook chuyển đổi/reset](../docs/PORTAL_GOOGLE_GRANTS_ROLLOUT.md). Đã áp19/21/22/29/30/31/32 trên Supabase hiện tại ngày03/11 sau backup/phục hồi và rehearsal; registry27 phiên bản, mới nhất32. Không chạy lại các migration này; ứng dụng chưa deploy. Không chạy lại26 để triển khai Google. Migration28 cũ được giữ lịch sử,32 thu hồi RPC bindings nếu có.
+
+Reset mới03/11 dùng `scripts/portal-activity-reset.cjs` preview/apply, không nằm trong migration. Đích là Supabase hiện tại; sao lưu về máy và thử phục hồi trước. Giữ lớp/cấu hình/thành viên/giá/giáo trình lớp, học sinh/phụ huynh/liên kết và Auth/tutors/hồ sơ/avatar/Storage/intake/lịch sử/dữ liệu nền; chỉ xóa chốt sổ/buổi/điểm danh/phát sinh. `portal-reset.cjs --apply` cũ bị chặn vì phạm vi xóa rộng đã hết hiệu lực.
+
 ## Migration là gì?
 
-Migration đăng nhập [29](migrations/20261024_29_login_identity_budget.sql) nâng budget định danh từ 10 lên 20 trong 15 phút, giữ nguồn 50 và bộ đếm/phiên hiện có. Phụ thuộc 27, độc lập OJ 28 (có thể áp trước hoặc sau 28); chưa áp production. Chỉ thay `consume_auth_attempt`, giữ chữ ký và quyền service role. Kiểm thử `login-identity-budget.test.cjs` và PostgreSQL native kiểm biên, bảo toàn bộ đếm và tranh chấp lượt 20.
+Migration đăng nhập [29](migrations/20261024_29_login_identity_budget.sql) nâng budget định danh từ 10 lên 20 trong 15 phút, giữ nguồn 50 và bộ đếm/phiên hiện có. Phụ thuộc 27, độc lập OJ 28 (có thể áp trước hoặc sau 28); đã áp Supabase hiện tại03/11. Chỉ thay `consume_auth_attempt`, giữ chữ ký và quyền service role. Kiểm thử `login-identity-budget.test.cjs` và PostgreSQL native kiểm biên, bảo toàn bộ đếm và tranh chấp lượt 20.
 
 Migration là bản SQL thay đổi cấu trúc, quyền/RPC hoặc dữ liệu có kiểm soát. Deploy Next.js lên Vercel **không tự chạy migration**. Nguồn thứ tự/phụ thuộc là file SQL trong `migrations/`; trạng thái môi trường lấy từ registry và kiểm chứng thực tế, không lấy số file lớn nhất.
 
@@ -10,7 +16,7 @@ Migration là bản SQL thay đổi cấu trúc, quyền/RPC hoặc dữ liệu 
 SELECT version FROM csat_internal.schema_migrations ORDER BY version;
 ```
 
-Registry bắt đầu từ 05; thiếu dòng 01–04 không có nghĩa phải chạy lại. Đối chiếu production 14/10/2026 có 05–18, 20 và 23–26; người dùng đã áp 18/24/25/26, còn thiếu 19/21/22 thuộc backlog. Đã cấp và đối soát 44 Auth parent theo ủy quyền; xem [bàn giao](../docs/BACKEND_COMPLETION.md). Phải đọc lại trạng thái trước lần thao tác mới; không chạy lại migration đã có.
+Registry bắt đầu từ 05; thiếu dòng 01–04 không có nghĩa phải chạy lại. Dùng `csat_internal.schema_migrations`, không giả định bảng `supabase_migrations.schema_migrations` của CLI tồn tại. Bằng chứng production ở [PROJECT_STATUS](../docs/PROJECT_STATUS.md); kiểm tra lại registry, cấu trúc và quyền trước thao tác, không chạy lại migration đã có.
 
 ## Bản đồ các nhóm migration
 
@@ -25,13 +31,18 @@ Registry bắt đầu từ 05; thiếu dòng 01–04 không có nghĩa phải ch
 | 20 | Khung A/B/C/D đã duyệt, snapshot và chuyển các lớp hiện có |
 | 21 | Hoàn thiện email + phí từng buổi trong JSON phụ huynh; còn MAIL-01/02 |
 | 22 | Hồ sơ/avatar gia sư, revision, quyền, audit, JSON phụ huynh |
-| 23 | Aggregate số buổi completed của lớp cho chỉ báo chặng phụ huynh; đã áp production 08/10/2026 |
+| 23 | Aggregate số buổi completed của lớp cho chỉ báo chặng phụ huynh; cần 20 |
 | 24 | Đăng ký intake v2 không tạo outbox/email; lịch sử trạng thái có revision; cần 18 |
 | 25 | Mã A/B/AB/C/E/PREVOI/K, lịch sử phân loại; giữ tên/giáo án/học phí; cần 23 |
-| 27 | Tra cứu phụ huynh chỉ bằng số, thu hồi lookup cũ và RPC cấp Auth; chống spam chung với staff; cần 26. Xem [runbook](../docs/PARENT_PHONE_ACCESS.md) |
-| 26 | Supabase Auth phụ huynh, liên kết user/session, rate limit và provisioning; đóng login chỉ bằng số ngay; cần 23 |
+| 26 | Nền Auth phụ huynh/rate limit/provisioning lịch sử; cần 23; luồng Auth được 27 thay thế |
+| 27 | Tra cứu phụ huynh bằng số, thu hồi lookup/RPC Auth cũ, chống spam chung với staff; cần 26. [Runbook](../docs/PARENT_PHONE_ACCESS.md) |
+| 28 | OJ metadata/bindings cũ, cần27; chưa chứa grant exchange mới |
+| 29 | Nâng budget định danh login, cần27; độc lập28 |
+| 30 | Google parent identity một–một, contact/student RPC, revision/audit, retire lookup; cần29 |
+| 31 | Certificates và tutor receipts; cần22 và30 |
+| 32 | OJ accounts/grants, operation/receipt, quota, server context; cần31 |
 
-20 chỉ phụ thuộc 17, nên có thể có 20 trong khi 18/19 chưa áp dụng. 21 cần 19 và 20; 22 cần 21; 23 chỉ cần 20 và bảo toàn các trường 21/22 nếu có. Có thể phát hành 23 độc lập; kiểm thử xác nhận 21/22 áp sau vẫn giữ aggregate. Với trạng thái hiện tại, phần email/hồ sơ còn lại là **19 → 21 → 22** (18 đã có); xác minh lại trước thao tác. Không chỉnh migration đã phát hành; sửa bằng migration mới sau số cuối thực tế. Migration26 đã áp cùng RLS, mọi sửa đổi tiếp theo dùng migration mới.
+20 chỉ phụ thuộc 17, nên có thể có 20 trong khi 18/19 chưa áp dụng. 21 cần 19 và 20; 22 cần 21; 23 chỉ cần 20 và bảo toàn các trường 21/22 nếu có. Có thể phát hành 23 độc lập; kiểm thử xác nhận 21/22 áp sau vẫn giữ aggregate. Dependency hồ sơ là **19 →21 →22** (cần18/20 theo precondition); chuỗi này đã có trong registry hiện tại, không chạy lại. Xác minh registry trước mọi thao tác. Không chỉnh migration đã phát hành; sửa bằng migration mới sau số cuối thực tế. Migration26 đã áp cùng RLS, mọi sửa đổi tiếp theo dùng migration mới.
 
 ## Khởi tạo database thử mới
 
@@ -39,7 +50,7 @@ Dùng project Supabase thử **trống**, có schema Auth và roles chuẩn. Kh�
 
 1. Đọc `CSAT_master_schema.sql`: hiện là baseline tổng hợp **đến 10**, không phải schema mới nhất đến 27.
 2. Chạy baseline một lần trên project trống; kiểm tra registry 05–10. Không chạy lại 01–10 sau đó.
-3. Áp dụng lần lượt 11–27, xem precondition đầu từng file và verification tương ứng. `upgrade-learning-portal.sql` là gói lịch sử 11–15; chỉ chọn gói hoặc từng file, không cả hai. Bộ backend cần kiểm thử cả chuỗi đầy đủ và chuỗi tối thiểu như production. Auth mock trong test không thay nghiệm thu Supabase thật.
+3. Áp dụng11–27 rồi29 theo precondition/verification để dựng hệ thống hiện hành; chỉ thêm28 khi cần kiểm adapter OJ cũ. Nếu kiểm toàn bộ schema repo thì chuỗi11–29 gồm cả28. `upgrade-learning-portal.sql` là gói lịch sử11–15; chỉ chọn gói hoặc từng file, không cả hai. Kiểm cả chuỗi đầy đủ và chuỗi tối thiểu theo registry đích. Auth mock không thay nghiệm thu Supabase thật; Áp30–32 để kiểm Google/grants mới; cần22 trước31.
 4. Tạo tài khoản và fixture giả qua luồng được phép; không seed dump production. Bucket avatar/policy là bước Supabase Storage riêng sau 22.
 5. Kiểm tra API/RLS theo vai trò và UI. Bộ test cục bộ có Auth helper giả, không thay thế Supabase thật.
 
@@ -47,9 +58,9 @@ Dùng project Supabase thử **trống**, có schema Auth và roles chuẩn. Kh�
 
 ## Kiểm chứng và maintenance
 
-Ba luồng backend dùng **18 → 24**, **23 → 25**, **23 → 26 → 27**; không cần 19/21/22. Nếu chạy các migration email/hồ sơ cũ sau 24–26, kiểm chứng lại quyền/projection trên schema kết hợp trước, không chỉ dựa test của 23. [Runbook hiện hành](../docs/PARENT_PHONE_ACCESS.md) quy định cửa sổ chuyển đổi migration27 → ứng dụng; không cấp Auth phụ huynh nữa. Hiện chưa có staging Supabase; nghiệm thu thật còn chờ. Người dùng tự chạy SQL production, không chạy từ task xây dựng mã.
+Ba luồng backend hiện có dùng **18 → 24**, **23 → 25**, **23 → 26 → 27**; không cần 19/21/22. Nếu chạy các migration email/hồ sơ cũ sau24–27, kiểm chứng lại quyền/projection trên schema kết hợp trước. [Runbook lookup](../docs/PARENT_PHONE_ACCESS.md) mô tả cửa sổ chuyển đổi27 → ứng dụng, không cấp lại Auth theo provisioning mật khẩu26. Google dùng30–32, cần nghiệm thu môi trường thật riêng. Hiện chưa có staging Supabase; nghiệm thu thật còn chờ. Người dùng tự chạy SQL production, không chạy từ task xây dựng mã.
 
-[Preflight](verification/20261012_backend_preflight.sql) và [postflight](verification/20261012_backend_postflight.sql) đều READ ONLY, trả aggregate/grants/digest, không PII. Lưu kết quả nội bộ; chạy lại preflight sau schema/provision để đối chiếu digest lịch sử/nháp/công bố/tài chính. Digest classes bỏ cột program mới, parent_accounts bỏ auth_uid; các phần còn lại phải giữ nguyên khi không có ghi nghiệp vụ. Postflight kiểm tra login cũ bị khóa, liên kết Auth, outbox đăng ký mới bằng 0 và quyền RPC. Không dùng SQL kiểm tra để cấp user hoặc sửa hồ sơ.
+[Preflight](verification/20261012_backend_preflight.sql) và [postflight](verification/20261012_backend_postflight.sql) đều READ ONLY, trả aggregate/grants/digest, không PII. Lưu kết quả nội bộ; chạy lại preflight sau thay đổi schema để đối chiếu digest lịch sử/nháp/công bố/tài chính. Digest classes bỏ cột program mới, parent_accounts bỏ auth_uid; các phần còn lại phải giữ nguyên khi không có ghi nghiệp vụ. Postflight backend mô tả hợp đồng tại migration 26, không dùng nguyên kỳ vọng Auth cũ để kết luận 27 lỗi. Sau 27 dùng thêm [verification hiện hành](verification/20261014_parent_phone_access.sql) cho quyền RPC/phiên lookup; provisioning Auth đã ngừng. Giữ kiểm chứng không có outbox từ đơn mới và digest bảo toàn. Không dùng SQL kiểm tra để cấp user hoặc sửa hồ sơ.
 
 - `verification/`: đọc từng file trước khi chạy. Phần lớn là SQL kiểm tra; **`20260923_tutor_avatar_storage_setup.sql` có ghi**, tạo bucket và policy, cần cho phép đúng môi trường.
 - `maintenance/20260923_student_phone_fallback.sql`: thao tác dữ liệu một lần đã dùng, có guard/audit; không phải chính sách tự copy số cho hồ sơ mới và không chạy mặc định khi onboarding.

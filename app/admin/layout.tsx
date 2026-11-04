@@ -14,7 +14,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   // Tầng bảo vệ thứ 2 (sau middleware): chỉ admin mới vào được /admin/**
-  const role = user.app_metadata?.role ?? 'tutor';
+  const role = user.app_metadata?.role ?? 'parent';
   if (role !== 'admin') {
     redirect(role === 'parent' ? '/login' : '/tutor/dashboard');
   }

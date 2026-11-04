@@ -26,9 +26,9 @@ export async function getTutorProfile(tutorId?: string) {
   try {
     const access = await authorize(tutorId); if (access.response) return access.response;
     const { data, error } = await access.supabase.from('tutor_public_profiles')
-      .select('tutor_id,introduction,background,major,university,achievements,avatar_path,revision,updated_at').eq('tutor_id', access.tutor.tutor_id).maybeSingle();
+      .select('tutor_id,introduction,background,major,university,achievements,certificates,avatar_path,revision,updated_at').eq('tutor_id', access.tutor.tutor_id).maybeSingle();
     if (error) return schemaError(error);
-    const profile = data ?? { tutor_id: access.tutor.tutor_id, introduction: '', background: DEFAULT_TUTOR_BACKGROUND, major: '', university: '', achievements: '', avatar_path: null, revision: 0 };
+    const profile = data ?? { tutor_id: access.tutor.tutor_id, introduction: '', background: DEFAULT_TUTOR_BACKGROUND, major: '', university: '', achievements: '', certificates: '', avatar_path: null, revision: 0 };
     return json({ profile: { ...profile, name: access.tutor.name, avatar_url: avatarUrl(profile.avatar_path) } });
   } catch { return json({ error: 'Không tải được hồ sơ. Vui lòng thử lại.' }, 500); }
 }

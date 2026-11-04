@@ -37,7 +37,7 @@ export function TutorProfileEditor({ tutorId }: { tutorId?: string }) {
     e.preventDefault(); if (!profile) return;
     setBusy(true); setError(''); setNotice('');
     try {
-      const data: TutorProfileInput = { revision: profile.revision, introduction: profile.introduction, major: profile.major, university: profile.university, achievements: profile.achievements, avatar_action: action, ...(tutorId ? { background: profile.background } : {}) };
+      const data: TutorProfileInput = { revision: profile.revision, introduction: profile.introduction, major: profile.major, university: profile.university, achievements: profile.achievements, certificates: profile.certificates || '', avatar_action: action, ...(tutorId ? { background: profile.background } : {}) };
       const form = new FormData(); form.set('profile', JSON.stringify(data)); if (file && action === 'replace') form.set('avatar', file);
       const r = await fetch(endpoint, { method: 'PUT', body: form }); const p = await r.json();
       if (!r.ok) { if (r.status === 409) setConflict(true); throw Error(p.error); }
@@ -58,6 +58,7 @@ export function TutorProfileEditor({ tutorId }: { tutorId?: string }) {
         <p id="tutor-introduction-help" className="text-xs leading-6 text-muted-foreground">Viết 2–4 câu, khoảng 300–600 ký tự, về bản thân, cách hướng dẫn và đồng hành với học sinh. {profile.introduction.length}/2.000 ký tự.</p>
         <label className="block space-y-2 text-sm">Ngành học<Input value={profile.major} maxLength={200} onChange={e => change('major', e.target.value)} /></label>
         <label className="block space-y-2 text-sm">Trường đại học<Input value={profile.university} maxLength={200} onChange={e => change('university', e.target.value)} /></label>
+        <div className="space-y-2 text-sm"><label htmlFor="tutor-certificates">Chứng chỉ · mỗi dòng một chứng chỉ</label><Textarea id="tutor-certificates" rows={4} maxLength={2000} value={profile.certificates || ''} onChange={e => change('certificates', e.target.value)} /></div>
         <div className="space-y-2 text-sm"><label htmlFor="tutor-achievements">Thành tích cá nhân · mỗi dòng một thành tích</label><Textarea id="tutor-achievements" rows={4} maxLength={2000} value={profile.achievements} onChange={e => change('achievements', e.target.value)} /></div>
         <label className="block space-y-2 text-sm">Ảnh đại diện<Input ref={picker} type="file" accept="image/jpeg,image/png,image/webp" onChange={e => selectFile(e.target.files?.[0])} /></label>
         <p className="text-xs leading-6 text-muted-foreground">Ảnh vuông 512 × 512, cắt giữa ảnh. JPG, PNG hoặc WebP tối đa 3 MB. Ảnh có đường dẫn công khai: ai có link đều có thể xem.</p>

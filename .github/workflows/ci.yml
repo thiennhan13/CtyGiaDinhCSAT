@@ -100,6 +100,11 @@ jobs:
           CSAT_BROWSER_CHANNEL: chromium
         run: node scripts/run-parent-topics-ui.cjs
 
+      - name: Parent identity, OJ grants and tutor receipt browser fixtures
+        env:
+          CSAT_BROWSER_CHANNEL: chromium
+        run: node scripts/run-oj-ui.cjs
+
   postgres:
     name: PostgreSQL 17 (Windows, Node 24)
     runs-on: windows-latest
@@ -122,4 +127,4 @@ jobs:
           npm ci
           npm ci --prefix database/tests
       - name: Real PostgreSQL concurrency and restore
-        run: node --test database/tests/postgres-concurrency.test.cjs
+        run: node --test --test-concurrency=2 database/tests/postgres-concurrency.test.cjs database/tests/oj-concurrency.test.cjs database/tests/portal-concurrency.test.cjs

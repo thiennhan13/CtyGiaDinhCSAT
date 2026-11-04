@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { TutorProfile } from '@/lib/tutor-profile';
 
-type CardProfile = Pick<TutorProfile, 'name' | 'introduction' | 'background' | 'major' | 'university' | 'achievements'> & { avatar_url?: string | null };
+type CardProfile = Pick<TutorProfile, 'name' | 'introduction' | 'background' | 'major' | 'university' | 'achievements' | 'certificates'> & { avatar_url?: string | null };
 function Avatar({ url, name }: { url?: string | null; name: string }) {
   const [failed, setFailed] = useState(false);
   const image = useRef<HTMLImageElement>(null);
@@ -24,5 +24,6 @@ export function TutorProfileCard({ profile, classes = [] }: { profile: CardProfi
     {profile.background && <p className="text-sm leading-6">{profile.background}</p>}
     {(profile.major || profile.university) && <p className="text-sm leading-6">{[profile.major, profile.university].filter(Boolean).join(' · ')}</p>}
     {profile.achievements && <div><h4 className="mb-2 text-sm font-bold">Thành tích cá nhân</h4><ul className="list-disc space-y-1 pl-5 text-sm leading-6">{profile.achievements.split('\n').map(s => s.trim()).filter(Boolean).map((s, i) => <li key={i}>{s}</li>)}</ul></div>}
+    {profile.certificates && <div><h4 className="mb-2 text-sm font-bold">Chứng chỉ</h4><ul className="list-disc space-y-1 pl-5 text-sm leading-6">{profile.certificates.split('\n').map(s => s.trim()).filter(Boolean).map((s, i) => <li key={i}>{s}</li>)}</ul></div>}
   </article>;
 }

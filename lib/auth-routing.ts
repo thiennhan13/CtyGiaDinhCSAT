@@ -1,7 +1,7 @@
 type AuthUser = { app_metadata?: Record<string, unknown> } | null;
 export function authRedirect(pathname: string, user: AuthUser): string | null {
   const within = (prefix: string) => pathname === prefix || pathname.startsWith(`${prefix}/`);
-  const role = user?.app_metadata?.role || 'tutor';
+  const role = user?.app_metadata?.role || 'parent';
   const home = role === 'admin' ? '/admin/dashboard' : role === 'parent' ? '/parents' : '/tutor/dashboard';
   if (within('/parents') || pathname === '/login') return null;
   if (within('/admin')) return !user ? '/tutor' : role !== 'admin' ? home : null;

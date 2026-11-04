@@ -6,7 +6,6 @@
 // set PARENT_TOPICS_QA_RPC_PORT to its build-time port (the runner must own it exclusively).
 // No runtime bypass route is added. The real private page reads its normal HTTP-only cookie and RPC.
 const assert = require('node:assert/strict');
-const crypto = require('node:crypto');
 const fs = require('node:fs/promises');
 const http = require('node:http');
 const net = require('node:net');
@@ -40,22 +39,20 @@ const allArticles = library.map(article => [article.slug, /^[AB]/.test(article.t
 const requestedSlugs = process.env.PARENT_TOPICS_QA_ARTICLE_SLUGS?.split(',').map(slug => slug.trim()).filter(Boolean);
 if (requestedSlugs && (!requestedSlugs.length || requestedSlugs.some(slug => !library.some(article => article.slug === slug)))) throw Error('Unknown or empty article selection.');
 const articlesToReview = requestedSlugs ? allArticles.filter(([slug]) => requestedSlugs.includes(slug)) : allArticles;
-const modes = Object.fromEntries(['valid', 'excluded', 'old', 'expired', 'revoked', 'withdrawn', 'draft', 'nullStudent', 'zero', 'missingProgress'].map((mode, i) => {
-  const token = String.fromCharCode(97 + i).repeat(43);
-  return [mode, { token, hash: crypto.createHash('sha256').update(token).digest('hex') }];
-}));
+const modes = ['valid', 'excluded', 'old', 'expired', 'revoked', 'withdrawn', 'draft', 'nullStudent', 'zero', 'missingProgress'];
 const filter = process.env.PARENT_TOPICS_QA_FILTER ? new RegExp(process.env.PARENT_TOPICS_QA_FILTER) : null;
 const demo = process.env.PARENT_TOPICS_QA_DEMO === '1';
 const report = { filter: filter?.source || null, assertions: 0, checks: [], failures: [], browserErrors: [], unexpectedRequests: [], mockRequests: [] };
 const check = (value, message) => { report.assertions++; assert.ok(value, message); };
 // Synthetic Auth transport only; this does not certify a real Supabase login.
-const sessions = Object.fromEntries(['parent', 'admin'].map(role => {
+const sessions = Object.fromEntries(['parent', 'admin'].flatMap(role => modes.map(mode => {
   const user = { id: ids.parent, aud: 'authenticated', role: 'authenticated', app_metadata: { role }, user_metadata: { name: 'Người dùng dữ liệu giả' }, created_at: '2026-01-01T00:00:00Z' };
   const expires = Math.floor(Date.now() / 1000) + 7200;
   const encode = value => Buffer.from(JSON.stringify(value)).toString('base64url');
-  const access_token = encode({ alg: 'HS256', typ: 'JWT' }) + '.' + encode({ sub: user.id, aud: 'authenticated', role: 'authenticated', session_id: ids.session, app_metadata: user.app_metadata, exp: expires, iat: expires - 7200 }) + '.' + Buffer.from('synthetic-fixture-signature').toString('base64url');
-  return [role, { access_token, token_type: 'bearer', refresh_token: 'synthetic-unused-refresh', expires_in: 7200, expires_at: expires, user }];
-}));
+  const access_token = encode({ alg: 'HS256', typ: 'JWT' }) + '.' + encode({ sub: user.id, aud: 'authenticated', role: 'authenticated', session_id: ids.session, app_metadata: user.app_metadata, exp: expires, iat: expires - 7200 }) + '.' + Buffer.from('synthetic-fixture-signature-' + mode).toString('base64url');
+  return [role + ':' + mode, { access_token, token_type: 'bearer', refresh_token: 'synthetic-unused-refresh', expires_in: 7200, expires_at: expires, user }];
+})));
+const authCookie = (mode = 'valid', role = 'parent') => ({ name: 'sb-127-auth-token', value: 'base64-' + Buffer.from(JSON.stringify(sessions[role + ':' + mode])).toString('base64url'), domain: '127.0.0.1', path: '/', httpOnly: true, sameSite: 'Lax' });
 async function run(name, fn) {
   if (filter && !filter.test(name)) return;
   try { await fn(); report.checks.push(name); console.log('PASS ' + name); }
@@ -99,26 +96,26 @@ async function main() {
   }
   const mock = http.createServer(async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
+    const entry = Object.entries(sessions).find(([, value]) => req.headers.authorization === 'Bearer ' + value.access_token);
+    const mode = entry?.[0].split(':')[1];
     if (req.url === '/auth/v1/user' && req.method === 'GET') {
-      const session = Object.values(sessions).find(value => req.headers.authorization === 'Bearer ' + value.access_token);
-      if (!session) { res.writeHead(401); res.end(JSON.stringify({ message: 'Unknown synthetic Auth token.' })); return; }
-      res.end(JSON.stringify(session.user)); return;
+      if (!entry || mode === 'expired') { res.writeHead(401); res.end(JSON.stringify({ message: 'Unknown or expired synthetic Auth token.' })); return; }
+      res.end(JSON.stringify(entry[1].user)); return;
     }
-    if (!['/rest/v1/rpc/parent_learning_portal', '/rest/v1/rpc/parent_phone_session_valid'].includes(req.url) || req.method !== 'POST') {
+    if (!['/rest/v1/rpc/parent_portal', '/rest/v1/rpc/parent_access'].includes(req.url) || req.method !== 'POST') {
       report.unexpectedRequests.push({ surface: 'mock', path: req.url, method: req.method });
       res.writeHead(404); res.end(JSON.stringify({ message: 'Only the read-only parent RPC fixture exists.' })); return;
     }
     try {
       let body = ''; for await (const chunk of req) body += chunk;
       const args = JSON.parse(body);
-      const mode = Object.keys(modes).find(key => modes[key].hash === args.p_token_hash);
-      if (req.url === '/rest/v1/rpc/parent_phone_session_valid') {
-        res.end(JSON.stringify(!!mode && !['expired', 'revoked'].includes(mode))); return;
+      if (req.url === '/rest/v1/rpc/parent_access') {
+        res.end(JSON.stringify({ state: mode === 'revoked' ? 'blocked' : mode ? 'active' : 'unlinked', student_id: mode ? ids.student : undefined })); return;
       }
       // Report only synthetic argument metadata, never cookies or token hashes.
       report.mockRequests.push({ mode: mode || 'unknown', student: args.p_student_id, month: args.p_month, page: args.p_review_page });
       if (!mode || ['expired', 'revoked'].includes(mode) || (args.p_student_id && args.p_student_id !== ids.student)) {
-        res.writeHead(403); res.end(JSON.stringify({ code: '42501', message: 'Synthetic lookup denied.' })); return;
+        res.writeHead(403); res.end(JSON.stringify({ code: '42501', message: 'Synthetic parent access denied.' })); return;
       }
       res.end(JSON.stringify(portal(mode, args)));
     } catch {
@@ -166,10 +163,7 @@ async function main() {
         return route.continue();
       });
       result.on('page', page => page.on('pageerror', error => report.browserErrors.push(error.message)));
-      if (mode) await result.addCookies([
-        { name: 'csat_parent_lookup', value: modes[mode].token, domain: '127.0.0.1', path: '/', httpOnly: true, sameSite: 'Lax' },
-        ...(role === 'admin' ? [{ name: 'sb-127-auth-token', value: 'base64-' + Buffer.from(JSON.stringify(sessions[role])).toString('base64url'), domain: '127.0.0.1', path: '/', httpOnly: true, sameSite: 'Lax' }] : []),
-      ]);
+      if (mode) await result.addCookies([authCookie(mode, role)]);
       return result;
     }
     const articleUrl = (slug, classId, overrides = {}) => origin + '/parents/chuyen-de/' + slug + '?' + new URLSearchParams({
@@ -244,23 +238,26 @@ async function main() {
       await fs.writeFile(path.join(review, slug + '.html'), html);
       await fs.writeFile(path.join(review, 'index.html'), '<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CSAT · Chuyên đề học tập</title><style>body{max-width:900px;margin:40px auto;padding:0 24px;font:17px/1.8 system-ui;background:#fffaf1;color:#132440}a{color:#244fd7}li{margin:15px 0}b{font-size:13px;color:#5c6270}h2{margin-top:32px}</style><h1>Chuyên đề học tập CSAT</h1><p>54 bài cho 43 chủ đề. Bản HTML nội bộ dùng dữ liệu giả để xem nội dung và bố cục; trang phụ huynh thật vẫn yêu cầu phiên và quyền đọc.</p>' + ['A', 'B', 'C'].map(group => '<h2>Chương trình ' + group + '</h2><ul>' + library.filter(article => group === 'C' ? /^[CD]/.test(article.topicCode) : article.topicCode.startsWith(group)).map(article => '<li><b>' + article.topicCode + ' · ' + article.order + '</b> <a href="' + article.slug + '.html">' + article.title + '</a></li>').join('') + '</ul>').join('') + '</html>');
     }
-    await run('missing and malformed lookup cookies redirect to login', async () => {
+    await run('Auth is required and legacy lookup cookies grant no access', async () => {
       const c = await context(null), p = await c.newPage();
       await visit(p, articleUrl(...samples[0])); check(new URL(p.url()).pathname === '/login', 'No cookie must redirect to login.');
       await c.addCookies([{ name: 'csat_parent_lookup', value: 'malformed', domain: '127.0.0.1', path: '/' }]);
       await visit(p, articleUrl(...samples[0])); check(new URL(p.url()).pathname === '/login', 'Malformed cookie must redirect.');
-      await c.addCookies([{ name: 'csat_parent_lookup', value: modes.valid.token, domain: '127.0.0.1', path: '/' }]);
-      await visit(p, articleUrl(...samples[0])); check(new URL(p.url()).pathname.includes('/parents/chuyen-de/'), 'Valid lookup opens article without Auth.');
+      await c.addCookies([{ name: 'csat_parent_lookup', value: 'a'.repeat(43), domain: '127.0.0.1', path: '/' }]);
+      await visit(p, articleUrl(...samples[0])); check(new URL(p.url()).pathname === '/login', 'Legacy phone cookie cannot replace Auth.');
+      await c.addCookies([authCookie()]);
+      await visit(p, articleUrl(...samples[0])); check(new URL(p.url()).pathname.includes('/parents/chuyen-de/'), 'Current authenticated parent access opens article.');
       await c.close();
       const wrongRole = await context('valid', {}, 'admin'), adminPage = await wrongRole.newPage();
-      await visit(adminPage, articleUrl(...samples[0])); check(new URL(adminPage.url()).pathname.includes('/parents/chuyen-de/'), 'Independent lookup works alongside an existing staff session.');
+      await visit(adminPage, articleUrl(...samples[0])); check(new URL(adminPage.url()).pathname.includes('/parents/chuyen-de/'), 'Staff can read an article only through additional parent access.');
       await wrongRole.close();
     });
     for (const mode of ['expired', 'revoked', 'excluded', 'old', 'withdrawn', 'draft', 'nullStudent']) await run('private article denied: ' + mode, async () => {
       const c = await context(mode), p = await c.newPage();
       await visit(p, articleUrl(...samples[0]));
       check(await p.locator('.parent-topic-content').count() === 0, mode + ' must not return article content.');
-      if (['expired', 'revoked'].includes(mode)) check(new URL(p.url()).pathname === '/login', mode + ' session returns to login.');
+      if (mode === 'expired') check(new URL(p.url()).pathname === '/login', 'Expired Auth returns to login.');
+      if (mode === 'revoked') check(new URL(p.url()).pathname === '/parents', 'Revoked parent access returns to blocked parent screen.');
       check(!(await p.content()).includes('for (int'), mode + ' must not leak core article code.');
       const prefetch = await c.request.get(articleUrl(...samples[0]), { headers: { RSC: '1', 'Next-Router-Prefetch': '1' } });
       check(!(await prefetch.text()).includes('parent-topic-content'), mode + ' must not return an article through RSC prefetch.');

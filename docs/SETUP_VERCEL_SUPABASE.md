@@ -1,8 +1,10 @@
 # Thiết lập Vercel–Supabase và phát hành CSAT Portal
 
+Cấu hình mới Google/grants và reset được mô tả ở [runbook hiện hành](PORTAL_GOOGLE_GRANTS_ROLLOUT.md). Mã local yêu cầu migration30–32; chưa phát hành. Các bước lookup27 bên dưới là hướng dẫn chuyển đổi lịch sử, không dùng để cấp quyền Google.
+
 ## Phát hành giao diện công khai
 
-Trang chủ/lộ trình/catalog dùng Next.js trực tiếp. Bản mã mới có đăng ký API intake v2 (migration18/24), phân loại chương trình (25) và tra cứu số điện thoại phụ huynh (27, thay Auth26); học liệu vẫn xem lại/sao chép/liên hệ. Đọc [runbook ba luồng](BACKEND_COMPLETION.md) trước rollout. Chưa có staging Supabase, nghiệm thu còn chờ; người dùng tự chạy SQL production khi đủ điều kiện. Giữ `CONSULTATIONS_ENABLED=false` đến khi nghiệm thu tiếp nhận, `CONSULTATIONS_EMAIL_ENABLED=false` và email tháng tắt. Tài nguyên/QA xem [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
+Trang chủ/lộ trình/catalog dùng Next.js trực tiếp. Ứng dụng có đăng ký API intake v2 (migration18/24), phân loại chương trình (25) và tra cứu số điện thoại phụ huynh (27, thay Auth26); học liệu vẫn xem lại/sao chép/liên hệ. Đọc [runbook ba luồng](BACKEND_COMPLETION.md) trước rollout. Chưa có staging Supabase, nghiệm thu còn chờ; người dùng tự chạy SQL production khi đủ điều kiện. Môi trường mới giữ tiếp nhận tắt đến khi đủ schema/cấu hình và được cho phép. Production hiện đã bật tiếp nhận theo quyết định; không tắt lại chỉ vì đọc runbook này. `CONSULTATIONS_EMAIL_ENABLED=false` và email tháng tiếp tục tắt. Tài nguyên/QA xem [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
 
 Phát hành qua project Vercel hiện phục vụ `portal.csatoj.vn`. Trước deploy xác minh đúng project/domain, giữ nguyên các biến nghiệp vụ và không tạo project thứ hai. Nếu dùng CLI: đăng nhập tại máy, `vercel link` tới project hiện có rồi `vercel deploy --prod` sau khi kiểm thử bản cuối. Không đưa token vào chat hoặc lệnh được lưu trong tài liệu. `.vercelignore` loại tài nguyên nguồn lớn và tài liệu nội bộ. [Tham khảo Vercel CLI](https://vercel.com/docs/cli/deploy).
 
@@ -10,11 +12,11 @@ Sau deploy được phép: kiểm tra `/`, `/lo-trinh`, các lớp A/B/C/E/K, `/
 
 Đây là hướng dẫn thực hiện, không xác nhận đã áp dụng trên production. Trạng thái và ngày kiểm chứng môi trường chỉ duy trì tại [PROJECT_STATUS](PROJECT_STATUS.md); mọi tác động thật cần quyền phù hợp.
 
-Dùng tài liệu này làm đầu mối cấu hình cho mã đến migration26. Các tài liệu phát hành trước giữ vai trò lịch sử; ba luồng mới cần 18→24 và 23→25/26, không cần 19/21/22. Email/hồ sơ và bucket có chuỗi nghiệm thu riêng bên dưới. Danh sách việc sau này: [FUTURE_INTEGRATIONS.md](FUTURE_INTEGRATIONS.md).
+Dùng tài liệu này làm đầu mối cấu hình cho mã đến migration27. Các tài liệu phát hành trước giữ vai trò lịch sử; ba luồng mới cần 18→24, 23→25 và 23→26→27, không cần 19/21/22. Email/hồ sơ và bucket có chuỗi nghiệm thu riêng bên dưới. Danh sách việc sau này: [FUTURE_INTEGRATIONS.md](FUTURE_INTEGRATIONS.md).
 
 > Đối chiếu registry/cấu trúc/grants thực trước phát hành. Migration 20 và 23 đã được ghi nhận áp dụng; không chạy lại hoặc suy từ số lớn nhất rằng các migration trước đó đều có. Xem trạng thái production trong PROJECT_STATUS.
 
-## 1. Chọn trạng thái phát hành lúc chưa có email/API
+## 1. Chọn trạng thái phát hành trước khi nghiệm thu email/API
 
 | Chức năng | Có thể dùng ngay sau khi cấu hình đúng | Phụ thuộc |
 |---|---|---|
@@ -22,13 +24,13 @@ Dùng tài liệu này làm đầu mối cấu hình cho mã đến migration26.
 | Admin, gia sư, cổng phụ huynh | Có | Supabase đúng môi trường, migration và liên kết tài khoản/dữ liệu |
 | Hồ sơ, giới thiệu, thành tích gia sư | Có | Migration 22 |
 | Avatar | Có | Migration 22 và bucket/policy riêng bên dưới; không cần API CSATOJ |
-| Form đăng ký lưu Portal | Đã nối trong mã, chưa nghiệm thu staging/production | Migration18/24, hash key, cờ tiếp nhận và admin xử lý; đơn mới không tạo outbox/email |
+| Form đăng ký lưu Portal | Đã phát hành; nghiệm thu đơn hợp lệ đến admin còn chờ | Migration18/24, hash key, cờ tiếp nhận và admin xử lý; đơn mới không tạo outbox/email |
 | Thư tư vấn, nhắc tháng, tổng hợp admin | Chưa bật | Resend, domain gửi được xác minh, kiểm thử và sửa lỗi cron còn mở |
 | Số bài/ranking CSATOJ | Chưa kết nối | Cần triển khai tích hợp; nhập API key đơn thuần chưa đủ |
 
 Thiếu Resend không làm hỏng build hay các tính năng không gửi thư khi giữ công tắc tắt. Thiếu schema hoặc Supabase key lại ảnh hưởng các chức năng dùng database. Thiếu bucket khiến thao tác tải ảnh thất bại; lưu hồ sơ chữ không cần bucket.
 
-Mặc định: `CONSULTATIONS_ENABLED=false`, `CONSULTATIONS_EMAIL_ENABLED=false`, email tháng tắt trong admin. Form đăng ký đã nối API nhưng chỉ báo tiếp nhận sau lưu thành công. Sau nghiệm thu bật riêng `CONSULTATIONS_ENABLED=true`; email giữ tắt và nhân sự kiểm tra `/admin/consultations` đầu/cuối ngày. Form học liệu giữ sao chép/liên hệ.
+Môi trường mới mặc định: `CONSULTATIONS_ENABLED=false`, `CONSULTATIONS_EMAIL_ENABLED=false`, email tháng tắt trong admin. Form đăng ký đã nối API nhưng chỉ báo tiếp nhận sau lưu thành công. Khi được phép bật riêng `CONSULTATIONS_ENABLED=true`; email giữ tắt và nhân sự kiểm tra `/admin/consultations` đầu/cuối ngày. Form học liệu giữ sao chép/liên hệ.
 
 ## 2. Vercel — cấu hình project
 
@@ -54,11 +56,14 @@ Vào Settings → Environment Variables, chọn **Production**. Nhập giá tr�
 | `CRON_SECRET` | Chuỗi ngẫu nhiên riêng, ít nhất 32 ký tự | Đặt trước khi để lịch cron hoạt động; thiếu thì route trả 401 |
 | `CONSULTATIONS_HASH_KEY` | Chuỗi ngẫu nhiên khác, ít nhất 32 ký tự | Trước khi bật nhận form; giữ ổn định giữa deployment |
 | `AUTH_RATE_LIMIT_KEY` | Secret HMAC riêng cho giới hạn login; mã có fallback service-role key | Khuyến nghị cấu hình ổn định trên server, không NEXT_PUBLIC |
-| `CONSULTATIONS_ENABLED` | `false` lúc đầu | Đổi `true` khi đã kiểm thử lưu form và có người xử lý |
+| `CONSULTATIONS_ENABLED` | `false` cho môi trường mới; production đã bật | Đổi `true` khi đã kiểm thử lưu form và có người xử lý |
+| `TURNSTILE_LOGIN_ENABLED` | `true` khi cấu hình widget đầy đủ | Production đã bật; chỉ cho login |
+| `TURNSTILE_SITE_KEY` | Site Key công khai của widget Managed | Truyền có chọn lọc vào trang login |
+| `TURNSTILE_SECRET_KEY` | Secret Key cùng widget, chỉ server | Không NEXT_PUBLIC; xem [CAPTCHA](LOGIN_CAPTCHA.md) |
 | `CONSULTATIONS_EMAIL_ENABLED` | `false` | Giữ tắt tới khi nghiệm thu gửi |
-| `CSAT_EMAIL_FROM` | Sau này: `CSAT <thongbao@notify.csatoj.vn>` | Có thể chưa tạo khi chưa gửi |
+| `CSAT_EMAIL_FROM` | Địa chỉ được chốt thuộc domain Resend `portal.csatoj.vn`; đề xuất `CSAT <thongbao@portal.csatoj.vn>` | Xác nhận domain và cập nhật guard/test gửi mẫu còn dùng `notify.csatoj.vn` trước khi gửi |
 | `CSAT_EMAIL_REPLY_TO` | `csattutor@gmail.com` | Đặt trước khi bật email tháng |
-| `RESEND_API_KEY` | Chưa tạo khi chưa có Resend; sau này dùng khóa Sending access | Không dùng khóa giả để vượt kiểm tra cấu hình |
+| `RESEND_API_KEY` | Khóa Sending access, giới hạn domain đã xác minh | Chưa kiểm chứng cấu hình hiện tại; không dùng khóa giả để vượt kiểm tra cấu hình |
 
 `VERCEL_ENV` do Vercel quản lý, không tự thêm/ghi đè. Sau thay đổi biến phải tạo deployment mới hoặc Redeploy; không chỉ lưu dashboard rồi kiểm tra deployment cũ. [Environment variables](https://vercel.com/docs/environment-variables).
 
@@ -66,6 +71,7 @@ Vào Settings → Environment Variables, chọn **Production**. Nhập giá tr�
 
 - Dùng Supabase thử riêng và các khóa của project thử. Không sao chép service_role production vào Preview.
 - `APP_ORIGIN` phải khớp URL của môi trường thử; với URL Preview thay đổi có thể bỏ biến này để API form kiểm tra theo origin của request URL. Không để APP_ORIGIN production rồi kỳ vọng form trên Preview gửi được.
+- Turnstile dùng widget/khóa thử theo [LOGIN_CAPTCHA](LOGIN_CAPTCHA.md); khi bật cần APP_ORIGIN rõ ràng, không áp cách bỏ APP_ORIGIN của form cho xác minh CAPTCHA.
 - Hai công tắc tư vấn mặc định `false`; chỉ bật nhận form để kiểm thử dữ liệu giả trên database thử. Gửi email thật bị chặn bởi code trên Preview/Development.
 - Không đưa Resend key production vào Preview. Không sửa VERCEL_ENV để lách chặn gửi.
 - Build xanh không chứng minh kết nối database/Storage thật hoạt động; cần kiểm tra chức năng sau deploy thử.
@@ -103,9 +109,9 @@ Chỉ chạy các file còn thiếu, từng file và kiểm chứng ngay sau đ�
 | 26 (cần 23) | `20261012_26_parent_password_auth.sql` | Đã phát hành; giữ nguyên migration lịch sử |
 | 27 (cần 26) | `20261014_27_parent_phone_access.sql` | `verification/20261014_parent_phone_access.sql`; tra cứu số điện thoại và rate limit chung |
 
-23 chỉ phụ thuộc20 và đã có trên production. Ba luồng mới: 18→24, 23→25, 23→26; không lặp20/23 và không cần19/21/22. Email/hồ sơ là chuỗi18→19→21→22 riêng; nếu bổ sung sau24–26 phải kiểm thử lại schema kết hợp, quyền và projection.
+23 chỉ phụ thuộc20 và đã có trên production. Ba luồng mới: 18→24, 23→25, 23→26→27; không lặp20/23 và không cần19/21/22. Email/hồ sơ là chuỗi18→19→21→22 riêng; nếu bổ sung sau24–27 phải kiểm thử lại schema kết hợp, quyền và projection.
 
-Migration27 thu hồi lookup session cũ và ngừng dùng Auth phụ huynh. Thực hiện schema27 → verification27 → deploy tương thích trong cùng cửa sổ chuyển đổi. Không chạy lại26 hoặc provisioning Auth. Script `provision-parent-accounts.cjs` hiện chỉ đối soát tổng hợp và từ chối `--apply`; xem [runbook hiện hành](PARENT_PHONE_ACCESS.md).
+Migration27 thu hồi lookup session cũ và ngừng dùng Auth phụ huynh. Với môi trường còn ở26, thực hiện schema27 → verification27 → deploy tương thích trong cùng cửa sổ chuyển đổi; môi trường đã có27 không chạy lại. Không chạy lại26 hoặc provisioning Auth. Script `provision-parent-accounts.cjs` hiện chỉ đối soát tổng hợp và từ chối `--apply`; xem [runbook hiện hành](PARENT_PHONE_ACCESS.md).
 
 Không chạy lại migration đã có, không chạy master schema/reset lên database có dữ liệu. Migration 20 chuyển khung kiến thức lớp và lưu snapshot/lịch sử; đối chiếu Cơ bản A/B/A+B, Nâng cao C+D, bản nháp/công bố và chặng cần xác nhận. Không tự chuyển Luyện thi tùy chỉnh thành HSGQG.
 
@@ -171,4 +177,4 @@ Repository đã có `/api/cron/monthly-reviews`, lịch `0 1 28 * *` (UTC), tứ
 - [ ] Nếu nhận form: bật CONSULTATIONS_ENABLED, Redeploy, thử yêu cầu do trung tâm quản lý; kiểm tra lưu admin dù không gửi thư.
 - [ ] Ghi nhận deployment ID/commit, migration cuối, kết quả smoke test, người phụ trách vận hành và nơi lưu backup (không ghi secret).
 
-Kết quả cũ 253 kiểm thử local đạt, TS/build đạt và browser QA đạt là bằng chứng của bản đã kiểm thử; không thay cho nghiệm thu Storage thật hoặc bản phát hành có thay đổi mới. Khi lỗi: giữ công tắc gửi tắt, rollback ứng dụng tương thích; không reset database hoặc xóa hàng đợi. Migration 22 đã chặn đường sửa giới thiệu cũ nên rollback về app cũ không khôi phục chức năng ghi hồ sơ đó.
+Kiểm thử local/CI không thay nghiệm thu Storage thật hoặc bản phát hành có thay đổi mới. Khi lỗi: giữ công tắc gửi tắt, rollback ứng dụng tương thích; không reset database hoặc xóa hàng đợi. Migration 22 đã chặn đường sửa giới thiệu cũ nên rollback về app cũ không khôi phục chức năng ghi hồ sơ đó.

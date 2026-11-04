@@ -1,7 +1,6 @@
 # Workflow backend
 
-**Quyết định hiện hành:** phụ huynh tra cứu chỉ bằng số điện thoại, không mật khẩu/OTP/Auth; gia sư/admin giữ Auth. Migration27 thay luồng của 26, dùng chung giới hạn thử đăng nhập lưu trong DB. Xem [tra cứu bằng số điện thoại](PARENT_PHONE_ACCESS.md) để chuyển đổi và hiểu giới hạn danh tính. Bằng chứng Auth/26 bên dưới là lịch sử, không phải hướng triển khai tiếp.
-
+Mã local đã có Google/claim phone một–một, grants/accounts, certificates và quyền gia sư thu dư nợ theo migration30–32. [Runbook hiện hành](PORTAL_GOOGLE_GRANTS_ROLLOUT.md) quy định cấu hình và cổng nghiệm thu; lookup27 là lịch sử, không gọi lại API phone-only. Reset giữ Auth/tutors/hồ sơ/Storage/intake/template; chưa chạy thật.
 
 Phạm vi: xác thực/phân quyền, API/Server Actions, read model, RPC, database, Storage, email và tích hợp. Đọc [ARCHITECTURE](ARCHITECTURE.md) để hiểu luồng; [PROJECT_STATUS](PROJECT_STATUS.md) là nguồn trạng thái và backlog; [SECURITY](../SECURITY.md) quy định dữ liệu/secret.
 
@@ -24,24 +23,24 @@ Quyết định tên gọi đã duyệt: hai phần C/D được giới thiệu 
 
 Trước khi sửa: xác định caller, input, RPC/bảng bị tác động, người được phép đọc/ghi, bản nháp/công bố và ca lỗi. Ghi rõ thay đổi tương thích hoặc adapter cần có; giữ chữ ký RPC khi chỉ bổ sung trường JSON. Thiếu dữ liệu trả `null` có nghĩa, không giả số liệu để đáp ứng layout.
 
-Form đăng ký trong mã mới gọi `/api/consultations` → `submit_registration` (24), không tạo outbox/email. Học liệu giữ luồng sao chép/liên hệ. Mã chương trình A/B/AB/C/E/PREVOI/K (25) và luồng phụ huynh (27, thay Auth26) xem [BACKEND_COMPLETION](BACKEND_COMPLETION.md); AB hiển thị A+B, PREVOI dùng giáo án riêng, không E. API CSATOJ chưa triển khai: cần hợp đồng/mapping, kiểm tra liên kết, timeout/cache/rate limit; không gọi từ UI bằng key bí mật hoặc suy ra năng lực từ ranking.
+Form đăng ký gọi `/api/consultations` → `submit_registration` (24), không tạo outbox/email. Học liệu giữ luồng sao chép/liên hệ. Mã chương trình A/B/AB/C/E/PREVOI/K (25) và luồng phụ huynh (27, thay Auth26) xem [BACKEND_COMPLETION](BACKEND_COMPLETION.md); AB hiển thị A+B, PREVOI dùng giáo án riêng, không E. Portal có adapter OJ local cũ, chưa chuyển grants/accounts hoặc nghiệm thu hosted. Dùng hợp đồng bàn giao mới, không API sync/global key hoặc bindings/parent-batch cũ; giữ timeout, quota, revision và quyền trước/sau fetch. Không gọi từ UI bằng key bí mật hoặc suy ra năng lực từ ranking.
 
 ## Database và dữ liệu đang vận hành
 
 1. Đọc [database README](../database/README.md), migration precondition, caller/RPC và test liên quan. Kiểm tra môi trường bằng registry **và** cấu trúc/grants/verification; không chỉ lấy số migration lớn nhất.
-2. Mã hiện có migration 01–27. Production 14/10/2026 ghi nhận 05–18, 20 và 23–26; đã cấp và đối soát 44 Auth parent theo ủy quyền. Ba luồng đủ migration 18 → 24, 23 → 25 và 23 → 26; ứng dụng mới còn chờ deploy/nghiệm thu. Phần email/hồ sơ 19 → 21 → 22 giữ backlog riêng. Không chạy lại hoặc sửa migration đã phát hành; registry không ghi 01–04 không có nghĩa cần chạy chúng lại. Nếu áp 19/21/22 sau 24–26, kiểm thử schema kết hợp và quyền/projection trước.
+2. Mã hiện có migration 01–29; 28 là OJ local cũ chưa được Git theo dõi ở lượt nghiên cứu, 29 budget login độc lập28 và cùng cần27. Trạng thái môi trường ở PROJECT_STATUS. Ba luồng trước đó cần 18 → 24, 23 → 25 và 23 → 26 → 27. Email/hồ sơ 19 → 21 → 22 là backlog riêng. Không chạy lại/sửa migration đã phát hành; registry thiếu01–04 không có nghĩa phải chạy lại. Nếu bổ sung19/21/22 sau27, kiểm schema kết hợp/quyền/projection. Google cần migration mới, không bật lại provisioning mật khẩu26.
 3. Dùng database thử tách biệt và fixture giả; kiểm thử nâng cấp cùng chuỗi, bảo toàn lịch sử, draft/published, quyền và concurrency khi có tranh chấp. Migration đã phát hành giữ nguyên; sửa bằng migration mới sau số cuối thực tế lúc làm.
 4. Không chạy master schema hoặc gói upgrade lịch sử trên DB đã có dữ liệu. Baseline master hiện đến 10; khởi tạo project trống làm theo database README, không coi master là schema mới nhất.
 5. Maintenance dữ liệu phải có căn cứ, phạm vi, preview, guard/audit và quyền. Script bổ sung số phụ huynh từ số học sinh là thao tác một lần, không phải quy tắc tự động cho hồ sơ mới.
 
-Giữ lớp/tham gia/gia sư/đơn giá theo ngày hiệu lực, buổi học và học phí snapshot. Kỳ đã chốt dùng điều chỉnh/đính chính; không reset/xóa hoặc tính lại bằng giá hiện hành. Chặng đang học được xác nhận chủ động; chặng đang xem chỉ là UI.
+Giữ lớp/tham gia/gia sư/đơn giá theo ngày hiệu lực, buổi học và học phí snapshot. Ngoài đợt reset nhập lại đã chốt, kỳ đã chốt dùng điều chỉnh/đính chính; không reset/xóa hoặc tính lại bằng giá hiện hành. Sau khởi tạo lại tiếp tục giữ các bất biến này. Chặng đang học được xác nhận chủ động; chặng đang xem chỉ là UI.
 
 ## Những luồng cần giữ hoặc hoàn thiện
 
 | Luồng | Quy tắc và điểm còn lại |
 |---|---|
 | Admin/gia sư Auth | Supabase Auth + role/ownership/phân công; SEC-01 cần thay mật khẩu khởi tạo từ số điện thoại và kế hoạch xử lý tài khoản cũ |
-| Phụ huynh | Số điện thoại → phiên lookup → RPC kiểm tra liên kết, không Auth. Migration27 và app phải chuyển cùng đợt. SEC-02 mở vì không xác minh danh tính; chống spam chung theo PARENT_PHONE_ACCESS |
+| Phụ huynh | Hiện phone → lookup → RPC; đích Google + tự khớp số + quyền DB riêng. Chuẩn hóa contacts/links, revision/audit/thu hồi, chuyển mọi reader và ngừng đường lookup cũ cùng đợt. SEC-02 vẫn mở vì không xác minh số tự nhập |
 | Nhận xét/lộ trình | Draft/published, revision và history; không tự công bố hay suy ra thành thạo |
 | Hồ sơ/avatar | Gia sư sở hữu/admin lưu hiển thị ngay; ngoại lệ thông tin nền chỉ admin. Ảnh Sharp 512×512 → Storage → RPC; lỗi giữ ảnh cũ, cleanup không xóa ảnh đang dùng |
 | Đăng ký | Intake v2 lưu request, không tạo outbox/email; admin đổi trạng thái có revision/audit. Giữ dữ liệu và hàng đợi của luồng tư vấn cũ |
@@ -54,7 +53,7 @@ MAIL-01 (tổng hợp admin mới tạo bị tuổi đợt cũ làm quá hạn) 
 ```sh
 npm run test:db
 npm run typecheck
-npm run lint
+npm run lint:strict
 npm run build
 ```
 

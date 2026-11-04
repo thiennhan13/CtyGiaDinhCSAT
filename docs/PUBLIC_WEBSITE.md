@@ -18,7 +18,7 @@ Metadata/canonical, sitemap/robots, schema, ảnh chia sẻ logo CSAT và llms.t
 | /bai-dang và /bai-dang/[slug] | app/bai-dang/, lib/public-posts.ts, posts.css | Danh mục/trang bài viết frontend; [hướng dẫn](PUBLIC_POSTS.md) |
 | /hoc-lieu-mien-phi | LearningMaterialsExperience.tsx, PracticeVideo.tsx | Không gian luyện tập, video và form chuẩn bị nhu cầu; chưa tự gửi tài liệu |
 | /tu-hoc | app/tu-hoc/page.tsx, SelfStudyRoadmap.tsx, self-study-roadmap.css | Cây dọc 43 chủ đề, node cắt góc, giấy kẻ toàn trang, cuộn document, mục lục/CTA nổi trái và toolbar nổi dưới; tìm/lọc/drawer và CSATOJ; [nguồn và ranh giới](KNOWLEDGE_MAP.md) |
-| /login | components/auth/ContactEntry.tsx, ParentLoginForm.tsx, TutorLoginForm.tsx | Trang liên lạc, switch Phụ huynh/Gia sư; handler Auth hiện hành |
+| /login | components/auth/ContactEntry.tsx, ParentLoginForm.tsx, TutorLoginForm.tsx | Switch Phụ huynh/Gia sư; phụ huynh lookup số điện thoại, staff Auth, Turnstile cho hai form |
 | Shell/menu/theme/footer | PublicShell.tsx, PublicHeader.tsx, PublicNavigation.tsx, RoadmapNavigation.tsx | Menu chung, theme, liên hệ thật; không thay quyền |
 | Form/select/motion/ảnh | PublicConsultation.tsx, PublicSelect.tsx, PublicMotion.tsx, PublicFeedback.tsx, CoursePosterPreview.tsx | Tái sử dụng tương tác, bàn phím và fallback |
 
@@ -48,7 +48,7 @@ Trang chủ dùng bốn lý do: Rèn lập luận và phản biện; Tìm cách 
 
 Hệ sinh thái có terminal giữa bốn nhánh Kho bài & máy chấm / Nhóm học nhỏ / Gia sư chuyên Phan / Đồng hành sát sao. Mỗi nhánh ba ý ngắn; art dẫn trực tiếp, không heading lớn/chú thích riêng. Dây mạch phía sau thẻ; mobile luồng dọc. Trải nghiệm ngay mở CSATOJ tab mới với noopener noreferrer. Số bài/điểm CSATOJ là nội dung trao đổi với gia sư, chưa tự đồng bộ Portal.
 
-Tổng quan lộ trình tách A/B/C/E/K; A+B không có trang/thẻ/tư vấn công khai. C là tên chung toàn bộ C/D nhưng giữ mã/scope và giáo án/lớp lịch sử. E xét đủ năng lực và đạt bài thi riêng, không bắt buộc học xong C, không phải PreVOI. K chọn phạm vi từ nội dung đã duyệt. [Catalog](PUBLIC_COURSE_CATALOG.md) quyết định đối tượng/giá, không chép lại các dữ kiện này thành nguồn khác.
+Tổng quan lộ trình tách A/B/C/E/K; A+B không có trang/thẻ/tư vấn công khai. C là tên chung toàn bộ C/D nhưng giữ mã/scope và giáo án/lớp lịch sử. E tuyển chọn từ lớp C khi đủ năng lực và đạt bài thi riêng, không bắt buộc hoàn thành toàn bộ lớp C, không phải PreVOI. K chọn phạm vi từ nội dung đã duyệt. [Catalog](PUBLIC_COURSE_CATALOG.md) quyết định đối tượng/giá, không chép lại các dữ kiện này thành nguồn khác.
 
 Chi tiết lớp: breadcrumb → hero/poster/CTA và lịch → facts → bản đồ chặng/nội dung học → mục tiêu cuối khoá → Cùng CSAT chọn bước tiếp theo. E/K dùng định hướng được duyệt, không tạo chuyên đề chưa có nguồn. Tư vấn có chủ ngữ/vị ngữ, người học chia sẻ nền tảng và khó khăn, CSAT cùng xem lại để chọn hướng; không tự xác nhận đủ điều kiện.
 
@@ -70,13 +70,15 @@ Chi tiết/đăng ký cho mở poster với nút đóng/Escape/trả focus; khô
 
 PublicConsultation đăng ký/tư vấn: nhập → validate/consent → Đăng kí ngay → gửi `/api/consultations`. Chỉ báo tiếp nhận khi API lưu thành công; lỗi giữ bản nhập để thử lại. Học liệu giữ nhập → xem lại → sao chép → chủ động liên hệ, chưa gửi tài liệu tự động.
 
+Checkbox/chữ đồng ý dùng hai cột, tự xuống dòng và không đè nút. Đang gửi khóa trường/nút; thử lại cùng nội dung giữ request ID, thay nội dung dùng ID mới. Thành công ẩn form để tránh gửi lại.
+
 Riêng trang Đăng ký học, đơn được căn giữa dưới tiêu đề “Chọn lớp cùng CSAT TUTOR!”, bỏ tiêu đề phụ, chỉ dẫn đánh số và chú thích dưới nút gửi. Chiều ngang desktop tăng khoảng 15% so với đơn trong bố cục hai cột trước đó; tablet/điện thoại co theo màn hình. Khóa quan tâm vẫn nhận mặc định từ liên kết lớp và cho phép đổi.
 
 Vai trò còn Phụ huynh/Học sinh; cấp học Tiểu học/THCS/THPT. Không Sinh viên, Đại học, cấp học Trao đổi thêm hoặc mục tiêu HSG Quốc gia. Thành tích HSGQG thật của gia sư vẫn hợp lệ, không liên quan tùy chọn form.
 
 Không lưu liên hệ vào localStorage/sessionStorage hoặc URL. Rời/tải lại trang mất bản nhập. Clipboard bị chặn có bản chọn để sao chép thủ công; no-JS có liên hệ thật. Form học liệu không gọi API đăng ký.
 
-API dùng intake v2 và `submit_registration` (18→24), kiểm tra Origin/body/enum/consent, idempotency và rate limit. Đơn mới không outbox/email; admin tiếp nhận qua trạng thái có revision/audit. Chưa nghiệm thu staging/production, chỉ bật tiếp nhận khi schema và vận hành đạt. Chi tiết ở [catalog](PUBLIC_COURSE_CATALOG.md) và [runbook](BACKEND_COMPLETION.md).
+API dùng intake v2 và `submit_registration` (18→24), kiểm tra Origin/body/enum/consent, idempotency và rate limit. Đơn mới không outbox/email; admin tiếp nhận qua trạng thái có revision/audit. Production đã bật tiếp nhận; nghiệm thu một đơn hợp lệ đến admin còn chờ theo PROJECT_STATUS. Chi tiết ở [catalog](PUBLIC_COURSE_CATALOG.md) và [runbook](BACKEND_COMPLETION.md).
 
 ## Tài nguyên phục vụ
 
@@ -93,7 +95,3 @@ Văn phong học thuật phổ thông, tự nhiên và có mạch lập luận; 
 Không tạo thành tích, số liệu, giá, lịch contest hoặc cam kết đầu ra. Gia sư và thành tích học sinh chỉ dùng nguồn được duyệt; không biến danh hiệu cá nhân thành kết quả toàn trung tâm.
 
 Preview/QA theo [frontend workflow](FRONTEND_WORKFLOW.md). Kiểm tra UI Next.js thật, dữ liệu giả, desktop/mobile/ngang/dọc, light/dark, bàn phím, no-JS/reduced motion, client navigation và history; đặc biệt CSS load order của ảnh nền. Không lấy bản HTML đã duyệt làm bằng chứng tích hợp. Cập nhật trạng thái tại PROJECT_STATUS, không nối nhật ký lặp vào tài liệu này.
-
-## Gửi đăng ký trực tiếp
-
-Form đăng ký và tư vấn dùng nút **Đăng kí ngay**: kiểm tra trường bắt buộc và đồng ý, rồi gửi API ngay, không có bước xem lại. Checkbox/chữ đồng ý dùng bố cục hai cột, tự xuống dòng và tách khỏi nút gửi. Đang gửi khóa trường/nút; lỗi giữ dữ liệu và mã yêu cầu khi thử lại cùng nội dung; nội dung thay đổi dùng mã mới. Chỉ báo tiếp nhận sau phản hồi lưu thành công, sau đó ẩn form để tránh gửi lại. Form học liệu vẫn xem lại/sao chép/liên hệ và không tự gửi.

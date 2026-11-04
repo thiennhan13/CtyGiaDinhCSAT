@@ -6,13 +6,13 @@ Nguồn: `Danh sách kiến thức (1).xlsx` do trung tâm cung cấp. Danh mụ
 
 ## Catalog công khai
 
-Theo xác nhận mới của trung tâm, website giới thiệu năm khóa **A, B, C, E, K**. [Catalog và thiết kế tích hợp](PUBLIC_COURSE_CATALOG.md) là nơi đối chiếu tên khóa, nguồn nội dung và hợp đồng dự kiến cho form. Đây là cập nhật nội dung website và thiết kế hệ thống; **chưa chuyển đổi lớp, template hoặc dữ liệu production**.
+Theo quyết định hiện hành, website giới thiệu năm khóa **A, B, C, E, K**. [Catalog và thiết kế tích hợp](PUBLIC_COURSE_CATALOG.md) là nơi đối chiếu tên khóa, nguồn nội dung và hợp đồng intake. Quản lý đã có mã A/B/AB/C/E/PREVOI/K; việc đổi tên công khai không tự chuyển lớp hoặc giáo án đã công bố.
 
 - **A — Nhập môn:** giữ A01–A09, 9 chủ đề thuộc khung Cơ bản.
 - **B — Lập trình thi đấu cơ bản:** giữ B01–B15, 15 chủ đề thuộc khung Cơ bản. Cơ bản mặc định vẫn A+B, tổng cộng 24 chủ đề/7 chặng.
-- **C — Lập trình thi đấu nâng cao:** hai phần C/D dùng tên chung C cho website và các lớp nâng cao tương lai. Giữ đủ 19 chủ đề/6 chặng, mã nguồn C01–D07. Chỉ cập nhật tên công khai và docs; chưa đổi hiện trạng lớp trên trang gia sư/admin, template, enum hoặc dữ liệu.
-- **E — Chủ lực:** chọn lọc từ lớp C qua thi tuyển riêng; theo định hướng đã duyệt hướng chuẩn chuyên Tin, thứ hạng cao trong lập trình thi đấu, phát triển thuật toán/tư duy toán học/giải quyết vấn đề. Ba trọng tâm gồm tri thức-phương pháp, đội ngũ-môi trường và bài tập-cọ xát. Sĩ số 3–4 học sinh, 2 giờ/buổi, lịch theo thành viên lớp. Chưa có danh mục giáo trình hoặc học phí được duyệt; không sao chép C+D làm giáo trình E.
-- **K — Kèm riêng:** học 1–1 hoặc nhóm đăng ký riêng, chọn/phối nội dung từ các chương trình theo nhu cầu. Thiết kế tương lai cần giữ nguồn, phiên bản và lịch sử của nội dung được lấy; không tự cập nhật đè khi chương trình nguồn thay đổi.
+- **C — Lập trình thi đấu nâng cao:** hai phần C/D dùng tên chung C cho website và các lớp nâng cao tương lai. Giữ đủ 19 chủ đề/6 chặng, mã nguồn C01–D07. Mã quản lý C được bổ sung qua migration 25, giữ tên/loại lớp cũ, enum advanced, template và lịch sử.
+- **E — Chủ lực:** tuyển chọn từ lớp C khi đủ năng lực và đạt bài thi riêng, không bắt buộc hoàn thành toàn bộ lớp C; theo định hướng đã duyệt hướng chuẩn chuyên Tin, thứ hạng cao trong lập trình thi đấu, phát triển thuật toán/tư duy toán học/giải quyết vấn đề. Ba trọng tâm gồm tri thức-phương pháp, đội ngũ-môi trường và bài tập-cọ xát. Sĩ số 3–4 học sinh, 2 giờ/buổi, lịch theo thành viên lớp. Chưa có danh mục giáo trình hoặc học phí được duyệt; không sao chép C+D làm giáo trình E.
+- **K — Kèm riêng:** học 1–1 hoặc nhóm đăng ký riêng, chọn/phối nội dung từ các chương trình theo nhu cầu. Cơ chế phối nguồn/version là đề xuất kỹ thuật chờ duyệt; khi triển khai cần giữ nguồn, phiên bản và lịch sử của nội dung được lấy; không tự cập nhật đè khi chương trình nguồn thay đổi.
 
 Khóa tuyển sinh, chương trình kiến thức và hình thức học là các khái niệm khác nhau. PREVOI (PreVOI/HSGQG/Ôn thi VOI) dùng giáo án riêng, không dùng E hoặc đổi tên lớp thành E. Nội dung E/K/PREVOI chưa được cung cấp không tự biên soạn hay chuyển lớp thật. E không làm đổi C+D thành giáo trình HSGQG; K tùy chỉnh không đồng nghĩa HSGQG. Mã chương trình quản lý mới có revision/audit, giữ giáo án và lịch sử cũ; xem [bàn giao backend](BACKEND_COMPLETION.md). Danh mục dưới đây mô tả chương trình, không phải lệnh cập nhật database. [Bài chuyên đề và quy ước chỉ báo chặng](PARENT_TOPICS.md) giữ nguyên mã, thứ tự và tóm tắt của khung này.
 

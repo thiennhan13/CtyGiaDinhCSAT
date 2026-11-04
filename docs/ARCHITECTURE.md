@@ -1,5 +1,17 @@
 # Cấu trúc hệ thống CSAT Portal
 
+## Hướng danh tính và tích hợp CSATOJ
+
+Schema19/21/22/29–32 đã áp Supabase hiện tại03/11/2026 sau backup/phục hồi và rehearsal; kiểm chỉ đọc04/11 đạt. Chủ trung tâm đã cấu hình Google OAuth và cho phép commit/push để Vercel tự deploy mã tương thích. Quyền lookup cũ đã bị thu hồi trong DB. Trạng thái deployment/kiểm thử thực ở PROJECT_STATUS.
+
+Đích đã chốt: Google → số điện thoại khớp hồ sơ phụ huynh → tự liên kết với học sinh; không mã mời/OTP/admin duyệt. Học sinh Portal nối tài khoản OJ bằng mã do admin OJ tạo và admin Portal đổi. Danh tính phụ huynh, quan hệ với học sinh và grant OJ là các lớp độc lập. [Bản đồ database và kế hoạch chuyển đổi](PARENT_IDENTITY_DATABASE_DESIGN.md).
+
+Migration30: `parent_identity_links` nối Auth với parent; unique Auth/parent và unique từng phía parent–student. Contact/student viết qua RPC đồng bộ revision/audit; direct writes bị thu hồi. `parent_access` và `parent_portal` thay lookup; proxy refresh, callback PKCE và logout dùng Supabase SSR. Google không thay staff role. Migration31 mở rộng certificates và tutor receipts, giữ ledger/snapshot/đơn giá theo ngày.
+
+Migration32: `student_oj_accounts`, `oj_connection_operations`, `oj_class_organizations`, `oj_session_contests`; quota nội bộ theo instance. Operation UUID/digest lưu trước HTTP, receipt phục hồi; mapping pending không đọc. `oj_account_context` service-only tái kiểm actor trong Auth/DB, không lộ roster peers. Read/manage key tách riêng; kiểm instance/schema/grant và quyền trước/sau fetch. Thu hồi parent độc lập grant OJ. Giao diện tải theo phần và thao tác, không polling. Mã cũ28 giữ lịch sử migration nhưng các RPC cũ bị thu hồi.
+
+Reset độc lập migration; quyết định03/11 giữ lớp/cấu hình/thành viên/giá/giáo trình lớp, học sinh/phụ huynh/liên kết và Auth/tutors/hồ sơ/Storage/intake/template/registry. Công cụ activity reset chỉ xóa phát sinh, dùng snapshot/digest và backup đã phục hồi; CLI reset rộng cũ bị chặn. Đích là Supabase hiện tại do chủ trung tâm chỉ định, kiểm URL/ref trước thao tác. [Luồng và vận hành](PORTAL_GOOGLE_GRANTS_ROLLOUT.md). Chưa phát hành các thay đổi local này.
+
 Một ứng dụng Next.js phục vụ website công khai và admin/gia sư/phụ huynh. Không cần tách dịch vụ hoặc repository chỉ để chia frontend/backend. Trạng thái triển khai ở [PROJECT_STATUS](PROJECT_STATUS.md), quy trình ở [frontend](FRONTEND_WORKFLOW.md) và [backend](BACKEND_WORKFLOW.md).
 
 ## Phân chia trách nhiệm
@@ -81,7 +93,7 @@ flowchart LR
 |---|---|---|
 | Admin | Supabase Auth; role từ `app_metadata`, API và RPC kiểm tra quyền | `lib/business-api.ts`, `lib/auth-routing.ts`, `lib/supabase/server.ts` |
 | Gia sư | Supabase Auth; `tutors.auth_uid`, hoạt động/phân công hoặc quyền lịch sử theo RPC | `app/api/tutor/`, `features/attendance/`, migrations quyền |
-| Phụ huynh | Tra cứu bằng số điện thoại; cookie lookup HttpOnly 12 giờ, phiên DB và parent–student links, không Auth | `lib/parent-auth.ts`, `lib/parent-lookup.ts`, `app/api/parents/auth/route.ts`, `app/parents/page.tsx` |
+| Phụ huynh hiện tại | Google PKCE + phone claim một–một; quyền DB hiện hành, không nhận lookup cookie cũ | `lib/parent-auth.ts`, `lib/parent-lookup.ts`, `app/api/parents/auth/route.ts`, `app/parents/page.tsx` |
 | Tác vụ máy chủ | Service-role client sau kiểm tra quyền/secret và điều kiện nghiệp vụ | `lib/supabase/service.ts`, email/profile API |
 
 Phụ huynh chỉ nhập số điện thoại đã đăng ký; máy chủ gọi `start_parent_phone_session`, trang đọc gọi `parent_phone_session_valid` và RPC kiểm tra liên kết. Không xác minh sở hữu số; SEC-02 vẫn mở. Token ngẫu nhiên chỉ lưu hash ở DB, không dùng số điện thoại làm cookie. Gia sư/admin giữ Auth, hai luồng dùng chung ngân sách nguồn trong `consume_auth_attempt`. Migration27 thu hồi phiên lookup cũ và quyền RPC provisioning/Auth cũ; giữ tài khoản và lịch sử. Xem [luồng hiện hành](PARENT_PHONE_ACCESS.md).
@@ -109,9 +121,9 @@ Tên đầy đủ, kiểu và chữ ký hàm phải đọc SQL hiện hành; `ty
 
 **Lộ trình:** nội dung đã duyệt trong `lib/learning-curriculum-20260922.json` và [tài liệu đào tạo](CHUONG_TRINH_DAO_TAO.md) → template/default theo chương trình → cấu hình lớp → bản công bố cho phụ huynh. Migration25 thêm mã A/B/AB/C/E/PREVOI/K, revision/history; AB hiển thị A+B. A/B/AB dùng basic, C advanced C+D; PREVOI dùng voi và giáo án riêng, không E; E/K custom. Đổi phân loại không viết lại tên lớp, giáo án, đơn giá hoặc lịch sử. Gia sư/admin chủ động chọn chặng đang học; chặng đang xem trên UI là trạng thái khác. Template/tag cũ được giữ để bảo toàn lịch sử.
 
-**Phụ huynh:** lookup hợp lệ → RPC `parent_learning_portal` kiểm tra học sinh thuộc liên kết → JSON do `lib/parent-learning.ts` định nghĩa → `ParentPortalView`. Thứ tự: học sinh → nhận xét → lộ trình → định hướng → buổi học → CSATOJ → gia sư/học phí. Thẻ gia sư gộp theo tutor ID, không lộ liên hệ riêng. Logo bên trái, shell/menu riêng.
+**Phụ huynh:** Supabase Auth + identity active → RPC `parent_portal` kiểm tra học sinh thuộc liên kết → JSON do `lib/parent-learning.ts` định nghĩa → `ParentPortalView`. Thứ tự: học sinh → nhận xét → lộ trình → định hướng → buổi học → CSATOJ → gia sư/học phí. Thẻ gia sư gộp theo tutor ID, không lộ liên hệ riêng. Logo bên trái, shell/menu riêng.
 
-**Chuyên đề phụ huynh:** danh mục có kiểu `lib/parent-topics.ts` ghép metadata trong `lib/parent-topic-catalog/` với 54 Markdown cho 43 mã tại `content/parent-topics/`, chỉ trên khung chuẩn và giáo án hiệu lực đã công bố. `/parents/chuyen-de/[slug]` kiểm tra lookup, học sinh, lớp và topic qua RPC ở máy chủ rồi mới đọc toàn văn; SSR private/no-store/noindex, không chung catalog bài đăng công khai. Markdown không HTML/MDX, Shiki server-only tạo các token code; quy ước blockquote câu hỏi được chuyển thành native disclosure bằng `lib/parent-topic-questions.ts`. Client chỉ nhận bài được phép đọc và thao tác sao chép. Next file tracing đóng gói Markdown. [Quyết định và giới hạn](PARENT_TOPICS.md).
+**Chuyên đề phụ huynh:** danh mục có kiểu `lib/parent-topics.ts` ghép metadata trong `lib/parent-topic-catalog/` với 54 Markdown cho 43 mã tại `content/parent-topics/`, chỉ trên khung chuẩn và giáo án hiệu lực đã công bố. `/parents/chuyen-de/[slug]` kiểm tra Auth, quyền parent hiện hành, học sinh, lớp và topic qua RPC ở máy chủ rồi mới đọc toàn văn; SSR private/no-store/noindex, không chung catalog bài đăng công khai. Markdown không HTML/MDX, Shiki server-only tạo các token code; quy ước blockquote câu hỏi được chuyển thành native disclosure bằng `lib/parent-topic-questions.ts`. Client chỉ nhận bài được phép đọc và thao tác sao chép. Next file tracing đóng gói Markdown. [Quyết định và giới hạn](PARENT_TOPICS.md).
 
 Migration 23 bổ sung `class_progress?` theo toàn bộ session completed đã kết thúc của lớp được phép xem. UI suy ra chặng định hướng theo giáo án hiệu lực, không phụ thuộc tháng hoặc nghỉ riêng, không ghi trạng thái thành thạo. Thiếu aggregate fallback chặng gia sư công bố, không biến thành zero. Trạng thái áp dụng ở PROJECT_STATUS.
 

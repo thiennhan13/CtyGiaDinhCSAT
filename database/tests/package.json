@@ -2,7 +2,7 @@
   "name": "csat-database-permission-tests",
   "private": true,
   "scripts": {
-    "test": "node --test *.test.cjs"
+    "test": "node --test --test-concurrency=2 *.test.cjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.3.16",

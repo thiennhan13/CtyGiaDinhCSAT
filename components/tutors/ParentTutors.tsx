@@ -11,6 +11,6 @@ export function ParentTutors({ tutors }: { tutors: ParentLearningData['tutors'] 
   });
   return <div className="mb-6 grid gap-4">{Array.from(groups, ([key, { tutor: t, classes }]) => <TutorProfileCard key={key} classes={classes} profile={{
     name: t.name || 'Chưa phân gia sư', introduction: t.introduction || '', background: t.background || '',
-    major: t.major || '', university: t.university || '', achievements: t.achievements || '', avatar_url: avatarUrl(t.avatar_path),
+    major: t.major || '', university: t.university || '', achievements: t.achievements || '', certificates: t.certificates || '', avatar_url: avatarUrl(t.avatar_path),
   }} />)}</div>;
 }

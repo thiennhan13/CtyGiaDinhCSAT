@@ -3,10 +3,10 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { parentPhoneSchema, isSameOrigin } from '@/lib/parents';
 
-const studentIds = z.array(z.string().uuid()).max(50).refine(ids => new Set(ids).size === ids.length);
+const studentIds = z.array(z.string().uuid()).length(1).refine(ids => new Set(ids).size === ids.length);
 const inputSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('create'), name: z.string().trim().min(1).max(150), phone: parentPhoneSchema, studentIds: studentIds.min(1) }),
-  z.object({ action: z.literal('update'), parentId: z.string().uuid(), name: z.string().trim().min(1).max(150), studentIds, active: z.boolean() }),
+  z.object({ action: z.literal('update'), parentId: z.string().uuid(), name: z.string().trim().min(1).max(150), studentIds, phone: parentPhoneSchema, revision: z.number().int().positive(), active: z.boolean() }),
 ]);
 const response = (body: unknown, status = 200) => NextResponse.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
 
@@ -16,10 +16,14 @@ export async function GET(request: Request) {
   if (!user || user.app_metadata?.role !== 'admin') return response({ error: 'Không có quyền truy cập.' }, 403);
   const params = new URL(request.url).searchParams;
   if (params.get('view') === 'provisioning') {
-    const result = await supabase.rpc('parent_auth_candidates');
-    return result.error ? response({ error: 'Chưa đọc được danh sách cấp tài khoản. Kiểm tra migration 26.' }, 503) : response({ rows: result.data });
+    const result = await supabase.rpc('parent_contact_candidates');
+    return result.error ? response({ error: 'Chưa đọc được danh sách liên hệ.' }, 503) : response({ rows: result.data });
   }
-  const query = (params.get('q') || '').trim().slice(0, 100);
+  const query = (params.get('q') || '').trim().slice(0, 150);
+  if (params.get('view') === 'google') {
+    const result = await supabase.rpc('admin_parent_google_candidates', { p_email: query });
+    return result.error ? response({ error: 'Chưa tìm được tài khoản.' }, 503) : response({ users: result.data });
+  }
   const escaped = query.replace(/[\\%_]/g, '\\$&');
   if (params.get('view') === 'students') {
     let search = supabase.from('students').select('student_id, name, parent_number, date_of_birth').eq('is_deleted', false).order('name').limit(20);
@@ -29,10 +33,20 @@ export async function GET(request: Request) {
   }
   const page = Math.max(0, Math.min(10000, Number.parseInt(params.get('page') || '0', 10) || 0));
   let search = supabase.from('parent_accounts')
-    .select('parent_id, display_name, phone, active, parent_student_links(student_id, students(name))', { count: 'exact' })
+    .select('parent_id, display_name, phone, active, revision, parent_identity_links(auth_uid,state,revision), parent_student_links(student_id, students(name))', { count: 'exact' })
     .order('display_name').order('parent_id').range(page * 25, page * 25 + 24);
   if (query) search = search.ilike(/^[+\d\s]+$/.test(query) ? 'phone' : 'display_name', `%${/^[+\d\s]+$/.test(query) ? query.replace(/\s/g, '').replace(/^(?:\+84|0084)/, '0') : escaped}%`);
   const { data, error, count } = await search;
+  if (!error && data?.length) {
+    const details = await supabase.rpc('admin_parent_link_details', { p_parents: data.map(p => p.parent_id) });
+    if (details.error) return response({ error: 'Chưa đọc được trạng thái liên kết. Vui lòng thử lại.' }, 503);
+    // PostgREST embeds a unique relationship as an object after migration 30.
+    // Keep the directory contract compatible with its existing list editor.
+    return response({ parents: data.map(p => ({ ...p,
+      parent_student_links: Array.isArray(p.parent_student_links) ? p.parent_student_links : p.parent_student_links ? [p.parent_student_links] : [],
+      link_details: details.data?.[p.parent_id] ?? null,
+    })), total: count || 0 });
+  }
   return error ? response({ error: 'Chưa tải được tài khoản phụ huynh. Kiểm tra migration 20260906_03 đã được áp dụng.' }, 503)
     : response({ parents: data, total: count || 0 });
 }
@@ -45,21 +59,16 @@ export async function POST(request: Request) {
   const parsed = inputSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return response({ error: parsed.error.issues[0].message }, 400);
   const input = parsed.data;
-  let phone = input.action === 'create' ? input.phone : null;
-  if (input.action === 'update') {
-    const { data: account, error } = await supabase.from('parent_accounts').select('parent_id, phone').eq('parent_id', input.parentId).single();
-    if (error?.code === '42703' || error?.code === '42P01') return response({ error: 'Cần áp dụng migration 20260906_03.' }, 503);
-    if (!account) return response({ error: 'Không tìm thấy phụ huynh.' }, 404);
-    phone = account.phone;
-  }
-  const { error } = await supabase.rpc('admin_save_parent_contact', {
+  const { error } = await supabase.rpc('admin_save_parent', {
     p_parent_id: input.action === 'update' ? input.parentId : null, p_display_name: input.name,
-    p_phone: phone, p_student_ids: input.studentIds, p_active: input.action === 'update' ? input.active : true,
+    p_phone: input.phone, p_student_id: input.studentIds[0], p_active: input.action === 'update' ? input.active : true,
+    p_revision: input.action === 'update' ? input.revision : null,
   });
   if (error) {
-    if (error.code === '23505') return response({ error: 'Số điện thoại đã được đăng ký. Hãy chỉnh sửa hồ sơ hiện có.' }, 409);
-    if (['PGRST202', '42883', '42P01', '42703'].includes(error.code)) return response({ error: 'Cần áp dụng migration 20260906_03 trước khi quản lý tra cứu.' }, 503);
+    if (error.code === '40001') return response({ error: 'Hồ sơ đã thay đổi. Tải lại trước khi lưu.' }, 409);
+    if (error.code === '23505') return response({ error: 'Số điện thoại hoặc học sinh đã có liên kết. Hãy chỉnh sửa hồ sơ hiện có.' }, 409);
+    if (['PGRST202', '42883', '42P01', '42703'].includes(error.code)) return response({ error: 'Chưa cập nhật database quản lý liên kết.' }, 503);
     return response({ error: 'Chưa lưu được phụ huynh. Kiểm tra danh sách học sinh đã chọn.' }, 400);
   }
-  return response({ message: input.action === 'create' ? 'Đã lưu hồ sơ liên hệ. Tài khoản đăng nhập được cấp qua công cụ đối soát.' : 'Đã cập nhật quyền tra cứu.' });
+  return response({ message: input.action === 'create' ? 'Đã lưu hồ sơ. Phụ huynh đăng nhập Google và nhập số điện thoại để liên kết.' : 'Đã cập nhật quyền tra cứu.' });
 }

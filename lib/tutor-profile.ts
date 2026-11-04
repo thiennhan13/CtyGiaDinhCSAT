@@ -9,13 +9,14 @@ export const profileSchema = z.object({
   major: z.string().trim().max(200),
   university: z.string().trim().max(200),
   achievements: z.string().trim().max(2000),
+  certificates: z.string().trim().max(2000).optional(),
   introduction: z.string().trim().max(2000),
   avatar_action: z.enum(['keep', 'replace', 'remove']),
 }).strict();
 export type TutorProfileInput = z.infer<typeof profileSchema>;
 export interface TutorProfile {
   tutor_id: string; name: string; background: string; major: string; university: string;
-  achievements: string; introduction: string; avatar_path: string | null;
+  achievements: string; certificates?: string; introduction: string; avatar_path: string | null;
   revision: number; updated_at?: string; avatar_url?: string | null;
 }
 export function avatarUrl(path: string | null | undefined): string | null {

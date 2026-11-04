@@ -1,3 +1,4 @@
+import { ParentOJPanel } from '@/components/oj/ParentOJPanel';
 import { ParentTutors } from '@/components/tutors/ParentTutors';
 import Link from 'next/link';
 import { classProgramLabel } from '@/lib/class-programs';
@@ -17,12 +18,12 @@ const money = (value:number|null) => value === null ? 'Chưa đủ dữ liệu' 
 const card='parent-card';
 export function ParentPortalView({portal}:{portal:ParentLearningData}){
  if(!portal.student)return null;
- const {student,students}=portal;
+ const {student}=portal;
  const query=(page:number)=>'/parents?'+new URLSearchParams({student:student.student_id,month:portal.month,page:String(page)}).toString()+'#reviews';
  const totals=portal.invoices.reduce((s,p)=>({amount:s.amount+Number(p.amount),received:s.received+Number(p.amount)-Number(p.balance),owed:s.owed+Math.max(0,Number(p.balance)),credit:s.credit+Math.max(0,-Number(p.balance))}),{amount:0,received:0,owed:0,credit:0});
  return <ParentShell>
-   <header id="overview" className="parent-welcome"><div><p className="parent-eyebrow">CSAT / GIA ĐÌNH & HỌC TẬP</p><h1>Hành trình học tập<br/><span>của con.</span></h1></div><nav aria-label="Chọn học sinh" className="parent-student-picker">{students.map(s=><Link key={s.student_id} href={'/parents?'+new URLSearchParams({student:s.student_id,month:portal.month})} aria-current={s.student_id===student.student_id?'page':undefined}>{s.name}</Link>)}</nav></header>
-   <section className="parent-profile" aria-label="Thông tin học sinh"><div className="parent-profile-main"><div className="parent-avatar" aria-hidden="true">{student.name.trim().split(/\s+/).slice(-1)[0]?.slice(0,1)}</div><div className="min-w-0"><p className="parent-eyebrow">HỌC SINH</p><h2>{student.name}</h2><div className="parent-chips">{portal.enrolledClasses.map(c=><span key={c.class_id}>{c.classes?.name}</span>)}<span title="Chờ kết nối tài khoản CSATOJ">Bài đã giải: — / —</span><span title="Chờ kết nối contest của lớp">Xếp hạng contest lớp: —</span></div><p className="parent-metric-note">CSATOJ · Chưa có dữ liệu kết nối</p></div></div><div className="parent-profile-goal"><p className="parent-eyebrow">ĐỒNG HÀNH CÙNG GIA ĐÌNH</p><a href="#reviews">Xem ghi nhận mới nhất ↓</a></div></section>
+   <header id="overview" className="parent-welcome"><div><p className="parent-eyebrow">CSAT / GIA ĐÌNH & HỌC TẬP</p><h1>Hành trình học tập<br/><span>của con.</span></h1></div><p className="text-lg font-bold">{student.name}</p></header>
+   <section className="parent-profile" aria-label="Thông tin học sinh"><div className="parent-profile-main"><div className="parent-avatar" aria-hidden="true">{student.name.trim().split(/\s+/).slice(-1)[0]?.slice(0,1)}</div><div className="min-w-0"><p className="parent-eyebrow">HỌC SINH</p><h2>{student.name}</h2><div className="parent-chips">{portal.enrolledClasses.map(c=><span key={c.class_id}>{c.classes?.name}</span>)}</div><a className="parent-metric-note underline" href="#oj">Xem kết quả CSATOJ</a></div></div><div className="parent-profile-goal"><p className="parent-eyebrow">ĐỒNG HÀNH CÙNG GIA ĐÌNH</p><a href="#reviews">Xem ghi nhận mới nhất ↓</a></div></section>
    <section id="reviews" className={card}><h2 className="text-2xl font-extrabold">Nhận xét từ gia sư</h2><p className="my-4 text-sm leading-7 text-muted-foreground">Mức độ nắm bài được ghi nhận qua bài làm và nhận xét của gia sư.</p>
     <div className="space-y-4">{portal.reviews.map(r=><article key={r.review_id} className="rounded-xl border p-5"><div className="mb-4 flex flex-wrap justify-between gap-3"><strong>{r.classes?.name} · {r.month_year}</strong><span className="text-xs text-muted-foreground">Gia sư: {r.tutors?.name || 'Chưa cập nhật'}</span></div><ReviewContent review={r}/></article>)}</div>
     {!portal.reviews.length && <p className="rounded-lg border border-dashed p-5 text-sm">Chưa có nhận xét tháng được công bố.</p>}
@@ -48,7 +49,7 @@ export function ParentPortalView({portal}:{portal:ParentLearningData}){
    <section id="attendance" className={card}><div className="mb-5 flex flex-wrap items-end justify-between gap-4"><h2 className="text-2xl font-extrabold">Buổi học · {portal.month}</h2><form className="flex flex-wrap items-end gap-2 print:hidden" action="/parents"><input type="hidden" name="student" value={student.student_id}/><label className="text-xs">Tháng xem<input type="month" name="month" defaultValue={portal.month} required className="mt-2 block min-h-11 rounded-lg border bg-background px-3"/></label><button className="csat-btn text-sm" type="submit">Xem buổi học</button></form></div>
     <ParentAttendance sessions={portal.attendance}/>
    </section>
-   <section id="oj" className={card}><div className="parent-section-heading"><div><p className="parent-eyebrow">LUYỆN TẬP & THỬ SỨC</p><h2>Kết quả trên CSATOJ</h2></div><span className="parent-status">Chưa kết nối dữ liệu</span></div><p className="text-sm leading-7 text-muted-foreground">Số bài đã giải, tổng số bài và thứ hạng contest của lớp sẽ được hiển thị sau khi kết nối và đối chiếu tài khoản học sinh.</p><div className="parent-oj-placeholder"><div><strong>— / —</strong><span>Bài đã giải / Tổng bài</span></div><div><strong>—</strong><span>Xếp hạng contest lớp</span></div></div></section>
+   <ParentOJPanel key={student.student_id+portal.month} studentId={student.student_id} month={portal.month} sessions={portal.attendance}/>
    <div id="services" className="parent-services">
    <section id="contact" className={card}><h2 className="mb-5 text-2xl font-extrabold">Gia sư</h2><ParentTutors tutors={portal.tutors}/></section>
    <section id="tuition" className={card}><h2 className="text-2xl font-extrabold">Học phí</h2><p className="my-4 text-sm leading-7 text-muted-foreground">Khoản tạm tính chưa phải học phí đã chốt.</p>

@@ -4,7 +4,6 @@ import { z } from 'zod';
 import type { Metadata } from 'next';
 import { ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
 import { parentSession } from '@/lib/parent-auth';
-import { createAdminClient } from '@/lib/supabase/service';
 import { monthSchema } from '@/lib/learning';
 import type { ParentLearningData } from '@/lib/parent-learning';
 import { accessibleParentTopic, parentTopicHref, parentTopicReturnHref } from '@/lib/parent-topics';
@@ -21,10 +20,10 @@ const contextSchema = z.object({ student: z.string().uuid(), class: z.string().u
 export default async function ParentTopicPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const session = await parentSession();
   if (!session) redirect('/login');
-  const { hash } = session;
+  if (session.access.state !== 'active') redirect('/parents');
   const context = contextSchema.safeParse(await searchParams);
   if (!context.success) notFound();
-  const { data, error } = await createAdminClient().rpc('parent_learning_portal', { p_token_hash: hash, p_student_id: context.data.student, p_month: context.data.month ?? null, p_review_page: context.data.page });
+  const { data, error } = await session.supabase.rpc('parent_portal', { p_student_id: context.data.student, p_month: context.data.month ?? null, p_review_page: context.data.page });
   if (error) return <ParentShell navigationEnabled={false}><div className="parent-card"><h1 className="text-2xl font-bold">Chuyên đề học tập</h1><p className="my-4" role="status">{error.code === '42501' ? 'Phiên tra cứu đã hết hạn hoặc học sinh không còn được liên kết. Vui lòng đăng nhập lại.' : 'Chưa tải được chuyên đề. Vui lòng thử lại sau hoặc liên hệ CSAT.'}</p><Link href="/login" className="csat-btn">Về trang liên lạc</Link></div></ParentShell>;
   const portal = data as ParentLearningData;
   if (portal?.student?.student_id !== context.data.student) notFound();

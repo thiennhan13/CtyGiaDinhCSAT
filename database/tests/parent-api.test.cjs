@@ -20,6 +20,8 @@ function client(s) {
   const call = (name, payload, result) => { s.calls.push({name,payload}); return Promise.resolve(result); };
   return {
     auth:{
+      exchangeCodeForSession:code=>call('exchangeCode',code,{data:{session:null},error:s.exchangeError||null}),
+      signInWithOAuth:payload=>call('oauth',payload,{data:{url:'https://accounts.google.com/synthetic'},error:s.oauthError||null}),
       getClaims:()=>call('claims',null,{data:{claims:{session_id:id(50)}}}),
       getUser:()=>call('getUser',null,{data:{user:s.user}}),
       signInWithPassword:payload=>call('login',payload,{data:{user:s.targetUser,session:s.loginError?null:{access_token:'synthetic'}},error:s.loginError||null}),
@@ -56,13 +58,14 @@ function load(relative,s) {
     if(name==='server-only') return {};
     if(name==='@/lib/login-security') return load('lib/login-security.ts',s);
     if(name==='@/lib/login-captcha') return load('lib/login-captcha.ts',s);
+    if(name==='@/lib/business-api') return load('lib/business-api.ts',s);
     if(name==='@/lib/parent-auth') return load('lib/parent-auth.ts',s);
-    if(name==='next/server') return {NextResponse:{json:(body,init)=>Response.json(body,init)}};
+    if(name==='next/server') return {NextResponse:{json:(body,init)=>Response.json(body,init),redirect:url=>Response.redirect(url,307)}};
     if(name==='next/headers') return {cookies:async()=>({set:(...args)=>s.cookies.push(args),get:name=>s.cookieValues?.[name]?{value:s.cookieValues[name]}:undefined})};
     if(name==='@/lib/supabase/server') return {createClient:async()=>client(s)};
     if(name==='@/lib/supabase/service') return {createAdminClient:()=>{s.calls.push({name:'service'});return client(s);}};
     if(name==='@/lib/rate-limit') return {rateLimit:()=>({success:!s.limited}),getClientIp:()=> '127.0.0.1'};
-    if(name==='@/lib/parents') return load('lib/parents.ts',s);
+    if(name==='@/lib/parents'||name==='./parents') return load('lib/parents.ts',s);
     if(name==='@/lib/parent-lookup') return load('lib/parent-lookup.ts',s);
     return baseRequire(name);
   };
@@ -125,7 +128,7 @@ test('official CAPTCHA test keys cannot be used on a deployed hostname',async t=
 
 test('both login endpoints reject invalid/replayed CAPTCHA before Auth, database or cookies',async t=>{
  captchaConfig(t);const previousFetch=global.fetch;t.after(()=>{global.fetch=previousFetch;});
- for(const [route,body,action] of [[login,{phone:'0912345678'},'parent_login'],['app/api/auth/login/route.ts',{email:'staff@example.test',password:'synthetic-only'},'staff_login']]){
+ for(const [route,body,action] of [[login,{},'parent_login'],['app/api/auth/login/route.ts',{email:'staff@example.test',password:'synthetic-only'},'staff_login']]){
   let verifies=0;
   global.fetch=async()=>{verifies++;return Response.json({success:verifies===1,hostname:'portal.test',action,challenge_ts:new Date().toISOString()});};
   let s=state({targetUser:{id:id(1),app_metadata:{role:'admin'}}});
@@ -148,7 +151,7 @@ test('admin endpoints require verified admin; parent lookup never grants admin',
   for(const user of [null,{id:id(2),app_metadata:{role:'parent'}},{id:id(2),user_metadata:{role:'admin'},app_metadata:{}}]){
     const s=state({user});assert.equal((await post(manage,s,createBody)).status,403);
     assert.equal((await load(manage,s).GET(new Request('https://portal.test/api'))).status,403);
-    assert.equal(did(s,'service').length,0);assert.equal(did(s,'admin_save_parent_contact').length,0);
+    assert.equal(did(s,'service').length,0);assert.equal(did(s,'admin_save_parent').length,0);
   }
 });
 test('cross-site parent lookup, logout and admin mutations fail before DB access',async()=>{
@@ -159,19 +162,22 @@ test('cross-site parent lookup, logout and admin mutations fail before DB access
 test('admin creates a phone contact through guarded RPC without provisioning Auth or passwords',async()=>{
   const s=state();const response=await post(manage,s,createBody);const body=await response.json();
   assert.equal(response.status,200);assert.equal(body.password,undefined);
-  assert.deepEqual(did(s,'admin_save_parent_contact')[0].payload,{p_parent_id:null,p_display_name:'Parent',p_phone:'0912345678',p_student_ids:[id(11)],p_active:true});
+  assert.deepEqual(did(s,'admin_save_parent')[0].payload,{p_parent_id:null,p_display_name:'Parent',p_phone:'0912345678',p_student_id:id(11),p_active:true,p_revision:null});
   assert.equal(did(s,'create').length,0);assert.equal(did(s,'service').length,0);
 });
 test('validation, duplicate phone and missing migration errors are surfaced without Auth mutations',async()=>{
   for(const [rpcError,code] of [[{code:'23505'},409],[{code:'PGRST202'},503],[{code:'22023'},400]]){
     const s=state({rpcError});assert.equal((await post(manage,s,createBody)).status,code);assert.equal(did(s,'create').length,0);
   }
-  const s=state();assert.equal((await post(manage,s,{...createBody,studentIds:[id(11),id(11)]})).status,400);assert.equal(did(s,'admin_save_parent_contact').length,0);
+  const s=state();assert.equal((await post(manage,s,{...createBody,studentIds:[id(11),id(11)]})).status,400);assert.equal(did(s,'admin_save_parent').length,0);
 });
-test('admin edits existing links/active flag and cannot accidentally change phone from stale client',async()=>{
-  const s=state();assert.equal((await post(manage,s,{action:'update',parentId:id(2),name:'Edited',phone:'0987654321',studentIds:[],active:false})).status,200);
-  assert.deepEqual(did(s,'admin_save_parent_contact')[0].payload,{p_parent_id:id(2),p_display_name:'Edited',p_phone:'0912345678',p_student_ids:[],p_active:false});
-  assert.equal(did(s,'target').length,0);
+test('admin changes phone only with revision and exactly one student',async()=>{
+ const body={action:'update',parentId:id(2),name:'Edited',phone:'0987654321',studentIds:[id(11)],active:false,revision:2};
+ const s=state();assert.equal((await post(manage,s,body)).status,200);
+ assert.deepEqual(did(s,'admin_save_parent')[0].payload,{p_parent_id:id(2),p_display_name:'Edited',p_phone:'0987654321',p_student_id:id(11),p_active:false,p_revision:2});
+ assert.equal((await post(manage,state(),{...body,revision:undefined})).status,400);
+ assert.equal((await post(manage,state(),{...body,studentIds:[]})).status,400);
+ assert.equal((await post(manage,state({rpcError:{code:'40001'}}),body)).status,409);
 });
 
 test('retired parent password endpoint never calls Auth or database',async()=>{
@@ -179,55 +185,52 @@ test('retired parent password endpoint never calls Auth or database',async()=>{
  assert.equal((await post(manage,state(),{action:'reset_password',authUid:id(2)})).status,400);
 });
 
-test('registered phone creates a random HttpOnly lookup session without Auth',async()=>{
- const s=state({user:null});const r=await post(login,s,{phone:'+84 912 345 678'});
- assert.equal(r.status,200);assert.deepEqual(await r.json(),{success:true,redirectUrl:'/parents'});
- const cookie=s.cookies.find(c=>c[0]==='csat_parent_lookup');assert.match(cookie[1],/^[A-Za-z0-9_-]{43}$/);assert.equal(cookie[2].httpOnly,true);assert.equal(cookie[2].sameSite,'lax');assert.equal(cookie[2].maxAge,43200);
- const payload=did(s,'start_parent_phone_session')[0].payload;assert.equal(payload.p_phone,'0912345678');assert.equal(payload.p_token_hash,require('node:crypto').createHash('sha256').update(cookie[1]).digest('hex'));
- for(const key of ['p_source','p_identity'])assert.match(payload[key],/^[a-f0-9]{64}$/);
- for(const name of ['getUser','claims','login','start_parent_password_session','start_parent_lookup'])assert.equal(did(s,name).length,0);
-});
-
-test('invalid input, unavailable DB, inactive contact and rate limits fail closed',async()=>{
- for(const body of [{phone:'0912345678',password:'obsolete'},{phone:'bad'}])assert.equal((await post(login,state(),body)).status,400);
- for(const [overrides,status] of [[{rpcError:{code:'offline'}},503],[{rpcResults:{start_parent_phone_session:'not_found'}},401],[{rpcResults:{start_parent_phone_session:'unexpected'}},503],[{rpcResults:{start_parent_phone_session:'rate_limited'}},429]]){
-  const s=state(overrides),r=await post(login,s,{phone:'0912345678'});assert.equal(r.status,status);assert.equal(s.cookies.length,0);if(status===429){assert.equal(r.headers.get('retry-after'),'900');assert.match((await r.json()).error,/vượt quá.*15 phút/);}
+test('Google OAuth starts PKCE with fixed callback and rejects legacy phone login',async()=>{
+ const s=state({user:null});const r=await post(login,s,{});assert.equal(r.status,200);
+ assert.deepEqual(await r.json(),{url:'https://accounts.google.com/synthetic'});
+ assert.deepEqual(did(s,'oauth')[0].payload,{provider:'google',options:{redirectTo:'https://portal.test/auth/callback',skipBrowserRedirect:true}});
+ assert.equal((await post(login,state(),{phone:'0912345678'})).status,422);
+ assert.equal(did(s,'start_parent_phone_session').length,0);
+ for(const [override,status] of [[{rpcError:{code:'offline'}},503],[{rpcResults:{consume_auth_attempt:false}},429],[{oauthError:{message:'offline'}},503]]){
+  assert.equal((await post(login,state(override),{})).status,status);
  }
 });
 
-test('lookup works without Auth provider and session is checked against the database',async()=>{
- const s=state({user:null,loginError:{code:'phone_provider_disabled'},cookieValues:{csat_parent_lookup:'a'.repeat(43)}});
- assert.equal((await post(login,s,{phone:'0912345678'})).status,200);
- assert.ok(await load('lib/parent-auth.ts',s).parentSession());assert.equal(did(s,'getUser').length,0);assert.equal(did(s,'login').length,0);
- for(const overrides of [{rpcResults:{parent_phone_session_valid:false}},{rpcError:{code:'offline'}}])assert.equal(await load('lib/parent-auth.ts',state({...overrides,cookieValues:s.cookieValues})).parentSession(),null);
+test('parent session requires verified Auth and current DB linkage; legacy cookie grants nothing',async()=>{
+ const old={csat_parent_lookup:'a'.repeat(43),parent_session:'0912345678'};
+ assert.equal(await load('lib/parent-auth.ts',state({user:null,cookieValues:old})).parentSession(),null);
+ const s=state({rpcResults:{parent_access:{state:'active',student_id:id(11)}}});
+ const session=await load('lib/parent-auth.ts',s).parentSession();assert.equal(session.access.student_id,id(11));
+ assert.equal(did(s,'getUser').length,1);assert.equal(did(s,'parent_access').length,1);
+ await assert.rejects(()=>load('lib/parent-auth.ts',state({rpcError:{code:'offline'}})).parentSession());
 });
 
-test('raw phone, legacy and malformed cookies are never accepted as sessions',async()=>{
-  for(const cookieValues of [{parent_session:'0912345678'},{csat_parent_lookup:'0912345678'},{csat_parent_lookup:'!'.repeat(43)},{}]){
-    assert.equal(await load('lib/parent-lookup.ts',state({cookieValues})).readLookupHash(),null);
-  }
+test('parent phone claim is authenticated, bounded and does not reveal owner identity',async()=>{
+ const route='app/api/parents/link/route.ts';
+ assert.equal((await post(route,state({user:null}),{phone:'0912345678'})).status,401);
+ const s=state({rpcResults:{claim_parent_phone:{code:'PHONE_ALREADY_LINKED'}}});
+ const response=await post(route,s,{phone:'+84 912 345 678'});assert.equal(response.status,409);
+ assert.equal((await response.json()).code,'PHONE_ALREADY_LINKED');
+ assert.deepEqual(did(s,'claim_parent_phone')[0].payload,{p_phone:'0912345678'});
+ assert.equal((await post(route,state(),{phone:'0912345678',studentId:id(11)})).status,422);
 });
-test('logout revokes only lookup session and preserves admin/tutor Supabase cookies',async()=>{
-  const s=state({cookieValues:{csat_parent_lookup:'a'.repeat(43),'sb-project-auth-token':'existing-admin'}});
-  assert.equal((await post('app/api/parents/logout/route.ts',s,{})).status,200);
-  assert.equal(did(s,'end_parent_lookup').length,1);assert.equal(did(s,'logout').length,0);
-  assert.deepEqual(s.cookies.map(c=>c[0]).sort(),['csat_parent_lookup','parent_session']);
-  assert.ok(s.cookies.every(c=>c[2].maxAge===0));
-  const failed=state({cookieValues:{csat_parent_lookup:'a'.repeat(43)},rpcError:{code:'offline'}});
-  assert.equal((await post('app/api/parents/logout/route.ts',failed,{})).status,503);assert.equal(failed.cookies.length,0);
+
+test('logout ends the local Supabase session and clears obsolete lookup cookies',async()=>{
+ const s=state();assert.equal((await post('app/api/parents/logout/route.ts',s,{})).status,200);
+ assert.deepEqual(did(s,'logout')[0].payload,{scope:'local'});
+ assert.deepEqual(s.cookies.map(c=>c[0]).sort(),['csat_parent_lookup','parent_session']);
+ assert.ok(s.cookies.every(c=>c[2].maxAge===0));
+ assert.equal((await post('app/api/parents/logout/route.ts',state({logoutError:{message:'offline'}}),{})).status,503);
 });
-test('a new lookup retires the previous browser lookup session',async()=>{
-  const s=state({cookieValues:{csat_parent_lookup:'a'.repeat(43)}});assert.equal((await post(login,s,{phone:'0912345678'})).status,200);
-  assert.equal(did(s,'end_parent_lookup').length,1);
-});
+
 test('parent page validates lookup separately; admin/tutor routing stays protected',()=>{
   const {authRedirect}=load('lib/auth-routing.ts',state());
   for(const user of [null,{app_metadata:{role:'parent'}},{app_metadata:{role:'admin'}}]) for(const route of ['/parents','/parents/account','/login'])assert.equal(authRedirect(route,user),null);
   for(const route of ['/admin/parents','/tutor/dashboard','/tutor']) assert.equal(authRedirect(route,{app_metadata:{role:'parent'}}),'/parents');
   assert.equal(authRedirect('/admin/parents',null),'/tutor');
   assert.equal(authRedirect('/admin/parents',{app_metadata:{role:'tutor'}}),'/tutor/dashboard');
-  assert.equal(authRedirect('/admin/parents',{user_metadata:{role:'admin'}}),'/tutor/dashboard');
-  const page=fs.readFileSync(path.join(root,'app/parents/page.tsx'),'utf8');assert.match(page,/parentSession/);assert.match(page,/parent_learning_portal/);assert.doesNotMatch(page,/get_parent_portal|auth.getUser|parent_session/);
+  assert.equal(authRedirect('/admin/parents',{user_metadata:{role:'admin'}}),'/parents');
+  const page=fs.readFileSync(path.join(root,'app/parents/page.tsx'),'utf8');assert.match(page,/parentSession/);assert.match(page,/parent_portal/);assert.doesNotMatch(page,/get_parent_portal|auth.getUser|parent_session/);
 });
 test('same-origin checks use forwarded authority and reject foreign or opaque origins',()=>{
   const {isSameOrigin}=load('lib/parents.ts',state());const req=origin=>new Request('http://localhost:3000/api',{headers:{host:'portal.test','x-forwarded-proto':'https',origin}});
@@ -295,4 +298,53 @@ test('tutor account partial failures preserve Auth and do not report a completed
  for(const user of [null,{id:id(2),app_metadata:{role:'parent'}}]){
   const denied=state({user});assert.equal((await post(route,denied,{action:'delete',tutor_id:id(21)})).status,403);assert.equal(did(denied,'service').length,0);
  }
+});
+
+test('Google callback exchanges PKCE once, ignores client redirect and hides provider errors',async()=>{
+ const route='app/auth/callback/route.ts';
+ for(const role of [undefined,'tutor','admin']){
+  const s=state({user:{id:id(1),app_metadata:{role}}});
+  const r=await load(route,s).GET(new Request('https://portal.test/auth/callback?code=synthetic&next=https://outside.test'));
+  assert.equal(r.headers.get('location'),'https://portal.test/parents');assert.deepEqual(did(s,'exchangeCode').map(c=>c.payload),['synthetic']);
+  assert.equal(did(s,'updateUserById').length,0);assert.equal(did(s,'updateUser').length,0);
+ }
+ for(const url of ['?error=access_denied','?code='+('x'.repeat(2048)),'?code=expired']){
+  const s=state({exchangeError:{message:'Provider-sensitive-detail'}});
+  const r=await load(route,s).GET(new Request('https://portal.test/auth/callback'+url));
+  assert.equal(r.headers.get('location'),'https://portal.test/login?error=google');
+  assert.equal(did(s,'exchangeCode').length,url==='?code=expired'?1:0);
+ }
+});
+
+test('parent directory accepts the one-to-one PostgREST embedding and preserves a list contract',async()=>{
+ const link={student_id:id(11),students:{name:'Fixture student'}};
+ for(const embedded of [link,[link],null]){
+  const s=state({parent_accounts:[{parent_id:id(2),parent_student_links:embedded,parent_identity_links:{state:'active',revision:1}}],rpcResults:{admin_parent_link_details:{[id(2)]:{google_email:'fixture@example.test'}}}});
+  const r=await load(manage,s).GET(new Request('https://portal.test/api'));assert.equal(r.status,200);
+  const body=await r.json();assert.deepEqual(body.parents[0].parent_student_links,embedded?[link]:[]);
+  assert.equal(body.parents[0].link_details.google_email,'fixture@example.test');
+ }
+});
+
+test('legacy student API uses the atomic admin RPC, checks Origin/revision and never writes through service role',async()=>{
+ const route='app/api/admin/students/route.ts';
+ for(const user of [null,{id:id(2),app_metadata:{role:'tutor'}},{id:id(2),user_metadata:{role:'admin'}}]){
+  const s=state({user});assert.ok([401,403].includes((await post(route,s,{action:'create',name:'Fixture'})).status));assert.equal(did(s,'admin_save_student').length,0);
+ }
+ const foreign=state();assert.equal((await post(route,foreign,{action:'create',name:'Fixture'},'https://outside.test')).status,403);assert.equal(foreign.calls.length,0);
+ for(const action of ['create','update','delete']){
+  const s=state();const body=action==='create'?{action,name:'Fixture',parent_name:'Parent',parent_number:'0912345678'}:{action,student_id:id(11),revision:3,...(action==='update'?{parent_number:'0987654321'}:{})};
+  assert.equal((await post(route,s,body)).status,200);assert.equal(did(s,'service').length,0);assert.equal(did(s,'admin_save_student').length,1);
+  const payload=did(s,'admin_save_student')[0].payload;assert.equal(payload.p_revision,action==='create'?null:3);
+  assert.deepEqual(payload.p_data,action==='delete'?{is_deleted:true}:action==='update'?{parent_number:'0987654321'}:{name:'Fixture',parent_name:'Parent',parent_number:'0912345678'});
+  if(action!=='create'){delete body.revision;assert.equal((await post(route,state(),body)).status,422);}
+ }
+ assert.equal((await post(route,state({rpcError:{code:'40001',message:'Stale'}}),{action:'delete',student_id:id(11),revision:3})).status,409);
+});
+
+test('contact import marks shared normalized phone for review even when parent names match',()=>{
+ const {previewParentImport}=load('lib/parent-import.ts',state());
+ const source=[{student_id:id(11),name:'Student A',parent_name:'Parent',parent_number:'0912345678'},{student_id:id(12),name:'Student B',parent_name:'Parent',parent_number:'+84912345678'}];
+ assert.ok(previewParentImport(source,[]).every(row=>row.status==='review'));
+ assert.equal(previewParentImport(source.slice(0,1),[])[0].status,'ready');
 });

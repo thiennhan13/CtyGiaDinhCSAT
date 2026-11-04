@@ -1,113 +1,24 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { AlertCircle, Phone, Search } from 'lucide-react';
-import { normalizeParentPhone } from '@/lib/parents';
 import { useLoginCaptcha, type LoginCaptchaConfig } from './LoginCaptcha';
-
 export function ParentLoginForm({ captcha, active = true }: { captcha?: LoginCaptchaConfig; active?: boolean }) {
   const verification = useLoginCaptcha(captcha, active, 'parent_login');
-  const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (loading) return;
-    setError('');
-    const clean = normalizeParentPhone(phone);
-    if (!clean) {
-      setError('Vui lòng nhập số di động Việt Nam, bắt đầu bằng 0 hoặc +84.');
-      return;
-    }
-    if (!verification.ready) { setError('Vui lòng hoàn tất xác minh bảo mật.'); return; }
-    setLoading(true);
+  const [busy, setBusy] = useState(false);
+  async function login(event: React.FormEvent) {
+    event.preventDefault(); if (busy || !verification.ready) return;
+    setBusy(true); setError('');
     try {
-      const res = await fetch('/api/parents/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: clean, captchaToken: verification.token }),
-      });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.error || 'Có lỗi xảy ra.');
-      }
-      
-      router.replace('/parents');
-      router.refresh();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Có lỗi xảy ra.');
-    } finally {
-      verification.reset();
-      setLoading(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSearch} className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="parent-phone" className="text-sm font-semibold text-foreground">
-          Số điện thoại Phụ huynh
-        </Label>
-        <div className="relative">
-          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            id="parent-phone"
-            type="tel"
-            inputMode="numeric"
-            placeholder="0912 345 678"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            required
-            autoComplete="tel"
-            maxLength={30}
-            className="pl-9 h-11 bg-background border border-input rounded-xl text-sm"
-          />
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Nhập số điện thoại đã đăng ký với trung tâm CSAT
-        </p>
-      </div>
-
-
-      <div className="flex items-start gap-2 bg-secondary border border-border rounded-lg p-3 text-[13px] text-muted-foreground">
-        <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-primary" />
-        <span>Tra cứu bằng số điện thoại phụ huynh đã đăng ký. Nếu chưa xem được thông tin của con, vui lòng liên hệ CSAT để kiểm tra hồ sơ.</span>
-      </div>
-
-      {error && (
-        <div role="alert" className="flex items-start gap-2.5 text-[13px] text-destructive bg-destructive/10 border border-destructive/20 p-3 rounded-lg">
-          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-          <p>{error}</p>
-        </div>
-      )}
-
-      {verification.widget}
-      <button
-        type="submit"
-        disabled={loading || !verification.ready}
-        className="csat-btn csat-btn--primary w-full h-11 flex justify-center items-center text-[0.95em]"
-      >
-        {loading ? (
-          <>
-            <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            Đang đăng nhập…
-          </>
-        ) : (
-          <>
-            <Search className="w-4 h-4" />
-            Đăng nhập
-          </>
-        )}
-      </button>
-    </form>
-  );
+      const response = await fetch('/api/parents/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ captchaToken: verification.token }) });
+      const data = await response.json();
+      if (!response.ok || !data.url) throw new Error(data.error || 'Chưa mở được đăng nhập Google.');
+      window.location.assign(data.url);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Chưa mở được đăng nhập.'); setBusy(false); verification.reset(); }
+  }
+  return <form onSubmit={login} className="space-y-4">
+    <p className="text-sm text-muted-foreground">Đăng nhập Google, sau đó nhập số điện thoại đã đăng ký với CSAT để liên kết hồ sơ của con.</p>
+    {error && <p role="alert" className="rounded-lg border border-destructive p-3 text-destructive">{error}</p>}
+    {verification.widget}
+    <button className="csat-btn csat-btn--primary min-h-11 w-full" disabled={busy || !verification.ready} type="submit">{busy ? 'Đang mở Google…' : 'Tiếp tục với Google'}</button>
+  </form>;
 }
-

@@ -68,17 +68,18 @@ async function main() {
     check(!((await response.text()).includes(secret)), 'Secret never serialized');
     check(response.headers()['content-security-policy-report-only'].includes('frame-src https://challenges.cloudflare.com'), 'CSP permits challenge iframe');
     const parent = p.locator('#entry-parent');
-    await parent.locator('#parent-phone').fill('0912345678');
-    check(await parent.getByRole('button', { name: 'Đăng nhập', exact: true }).isDisabled(), 'Requires token');
+    const google = parent.getByRole('button', { name: 'Tiếp tục với Google', exact: true });
+    check(await parent.locator('input').count() === 0, 'Phone is requested only after Google authentication');
+    check(await google.isDisabled(), 'Requires token');
     await parent.getByRole('button', { name: 'Xác minh thử nghiệm' }).click();
     await parent.getByRole('button', { name: 'Hết hạn thử nghiệm' }).click();
-    check(await parent.getByRole('button', { name: 'Đăng nhập', exact: true }).isDisabled(), 'Expired token cleared');
+    check(await google.isDisabled(), 'Expired token cleared');
     await parent.getByRole('button', { name: 'Xác minh thử nghiệm' }).click();
-    await parent.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
+    await google.click();
     await parent.getByRole('alert').waitFor();
     check(activity.posts.length === 1 && activity.posts[0].data.captchaToken.startsWith('fixture-parent_login-'), 'Parent sends action token');
-    check(await parent.locator('#parent-phone').inputValue() === '0912345678', 'Phone survives failed login');
-    check(await parent.getByRole('button', { name: 'Đăng nhập', exact: true }).isDisabled(), 'Used token reset for retry');
+    check(Object.keys(activity.posts[0].data).join(',') === 'captchaToken', 'OAuth start sends no phone or student identity');
+    check(await google.isDisabled(), 'Used token reset for retry');
     await p.getByRole('radio', { name: 'Gia sư / Admin', exact: true }).check();
     const staff = p.locator('#entry-tutor');
     await staff.getByRole('button', { name: 'Xác minh thử nghiệm' }).waitFor();
@@ -116,8 +117,8 @@ async function main() {
     await staff.getByRole('button', { name: 'Xác minh thử nghiệm', exact: true }).click();
     check(await staff.getByRole('button', { name: 'Đăng nhập hệ thống' }).isEnabled(), 'Successful retry enables login');
     await p.getByRole('radio', { name: 'Phụ huynh', exact: true }).check();
-    check(await parent.locator('#parent-phone').inputValue() === '0912345678', 'Role switch retains input');
-    check(await parent.getByRole('button', { name: 'Đăng nhập', exact: true }).isDisabled(), 'Role switch discards old verification');
+    check(await google.isVisible(), 'Role switch restores Google entry');
+    check(await google.isDisabled(), 'Role switch discards old verification');
     check(activity.errors.length === 0 && activity.unexpected.length === 0, 'No browser errors or unmocked network');
     await c.close();
     const retry = await context(true);
@@ -135,14 +136,13 @@ async function main() {
     for (const role of ['Phụ huynh', 'Gia sư / Admin']) {
       await limited.p.getByRole('radio', { name: role, exact: true }).check();
       const form = limited.p.locator(role === 'Phụ huynh' ? '#entry-parent' : '#entry-tutor');
-      if (role === 'Phụ huynh') await form.locator('#parent-phone').fill('0912345678');
-      else { await form.locator('#tutor-email').fill('tutor@example.test'); await form.locator('#tutor-password').fill('synthetic-password'); }
+      if (role !== 'Phụ huynh') { await form.locator('#tutor-email').fill('tutor@example.test'); await form.locator('#tutor-password').fill('synthetic-password'); }
       await form.getByRole('button', { name: 'Xác minh thử nghiệm', exact: true }).click();
-      await form.getByRole('button', { name: role === 'Phụ huynh' ? 'Đăng nhập' : 'Đăng nhập hệ thống', exact: true }).click();
+      await form.getByRole('button', { name: role === 'Phụ huynh' ? 'Tiếp tục với Google' : 'Đăng nhập hệ thống', exact: true }).click();
       await form.getByRole('alert').filter({ hasText: 'Đã vượt quá' }).waitFor();
       check((await form.getByRole('alert').textContent()).includes('15 phút'), '429 shows reason and waiting time for '+role);
       check(await limited.p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), '429 message wraps at 320px');
-      check(await form.getByRole('button', { name: role === 'Phụ huynh' ? 'Đăng nhập' : 'Đăng nhập hệ thống', exact: true }).isDisabled(), '429 resets CAPTCHA');
+      check(await form.getByRole('button', { name: role === 'Phụ huynh' ? 'Tiếp tục với Google' : 'Đăng nhập hệ thống', exact: true }).isDisabled(), '429 resets CAPTCHA');
       await limited.p.screenshot({ path: path.join(output, role === 'Phụ huynh' ? 'rate-limit-parent.png' : 'rate-limit-tutor.png'), fullPage: true });
     }
     check(limited.activity.posts.length === 2, 'No automatic login retry after 429');

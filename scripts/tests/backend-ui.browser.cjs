@@ -74,30 +74,29 @@ module.exports = async function backendUi({ context, origin, run, check, output 
       await submit.click();await p.locator('.intake-success').waitFor();check(calls===1,'One click sends shared consultation');
     } finally {await c.close();}
   });
-  for (const width of widths) await run('backend parent phone login and retired password ' + width, async () => {
+  for (const width of widths) await run('backend parent Google entry and retired password ' + width, async () => {
     const c = await context(null, { viewport: { width, height: 900 } }), p = await c.newPage();
     try {
       let loginRequests = 0;
       const donor = await context('valid'); const loginCookies = await donor.cookies(); await donor.close();
       await p.route(origin + '/api/parents/auth', async route => {
         loginRequests++; const body = route.request().postDataJSON();
-        check(body.phone === '0912345678' && !('password' in body), 'Login sends synthetic credentials in POST body');
+        check(!('phone' in body) && !('password' in body) && !('studentId' in body), 'Google start sends no phone, password or student identity');
         await pause();
         if (loginRequests === 1) return json(route, 401, { error: 'Thông tin đăng nhập không đúng.' });
-        await c.addCookies(loginCookies); return json(route, 200, { ok: true });
+        await c.addCookies(loginCookies); return json(route, 200, { url: origin + '/parents' });
       });
       await p.goto(origin + '/login', { waitUntil: 'networkidle' });
-      await p.locator('#parent-phone').fill('0912345678');
-      const form = p.locator('form').filter({ has: p.locator('#parent-phone') });
-      check(await form.locator('input[type=password]').count() === 0, 'No parent password input');
-      await form.getByRole('button', { name: 'Đăng nhập', exact: true }).focus(); await p.keyboard.press('Enter');
-      await form.getByRole('button', { name: 'Đang đăng nhập…' }).waitFor();
-      check(await form.getByRole('button', { name: 'Đang đăng nhập…' }).isDisabled(), 'Login pending disabled');
+      const form = p.locator('#entry-parent form');
+      check(await form.locator('input').count() === 0, 'Parent entry waits for Google before requesting phone');
+      await form.getByRole('button', { name: 'Tiếp tục với Google', exact: true }).focus(); await p.keyboard.press('Enter');
+      await form.getByRole('button', { name: 'Đang mở Google…' }).waitFor();
+      check(await form.getByRole('button', { name: 'Đang mở Google…' }).isDisabled(), 'Login pending disabled');
       await form.getByRole('alert').waitFor();
-      check(loginRequests === 1 && await form.locator('#parent-phone').inputValue() === '0912345678', 'Failed login retains phone');
+      check(loginRequests === 1 && await form.getByRole('button', { name: 'Tiếp tục với Google', exact: true }).isEnabled(), 'Failed Google start permits explicit retry');
       check(!p.url().includes('Fixture') && !p.url().includes('0912345678'), 'Credentials never enter login URL');
       await layout(p, 'backend-login', width);
-      await form.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
+      await form.getByRole('button', { name: 'Tiếp tục với Google', exact: true }).click();
       await p.waitForURL(url => url.pathname === '/parents');
       await p.getByText('Học sinh dữ liệu giả', { exact: true }).first().waitFor();
       check(!p.url().includes('Fixture') && !p.url().includes('0912345678'), 'Login success navigates without credentials');
@@ -107,7 +106,7 @@ module.exports = async function backendUi({ context, origin, run, check, output 
       await page.goto(origin + '/parents/account', { waitUntil: 'networkidle' });
       check(new URL(page.url()).pathname === '/parents', 'Old password page redirects to dashboard');
       check(await page.getByRole('link', { name: 'Đổi mật khẩu' }).count() === 0, 'Password navigation removed');
-      await layout(page, 'backend-phone-dashboard', width);
+      await layout(page, 'backend-google-dashboard', width);
     } finally { await authenticated.close(); }
   });
   for (const width of widths) await run('backend admin intake filters and revision conflict ' + width, async () => {

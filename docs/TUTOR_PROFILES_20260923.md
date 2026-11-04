@@ -1,6 +1,12 @@
-# Hồ sơ và avatar gia sư — phát hành 23/09/2026
+# Hồ sơ và avatar gia sư
+
+Gói18 hồ sơ/ảnh do chủ trung tâm cung cấp đã được chuẩn bị ngoài Git ngày03/11/2026, chưa ghi DB/Storage. Có10 mapping chắc chắn. Chủ trung tâm xác nhận7 gia sư mới và yêu cầu chưa nhập tài khoản chưa khớp:8 hồ sơ còn lại giữ chờ admin, không tạo Auth hoặc đổi tutor ID/email. [Hướng dẫn nhập và phát hành từng bước](PORTAL_DEPLOYMENT_STEP_BY_STEP.md), bước8. Giới thiệu không có trong nguồn được để trống; liên hệ riêng và ghi chú nguồn không xuất hiện trên thẻ phụ huynh.
 
 ## Nội dung và vận hành
+
+Migration31 bổ sung `certificates` vào profile/RPC/API/form/admin/gia sư/JSON parent/thẻ; giữ chứng chỉ khi client cũ không gửi trường. Thành tích và chứng chỉ nhiều dòng, mỗi dòng một mục, tối đa2.000 ký tự; đại học200; giới thiệu2.000. Không upload bằng/chứng chỉ. Thông tin nền chỉ admin sửa; trống được ẩn.
+
+Reset đã chốt giữ nguyên Auth, tutor ID/hồ sơ/registry avatar và Storage. Không nhập lại hoặc tạo trùng gia sư. [Runbook](PORTAL_GOOGLE_GRANTS_ROLLOUT.md). Chưa nghiệm thu upload/thay/gỡ ảnh trên Supabase thử thật.
 
 Gia sư hoạt động sửa hồ sơ của mình tại `/tutor/profile`. Admin sửa tại `/admin/tutors/[id]`. Lưu thành công công bố ngay, không có luồng duyệt. Phụ huynh thấy bản mới khi tải lại trang. Thông tin nền mặc định: “Cựu học sinh chuyên Tin trường THPT Chuyên Phan Bội Châu”; chỉ admin thay đổi ngoại lệ, kể cả để trống để ẩn. Tên giữ nguồn `tutors.name` và quy trình admin hiện có.
 
@@ -10,16 +16,18 @@ Khi có xung đột, form giữ nội dung nhập và khóa Lưu. Chọn “Tả
 
 ## Database và Storage
 
+Schema22/31 đã áp trên Supabase hiện tại03/11 cùng dependency19/21/29/30/32; certificates và RPC đã kiểm quyền. Chưa tạo bucket/policy avatar, chưa nhập hồ sơ và chưa deploy ứng dụng. Không chạy lại migration đã có; Storage setup là thao tác riêng.
+
 Migration `20260923_22_tutor_profiles.sql` sau 21; không sửa migration cũ. Mở rộng tutor_public_profiles, RPC save_tutor_profile kiểm tra ownership/background/revision, giữ audit_business_write, mở rộng JSON parent_learning_portal nhưng giữ chữ ký. Đường ghi profile cũ của admin_learning_settings bị chặn để tránh bỏ qua revision.
 
 `tutor_avatar_assets` lưu trạng thái pending → ready → attached → retired → deleting. Bản ghi được tạo trước upload. Nếu kết quả lưu RPC không chắc chắn, tuyệt đối không xóa ảnh vừa tải: có thể database đã commit. Tệp chưa gắn quá 24 giờ được công cụ cleanup xử lý qua RPC claim; trạng thái deleting không được gắn lại. Ảnh đang được hồ sơ tham chiếu luôn bị loại khỏi cleanup. Khi đổi/gỡ ảnh thành công, ứng dụng thử dọn ảnh retired ngay. Lỗi Storage hoặc xóa registry để lại việc dọn cho lần sau.
 
-Bucket `tutor-avatars` public, chỉ lưu WebP đã xử lý, tối đa 204.800 byte/tệp. Input JPG/PNG/WebP tối đa 3 MiB, 20 megapixel; máy chủ kiểm tra format thật, từ chối ảnh động, tự xoay, cắt giữa 512 × 512 và bỏ metadata. Thêm sharp 0.34.5 là dependency trực tiếp. Public URL có tên ngẫu nhiên và cache dài; thay ảnh tạo URL mới. Người đã tải ảnh có thể giữ bản sao sau khi gỡ. Không dùng dịch vụ biến đổi ảnh trả phí của Supabase.
+Bucket `tutor-avatars` public, chỉ lưu WebP đã xử lý, tối đa 204.800 byte/tệp. Input JPG/PNG/WebP tối đa 3 MiB, 20 megapixel; máy chủ kiểm tra format thật, từ chối ảnh động, tự xoay, cắt giữa 512 × 512 và bỏ metadata. Ảnh được xử lý bằng Sharp; phiên bản được khóa trong package.json/lockfile. Public URL có tên ngẫu nhiên và cache dài; thay ảnh tạo URL mới. Người đã tải ảnh có thể giữ bản sao sau khi gỡ. Không dùng dịch vụ biến đổi ảnh trả phí của Supabase.
 
 ## Chuẩn bị phát hành — chưa thực hiện production
 
 1. Kiểm tra migration thực tế và usage Supabase Storage/egress. Sao lưu theo runbook hiện tại, có bản sao tệp Storage riêng khi đã sử dụng (backup database không chứa byte ảnh).
-2. Trên môi trường thử được phép, áp dụng các migration còn thiếu theo thứ tự đến 22; chạy `database/verification/20260923_tutor_profiles.sql`. invalid_avatar_links phải bằng 0; anon_may_write và authenticated_may_cleanup phải false.
+2. Trên môi trường thử được phép, áp dụng các migration còn thiếu theo phụ thuộc 19 → 21 → 22 và kiểm tương thích với 23–27 nếu đã có; chạy `database/verification/20260923_tutor_profiles.sql`. invalid_avatar_links phải bằng 0; anon_may_write và authenticated_may_cleanup phải false.
 3. Chạy riêng `database/verification/20260923_tutor_avatar_storage_setup.sql` trên Supabase thử. File này CÓ THAY ĐỔI: tạo bucket và restrictive policies chặn ghi trực tiếp từ anon/authenticated, không đổi quyền bucket khác. Nếu bucket đã có cấu hình khác, script dừng để đối chiếu. Không đưa script này vào migration PostgreSQL thường vì môi trường test không có Storage.
 4. Cấu hình Vercel đúng môi trường: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY và SUPABASE_SERVICE_ROLE_KEY. Service key chỉ ở máy chủ. Không thêm secret mới, không cần Resend hoặc cron. Tuyệt đối không dùng database/bucket production cho Preview kiểm thử ghi.
 5. Deploy thử, tải một ảnh giả qua form; kiểm tra tệp thực đúng WebP 512 × 512, public URL tải được, anon/tutor không upload trực tiếp được, tutor không sửa người khác được. Thử thay/gỡ ảnh và lỗi lưu; kiểm tra registry và cleanup trên dữ liệu giả. Xóa dữ liệu thử bằng luồng quản trị được phép.
@@ -50,11 +58,6 @@ Mỗi lượt tối đa 500 tệp, chỉ ghi số lượng tổng hợp. Nếu c
 
 Nghiệm thu Storage thực cần môi trường Supabase thử và quyền tạo bucket/upload. Kiểm thử giả lập không thay thế bước đó.
 
-## Kết quả nghiệm thu local 23/09/2026
+## Trạng thái
 
-- Hồi quy cuối: 253/253 pass, 0 fail, 0 skipped; log `scratch/tutor-profile-regression-final.log`.
-- PostgreSQL 17: kiểm tra ghi hồ sơ đồng thời, chuỗi migration đến 22 và backup/restore database tách biệt.
-- TypeScript `--noEmit --incremental false`: pass. Lint toàn dự án: 0 lỗi, 18 cảnh báo; lint riêng mã hồ sơ mới: sạch.
-- Production build: pass, 51 trang được tạo; cấu hình Supabase giả localhost, email tắt. Log `scratch/tutor-profile-build.log`.
-- Browser QA: pass cho gia sư/admin/phụ huynh, xung đột phiên bản, avatar, gộp lớp, 375/768/1440px, dark mode, bản in A4, bàn phím, ảnh lỗi và mục trống. Ảnh QA đã được xem trực tiếp. Đã sửa nhãn textarea và fallback ảnh bị lỗi trước hydration.
-- Chưa nghiệm thu Supabase Storage thật: chưa có môi trường thử riêng được cấu hình và cấp quyền. Chưa áp dụng migration/bucket production, chưa deploy, chưa gửi email.
+Mã và fixture có sẵn; Supabase Storage thật, schema/bucket production còn chờ theo [PROJECT_STATUS](PROJECT_STATUS.md). Kiểm thử giả lập không chứng minh upload thật hoặc khả năng phục hồi; không bật luồng này chỉ vì build đạt.

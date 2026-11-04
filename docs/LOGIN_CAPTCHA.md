@@ -2,9 +2,9 @@
 
 ## Phạm vi đã duyệt
 
-Cloudflare Turnstile bảo vệ hai form ở `/login`: phụ huynh (`parent_login`) và gia sư/admin (`staff_login`). Một widget Cloudflare dùng chung, action khác nhau. Không thêm CAPTCHA vào đăng ký/tư vấn, trang công khai, tra cứu đang có phiên hoặc API nghiệp vụ khác. Không tạo bảng/migration. Phụ huynh vẫn tra cứu bằng số điện thoại; SEC-02 vẫn mở.
+Cloudflare Turnstile bảo vệ hai form ở `/login`: phụ huynh (`parent_login`) và gia sư/admin (`staff_login`). Một widget Cloudflare dùng chung, action khác nhau. Không thêm CAPTCHA vào đăng ký/tư vấn, trang công khai, tra cứu đang có phiên hoặc API nghiệp vụ khác. Không tạo bảng/migration. Mã local kiểm CAPTCHA trước khi bắt đầu Google OAuth; bước nhập số để liên kết không thêm CAPTCHA. SEC-02 vẫn mở vì Google không xác minh phone tự khai.
 
-Đã phát hành trên production ngày 16/10/2026: gói 39fbb36 và bản vá c6fc0cc. Chủ trung tâm tự lưu biến; secret không đưa vào Git hoặc báo cáo. CI cả hai job đạt. Widget thật nhận kết quả xác minh tự động cho hai vai trò; request thiếu token bị từ chối 403, không có cookie. Đăng nhập tài khoản thật và Siteverify với token hợp lệ vẫn cần nghiệm thu. Bot Protection Log trên Vercel là lớp độc lập đã bật trước đó.
+Đã phát hành; phạm vi bằng chứng và phần nghiệm thu còn chờ ở [PROJECT_STATUS](PROJECT_STATUS.md). Bot Protection Log là lớp độc lập.
 
 ## Chủ tài khoản chuẩn bị
 
@@ -47,9 +47,11 @@ Console trình duyệt ghi warning `[CSAT Turnstile]` với đúng `{code, actio
 
 Lỗi xóa token, khóa nút đăng nhập; thử lại giữ trường nhập, xóa mã cũ và xác minh lại. Thành công tự động từ widget cũng xóa thông báo lỗi. Việc thêm mã giúp chẩn đoán, không tự khắc phục lỗi kết nối Cloudflare trên thiết bị. [Quy ước callback và mã lỗi](https://developers.cloudflare.com/turnstile/troubleshooting/client-side-errors/).
 
-Node24: build, typecheck, lint strict, guard, database/API **270/270**, repo **20/20** đạt; kiểm thử API thêm cấu hình thiếu, secret không xuất ra props, hostname/action/thời hạn, network/JSON lỗi, test key trên hostname triển khai, replay và Origin sai. Edge fixture đạt **30 assertions** ở 320/375/768/1440: hai vai trò, chỉ tải ở login, giữ dữ liệu sau lỗi, reset token, đổi vai trò, hết hạn, retry tải script, không JS và không tràn ngang. Đã xem ảnh mobile; đây là widget giả, không chứng minh Cloudflare thật hoạt động. Khi CAPTCHA tắt, HTTP SEO/header (15 URL) và hai nhóm Edge đăng nhập/hiệu ứng chữ (33 assertions) cũng đạt.
+Bộ API kiểm cấu hình thiếu, props không có secret, hostname/action/thời hạn, network/JSON lỗi, test key trên hostname triển khai, replay và Origin sai. Runner `scripts/run-login-captcha-ui.cjs` kiểm hai vai trò, chỉ tải ở login, dữ liệu sau lỗi, reset/expiry/retry, no-JS và responsive bằng widget/API giả; chạy trong CI. Số liệu kiểm chứng tại PROJECT_STATUS.
 
-Sau khi chủ tài khoản lưu cấu hình và phát hành mã mới: kiểm Managed widget thật trên tên miền, xác minh cho cả hai vai trò bằng tài khoản được phép; sai token/thiếu token phải bị chặn, lỗi mật khẩu/số liên hệ phải cho thử lại; theo dõi Turnstile Analytics theo action. Không dùng học sinh/học phí thật làm fixture hoặc ghi credential vào báo cáo. Đã kiểm widget thật và từ chối request thiếu token; chưa gửi thông tin tài khoản thật. Bản vá c6fc0cc khởi tạo API sau sự kiện script load, bỏ ready() không tương thích async/defer; fixture tái hiện giới hạn này và bộ 30 assertions được chạy trong CI.
+Sau khi chủ tài khoản lưu cấu hình và phát hành mã mới: kiểm Managed widget thật trên tên miền, xác minh cho cả hai vai trò bằng tài khoản được phép; sai token/thiếu token phải bị chặn, lỗi mật khẩu/số liên hệ phải cho thử lại; theo dõi Turnstile Analytics theo action. Không dùng học sinh/học phí thật làm fixture hoặc ghi credential vào báo cáo.
+
+Loader khởi tạo API sau sự kiện script load; không gọi `ready()` với script async/defer. Fixture kiểm riêng giới hạn này để ngăn lỗi khởi tạo widget tái diễn.
 
 Nếu sự cố, ưu tiên sửa hostname/key, mạng/CSP và kiểm status dịch vụ. Việc tắt `TURNSTILE_LOGIN_ENABLED` trên production làm giảm bảo vệ, chỉ thực hiện khi chủ trung tâm duyệt; cần deployment mới. Dù tắt, Origin và rate limit DB vẫn giữ nguyên.
 

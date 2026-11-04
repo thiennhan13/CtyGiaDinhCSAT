@@ -38,17 +38,13 @@ export async function createStudent(
 ): Promise<ActionResult<{ student_id: string }>> {
   try {
     const { supabase } = await requireAdmin();
-    const { data, error } = await supabase
-      .from('students')
-      .insert(input)
-      .select('student_id')
-      .single();
+    const { data, error } = await supabase.rpc('admin_save_student', { p_student_id: null, p_data: input, p_revision: null });
 
     if (error) throw error;
     revalidatePath('/admin/students');
     return { success: true, data: { student_id: data.student_id } };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Lỗi không xác định';
+    const message = err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Lỗi không xác định';
     return { success: false, error: message };
   }
 }
@@ -62,17 +58,15 @@ export async function updateStudent(
 ): Promise<ActionResult> {
   try {
     const { supabase } = await requireAdmin();
-    const { error } = await supabase
-      .from('students')
-      .update(input)
-      .eq('student_id', studentId);
+    const { revision, ...fields } = input;
+    const { error } = await supabase.rpc('admin_save_student', { p_student_id: studentId, p_data: fields, p_revision: revision });
 
     if (error) throw error;
     revalidatePath('/admin/students');
     revalidatePath(`/admin/students/${studentId}`);
     return { success: true, data: null };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Lỗi không xác định';
+    const message = err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Lỗi không xác định';
     return { success: false, error: message };
   }
 }
@@ -80,19 +74,16 @@ export async function updateStudent(
 /**
  * Xóa học sinh
  */
-export async function deleteStudent(studentId: string): Promise<ActionResult> {
+export async function deleteStudent(studentId: string, revision: number): Promise<ActionResult> {
   try {
     const { supabase } = await requireAdmin();
-    const { error } = await supabase
-      .from('students')
-      .delete()
-      .eq('student_id', studentId);
+    const { error } = await supabase.rpc('admin_save_student', { p_student_id: studentId, p_data: { is_deleted: true }, p_revision: revision });
 
     if (error) throw error;
     revalidatePath('/admin/students');
     return { success: true, data: null };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Lỗi không xác định';
+    const message = err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Lỗi không xác định';
     return { success: false, error: message };
   }
 }
@@ -108,7 +99,7 @@ export async function markPaymentAsPaid(paymentId: string): Promise<ActionResult
     revalidatePath('/admin/billing');
     return { success: true, data: null };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Lỗi không xác định';
+    const message = err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Lỗi không xác định';
     return { success: false, error: message };
   }
 }

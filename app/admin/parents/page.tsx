@@ -4,14 +4,17 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ParentIdentityEditor } from '@/components/auth/ParentIdentityEditor';
 import type { ParentStudent } from '@/lib/parents';
 
 interface Account {
+  link_details?: { email: string | null; oj: { username: string; profile_id: number; state: string } | null };
+  revision: number; parent_identity_links: { auth_uid: string; state: string; revision: number } | null;
   parent_id: string; display_name: string; phone: string; active: boolean;
   parent_student_links: Array<{ student_id: string; students: { name: string } | null }>;
 }
 type Student = ParentStudent & { parent_number?: string | null; date_of_birth?: string | null };
-type Editor = { parentId?: string; name: string; phone: string; active: boolean; students: Student[] };
+type Editor = { parentId?: string; revision?: number; name: string; phone: string; active: boolean; students: Student[] };
 
 async function send(body: object) {
   const res = await fetch('/api/admin/parents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -70,7 +73,7 @@ export default function ParentAccountsPage() {
 
   function openEditor(account?: Account) {
     setError(''); setNotice(''); setStudentQuery(''); setResults([]);
-    setEditor(account ? { parentId: account.parent_id, name: account.display_name, phone: account.phone, active: account.active,
+    setEditor(account ? { parentId: account.parent_id, revision: account.revision, name: account.display_name, phone: account.phone, active: account.active,
       students: account.parent_student_links.map(link => ({ student_id: link.student_id, name: link.students?.name || 'Học sinh không còn hiển thị' })) }
       : { name: '', phone: '', active: true, students: [] });
   }
@@ -81,7 +84,7 @@ export default function ParentAccountsPage() {
     setBusy(true); setError(''); setNotice('');
     try {
       const data = await send({ action: editor.parentId ? 'update' : 'create', parentId: editor.parentId,
-        name: editor.name, phone: editor.phone, active: editor.active, studentIds: editor.students.map(s => s.student_id) });
+        revision: editor.revision, name: editor.name, phone: editor.phone, active: editor.active, studentIds: editor.students.map(s => s.student_id) });
       setNotice(data.message);
       setEditor(null); setVersion(v => v + 1);
     } catch (err) { setError(err instanceof Error ? err.message : 'Chưa lưu được hồ sơ.'); }
@@ -91,7 +94,7 @@ export default function ParentAccountsPage() {
   return <div className="space-y-6 max-w-6xl mx-auto">
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div><h1 className="font-heading text-2xl font-bold">Hồ sơ phụ huynh</h1><a className="ml-4 text-sm underline" href="/admin/parents/provisioning">Đối soát liên hệ</a><a className="mt-3 inline-block text-sm text-primary underline" href="/admin/parents/import">Nhập hồ sơ từ danh sách học sinh</a>
-        <p className="text-sm text-muted-foreground mt-1">Quản lý liên hệ và liên kết các con. Tài khoản đăng nhập được cấp riêng sau khi đối soát.</p></div>
+        <p className="text-sm text-muted-foreground mt-1">Quản lý liên hệ và liên kết một học sinh. Phụ huynh tự đăng nhập Google và nhập số đã đăng ký.</p></div>
       <Button disabled={busy} onClick={() => openEditor()}>Đăng ký phụ huynh</Button>
     </div>
     {error && <p role="alert" className="rounded-lg border border-destructive p-4 text-destructive">{error}</p>}
@@ -101,13 +104,13 @@ export default function ParentAccountsPage() {
       <fieldset disabled={busy} className="space-y-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2"><Label htmlFor="parent-name">Tên phụ huynh</Label><Input id="parent-name" required maxLength={150} value={editor.name} onChange={e => setEditor({ ...editor, name: e.target.value })} /></div>
-          <div className="space-y-2"><Label htmlFor="parent-phone">Số di động tra cứu</Label><Input id="parent-phone" type="tel" required maxLength={30} readOnly={!!editor.parentId} value={editor.phone} onChange={e => setEditor({ ...editor, phone: e.target.value })} placeholder="0912 345 678" />
-            {editor.parentId && <p className="text-xs text-muted-foreground">Số điện thoại là khóa tra cứu. Muốn đổi số, khóa hồ sơ cũ và đăng ký số mới.</p>}</div>
+          <div className="space-y-2"><Label htmlFor="parent-phone">Số di động tra cứu</Label><Input id="parent-phone" type="tel" required maxLength={30} value={editor.phone} onChange={e => setEditor({ ...editor, phone: e.target.value })} placeholder="0912 345 678" />
+            {editor.parentId && <p className="text-xs text-muted-foreground">Đổi số hoặc học sinh sẽ khóa quyền Google hiện có; admin cần xác nhận lại liên kết.</p>}</div>
         </div>
         {editor.parentId && <label className="flex gap-3 items-center"><input type="checkbox" checked={editor.active} onChange={e => setEditor({ ...editor, active: e.target.checked })} />Cho phép truy cập</label>}
         <div className="space-y-3">
-          <Label htmlFor="student-search">Học sinh được phép xem ({editor.students.length}/50)</Label>
-          <p className="text-sm text-muted-foreground">Kiểm tra tên, ngày sinh và người liên hệ trước khi liên kết. Hồ sơ mới cần ít nhất một học sinh.</p>
+          <Label htmlFor="student-search">Học sinh được phép xem ({editor.students.length}/1)</Label>
+          <p className="text-sm text-muted-foreground">Kiểm tra tên, ngày sinh và người liên hệ trước khi liên kết. Hồ sơ mới cần đúng một học sinh.</p>
           <div className="flex flex-wrap gap-2">{editor.students.map(child => <Button key={child.student_id} type="button" variant="outline" aria-label={'Bỏ liên kết ' + child.name}
             onClick={() => setEditor({ ...editor, students: editor.students.filter(s => s.student_id !== child.student_id) })}>{child.name} ×</Button>)}</div>
           <Input id="student-search" placeholder="Tìm theo tên hoặc số điện thoại phụ huynh" value={studentQuery} onChange={e => setStudentQuery(e.target.value)} />
@@ -115,7 +118,7 @@ export default function ParentAccountsPage() {
           {searching ? <p role="status" className="text-sm">Đang tìm học sinh…</p> : <ul className="max-h-64 overflow-y-auto border rounded-lg divide-y">
             {results.map(child => <li key={child.student_id}><label className="flex items-start gap-3 p-3 cursor-pointer">
               <input type="checkbox" className="mt-1" checked={editor.students.some(s => s.student_id === child.student_id)}
-                disabled={editor.students.length >= 50 && !editor.students.some(s => s.student_id === child.student_id)}
+                disabled={editor.students.length >= 1 && !editor.students.some(s => s.student_id === child.student_id)}
                 onChange={e => setEditor({ ...editor, students: e.target.checked ? [...editor.students, child] : editor.students.filter(s => s.student_id !== child.student_id) })} />
               <span><span className="font-medium">{child.name}</span><span className="block text-xs text-muted-foreground">Ngày sinh: {child.date_of_birth || 'Chưa có'} · SĐT liên hệ: {child.parent_number || 'Chưa có'}</span></span>
             </label></li>)}
@@ -131,7 +134,9 @@ export default function ParentAccountsPage() {
       {parents.map(account => <section key={account.parent_id} className="csat-card p-5 space-y-3">
         <h2 className="font-bold">{account.display_name}</h2><p>{account.phone} · {account.active ? 'Đang hoạt động' : 'Đã khóa'}</p>
         <p className="text-sm text-muted-foreground">Học sinh: {account.parent_student_links.map(l => l.students?.name || 'Không còn hiển thị').join(', ') || 'Chưa liên kết'}</p>
-        <div className="flex flex-wrap gap-3"><Button variant="outline" disabled={busy} onClick={() => openEditor(account)}>Chỉnh sửa</Button>
+        <p className="break-all text-sm">Google: {account.link_details?.email || 'Chưa liên kết'}</p>
+        <p className="break-words text-sm">CSATOJ: {account.link_details?.oj ? `${account.link_details.oj.username} · #${account.link_details.oj.profile_id} · ${account.link_details.oj.state === 'active' ? 'Đang liên kết' : account.link_details.oj.state === 'pending' ? 'Đang đối soát' : 'Không còn quyền đọc'}` : 'Chưa liên kết'} · <a className="underline" href="/admin/oj">Quản lý OJ</a></p>
+        <ParentIdentityEditor parentId={account.parent_id} identity={account.parent_identity_links} onSaved={() => setVersion(v => v + 1)}/><div className="flex flex-wrap gap-3"><Button variant="outline" disabled={busy} onClick={() => openEditor(account)}>Chỉnh sửa</Button>
         </div>
       </section>)}
       {!parents.length && <p>Chưa có hồ sơ phù hợp.</p>}

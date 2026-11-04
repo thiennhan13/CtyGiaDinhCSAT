@@ -298,6 +298,7 @@ export function StudentsClient({
     setSubmitting(true);
     try {
       const result = await updateStudent(selectedStudent.student_id, {
+        revision: selectedStudent.revision,
         name:            formData.name?.trim(),
         status:          formData.status,
         date_of_birth:   formData.date_of_birth ?? null,
@@ -322,7 +323,7 @@ export function StudentsClient({
     if (!selectedStudent) return;
     setSubmitting(true);
     try {
-      const result = await deleteStudent(selectedStudent.student_id);
+      const result = await deleteStudent(selectedStudent.student_id, selectedStudent.revision ?? 0);
       if (!result.success) throw new Error(result.error);
       setModal(null);
       startTransition(() => router.refresh());

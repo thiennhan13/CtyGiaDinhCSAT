@@ -1,35 +1,49 @@
-# Bàn giao ba luồng backend
+# Backend: tiếp nhận đơn, chương trình và phụ huynh
 
-Phạm vi mã hiện tại: tiếp nhận đăng ký public, phân loại chương trình lớp và tra cứu phụ huynh bằng số điện thoại. Bằng chứng local của bản cũ ở cuối tài liệu; trạng thái bản tra cứu mới ở PROJECT_STATUS; **chưa nghiệm thu end-to-end staging/production** vì chưa có project Supabase staging. Người dùng đã tự chạy SQL 18/24/25/26; theo ủy quyền tiếp theo đã cấp 44 Auth parent và đối soát production ngày 14/10/2026. Bản nâng cấp nhận đơn 661717f đã triển khai production ngày 14/10/2026; người dùng tự cấu hình cờ/khóa và endpoint xác nhận enabled. Chưa nghiệm thu gửi đơn hợp lệ và phiên admin thật; bằng chứng chi tiết ở PROJECT_STATUS.
-
-## Hợp đồng đã triển khai trong mã
-
-| Luồng | Hành vi và ranh giới |
-|---|---|
-| Đăng ký | `PublicConsultation` → `/api/consultations` → `submit_registration` (24). Schema v2 có consent, source path và lựa chọn khóa; validate phía API/RPC, giới hạn body, Origin, honeypot, rate limit và idempotency. Lưu `consultation_requests`; đơn mới không tạo outbox hoặc gửi email. Admin đọc đơn cũ/mới, đổi trạng thái bằng revision và `consultation_status_history`. Học liệu vẫn là luồng xem lại/sao chép/liên hệ hiện có. |
-| Chương trình | `classes.program_code`: A/B/AB/C/E/PREVOI/K; AB hiển thị A+B. `program_revision`, RPC `admin_set_class_program` và `class_program_history` bảo vệ thay đổi admin. Mapping chỉ dựa loại lớp nhận diện rõ; trường chưa nhận diện giữ null để admin đối soát. Không đổi tên lớp, giáo án cũ, giá hoặc lịch sử. |
-| Phụ huynh | Số điện thoại → phiên lookup 12 giờ; không Auth. API/RPC kiểm tra hồ sơ active, phiên, liên kết và bản công bố. Gia sư/admin giữ email/mật khẩu; giới hạn nguồn dùng chung trong DB. Xem PARENT_PHONE_ACCESS. |
-
-A/B/AB dùng basic với phần tương ứng, C dùng advanced C+D; giữ C01–D07/scope CD. PREVOI (PreVOI/HSGQG/Ôn thi VOI) dùng chương trình `voi` và giáo án riêng, **không dùng E**. E và K dùng `custom`; chưa có giáo trình E hoặc cơ chế K phối nguồn chéo chương trình được duyệt. Đổi nhãn chương trình không thay nội dung giáo án đã công bố. Lớp mới tiếp tục theo luồng nháp/công bố của RPC, không tạo nội dung đào tạo giả.
+Tài liệu giữ hợp đồng ba luồng đã duyệt và tiêu chí nghiệm thu. Bản triển khai, registry và kết quả kiểm chứng ở [PROJECT_STATUS](PROJECT_STATUS.md); không coi tên tài liệu là chứng nhận backend đã hoàn tất.
 
 ## Tiếp nhận đăng ký và tư vấn
 
-Hai luồng tiếp tục lưu chung `consultation_requests`, phân biệt nguồn gửi bằng `data.source_path`, không suy trạng thái đã nhập học từ nguồn form. `/admin/consultations` là mục menu riêng “Đăng ký & tư vấn”: tổng hợp ba trạng thái toàn danh sách, tìm tên/số điện thoại, lọc khóa/nguồn/ngày theo giờ Việt Nam, phân trang 50 đơn. Chi tiết mở trong dialog, có gọi điện/sao chép số và lịch sử xử lý. Khi xung đột revision phải tải lại trước khi ghi tiếp. Chỉ admin được đọc/cập nhật; lỗi truy vấn thống kê không bị hiển thị thành số 0.
+`PublicConsultation` → `/api/consultations` → `submit_registration` (migration 24, cần 18).
 
-Đợt hoàn thiện này không đổi schema, không tạo học sinh hoặc xếp lớp từ đơn, không thêm ghi chú nội bộ/phân công người xử lý. Email trung tâm bổ sung sau: đơn v2 chưa tạo outbox, nên không chỉ bật cờ email cũ. Lưu đơn độc lập với gửi thư.
+- Hai form lưu chung `consultation_requests`, phân biệt nguồn bằng `data.source_path`. Schema v2 có consent, source path và khóa quan tâm; API/RPC kiểm tra dữ liệu, Origin/body, honeypot, rate limit và request ID chống trùng.
+- Nút **Đăng kí ngay** gửi trực tiếp, không bước xem lại; lỗi giữ dữ liệu để thử lại. Chỉ thông báo tiếp nhận khi database xác nhận lưu thành công.
+- `/admin/consultations` là mục “Đăng ký & tư vấn”: tổng hợp ba trạng thái, tìm tên/số, lọc khóa/nguồn/ngày theo giờ Việt Nam, phân trang 50 đơn. Dialog có liên hệ, sao chép số và lịch sử.
+- Admin đổi Mới → Đã liên hệ → Đã hoàn tất bằng revision và `consultation_status_history`; conflict buộc tải lại. Lỗi truy vấn không hiển thị thành số 0.
+- Đơn mới không tạo outbox/email, học sinh hoặc xếp lớp. Chưa có ghi chú nội bộ/phân công người xử lý. Học liệu giữ xem lại/sao chép/liên hệ.
 
-## Liên hệ phụ huynh và chuyển đổi
+Email trung tâm là phần bổ sung sau: phải nối hợp đồng thông báo cho intake v2, không chỉ bật cờ gửi của luồng cũ. Lưu đơn độc lập gửi thư.
 
-**Quyết định hiện hành:** phụ huynh tra cứu chỉ bằng số điện thoại, không mật khẩu/OTP/Auth; gia sư/admin giữ Auth. Migration27 thay luồng của 26, dùng chung giới hạn thử đăng nhập lưu trong DB. Xem [tra cứu bằng số điện thoại](PARENT_PHONE_ACCESS.md) để chuyển đổi và hiểu giới hạn danh tính. Bằng chứng Auth/26 bên dưới là lịch sử, không phải hướng triển khai tiếp.
+## Phân loại chương trình
 
-Quy trình hiện hành, migration27, verification và điều kiện phát hành nằm trong tài liệu trên. Không chạy lại 18/24/25/26 hoặc provisioning Auth. Hồ sơ còn thiếu liên hệ được admin bổ sung; không tự lấy số học sinh.
+`classes.program_code`: A/B/AB/C/E/PREVOI/K; AB hiển thị A+B. `program_revision`, RPC `admin_set_class_program` và `class_program_history` bảo vệ thay đổi admin có xác nhận.
 
-## Nghiệm thu còn chờ
-
-| Môi trường | Bằng chứng/giới hạn |
+| Mã | Mặc định giáo án |
 |---|---|
-| Local trước quyết định27 | Node24: guard 544 tệp, repo 11/11, database/API 256/256 không skip/cancel, typecheck/lint strict/build cuối/diff check đạt. Có PostgreSQL17 native/concurrency/backup-restore, pre/postflight cả hai thứ tự migration tùy chọn. Browser 32 nhóm/3.752 assertions, đăng ký public 2 nhóm/119 assertions; smoke build cuối Edge155 14 nhóm/167 assertions ở 375/768/1440 px đạt, không lỗi browser/request bất ngờ. Các luồng dùng fixture giả, không xác nhận Supabase Auth thật. |
-| Staging | Chưa có Supabase thử; nghiệm thu tra cứu số điện thoại/RLS, chống spam chung, chuyển đổi27 và restore còn chờ. |
-| Production | 14/10/2026: đã có 18/24/25/26; cấp mới 44 tài khoản và liên kết đúng, 0 lỗi/0 mồ côi; dry-run sau cấp còn 0 pending, 10 học sinh thiếu liên hệ. Digest 28 bảng nghiệp vụ (loại cột mới theo preflight) và 23 Auth user ngoài parent giữ nguyên. Bản Auth cũ đã phát hành nhưng Phone provider tắt; bản tra cứu mới27 chưa áp/deploy. Backup trước migration có archive/checksum hợp lệ nhưng chưa gồm tài khoản vừa cấp, chưa thử restore. |
+| A/B/AB | Phần tương ứng khung basic; Cơ bản mặc định AB |
+| C | advanced, giữ đầy đủ C01–D07/scope CD |
+| PREVOI | voi và giáo án riêng; không dùng E |
+| E/K | custom; chưa tự tạo giáo trình chuẩn mới |
 
-Nguồn trạng thái/backlog: [PROJECT_STATUS](PROJECT_STATUS.md). Setup chung: [SETUP_VERCEL_SUPABASE](SETUP_VERCEL_SUPABASE.md). Không coi tên tài liệu này là chứng nhận hoàn tất production.
+Migration 25 đối soát loại lớp đã nhận diện để bổ sung mã, trường chưa rõ giữ null cho admin xác nhận. Quản lý hiện hành dùng mã, không tiếp tục suy từ tên. Đổi mã không đổi tên/ID lớp, giáo án đã công bố, giá hoặc lịch sử; không tách lớp Cơ bản thành hai lớp vật lý. K phối nguồn chéo chương trình vẫn là đề xuất chờ duyệt.
+
+## Truy cập phụ huynh
+
+Số điện thoại đã liên kết → Turnstile → phiên lookup 12 giờ. Không mật khẩu/OTP/Supabase Auth phụ huynh. API/RPC kiểm hồ sơ active, phiên còn hiệu lực, liên kết học sinh–lớp và bản công bố. Gia sư/admin giữ Auth; hai luồng dùng chung giới hạn nguồn trong DB.
+
+Migration 27 thay luồng Auth của 26, thu hồi phiên/RPC cũ nhưng giữ dữ liệu và Auth users lịch sử. Không cấp/reset thêm Auth phụ huynh; công cụ provisioning hiện chỉ đối soát và từ chối `--apply`. Admin bổ sung liên hệ thiếu, không tự lấy số học sinh.
+
+[Runbook số điện thoại](PARENT_PHONE_ACCESS.md) · [CAPTCHA](LOGIN_CAPTCHA.md). Người biết số có thể đọc dữ liệu liên kết; SEC-02 vẫn mở.
+
+## Phụ thuộc và nghiệm thu
+
+Ba chuỗi: **18 → 24**, **23 → 25**, **23 → 26 → 27**; không kéo 19/21/22 vào chỉ để vận hành ba luồng này. Không chạy lại migration đã có. Xem [database README](../database/README.md) và [setup](SETUP_VERCEL_SUPABASE.md).
+
+| Luồng | Tiêu chí nghiệm thu còn cần trên môi trường thật được phép |
+|---|---|
+| Đơn đăng ký | Gửi hợp lệ đến admin; retry/đồng thời không trùng; lỗi giữ bản nhập; quyền đọc và conflict revision đúng; không mail/outbox |
+| Chương trình | A/B/AB/C và PreVOI/K đúng; đổi mã giữ giáo án nháp/công bố, C/D, học phí và lịch sử |
+| Phụ huynh | CAPTCHA và login hai vai trò; phiên hết hạn/thu hồi, hồ sơ khóa, nhiều con/lớp, bài ngoài quyền bị từ chối |
+| Vận hành | Staging, kiểm chuỗi đầy đủ/tối thiểu, backup và phục hồi; fixture không thay Supabase thật |
+
+Mọi kết quả mới cập nhật vào PROJECT_STATUS, không nối biên bản triển khai lặp trong tài liệu này.

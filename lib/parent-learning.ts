@@ -13,7 +13,7 @@ export interface ParentLearningData extends ParentPortalData {
  attendance:{session_id:string;class_name:string;date:string;start_time:string;end_time:string;session_status:string;status:'attended'|'absent'|null;lesson:LearningBody|null;tuition_amount?:number|null;billing_period?:string|null;fee_adjusted?:boolean}[];
  invoices:{payment_id:string;class_name:string|null;period:string;amount:number;balance:number}[];
  provisional:{class_name:string;month:string;amount:number|null;unknown:number}[];
- tutors:{class_name:string;name:string|null;introduction:string|null;tutor_id?:string|null;background?:string|null;major?:string|null;university?:string|null;achievements?:string|null;avatar_path?:string|null}[];
+ tutors:{class_name:string;name:string|null;introduction:string|null;tutor_id?:string|null;background?:string|null;major?:string|null;university?:string|null;achievements?:string|null;certificates?:string|null;avatar_path?:string|null}[];
  contact:{label:string;url:string};
 }
 

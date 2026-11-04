@@ -1,6 +1,8 @@
 # Workflow frontend
 
-Phạm vi: website công khai và UI admin/gia sư/phụ huynh. Ba luồng đăng ký, phân loại chương trình và Auth phụ huynh đã có thay đổi backend trong mã; UI phải đối chiếu [hợp đồng và nghiệm thu](BACKEND_COMPLETION.md). Chưa có staging Supabase. Hai luồng cùng ứng dụng Next.js, không phải hai repository.
+Phạm vi: website công khai và UI admin/gia sư/phụ huynh. Ba luồng đăng ký, phân loại chương trình và tra cứu số điện thoại phụ huynh đã phát hành; UI phải đối chiếu [hợp đồng và nghiệm thu](BACKEND_COMPLETION.md). Chưa có staging Supabase. Hai luồng cùng ứng dụng Next.js, không phải hai repository.
+
+Đích phụ huynh mới: Google → nhập số khớp → tự liên kết một phụ huynh/một số/một con; không OTP/admin duyệt/mã mời. Google khác dùng số đã có chủ nhận lỗi, không lộ Gmail của chủ. Hồ sơ học sinh nối OJ bằng mã do admin đổi. Đọc [bản đồ danh tính/database](PARENT_IDENTITY_DATABASE_DESIGN.md) trước sửa UI; mã local đã theo luồng mới, xem [runbook](PORTAL_GOOGLE_GRANTS_ROLLOUT.md). Thiết kế trạng thái chưa liên kết/không khớp/số đã có chủ/bị khóa hoặc thu hồi và dữ liệu OJ thiếu/lỗi bằng fixture. Hồ sơ gia sư hiển thị thành tích/chứng chỉ nhiều mục, trường đại học và giới thiệu; tái dùng trường có sẵn, certificates đã đồng bộ xuyên form và thẻ.
 
 ## Trước khi sửa
 
@@ -74,8 +76,8 @@ Build dùng môi trường thử/placeholders. Playwright đã khóa version tro
 
 Kiểm tra desktop/mobile/ngang/dọc, breakpoint hai phía, 320 px/zoom 200%, light/dark, bàn phím/focus, no-JS/reduce; nội dung dài/thiếu, ảnh/CTA, client navigation và back/forward. Với motion thêm cuộn nhanh/resize/chuyển tab/chọn-copy chữ; với ảnh nền kiểm tra thứ tự tải CSS. Đo tương phản trên nền thực; không gọi toàn bộ site đạt WCAG hoặc LCP/CLS nếu chưa đo đủ.
 
-Chọn kiểm thử phù hợp: Markdown thuần dùng guard/liên kết/diff; CSS/content/runtime dùng lint/type/build/browser tương ứng. Không chạy DB/concurrency cho CSS thuần. Trước PR vẫn đầy đủ kiểm tra trong [CONTRIBUTING](../CONTRIBUTING.md), ghi skipped/chưa chạy; đổi contract/quyền cần kiểm thử hai phía. Không tự push/deploy từ test xanh.
+Chọn kiểm thử phù hợp: Markdown thuần dùng guard/liên kết/diff; CSS/content/runtime dùng lint/type/build/browser tương ứng. Không chạy DB/concurrency cho CSS thuần. Trước PR thay đổi mã chạy bộ kiểm tra trong [CONTRIBUTING](../CONTRIBUTING.md), ghi skipped/chưa chạy; đổi contract/quyền cần kiểm thử hai phía. Không tự push/deploy từ test xanh.
 
 ## Duy trì tài liệu
 
-Sửa mục hiện hành thay vì nối nhật ký ngày tháng. HANDOFF chỉ dẫn đọc/quyết định; design system giữ style; catalog giữ nghiệp vụ; website giữ mã/hành vi; PROJECT_STATUS giữ trạng thái/bằng chứng/backlog. Không sao chép nguyên cùng quy định vào mọi tài liệu. Ngày chỉ giữ cho bằng chứng môi trường hoặc dữ kiện nguồn cần độ mới.
+Sửa mục hiện hành thay vì nối nhật ký ngày tháng. HANDOFF chỉ dẫn đọc; DECISIONS giữ lựa chọn đã chốt; design system giữ style; catalog giữ nghiệp vụ; website giữ mã/hành vi; PROJECT_STATUS giữ trạng thái/bằng chứng/backlog. Không sao chép nguyên cùng quy định vào mọi tài liệu. Ngày chỉ giữ cho bằng chứng môi trường hoặc dữ kiện nguồn cần độ mới.

@@ -1,44 +1,26 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { z } from 'zod';
+import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/service';
 import { authAttemptKeys, readLoginBody } from '@/lib/login-security';
 import { verifyLoginCaptcha } from '@/lib/login-captcha';
-import { parentPhoneSchema, isSameOrigin } from '@/lib/parents';
-import { LOOKUP_COOKIE, lookupCookieOptions, newLookupToken, hashLookupToken, readLookupHash } from '@/lib/parent-lookup';
-
-const schema = z.object({ phone: parentPhoneSchema, captchaToken: z.string().max(2048).optional() }).strict();
-const response = (body: unknown, status = 200) => NextResponse.json(body, {
-  status, headers: { 'Cache-Control': 'private, no-store', ...(status === 429 ? { 'Retry-After': '900' } : {}) },
-});
+import { isSameOrigin } from '@/lib/parents';
+const json = (body: unknown, status = 200) => NextResponse.json(body, { status, headers: { 'Cache-Control': 'private, no-store', ...(status === 429 ? { 'Retry-After': '900' } : {}) } });
 export async function POST(request: Request) {
-  if (!isSameOrigin(request)) return response({ error: 'Yêu cầu không hợp lệ.' }, 403);
-  const parsed = schema.safeParse(await readLoginBody(request));
-  if (!parsed.success) return response({ error: 'Vui lòng nhập số di động Việt Nam hợp lệ.' }, 400);
+  if (!isSameOrigin(request)) return json({ error: 'Nguồn yêu cầu không hợp lệ.' }, 403);
+  const input = z.object({ captchaToken: z.string().max(2048).optional() }).strict().safeParse(await readLoginBody(request));
+  if (!input.success) return json({ error: 'Yêu cầu không hợp lệ.' }, 422);
   try {
-    const captcha = await verifyLoginCaptcha(parsed.data.captchaToken, 'parent_login');
-    if (!captcha.ok) return response({ error: captcha.error }, captcha.status);
-    const admin = createAdminClient();
-    const token = newLookupToken();
-    const { data, error } = await admin.rpc('start_parent_phone_session', {
-      p_phone: parsed.data.phone, p_token_hash: hashLookupToken(token),
-      ...authAttemptKeys(request, 'parent:' + parsed.data.phone),
-    });
-    if (error) return response({ error: 'Chưa mở được tra cứu. Vui lòng thử lại sau.' }, 503);
-    if (data === 'rate_limited') return response({ error: 'Đã vượt quá số lượt đăng nhập cho phép với thông tin hoặc mạng đang sử dụng. Vui lòng chờ 15 phút rồi thử lại. Nếu cần hỗ trợ, hãy liên hệ CSAT.' }, 429);
-    if (data === 'not_found') return response({ error: 'Chưa mở được tra cứu với số điện thoại này. Vui lòng kiểm tra hoặc liên hệ CSAT.' }, 401);
-    if (data !== 'ok') return response({ error: 'Chưa mở được tra cứu. Vui lòng thử lại sau.' }, 503);
-    const previousHash = await readLookupHash();
-    if (previousHash) {
-      const ended = await admin.rpc('end_parent_lookup', { p_token_hash: previousHash });
-      if (ended.error) {
-        await admin.rpc('end_parent_lookup', { p_token_hash: hashLookupToken(token) });
-        return response({ error: 'Chưa chuyển được phiên tra cứu. Vui lòng thử lại.' }, 503);
-      }
-    }
-    const cookieStore = await cookies();
-    cookieStore.set(LOOKUP_COOKIE, token, lookupCookieOptions);
-    cookieStore.set('parent_session', '', { path: '/', maxAge: 0 });
-    return response({ success: true, redirectUrl: '/parents' });
-  } catch { return response({ error: 'Chưa mở được tra cứu. Vui lòng thử lại sau.' }, 503); }
+    const captcha = await verifyLoginCaptcha(input.data.captchaToken, 'parent_login');
+    if (!captcha.ok) return json({ error: captcha.error }, captcha.status);
+    const keys = authAttemptKeys(request, 'google-start');
+    const budget = await createAdminClient().rpc('consume_auth_attempt', { ...keys, p_identity: keys.p_source });
+    if (budget.error) return json({ error: 'Chưa mở được đăng nhập.' }, 503);
+    if (!budget.data) return json({ error: 'Vui lòng chờ 15 phút trước khi thử lại.' }, 429);
+    const origin = new URL(process.env.APP_ORIGIN || '').origin;
+    const db = await createClient();
+    const { data, error } = await db.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: origin + '/auth/callback', skipBrowserRedirect: true } });
+    if (error || !data.url) return json({ error: 'Chưa mở được đăng nhập Google. Vui lòng thử lại.' }, 503);
+    return json({ url: data.url });
+  } catch { return json({ error: 'Chưa mở được đăng nhập Google. Vui lòng thử lại.' }, 503); }
 }

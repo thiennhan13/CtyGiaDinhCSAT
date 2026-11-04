@@ -29,22 +29,29 @@ Chặng lớp dựa số buổi completed đã kết thúc từ đầu lớp, kh
 
 ## Đăng ký, truy cập và bảo vệ
 
+- **Định hướng phụ huynh đã chốt:** đăng nhập Google → nhập số điện thoại → tự liên kết ngay khi khớp hồ sơ phụ huynh hợp lệ gắn học sinh và số chưa có chủ liên kết. Chủ trung tâm chọn **không OTP, không admin duyệt, không mã mời Portal**, thay đề xuất mã mời trước đó. Google không chứng minh sở hữu số tự nhập; người biết số chưa được nhận liên kết vẫn có thể nhận quyền xem, SEC-02 tiếp tục mở. Đã có mã local; chưa nghiệm thu hosted. [Cấu trúc và chuyển đổi](PARENT_IDENTITY_DATABASE_DESIGN.md).
+- **Giới hạn liên kết đã chốt:** một tài khoản phụ huynh – một số điện thoại – một học sinh; mỗi học sinh chỉ một phụ huynh. Google khác nhập số đã được liên kết phải nhận lỗi, không được ghi đè/chuyển quyền; cùng tài khoản thử lại nhận kết quả hiện có. Chuẩn hóa phone và cưỡng chế unique/transaction ở DB kể cả hai yêu cầu đồng thời. Thay hướng nhiều con/nhiều phụ huynh trước đây; migration30 cưỡng chế ở local.
+- Admin OJ tạo mã kết nối tài khoản học sinh; admin Portal chọn hồ sơ học sinh rồi đổi mã, lưu instance/profile/grant revision. Phụ huynh và admin xem dữ liệu OJ qua mapping học sinh này; quyền phụ huynh độc lập với grant OJ. Không dùng mã OJ cho phụ huynh; không tự tạo thêm đăng nhập học sinh Portal từ yêu cầu này. Docs OJ còn mô tả mã mời là hướng cũ của phần Portal; hợp đồng API OJ vẫn giữ.
 - Đăng ký/tư vấn **lưu chung** `consultation_requests`. Consent và nút **Đăng kí ngay** gửi trực tiếp; chỉ báo thành công khi database xác nhận. Giữ dữ liệu khi lỗi, chống trùng bằng request ID; không tự tạo học sinh/xếp lớp.
 - Khóa quan tâm mặc định theo trang lớp; không khôi phục Sinh viên, Đại học, mục tiêu HSG Quốc gia hoặc cấp học Trao đổi thêm. Học liệu giữ xem lại/sao chép/liên hệ, chưa gửi tự động.
 - Email trung tâm bổ sung sau; đơn intake v2 không tạo outbox. Chưa bật gửi mail, không coi chỉ bật cờ cũ là đã nối email cho đơn mới.
-- Phụ huynh **chỉ dùng số điện thoại đã liên kết**, không mật khẩu/OTP/Supabase Auth. Giữ Auth users và lịch sử cũ nhưng không cấp/reset thêm cho luồng này. Người biết số có thể xem dữ liệu liên kết: SEC-02 vẫn mở.
+- **Chuyển đổi Auth:** mã local đã dùng Google; lookup27 là trạng thái production gần nhất, không cấp/reset theo provisioning26. Giữ toàn bộ Auth, quyền admin/gia sư; role phụ huynh là liên kết bổ sung. Admin chuyển/khóa bằng revision và lý do tới Google đã đăng nhập.
 - Gia sư/admin giữ Supabase Auth. Chống spam login dùng budget chung theo nguồn trong DB; quyền dữ liệu tiếp tục kiểm tra ở máy chủ/RPC.
 - Turnstile **chỉ ở đăng nhập phụ huynh và gia sư/admin**, không ở đăng ký/tư vấn. Kiểm Siteverify phía server; CAPTCHA không chứng minh danh tính.
 - Vercel Bot Protection dùng **Log**, chưa chặn diện rộng. CSP **Report-Only**; chưa tự enforce, thêm WAF rule hoặc đổi cơ chế truy cập. [Bảo vệ website](PUBLIC_SECURITY.md).
 
 ## Vận hành và giới hạn phạm vi
 
+- Gia sư được ghi nhận **toàn bộ dư nợ dương từng chứng từ đã chốt thuộc lớp đang phụ trách**; không thu tạm tính/từng phần/hoàn/đảo. Kiểm lại phân công, expected balance, request ID và actor trong RPC. Admin giữ quyền chốt/đính chính/hoàn/đảo; lịch sử thu giữ nguyên khi đổi gia sư.
+- **Reset mới03/11, thay kế hoạch xóa rộng:** chủ trung tâm yêu cầu dùng Supabase hiện tại, sao lưu về máy; **giữ lớp** cùng thành viên/phân công/giá/giáo trình lớp, toàn bộ hồ sơ học sinh/phụ huynh/liên kết, Auth, gia sư/hồ sơ/chứng chỉ/avatar/Storage, intake/lịch sử, catalog/template/default/registry và audit. Xóa tất cả chốt sổ/chứng từ/giao dịch, buổi/điểm danh, nhận xét/lộ trình cá nhân/buổi và tác vụ phát sinh tương ứng; giữ lộ trình/giáo trình lớp đã cấu hình. Không xóa CSATOJ. Backup phải thử phục hồi; reset atomic và so fingerprint dữ liệu giữ lại. Công cụ xóa rộng cũ đã bị chặn apply. [Runbook](PORTAL_GOOGLE_GRANTS_ROLLOUT.md).
+
+- **Hồ sơ gia sư:** hiển thị thành tích và chứng chỉ (mỗi loại nhiều mục), trường đại học, giới thiệu bản thân. Tái dùng `achievements`, `university`, `introduction` đã có trong schema/mã local; migration31 bổ sung `certificates`. Lưu thành công hiển thị ngay, gia sư sửa của mình/admin sửa theo quyền; không tự tạo thành tích/chứng chỉ. [Thiết kế hồ sơ](TUTOR_PROFILES_20260923.md).
 - **Node.js 24** cho local/CI/deploy. Local QA dùng Edge, không cài Chromium local; CI cài Chromium trên runner.
 - Tiếp tục dùng gói Vercel/Supabase miễn phí theo ngân sách đã chọn. Không tự nâng gói/đổi hosting; điều kiện sử dụng và quota phải đối chiếu trước thay đổi. Chủ trung tâm xác nhận usage ổn, chưa có staging Supabase.
 - Search Console dùng URL-prefix `https://portal.csatoj.vn/` và tệp HTML do chủ trung tâm cung cấp; chủ trung tâm phụ trách xác minh/gửi sitemap.
 - Backup lưu tại `F:\csat_backup`; lịch tự động, mã hóa, bản ngoài máy và thời hạn lưu/xóa chưa chốt. Không tự restore đè production hoặc dùng dump thật làm fixture.
-- Không reset database, sửa migration đã phát hành, xóa lịch sử hoặc tính lại kỳ cũ bằng giá hiện tại. Chốt sổ/công bố do người có quyền thao tác; cron chỉ nhắc việc/tổng hợp.
-- API CSATOJ, email, Storage thật, luồng mời/đổi mật khẩu gia sư và tái cấu trúc module cần phạm vi riêng. Không tạo số liệu, giáo trình hoặc cam kết đầu ra giả.
+- Ngoài đợt reset nhập lại đã chốt, không reset/xóa lịch sử để sửa nghiệp vụ; không sửa migration đã phát hành hoặc tính lại kỳ cũ bằng giá hiện tại. Sau khởi tạo lại vẫn giữ snapshot/audit và dùng đính chính. Chốt sổ/công bố do người có quyền thao tác; cron chỉ nhắc việc/tổng hợp.
+- CSATOJ và Storage thật thuộc cổng nghiệm thu của kế hoạch; email, luồng mời/đổi mật khẩu gia sư và tái cấu trúc module là backlog riêng. Không tạo số liệu, giáo trình hoặc cam kết đầu ra giả.
 
 ## Duy trì quyết định
 

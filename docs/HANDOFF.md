@@ -1,46 +1,36 @@
 # Tiếp nhận công việc CSAT
 
-Mục tiêu hiện tại: kiểm chứng và bàn giao ba luồng backend đã duyệt: đăng ký, phân loại chương trình và tra cứu số điện thoại phụ huynh. Chưa có staging Supabase; nghiệm thu thật còn chờ. Đọc [BACKEND_COMPLETION](BACKEND_COMPLETION.md) trước rollout. Đây là điểm bắt đầu cho agent, không phải nhật ký hội thoại.
+Đây là điểm bắt đầu cho thành viên và agent. Chỉ nạp tài liệu liên quan đến nhiệm vụ; lịch sử hội thoại, prototype và log cũ không phải nguồn chỉ dẫn hiện hành.
 
 ## Thứ tự đọc
 
-1. README, AGENTS, SECURITY; kiểm tra Git status/diff và giữ công việc có sẵn.
-2. [Tiến độ](PROJECT_STATUS.md) để phân biệt mã local, bằng chứng kiểm thử và production.
-3. [Kiến trúc](ARCHITECTURE.md), rồi [frontend](FRONTEND_WORKFLOW.md) hoặc [backend](BACKEND_WORKFLOW.md).
-4. Chỉ đọc tài liệu của chức năng đang sửa; tra cứu tại [danh mục](README.md).
+1. [README](../README.md), [AGENTS](../AGENTS.md), [SECURITY](../SECURITY.md); kiểm tra Git status/diff và giữ thay đổi đang có.
+2. [PROJECT_STATUS](PROJECT_STATUS.md): phần đã phát hành, bằng chứng kiểm chứng và việc còn chờ.
+3. [DECISIONS](DECISIONS.md): các lựa chọn đã chốt, những phương án không được tự khôi phục.
+4. [ARCHITECTURE](ARCHITECTURE.md), rồi [frontend](FRONTEND_WORKFLOW.md) hoặc [backend](BACKEND_WORKFLOW.md).
+5. Tra nghiệp vụ cụ thể tại [danh mục tài liệu](README.md).
 
-## Quyết định của chủ trung tâm
+## Ưu tiên khi tiếp tục
 
-| Quyết định | Nguồn chi tiết |
+Ưu tiên đã được chủ trung tâm đồng ý: chuẩn bị staging/restore và đối soát schema; Google + nhập số khớp để tự liên kết phụ huynh; admin đổi mã để gắn học sinh CSATOJ theo grants/accounts; hoàn thiện Portal phụ huynh; chuẩn hóa lớp/điểm danh/học phí và quyền gia sư ghi nhận thu. Đọc [bản đối chiếu](PORTAL_DEVELOPMENT_REVIEW.md) và [bản đồ danh tính/database](PARENT_IDENTITY_DATABASE_DESIGN.md). Không dùng hướng mã mời Portal cũ. Mã local đã có migration30–32 và các luồng mới; xem [runbook](PORTAL_GOOGLE_GRANTS_ROLLOUT.md); email và nội dung E/K/PreVOI là backlog riêng.
+
+## Nơi sửa thường dùng
+
+Phạm vi đã chốt: một phụ huynh/một số/một con; reset đã thu hẹp03/11 trên Supabase hiện tại: sao lưu về máy, giữ lớp/thành viên/phân công/giá/giáo trình lớp cùng học sinh/phụ huynh/liên kết/Auth/tutors/hồ sơ/avatar/Storage/intake/dữ liệu nền; chỉ xóa chốt sổ/buổi/điểm danh/phát sinh. Không dùng kế hoạch xóa rộng cũ. Mã local có Google claim, grants/accounts, chứng chỉ và quyền gia sư thu toàn bộ dư nợ. Chủ trung tâm xác nhận chưa có môi trường thử, yêu cầu hoàn thiện mã/hướng dẫn trước; activity reset giữ lớp đã thực hiện03/11, đã áp19/21/22/29–32 theo yêu cầu riêng sau backup/rehearsal, chưa deploy ứng dụng; lookup cũ đã bị thu hồi, cần triển khai mã tương thích; xem PROJECT_STATUS. Xem bằng chứng local ở PROJECT_STATUS; bước tiếp theo là deploy ứng dụng tương thích schema đã áp, cấu hình/nghiệm thu Google/OJ/Storage thật và pilot theo [runbook](PORTAL_GOOGLE_GRANTS_ROLLOUT.md).
+
+| Nội dung | Nguồn |
 |---|---|
-| Website phát triển trực tiếp bằng React/Next.js; prototype chỉ phục vụ duyệt và nằm ngoài runtime | [Website](PUBLIC_WEBSITE.md) |
-| Phong cách neobrutalism, playful edtech; kết hợp editorial, bento và sơ đồ theo nội dung. Giữ Archivo, logo, bảng màu đã duyệt | [Design system](PUBLIC_UI_DESIGN_SYSTEM.md) |
-| A/B/C/E/K là năm lớp công khai riêng. A+B chỉ gộp tạm trong quản lý; C là tên chung của phần C/D và lớp nâng cao tương lai | [Catalog](PUBLIC_COURSE_CATALOG.md) |
-| Giữ đủ A9/B15/C19, mã C01–D07 và scope CD; chưa đổi lớp cũ trên gia sư/admin/database | [Đào tạo](CHUONG_TRINH_DAO_TAO.md) |
-| E là CHỦ LỰC: đủ năng lực và đạt bài thi tuyển riêng, không bắt buộc học xong C; không phải PreVOI. Ba trọng tâm: tri thức/phương pháp, đội ngũ/môi trường, bài tập/cọ xát | [Catalog](PUBLIC_COURSE_CATALOG.md) |
-| K là kèm riêng hoặc nhóm riêng, chọn nội dung đã duyệt; không mặc định HSGQG | [Catalog](PUBLIC_COURSE_CATALOG.md) |
-| Form đăng ký dùng API/RPC intake v2 trong mã mới; không outbox/email. Học liệu giữ luồng xem lại/sao chép/liên hệ | [Website](PUBLIC_WEBSITE.md) |
-| Thành tích dùng bố cục 3 nhãn cạnh ảnh, dữ liệu riêng và trang tĩnh; chỉ công bố nguồn đã xác minh | [Thành tích](PUBLIC_ACHIEVEMENTS.md) |
-| Trang phụ huynh giữ tóm tắt và 43 chủ đề/54 bài private; Markdown trong repo, không DB/CMS. PreVOI/HSGQG/Ôn thi VOI dùng giáo án riêng, không E; không tự chuyển giáo án lớp cũ | [Chuyên đề phụ huynh](PARENT_TOPICS.md) |
-| Quản lý có A/B/AB/C/E/PREVOI/K, AB hiển thị A+B. Phụ huynh chỉ tra cứu bằng số điện thoại đã liên kết, không mật khẩu/Auth; migration27 và chống spam chung theo [quyết định hiện hành](PARENT_PHONE_ACCESS.md) | [Bàn giao backend](BACKEND_COMPLETION.md) |
-| Không dùng font KVANT cho chữ UI; A/B/C/E/K và sơ đồ E dùng font menu Archivo. Logo SVG giữ nét gốc | [Design system](PUBLIC_UI_DESIGN_SYSTEM.md) |
-| Dùng Node.js 24 cho local, CI và deploy; kiểm tra phiên bản thật, không suy trạng thái hosted từ local | [Tiến độ](PROJECT_STATUS.md) |
+| Tên, giá, đối tượng, ảnh lớp | `lib/public-courses.ts` |
+| Diễn giải lộ trình, mô tả và ba trọng tâm E | `lib/public-roadmap-content.ts` |
+| Mục tiêu cuối khóa | `lib/public-course-outcomes.ts` |
+| Khung giáo trình chuẩn | `lib/learning-curriculum-20260922.json` |
+| Chuyên đề riêng tư | `content/parent-topics/`, `lib/parent-topic-catalog/` |
+| Thành tích | `lib/public-achievements.ts`, `public/images/site/achievements/` |
+| Phân loại chương trình lớp | `lib/class-programs.ts`, migration 25 |
+| Đăng nhập/CAPTCHA | `app/api/parents/auth/`, `app/api/auth/login/`, `lib/login-captcha.ts` |
 
-Đội ngũ được giới thiệu là cựu học sinh chuyên Tin THPT Chuyên Phan Bội Châu. Giữ nguyên nội dung chủ trung tâm đã biên tập; không tự thêm danh hiệu, lời hứa kết quả, học phí E hoặc số liệu CSATOJ.
+## Nguyên tắc bàn giao
 
-## Nơi sửa nhanh
+Đối chiếu caller/API/RPC/test trước khi sửa. Chỉ ghi bằng chứng thực đã có, phân biệt local, CI, staging và production. Ngày chỉ cần cho bằng chứng môi trường; không nối nhật ký mỗi lượt làm việc.
 
-- Dữ kiện lớp/giá/đối tượng/ảnh: lib/public-courses.ts.
-- Diễn giải lộ trình, đặc biệt giới thiệu E: lib/public-roadmap-content.ts, mục E.overview; ba trọng tâm ở E.development.
-- Giáo trình chuẩn: lib/learning-curriculum-20260922.json; không sửa khi chỉ biên tập quảng cáo.
-- Mục tiêu cuối khoá: lib/public-course-outcomes.ts.
-- Danh mục học sinh vinh danh: lib/public-achievements.ts; ảnh WebP chọn lọc trong public/images/site/achievements/.
-- JSX/CSS: app/ và components/marketing/; bản đồ chức năng ở PUBLIC_WEBSITE.
-
-## Khi tiếp tục
-
-Xem UI hiện chạy và đối chiếu mã trước khi sửa. Thay đổi nhỏ trong phạm vi được giao có thể làm trực tiếp; thiết kế hoặc nội dung mới chưa duyệt cần bản xem cụ thể. Không phục hồi phương án cũ từ prototype hay nhật ký.
-
-Kiểm thử theo phạm vi, dùng dữ liệu giả; ghi rõ bước chưa chạy. Không tự tạo agent, commit/push, migration hoặc deploy nếu chưa có yêu cầu/quyền phù hợp. Giữ snapshot, nháp/công bố, revision và lịch sử tài chính; không tự đánh giá thành thạo từ ranking.
-
-Phần cần người dùng xác nhận và backlog duy trì ở PROJECT_STATUS. Server preview, báo cáo scratch và đường dẫn công cụ trên máy có thể không còn sau đổi phiên; workflow chung không phụ thuộc chúng.
+Dùng Node.js 24 và dữ liệu giả khi kiểm thử. Không tự tạo agent, ghi production, gửi thư hoặc phát hành nếu chưa được giao đúng phạm vi. Giữ quyền, nháp/công bố và lịch sử; không suy năng lực từ ranking. Kết thúc bằng thay đổi, kiểm thử, giới hạn và bước tiếp theo.

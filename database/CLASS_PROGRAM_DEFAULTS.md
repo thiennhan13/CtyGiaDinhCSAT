@@ -1,41 +1,16 @@
-> Cập nhật 24/09/2026: mặc định đã duyệt là **Cơ bản A+B (24 chủ đề)** và **Nâng cao C+D (19 chủ đề)**, không ấn định 30/35 buổi. Migration 20 đã áp dụng production: các lớp Cơ bản và Nâng cao đã dùng đầy đủ khung mới; đã kiểm chứng dữ liệu và cổng phụ huynh. Xem [phạm vi áp dụng và kết quả kiểm tra](../docs/CLASS_CURRICULUM_ROLLOUT_20260923.md). Phần dưới lưu lịch sử của migration 17, không phải mặc định mới.
-
 # Loại lớp và chương trình mặc định
 
-Migration `20260911_17_class_program_defaults.sql` đã áp dụng trên Supabase ngày 11/09/2026. Không chạy lại trên database này.
+Nguồn triển khai hiện hành: `lib/class-programs.ts`, migration 20/25 và [chương trình đào tạo](../docs/CHUONG_TRINH_DAO_TAO.md).
 
-| Loại lớp | Mã chương trình | Cách áp dụng |
-| --- | --- | --- |
-| Lớp Cơ bản | basic | Khung Cơ bản 30 buổi, phiên bản mặc định đã duyệt |
-| Lớp Nâng cao | advanced | Khung Nâng cao 35 buổi, phiên bản mặc định đã duyệt |
-| Lớp HSGQG | voi | Giữ mã VOI cũ để tương thích; chưa bổ sung giáo án khi chưa được duyệt |
-| Lớp Luyện thi | custom | Nội dung tùy chỉnh theo mục tiêu của lớp; không mặc định gán VOI |
+| Mã quản lý | Chương trình | Mặc định |
+|---|---|---|
+| A/B/AB | basic | Phần tương ứng A/B; lớp Cơ bản mặc định A+B, 24 chủ đề |
+| C | advanced | Toàn bộ C/D, 19 chủ đề; giữ C01–D07/scope CD |
+| PREVOI | voi | Giáo án riêng, không dùng E |
+| E/K | custom | Nội dung được duyệt; chưa tự tạo giáo trình chuẩn mới |
 
-## Kết quả trên dữ liệu hiện có
+Khung hiện hành không ấn định 30/35 buổi như template lịch sử. Chọn chương trình không xác nhận học sinh thành thạo. Đổi mã lớp không tự đổi tên, nội dung đã công bố, học phí hoặc lịch sử; admin xác nhận và ghi revision/audit.
 
-- Các lớp Cơ bản và Nâng cao có khung được công bố trong đợt này.
-- Tạo thêm bản ghi khung lớp, gồm cả lớp đã ngừng hoạt động/lưu trữ theo yêu cầu áp dụng cho tất cả lớp.
-- Giữ nguyên toàn bộ bản nháp, bản công bố, chặng đang học và lịch sử của lớp đã có lộ trình.
-- Các lớp Luyện thi giữ nguyên dữ liệu; chưa công bố giáo án tùy chỉnh chưa được xác nhận.
-- Không thay đổi dữ liệu của các bảng ngoài phạm vi, gồm lớp, học sinh, học phí, điểm danh, chốt sổ và tài khoản phụ huynh. Quyền gọi các RPC hiện hữu giữ nguyên.
+Migration 17 là nền mặc định cũ; 20 bổ sung khung chuẩn và 25 bổ sung mã quản lý. Giữ SQL/fixture để kiểm nâng cấp; không chạy lại các migration đã có. Xem [database README](README.md) để kiểm phụ thuộc, [backend](../docs/BACKEND_COMPLETION.md) để nghiệm thu tạo/đổi chương trình.
 
-Các khung bổ sung là chương trình tham chiếu, không phải xác nhận học sinh đã học xong hay đạt năng lực. Chặng hiện tại và hình thức học để trống do chưa có dữ liệu xác nhận. Gia sư chọn hình thức thực tế khi công bố các điều chỉnh tiếp theo.
-
-## Lớp mới và tùy chỉnh
-
-Luồng tạo lớp qua `create_class_with_learning` suy ra chương trình từ loại lớp và từ chối chương trình không khớp. Cơ bản/Nâng cao tự nhận và công bố phiên bản mặc định hiện tại; mục tiêu riêng và chặng hiện tại để trống. HSGQG/Luyện thi khởi tạo bản nháp, chờ nội dung được xác nhận.
-
-Gửi lại cùng yêu cầu tạo lớp giữ nguyên lộ trình đã tạo và mọi chỉnh sửa sau đó. Thay đổi phiên bản mặc định không tự đổi giáo án của lớp đã có lộ trình.
-
-Luyện thi hỗ trợ công bố mục tiêu và nội dung riêng khi chưa có template; không tạo giáo án giả. HSGQG giữ hành vi tương tự trong thời gian chờ giáo án được duyệt.
-
-## Kiểm tra
-
-- 5 kiểm thử mới và 13 kiểm thử hồi quy đều đạt.
-- TypeScript đạt; lint không có lỗi, còn một cảnh báo eslint-disable đã có ở màn hình tạo lớp.
-- Chạy thử giao dịch hoàn tác rồi áp dụng cùng nội dung migration; đối chiếu dữ liệu trước/sau và quyền RPC.
-- Đã kiểm tra đăng nhập trên portal.csatoj.vn: chương trình hiển thị, không truy cập được học sinh của phụ huynh khác; đăng xuất phiên kiểm thử.
-- Truy vấn kiểm tra chỉ đọc: `database/verification/20260911_class_program_defaults.sql`.
-- Bản đối chiếu và báo cáo chi tiết nằm trong thư mục riêng tư `scratch/class-program-defaults-20260911/`, không đưa vào Git.
-
-Migration chỉ bổ sung khung cho lớp chưa có bản ghi lộ trình. Với database khác có bản nháp hoặc chương trình riêng, cần xem kết quả kiểm tra; không công bố bản nháp hoặc ghi đè giáo án riêng tự động.
+K phối nguồn chéo chương trình là đề xuất chờ duyệt. PreVOI/Luyện thi không được đổi nhãn hoặc sao chép giáo án tự động để lấp phần còn thiếu.

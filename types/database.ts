@@ -8,6 +8,7 @@
 // ─── Core Entities ─────────────────────────────────────────────────────────────
 
 export interface Student {
+  revision?: number;
   student_id: string;
   name: string;
   date_of_birth: string | null;

@@ -1,12 +1,12 @@
 # Catalog khóa học công khai
 
-Nguồn chuẩn cho tên lớp/dữ kiện tuyển sinh và hợp đồng intake hiện hành. Nội dung học ở [chương trình](CHUONG_TRINH_DAO_TAO.md); UI ở [website](PUBLIC_WEBSITE.md). Intake v2 đã có trong mã, chưa nghiệm thu staging/production; cơ chế K phối nguồn chéo chương trình vẫn là đề xuất.
+Nguồn chuẩn cho tên lớp/dữ kiện tuyển sinh và hợp đồng intake hiện hành. Nội dung học ở [chương trình](CHUONG_TRINH_DAO_TAO.md); UI ở [website](PUBLIC_WEBSITE.md). Intake v2 đã phát hành; nghiệm thu đơn hợp lệ đến admin còn chờ theo PROJECT_STATUS; cơ chế K phối nguồn chéo chương trình vẫn là đề xuất.
 
 ## Quyết định hiện hành
 
 - Năm lớp công khai A/B/C/E/K. A/B tách riêng; A+B chỉ gộp tạm trong quản lý, không trang/tư vấn/tuyển sinh công khai.
-- **C — Lập trình thi đấu nâng cao** là tên chung hai phần C/D và các lớp nâng cao tương lai. Giữ 19 chủ đề/6 chặng, C01–C12/D01–D07, scope CD; chưa đổi admin/gia sư/enum/template/lớp cũ.
-- **E — Chủ lực** chọn lọc từ C khi đủ năng lực và đạt bài thi tuyển riêng; không bắt buộc hoàn thành toàn bộ C. Hướng chuẩn chuyên Tin/thứ hạng cao trong lập trình thi đấu; không phải PreVOI, không tự gán voi.
+- **C — Lập trình thi đấu nâng cao** là tên chung hai phần C/D và các lớp nâng cao tương lai. Giữ 19 chủ đề/6 chặng, C01–C12/D01–D07, scope CD; quản lý đã có mã C nhưng giữ enum advanced, template và lịch sử lớp cũ.
+- **E — Chủ lực** tuyển chọn từ lớp C khi đủ năng lực và đạt bài thi riêng; không bắt buộc hoàn thành toàn bộ lớp C. Hướng chuẩn chuyên Tin/thứ hạng cao trong lập trình thi đấu; không phải PreVOI, không tự gán voi.
 - **K — Kèm riêng** học 1–1/nhóm riêng với phạm vi từ khung đã duyệt; không đồng nghĩa HSGQG.
 - Đội ngũ cựu học sinh chuyên Tin THPT Chuyên Phan Bội Châu; thông điệp tập thể không sửa hồ sơ cá nhân.
 - Giá tuyển sinh không đổi đơn giá lớp đang vận hành hoặc học phí lịch sử. Khung không ấn định số buổi/đảm bảo kết quả thi.
@@ -18,7 +18,7 @@ Nguồn chuẩn cho tên lớp/dữ kiện tuyển sinh và hợp đồng intake
 | A | Nhập môn lập trình | A01–A09, 9 chủ đề/3 chặng; lớp 5–7 làm quen C++ | 99.000đ/buổi; 90 phút; 5–8 học sinh |
 | B | Lập trình thi đấu cơ bản | B01–B15, 15 chủ đề/4 chặng; lớp 7–9, HSG cấp Phường hoặc chuyên Tin tỉnh không quá cạnh tranh | 99.000đ/buổi; 90 phút; 5–8 học sinh |
 | C | Lập trình thi đấu nâng cao | C01–D07, 19 chủ đề/6 chặng; lớp 7–9, HSG cấp Tỉnh hoặc chuyên Tin tỉnh mạnh/cạnh tranh | 109.000đ/buổi; 90 phút; 5–8 học sinh |
-| E | Chủ lực | Chọn lọc từ C; thuật toán, tư duy toán học và giải quyết vấn đề | 3–4 học sinh; 2 giờ/buổi; lịch theo thành viên; học phí trao đổi |
+| E | Chủ lực | Tuyển chọn từ lớp C qua bài thi riêng; thuật toán, tư duy toán học và giải quyết vấn đề | 3–4 học sinh; 2 giờ/buổi; lịch theo thành viên; học phí trao đổi |
 | K | Kèm riêng | 1–1/nhóm đăng ký riêng, nội dung tùy nhu cầu | Phạm vi/lịch/thời lượng/học phí thống nhất trước học |
 
 Đối tượng A/B/C bám nội dung nguồn poster đã đối chiếu, không thay bằng mô tả quảng cáo hoặc kết luận năng lực theo tuổi.
@@ -55,11 +55,11 @@ Hashtag tổng quan:
 - C: #ThuậtToánNângCao · #HSGCấpTỉnh · #ChuyênTin.
 - E/K không hashtag. Đây là nhãn định hướng, không thêm giáo trình/cam kết.
 
-Đăng ký dùng mẫu 3 thẻ, facts ngay dưới tên và tag kiến thức; E/K chỉ tag định hướng đã duyệt. CTA lớp X → /dang-ky-hoc?course=X#thong-tin; server/form mặc định X, route lớp thắng query khác. Người dùng có thể đổi lựa chọn. PublicConsultation đăng ký có validate/xem lại/consent và gửi API; chỉ thông báo đã tiếp nhận sau lưu thành công. Học liệu giữ sao chép/liên hệ.
+Đăng ký dùng mẫu 3 thẻ, facts ngay dưới tên và tag kiến thức; E/K chỉ tag định hướng đã duyệt. CTA lớp X → /dang-ky-hoc?course=X#thong-tin; server/form mặc định X, route lớp thắng query khác. Người dùng có thể đổi lựa chọn. PublicConsultation đăng ký có validation/consent và gửi API trực tiếp; chỉ thông báo đã tiếp nhận sau lưu thành công. Học liệu giữ sao chép/liên hệ.
 
 ## Hợp đồng intake v2 trong mã
 
-`lib/intake.ts` → `/api/consultations` → `submit_registration` (migration24, cần18). Schema strict, giữ lựa chọn khóa độc lập với mục tiêu; không tự map E sang HSGQG. Chưa nghiệm thu staging/production.
+`lib/intake.ts` → `/api/consultations` → `submit_registration` (migration24, cần18). Schema strict, giữ lựa chọn khóa độc lập với mục tiêu; không tự map E sang HSGQG. Trạng thái và nghiệm thu ở [PROJECT_STATUS](PROJECT_STATUS.md).
 
 | Trường | Giá trị/quy tắc |
 |---|---|

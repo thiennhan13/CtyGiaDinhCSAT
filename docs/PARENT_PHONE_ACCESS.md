@@ -1,12 +1,14 @@
 # Tra cứu phụ huynh bằng số điện thoại
 
-## Quyết định hiện hành
+## Tài liệu lịch sử migration27
 
-Theo yêu cầu của chủ trung tâm, phụ huynh chỉ nhập số điện thoại đã đăng ký: không mật khẩu, OTP hoặc Supabase Auth. Quyết định này thay phương án Auth của migration26. Gia sư/admin vẫn dùng email và mật khẩu qua Supabase Auth.
+Tài liệu dưới đây mô tả lookup27 trước chuyển đổi. Mã local hiện dùng Google PKCE + phone claim theo migration30; lookup cũ bị thu hồi. Xem [runbook hiện hành](PORTAL_GOOGLE_GRANTS_ROLLOUT.md). Không dùng các bước cũ để phát hành Google hoặc chạy lại26.
 
 Đây là tra cứu bằng thông tin liên hệ, không xác minh danh tính. Người biết số điện thoại có thể mở thông tin học tập/học phí gắn với số đó. Giới hạn lượt thử không chứng minh sở hữu số và không ngăn một lượt truy cập có chủ đích. SEC-02 vẫn mở; không mô tả luồng này là xác thực an toàn hoặc đã xác minh phụ huynh.
 
 ## Luồng và quyền
+
+Trang login có Turnstile cho phụ huynh và gia sư/admin. API kiểm CAPTCHA trước khi tạo phiên; cấu hình/giới hạn ở [LOGIN_CAPTCHA](LOGIN_CAPTCHA.md).
 
 - Form chỉ POST `phone` tới `/api/parents/auth`. Chuẩn hóa 0/+84/0084; kiểm tra Origin, schema nghiêm ngặt, thân yêu cầu tối đa 4 KiB.
 - `start_parent_phone_session` chỉ service role gọi được; kiểm tra giới hạn trong cùng transaction, hồ sơ hoạt động và có liên kết học sinh chưa xóa. Không cần `parent_accounts.auth_uid` và không gọi Auth.
@@ -36,7 +38,7 @@ Giới hạn này bảo vệ endpoint website. Supabase Auth của gia sư vẫn
 
 ## Chuyển đổi database và ứng dụng
 
-Production lần đối chiếu trước đã có 26. Không sửa hoặc chạy lại 26, không chạy master schema. Migration mới là [27](../database/migrations/20261014_27_parent_phone_access.sql), phụ thuộc 26, không cần 19/21/22. Người dùng tiếp tục tự chạy SQL production theo cách bàn giao đã thống nhất.
+Phần này dành cho môi trường còn ở26; môi trường đã có27 không chạy lại. Xem trạng thái thực đã ghi nhận tại PROJECT_STATUS. Không sửa hoặc chạy lại 26, không chạy master schema. Migration mới là [27](../database/migrations/20261014_27_parent_phone_access.sql), phụ thuộc 26, không cần 19/21/22. Người dùng tiếp tục tự chạy SQL production theo cách bàn giao đã thống nhất.
 
 1. Chuẩn bị backup và bản ứng dụng tương thích; thử bằng fixture riêng trước. Chưa có Supabase staging thật, cần ghi rõ giới hạn nghiệm thu.
 2. Chạy [verification chỉ đọc](../database/verification/20261014_parent_phone_access.sql) trước; trước 27 các RPC mới chưa tồn tại là dự kiến. Có thể dùng [preflight digest nghiệp vụ](../database/verification/20261012_backend_preflight.sql) để đối chiếu trước/sau.
@@ -50,4 +52,4 @@ Migration và mã cần đi cùng nhau: mã cũ không mở được phiên sau 
 
 ## Trạng thái nghiệm thu
 
-Migration27 và ứng dụng đã qua kiểm thử local trên Node24, PostgreSQL17 và Edge; gồm tranh chấp rate limit, bảo toàn dữ liệu, phiên/liên kết và đọc bài không Auth. Xác minh chỉ đọc production ngày 15/10/2026: registry có 27, hai RPC mở/kiểm tra phiên chỉ cấp cho service role, RLS bật trên parent_accounts/parent_lookup_sessions/auth_attempts. Vercel bản 2190a6f Ready và trang login hiển thị tra cứu bằng số điện thoại. Chưa nghiệm thu bằng hồ sơ thật; không suy từ đây rằng mọi phiên/liên kết đã được nghiệm thu. Kết quả kiểm thử và bước còn chờ được cập nhật tại [PROJECT_STATUS](PROJECT_STATUS.md).
+Kết quả local/CI và production được duy trì tại [PROJECT_STATUS](PROJECT_STATUS.md). Khi nghiệm thu cần kiểm phiên hết hạn/thu hồi, hồ sơ khóa, liên kết nhiều con/lớp, bản công bố và quyền bài chuyên đề. Kiểm [Turnstile](LOGIN_CAPTCHA.md) trước luồng tra cứu; callback widget thành công chưa thay kiểm Siteverify và tài khoản thật.

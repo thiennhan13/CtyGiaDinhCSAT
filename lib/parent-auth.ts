@@ -1,12 +1,11 @@
 import 'server-only';
-import { createAdminClient } from '@/lib/supabase/service';
-import { readLookupHash } from '@/lib/parent-lookup';
-
-// Cookie possession is not proof of phone ownership. Check current access in DB.
+import { createClient } from '@/lib/supabase/server';
 export async function parentSession() {
-  const hash = await readLookupHash();
-  if (!hash) return null;
-  const result = await createAdminClient().rpc('parent_phone_session_valid', { p_token_hash: hash });
-  if (result.error || result.data !== true) return null;
-  return { hash };
+  const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) return null;
+  const result = await supabase.rpc('parent_access');
+  if (result.error) throw new Error('Không đọc được quyền phụ huynh.');
+  const access = result.data as { state: 'active' | 'unlinked' | 'blocked'; student_id?: string; parent_id?: string; revision?: number; contact_revision?: number };
+  return { supabase, user, access };
 }

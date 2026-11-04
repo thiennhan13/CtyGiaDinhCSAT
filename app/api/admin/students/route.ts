@@ -1,110 +1,41 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/service';
-import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
+import { businessSession, businessError } from '@/lib/business-api';
+import { readLoginBody } from '@/lib/login-security';
 
-const createStudentSchema = z.object({
-  action:              z.literal('create'),
-  // Chỉ bắt buộc tên
-  name:                z.string().min(2, "Tên phải có ít nhất 2 ký tự"),
-  // Tất cả còn lại optional
-  date_of_birth:       z.string().date("Ngày sinh không hợp lệ").optional().nullable(),
-  // student_contact = link liên lạc học sinh (FB, Zalo...)
-  student_contact:     z.string().optional().nullable(),
-  // parent_number = số điện thoại phụ huynh
-  parent_number:       z.string().optional().nullable(),
-  // parent_link = link mạng xã hội phụ huynh (Facebook, Zalo...)
-  parent_link:         z.string().optional().nullable(),
-  province:            z.string().optional().nullable(),
-  parent_name:         z.string().optional().nullable(),
-  status:              z.string().optional().default('Đang học'),
-  notes:               z.string().optional().nullable(),
+const fields = z.object({
+  name: z.string().trim().min(2, 'Tên phải có ít nhất 2 ký tự').max(200),
+  date_of_birth: z.string().date().nullable().optional(),
+  student_contact: z.string().max(2000).nullable().optional(),
+  parent_number: z.string().max(30).nullable().optional(),
+  parent_link: z.string().max(2000).nullable().optional(),
+  province: z.string().max(200).nullable().optional(),
+  parent_name: z.string().max(150).nullable().optional(),
+  status: z.string().max(100).optional(),
+  notes: z.string().max(2000).nullable().optional(),
 });
-
-const updateStudentSchema = z.object({
-  action:              z.literal('update'),
-  student_id:          z.string().uuid("Student ID không hợp lệ"),
-  name:                z.string().min(2).optional(),
-  date_of_birth:       z.string().date("Ngày sinh không hợp lệ").optional().nullable(),
-  student_contact:     z.string().optional().nullable(),
-  parent_number:       z.string().optional().nullable(),
-  parent_link:         z.string().optional().nullable(),
-  province:            z.string().optional().nullable(),
-  parent_name:         z.string().optional().nullable(),
-  status:              z.string().optional(),
-  notes:               z.string().optional().nullable(),
-});
-
-const deleteStudentSchema = z.object({
-  action:     z.literal('delete'),
-  student_id: z.string().uuid("Student ID không hợp lệ"),
-});
-
-const studentActionSchema = z.discriminatedUnion('action', [
-  createStudentSchema,
-  updateStudentSchema,
-  deleteStudentSchema
+const schema = z.discriminatedUnion('action', [
+  fields.extend({ action: z.literal('create') }).strict(),
+  fields.partial().extend({ action: z.literal('update'), student_id: z.uuid(), revision: z.number().int().positive() }).strict(),
+  z.object({ action: z.literal('delete'), student_id: z.uuid(), revision: z.number().int().positive() }).strict(),
 ]);
-
 export async function POST(request: Request) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    // Kiểm tra quyền Admin
-    if (!user || (user.app_metadata?.role !== 'admin')) {
-      return NextResponse.json({ error: 'Quyền truy cập bị từ chối.' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const parsed = studentActionSchema.safeParse(body);
-    
-    if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
-    }
-
-    const adminClient = createAdminClient();
-
-    if (parsed.data.action === 'create') {
-      const { data, error } = await adminClient.from('students').insert([{ 
-        name:                parsed.data.name, 
-        date_of_birth:       parsed.data.date_of_birth ?? null,
-        student_contact:     parsed.data.student_contact ?? null,
-        parent_number:       parsed.data.parent_number ?? null,
-        parent_link:         parsed.data.parent_link ?? null,
-        province:            parsed.data.province ?? null,
-        parent_name:         parsed.data.parent_name ?? null,
-        status:              parsed.data.status, 
-        notes:               parsed.data.notes ?? null,
-      }]).select().single();
-      if (error) throw error;
-      return NextResponse.json({ message: 'Thêm học sinh thành công', data });
-    }
-
-    if (parsed.data.action === 'update') {
-      const { action, student_id, ...updateData } = parsed.data;
-      const { data, error } = await adminClient
-        .from('students')
-        .update(updateData)
-        .eq('student_id', student_id)
-        .select()
-        .single();
-      if (error) throw error;
-      return NextResponse.json({ message: 'Cập nhật thành công', data });
-    }
-
-    if (parsed.data.action === 'delete') {
-      const studentId = parsed.data.student_id;
-      // Foreign keys preserve all existing class, attendance and financial history.
-      
-      const { error } = await adminClient.from('students').delete().eq('student_id', studentId);
-      if (error) return NextResponse.json({ error: error.code === '23503' ? 'Học sinh đã có lịch sử lớp học hoặc học phí. Hãy chuyển trạng thái thay vì xóa.' : 'Không thể xóa học sinh.' }, { status: error.code === '23503' ? 409 : 500 });
-      return NextResponse.json({ message: 'Đã xóa học sinh chưa có lịch sử liên quan.' });
-    }
-
-    return NextResponse.json({ error: 'Hành động không hợp lệ' }, { status: 400 });
-  } catch (error: any) {
-    console.error('Student API Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  const session = await businessSession(true, request); if (session.response) return session.response;
+  const parsed = schema.safeParse(await readLoginBody(request));
+  if (!parsed.success) return NextResponse.json({ error: 'Kiểm tra hồ sơ và revision hiện tại.' }, { status: 422 });
+  const input = parsed.data;
+  let studentId: string | null = null, revision: number | null = null, data: object;
+  if (input.action === 'create') {
+    const { action: _action, ...values } = input; data = values;
+  } else {
+    const { action, student_id, revision: currentRevision, ...values } = input;
+    studentId = student_id; revision = currentRevision;
+    data = action === 'delete' ? { is_deleted: true } : values;
   }
+  // The same transaction as the admin form: synchronize contacts, check revision,
+  // preserve history and revoke outdated parent access. No service-role table writes.
+  const result = await session.supabase.rpc('admin_save_student', { p_student_id: studentId, p_data: data, p_revision: revision });
+  return result.error ? businessError(result.error) : NextResponse.json({
+    message: input.action === 'delete' ? 'Đã ẩn hồ sơ học sinh và khóa quyền phụ huynh.' : 'Đã lưu hồ sơ học sinh.', data: result.data,
+  }, { headers: { 'Cache-Control': 'private, no-store' } });
 }
