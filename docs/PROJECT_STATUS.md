@@ -1,5 +1,11 @@
 # Tiến độ và việc tiếp theo
 
+## Liên kết hồ sơ — biểu mẫu neo brutalism căn giữa
+
+Màn hình `/parents` khi chưa liên kết dùng thẻ riêng tối đa536px, căn giữa vùng nội dung, tiêu đề/mô tả/icon căn giữa; giữ nhãn và hướng dẫn sát ô nhập. Viền3px, bóng cứng6px, icon lime và nút cobalt theo token CSAT, Archivo và theme hiện có. Ô số/nút cao56px, lỗi có biểu tượng/văn bản và liên kết ARIA; số không hợp lệ đưa focus về ô nhập. CSS Module chỉ áp biểu mẫu, không đổi API/claim, session, quyền hoặc database.
+
+Kiểm local Node24.22.1: repo36/36, guard667 tệp không finding, typecheck/lint strict/build đạt. Edge bộ liên kết/entry48 assertions đạt ở320/375/768/1440 và ngang812×375, sáng/tối, căn giữa, không tràn ngang, bàn phím/focus, reduced motion, số sai và xung đột giữ nguyên input. Fixture/API giả, không Supabase thật. Không chạy lại database tests vì thay đổi giao diện không đổi contract/database. Chưa xác nhận bản thay đổi này trên production; nghiệm thu tài khoản thật cần sau deployment.
+
 ## Trang liên lạc — tiếp tục phiên và nút Google
 
 Đã sửa mã `/login` để phiên phụ huynh đã được Supabase xác thực tự trở về `/parents`, nơi tiếp tục kiểm quyền active/unlinked/blocked. Giữ cookie/refresh SSR hiện có; không thay thời hạn Auth, không lưu phone/token vào storage riêng. Entry staff tường minh vẫn truy cập được; staff chưa có parent vẫn khởi động Google được. Nút **Đăng nhập bằng Google** cao tối thiểu64px, icon chính thức lưu tại `public/images/auth/google-g.png`, nền sáng, đặt trên Cloudflare và giữ điều kiện CAPTCHA, loading/error/focus/reduced motion. Nguồn icon: [Google Branding Guidelines](https://developers.google.com/identity/branding-guidelines), [asset chính thức](https://developers.google.com/static/identity/images/g-logo.png); không thêm thư viện/font hoặc tải icon từ xa ở runtime.

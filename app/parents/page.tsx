@@ -11,7 +11,7 @@ import { ParentPortalView } from '@/components/learning/ParentPortalView';
 export const dynamic = 'force-dynamic';
 export default async function ParentPortal({searchParams}:{searchParams:Promise<{student?:string;month?:string;page?:string}>}){
  const session=await parentSession();if(!session)redirect('/login');
- if(session.access.state==='unlinked')return <ParentShell navigationEnabled={false}><div className="parent-card"><ParentLinkForm/></div></ParentShell>;
+ if(session.access.state==='unlinked')return <ParentShell navigationEnabled={false}><ParentLinkForm/></ParentShell>;
  if(session.access.state!=='active')return <AccessMessage message="Liên kết đã bị khóa. Vui lòng liên hệ CSAT để kiểm tra."/>;
  const params=await searchParams;
  const parsed=z.object({student:z.string().uuid().optional(),month:monthSchema.optional(),page:z.coerce.number().int().min(0).max(10000).default(0)}).safeParse(params);

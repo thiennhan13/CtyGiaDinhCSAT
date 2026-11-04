@@ -286,6 +286,39 @@ async function main() {
       check(new URL(page.url()).pathname === '/login', 'Logout prevents automatic re-entry.');
       await reopened.close();
     });
+    await run('parent phone link stays centered, readable and keyboard accessible', async () => {
+      const c = await context('unlinked'), p = await c.newPage();
+      await visit(p, origin + '/parents');
+      const form = p.locator('main form'), phone = p.getByLabel('Số điện thoại', { exact: true });
+      const submit = p.getByRole('button', { name: 'Liên kết học sinh', exact: true });
+      await p.waitForFunction(() => !document.getElementById('link-phone').disabled);
+      for (const theme of ['light', 'dark']) {
+        await p.evaluate(theme => { document.documentElement.classList.toggle('dark', theme === 'dark'); }, theme);
+        for (const [width, height] of [[320, 740], [375, 812], [768, 1024], [1440, 1000], [812, 375]]) {
+          await p.setViewportSize({ width, height });
+          const box = await form.boundingBox();
+          check(Math.abs(box.x + box.width / 2 - width / 2) <= 5, 'Phone form is centered: ' + theme + '/' + width);
+          check(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'No horizontal overflow: ' + theme + '/' + width);
+          check((await phone.boundingBox()).height >= 44 && (await submit.boundingBox()).height >= 44, 'Phone controls retain comfortable touch targets.');
+          await p.screenshot({ path: path.join(output, 'parent-link-' + width + '-' + theme + '.png'), fullPage: true });
+        }
+      }
+      await p.setViewportSize({ width: 375, height: 812 });
+      await p.emulateMedia({ reducedMotion: 'reduce' });
+      await phone.fill('123');
+      await p.keyboard.press('Tab');
+      check(await submit.evaluate(node => node === document.activeElement && getComputedStyle(node).outlineStyle !== 'none'), 'Keyboard reaches visible submit focus.');
+      await p.keyboard.press('Enter');
+      await p.locator('#link-error').waitFor();
+      check(await phone.evaluate(node => node === document.activeElement && node.getAttribute('aria-describedby').includes('link-error')), 'Invalid phone focuses its field with associated error.');
+      await c.route(origin + '/api/parents/link', route => route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ error: 'Số điện thoại đã được liên kết với tài khoản khác.' }) }));
+      await phone.fill('+84 912 345 678');
+      await submit.click();
+      await p.getByRole('alert').filter({ hasText: 'Số điện thoại đã được liên kết' }).waitFor();
+      check(await phone.inputValue() === '+84 912 345 678' && await submit.isEnabled(), 'Conflict preserves input and permits recovery.');
+      await p.screenshot({ path: path.join(output, 'parent-link-conflict.png'), fullPage: true });
+      await c.close();
+    });
     await run('remembered parent access states and explicit staff entry avoid redirect loops', async () => {
       for (const mode of ['valid', 'unlinked', 'revoked', 'expired']) {
         const c = await context(mode), p = await c.newPage();
