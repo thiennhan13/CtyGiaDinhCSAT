@@ -42,7 +42,9 @@ Admin chọn student rồi nhập mã43 ký tự từ admin OJ. Portal lưu oper
 
 Lớp nhập organization ID; buổi nhập tối đa20 contest IDs. Không có bộ chọn toàn bộ org/contest từ endpoint giả. Đọc summary khi phần OJ hiện trên màn hình; danh sách/chi tiết tải theo thao tác, không polling10giây. Quota DB dùng chung instance/read120 và manage30 mỗi phút, tôn trọng Retry-After. Khóa instance/schema/grant; kiểm quyền trước/sau HTTP; không cache công khai. `null`, withheld, frozen và not_participated được giữ nguyên, không diễn giải thành0 hoặc tự đánh dấu thành thạo.
 
-## Làm sạch phát sinh, giữ lớp — quyết định03/11
+## Làm sạch phát sinh, giữ lớp — lịch sử03/11, không còn là phạm vi mới nhất
+
+Đợt04/11 đã được chủ trung tâm xác nhận riêng: giữ Auth/tutors/Storage/intake/catalog/audit, xóa lớp/học sinh/phụ huynh/phát sinh rồi nhập bộ mẫu. Đã thực hiện sau phục hồi/diễn tập; không chạy lại. [Bằng chứng và công cụ mới](DATABASE_REINITIALIZATION_20261104.md). Phần dưới mô tả công cụ activity reset03/11 để đối chiếu lịch sử, không phải chỉ dẫn thực hiện thêm.
 
 Thay toàn bộ phạm vi reset rộng cũ. Chủ trung tâm đã chỉ định Supabase hiện tại, sao lưu về máy trước, **giữ lớp** nhưng xóa toàn bộ chốt sổ/điểm danh/phát sinh. Không cần tạo project Supabase mới chỉ để làm sạch; vẫn kiểm fixture và phục hồi bản sao trên PostgreSQL loopback riêng trước thao tác thật. Nghiệm thu Google/OJ/Storage cho phát hành tính năng là bước riêng.
 

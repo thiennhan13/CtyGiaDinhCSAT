@@ -17,7 +17,7 @@ Các bước lịch sử bên dưới giải thích dựng môi trường và ch
 
 ## Đang ở đâu — kiểm ngày 03/11/2026
 
-Quyết định mới nhất: dùng Supabase hiện tại; sao lưu về máy, giữ lớp/cấu hình/thành viên/đơn giá/giáo trình lớp và mọi hồ sơ, chỉ xóa chốt sổ/buổi/điểm danh/phát sinh. Kế hoạch xóa rộng trước đó hết hiệu lực; xem [runbook](PORTAL_GOOGLE_GRANTS_ROLLOUT.md).
+Quyết định mới nhất04/11 thay phạm vi03/11: đã dùng Supabase hiện tại, sao lưu/phục hồi rồi giữ Auth/tutors/Storage/intake/catalog/audit, xóa lớp/học sinh/phụ huynh/phát sinh và nhập1 lớp/4 học sinh/4 phụ huynh cùng10 hồ sơ/ảnh khớp. Không chạy lại reset hoặc nhập trùng;8 hồ sơ chưa khớp vẫn chờ admin. [Bằng chứng](DATABASE_REINITIALIZATION_20261104.md). Các mốc03/11 phía dưới là lịch sử triển khai; Google cho dữ liệu mới/OJ/UI avatar cần nghiệm thu riêng.
 
 Đã áp19/21/22/29/30/31/32 trên Supabase hiện tại03/11 sau backup/phục hồi/rehearsal; không chạy lại. Google provider bật nhưng ứng dụng mới chưa deploy/nghiệm thu đăng nhập. OJ chưa cấu hình instance/read/manage key. Deploy Vercel không tự chạy SQL. Đã thực hiện activity reset giữ lớp ngày03/11 sau backup/phục hồi80 bảng; migration thực hiện ở đợt riêng sau đó; chưa upload hoặc cập nhật hồ sơ thật.
 
@@ -37,7 +37,7 @@ File 18 gia sư đã được tách thành gói nội bộ trong `scratch/tutor-
 3. Nếu cần nghiệm thu tính năng Google/OJ/Storage tách biệt, tạo project Supabase thử **riêng, trống**, chẳng hạn CSAT Portal Test. Lưu mật khẩu database trong nơi quản lý secret. Không dùng dữ liệu học sinh/gia sư thật làm fixture ở project thử.
 4. Ghi riêng Project URL, anon key và service role của project thử. Chỉ service role ở server; không ghi vào `NEXT_PUBLIC_*`. Xem [setup](SETUP_VERCEL_SUPABASE.md) khi dashboard hiển thị nhiều loại key.
 
-**Đạt khi:** xác định đúng project đang dùng, không dùng nhầm key. Quyết định mới03/11: dùng Supabase hiện tại, giữ lớp/thông tin, chỉ xóa chốt sổ/buổi/điểm danh/phát sinh sau backup đã phục hồi thử về máy; không bắt buộc tạo Supabase mới cho thao tác này. Các bước2–7 dưới đây là nhánh nghiệm thu tính năng, không phải yêu cầu phải tạo lại database hiện có.
+**Đạt khi:** xác định đúng project đang dùng, không dùng nhầm key. Không tạo lại database hoặc chạy reset đã xong04/11. Các bước2–7 là nhánh nghiệm thu tính năng, không phải yêu cầu phải xóa database hiện có.
 
 ## Bước 2 — Dựng schema trên Supabase thử trống
 

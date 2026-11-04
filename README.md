@@ -12,7 +12,7 @@ Website công khai, thư viện chuyên đề phụ huynh, tiếp nhận đăng 
 
 ## Phạm vi chức năng
 
-Giới hạn đích mới: một phụ huynh – một số điện thoại – một học sinh; Google khác dùng số đã liên kết phải báo lỗi. Theo quyết định03/11, giữ lớp và hồ sơ hiện có, chỉ làm sạch chốt sổ/điểm danh/dữ liệu phát sinh sau sao lưu về máy; kế hoạch xóa rộng đã hủy. Hồ sơ gia sư cần thành tích/chứng chỉ nhiều mục, trường đại học và giới thiệu; chứng chỉ đã có ở migration31. Reset giữ cả lớp/cấu hình/thành viên/đơn giá, học sinh/phụ huynh/liên kết, Auth/tutors/hồ sơ/Storage/intake/dữ liệu nền trên Supabase hiện tại; chi tiết thiết kế trước triển khai ở [thiết kế database](docs/PARENT_IDENTITY_DATABASE_DESIGN.md).
+Giới hạn: một phụ huynh – một số điện thoại – một học sinh; Google khác dùng số đã liên kết phải báo lỗi. Quyết định04/11 thay phạm vi giữ lớp03/11: đã sao lưu/phục hồi rồi xóa lớp/học sinh/phụ huynh/phát sinh, giữ Auth/tutors/Storage/intake/chương trình/audit; nhập1 lớp B/4 học sinh/4 phụ huynh và10 hồ sơ/ảnh gia sư đã khớp. Tám hồ sơ chưa khớp chờ admin. Không chạy lại reset. [Bằng chứng và giới hạn](docs/DATABASE_REINITIALIZATION_20261104.md). Hồ sơ có thành tích/chứng chỉ nhiều mục, trường đại học và giới thiệu theo schema22/31.
 
 | Phần | Chức năng |
 |---|---|

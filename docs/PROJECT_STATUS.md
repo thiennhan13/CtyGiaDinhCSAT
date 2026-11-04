@@ -1,5 +1,15 @@
 # Tiến độ và việc tiếp theo
 
+## Supabase04/11 — đã khởi tạo lại và nhập lớp/hồ sơ
+
+Theo phạm vi mới thay quyết định03/11, đã xóa lớp/học sinh/phụ huynh/liên kết/phát sinh; giữ toàn bộ Auth, tutor ID/hồ sơ/Storage, intake/lịch sử, chương trình/default/registry và audit. Backup823.719 byte tại `F:\csat_backup\2026-11-04_before-reinitialize_2026-11-04T05-43-47-362Z`; phục hồi/so count+digest90 bảng và diễn tập reset+import đạt trước khi ghi. Trên Supabase hiện tại, reset và nhập qua RPC cùng transaction, kiểm fingerprint bảo toàn; không chạy lại migration hoặc sửa CSATOJ.
+
+Kết quả đã kiểm qua connection mới:1 lớp B/nhóm04/11–31/12/2026, phí trung tâm80.000đ/buổi;4 học sinh/4 phụ huynh,4 liên kết một–một/ghi danh/đơn giá100.000đ/học sinh/buổi và giáo trình B. Sessions/payments/OJ/Google links0; Auth67, tutors22, intake5/6 lịch sử, template4/default2, registry27 giữ nguyên. Mười hồ sơ khớp tên/email và10 avatar attached đã nhập, public URL/checksum10/10 đạt; bucket/avatar restrictive policies đã tạo. Tám hồ sơ chưa khớp vẫn chờ admin, không tạo Auth/đổi email; không sửa catalog đội ngũ công khai.
+
+Audit cấu trúc trước/sau:53 bảng ứng dụng/nội bộ,77 FK không mồ côi;0 constraint chưa validated/index invalid/index trùng/definer thiếu search_path; public RLS đầy đủ, anon không có quyền bảng/hàm trong schema ứng dụng/nội bộ. Mười một kiểm tra quyền/unique Google/profile/receipts/OJ đạt; không có học sinh thiếu phụ huynh hoặc số sai chuẩn. Giữ bảng/hàm lịch sử đã thu hồi quyền; chưa đủ cơ sở DROP chúng chỉ vì rỗng. [Chi tiết và giới hạn](DATABASE_REINITIALIZATION_20261104.md).
+
+Node24.22.1: repo36/36, database/API291/291 không skip (thêm4 ca reset về bảo toàn/backup lệch/quyền Auth chỉ đọc và rollback khi audit lỗi sau TRUNCATE), guard670 tệp không finding, typecheck/lint strict/build đạt. Chưa nghiệm thu Google thật cho4 hồ sơ vừa nhập hoặc UI upload/thay/gỡ bằng phiên gia sư thật; OJ còn thiếu cấu hình. Các parent cũ giữ Auth nhưng phải liên kết lại số theo hồ sơ mới. Không tái sử dụng dump thực làm fixture CI.
+
 ## Liên kết hồ sơ — biểu mẫu neo brutalism căn giữa
 
 Màn hình `/parents` khi chưa liên kết dùng thẻ riêng tối đa536px, căn giữa vùng nội dung, tiêu đề/mô tả/icon căn giữa; giữ nhãn và hướng dẫn sát ô nhập. Viền3px, bóng cứng6px, icon lime và nút cobalt theo token CSAT, Archivo và theme hiện có. Ô số/nút cao56px, lỗi có biểu tượng/văn bản và liên kết ARIA; số không hợp lệ đưa focus về ô nhập. CSS Module chỉ áp biểu mẫu, không đổi API/claim, session, quyền hoặc database.

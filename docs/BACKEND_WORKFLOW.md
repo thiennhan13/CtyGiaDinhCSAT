@@ -1,6 +1,6 @@
 # Workflow backend
 
-Mã local đã có Google/claim phone một–một, grants/accounts, certificates và quyền gia sư thu dư nợ theo migration30–32. [Runbook hiện hành](PORTAL_GOOGLE_GRANTS_ROLLOUT.md) quy định cấu hình và cổng nghiệm thu; lookup27 là lịch sử, không gọi lại API phone-only. Reset giữ Auth/tutors/hồ sơ/Storage/intake/template; chưa chạy thật.
+Google/claim một–một, grants/accounts, certificates và tutor receipts theo30–32 đã deploy. Lookup27 là lịch sử, không gọi lại API phone-only. Reset04/11 đã giữ Auth/tutors/Storage/intake/catalog, xóa lớp/học sinh/phụ huynh/phát sinh rồi nhập1 lớp/4 học sinh/10 hồ sơ và ảnh; thay phạm vi03/11, không chạy lại. [Bằng chứng](DATABASE_REINITIALIZATION_20261104.md). [Runbook](PORTAL_GOOGLE_GRANTS_ROLLOUT.md) giữ cổng nghiệm thu OJ/UI avatar/Google cho dữ liệu mới.
 
 Phạm vi: xác thực/phân quyền, API/Server Actions, read model, RPC, database, Storage, email và tích hợp. Đọc [ARCHITECTURE](ARCHITECTURE.md) để hiểu luồng; [PROJECT_STATUS](PROJECT_STATUS.md) là nguồn trạng thái và backlog; [SECURITY](../SECURITY.md) quy định dữ liệu/secret.
 

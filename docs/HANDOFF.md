@@ -12,11 +12,13 @@
 
 ## Ưu tiên khi tiếp tục
 
+Trạng thái mới04/11 thay phạm vi reset03/11: đã giữ Auth/tutors/Storage/intake/catalog/audit và xóa lớp/học sinh/phụ huynh/phát sinh, nhập1 lớp B/4 học sinh/4 phụ huynh cùng10 hồ sơ/ảnh khớp. Không chạy lại reset. Tám hồ sơ chưa khớp vẫn chờ admin; OJ và Google thật cho bộ dữ liệu mới chưa nghiệm thu. [Bằng chứng hiện hành](DATABASE_REINITIALIZATION_20261104.md) và PROJECT_STATUS ưu tiên hơn các mốc cũ phía dưới.
+
 Ưu tiên đã được chủ trung tâm đồng ý: chuẩn bị staging/restore và đối soát schema; Google + nhập số khớp để tự liên kết phụ huynh; admin đổi mã để gắn học sinh CSATOJ theo grants/accounts; hoàn thiện Portal phụ huynh; chuẩn hóa lớp/điểm danh/học phí và quyền gia sư ghi nhận thu. Đọc [bản đối chiếu](PORTAL_DEVELOPMENT_REVIEW.md) và [bản đồ danh tính/database](PARENT_IDENTITY_DATABASE_DESIGN.md). Không dùng hướng mã mời Portal cũ. Mã local đã có migration30–32 và các luồng mới; xem [runbook](PORTAL_GOOGLE_GRANTS_ROLLOUT.md); email và nội dung E/K/PreVOI là backlog riêng.
 
 ## Nơi sửa thường dùng
 
-Phạm vi đã chốt: một phụ huynh/một số/một con; reset đã thu hẹp03/11 trên Supabase hiện tại: sao lưu về máy, giữ lớp/thành viên/phân công/giá/giáo trình lớp cùng học sinh/phụ huynh/liên kết/Auth/tutors/hồ sơ/avatar/Storage/intake/dữ liệu nền; chỉ xóa chốt sổ/buổi/điểm danh/phát sinh. Activity reset và migration19/21/22/29–32 đã thực hiện03/11 sau backup/rehearsal; không chạy lại. Mã Google claim, grants/accounts, chứng chỉ và quyền gia sư thu dư nợ đã push/deploy04/11, smoke entry/callback và chặn không Auth/CAPTCHA đạt. Chủ trung tâm đã nối Google provider; nghiệm thu phiên/claim thật còn chờ. Bước tiếp theo là kiểm callback/allowlist, hoàn thiện bucket/profile, cấu hình OJ và pilot; giữ8 hồ sơ chưa khớp cho admin. Xem [checklist sau deploy](PORTAL_DEPLOYMENT_STEP_BY_STEP.md) và bằng chứng trong PROJECT_STATUS. Không dùng kế hoạch reset rộng hoặc phục hồi lookup cũ.
+Phạm vi danh tính: một phụ huynh/một số/một con. Migration19/21/22/29–32 đã áp03/11, mã Google/grants/chứng chỉ/thu dư nợ đã deploy04/11; không chạy lại migration hoặc phục hồi lookup cũ. Chủ trung tâm đã nghiệm thu Google/phone với dữ liệu trước reset. Sau đợt04/11, bucket/10 hồ sơ và ảnh đã có; cần nghiệm thu Google trên4 hồ sơ mới, UI avatar với phiên thật, cấu hình OJ và pilot lớp/điểm danh/học phí. Giữ8 hồ sơ chưa khớp cho admin. Xem [checklist](PORTAL_DEPLOYMENT_STEP_BY_STEP.md) và PROJECT_STATUS.
 
 | Nội dung | Nguồn |
 |---|---|

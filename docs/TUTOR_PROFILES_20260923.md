@@ -1,6 +1,6 @@
 # Hồ sơ và avatar gia sư
 
-Gói18 hồ sơ/ảnh do chủ trung tâm cung cấp đã được chuẩn bị ngoài Git ngày03/11/2026, chưa ghi DB/Storage. Có10 mapping chắc chắn. Chủ trung tâm xác nhận7 gia sư mới và yêu cầu chưa nhập tài khoản chưa khớp:8 hồ sơ còn lại giữ chờ admin, không tạo Auth hoặc đổi tutor ID/email. [Hướng dẫn nhập và phát hành từng bước](PORTAL_DEPLOYMENT_STEP_BY_STEP.md), bước8. Giới thiệu không có trong nguồn được để trống; liên hệ riêng và ghi chú nguồn không xuất hiện trên thẻ phụ huynh.
+Gói18 hồ sơ/ảnh đã chuẩn bị ngoài Git03/11; ngày04/11 đã nhập10 hồ sơ khớp tên/email qua RPC và10 ảnh qua Storage, kiểm public URL/checksum đạt. Tám hồ sơ còn lại (7 mới/1 chưa khớp) vẫn chờ admin, không tạo Auth hoặc đổi tutor ID/email. Giới thiệu không có trong nguồn để trống; nền THPT dùng nguồn thật, không mặc định tất cả cùng trường; liên hệ riêng/ghi chú nguồn không xuất hiện trên thẻ phụ huynh. [Bằng chứng và giới hạn](DATABASE_REINITIALIZATION_20261104.md). Không chạy lại gói nhập.
 
 ## Nội dung và vận hành
 
@@ -16,7 +16,7 @@ Khi có xung đột, form giữ nội dung nhập và khóa Lưu. Chọn “Tả
 
 ## Database và Storage
 
-Schema22/31 đã áp trên Supabase hiện tại03/11 cùng dependency19/21/29/30/32; certificates và RPC đã kiểm quyền. Mã tương thích đã deploy04/11. Chưa tạo bucket/policy avatar, chưa nhập hồ sơ; Storage thật chưa nghiệm thu. Không chạy lại migration đã có; Storage setup là thao tác riêng.
+Schema22/31 đã áp Supabase hiện tại03/11 cùng dependency19/21/29/30/32; không chạy lại. Ngày04/11 đã tạo bucket/policy avatar riêng và nhập10 hồ sơ/ảnh; SQL/RPC/Storage/public URL được kiểm trong đợt maintenance. Chưa nghiệm thu UI upload/thay/gỡ qua phiên gia sư thật; không coi thao tác import là nghiệm thu mọi luồng UI.
 
 Migration `20260923_22_tutor_profiles.sql` sau 21; không sửa migration cũ. Mở rộng tutor_public_profiles, RPC save_tutor_profile kiểm tra ownership/background/revision, giữ audit_business_write, mở rộng JSON parent_learning_portal nhưng giữ chữ ký. Đường ghi profile cũ của admin_learning_settings bị chặn để tránh bỏ qua revision.
 
@@ -24,7 +24,9 @@ Migration `20260923_22_tutor_profiles.sql` sau 21; không sửa migration cũ. M
 
 Bucket `tutor-avatars` public, chỉ lưu WebP đã xử lý, tối đa 204.800 byte/tệp. Input JPG/PNG/WebP tối đa 3 MiB, 20 megapixel; máy chủ kiểm tra format thật, từ chối ảnh động, tự xoay, cắt giữa 512 × 512 và bỏ metadata. Ảnh được xử lý bằng Sharp; phiên bản được khóa trong package.json/lockfile. Public URL có tên ngẫu nhiên và cache dài; thay ảnh tạo URL mới. Người đã tải ảnh có thể giữ bản sao sau khi gỡ. Không dùng dịch vụ biến đổi ảnh trả phí của Supabase.
 
-## Chuẩn bị phát hành — chưa thực hiện production
+## Quy trình kiểm thử và phát hành
+
+Import production10 hồ sơ/ảnh04/11 là thao tác maintenance đã được cho phép riêng, không thay thế nghiệm thu UI bằng tài khoản thật. Các bước dưới áp dụng cho lần phát hành/chỉnh Storage tiếp theo; không chạy lại setup hoặc nhập trùng chỉ vì tài liệu có checklist.
 
 1. Kiểm tra migration thực tế và usage Supabase Storage/egress. Sao lưu theo runbook hiện tại, có bản sao tệp Storage riêng khi đã sử dụng (backup database không chứa byte ảnh).
 2. Trên môi trường thử được phép, áp dụng các migration còn thiếu theo phụ thuộc 19 → 21 → 22 và kiểm tương thích với 23–27 nếu đã có; chạy `database/verification/20260923_tutor_profiles.sql`. invalid_avatar_links phải bằng 0; anon_may_write và authenticated_may_cleanup phải false.
