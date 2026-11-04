@@ -95,3 +95,7 @@ Văn phong học thuật phổ thông, tự nhiên và có mạch lập luận; 
 Không tạo thành tích, số liệu, giá, lịch contest hoặc cam kết đầu ra. Gia sư và thành tích học sinh chỉ dùng nguồn được duyệt; không biến danh hiệu cá nhân thành kết quả toàn trung tâm.
 
 Preview/QA theo [frontend workflow](FRONTEND_WORKFLOW.md). Kiểm tra UI Next.js thật, dữ liệu giả, desktop/mobile/ngang/dọc, light/dark, bàn phím, no-JS/reduced motion, client navigation và history; đặc biệt CSS load order của ảnh nền. Không lấy bản HTML đã duyệt làm bằng chứng tích hợp. Cập nhật trạng thái tại PROJECT_STATUS, không nối nhật ký lặp vào tài liệu này.
+
+## Chính sách tư vấn Messenger — đã duyệt nội dung
+
+`/chinh-sach-quyen-rieng-tu` là trang Server Component tĩnh dùng PublicShell và CSS Module riêng. Nội dung ở `lib/public-privacy.ts`, áp dụng cho tư vấn Messenger, không ghi dữ liệu hoặc đổi consent của form website. Footer/sitemap dẫn đến route; proxy cho route chính xác đi thẳng, không khởi tạo Supabase Auth. Chỉ có bản local; điều kiện công bố ở `MESSENGER_PRIVACY_PREVIEW.md`.

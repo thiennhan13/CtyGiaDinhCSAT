@@ -1,5 +1,9 @@
 # Tiến độ và việc tiếp theo
 
+## Chính sách tư vấn Messenger — đã duyệt phát hành
+
+Chuẩn bị route `/chinh-sach-quyen-rieng-tu` cho quảng cáo Leads qua Messenger, mục lục và liên hệ email/Zalo, liên kết footer/sitemap và bypass Auth cho đúng route công khai. Nội dung giới hạn trong tư vấn Messenger; không thay thông báo của các form/Portal. Thời hạn90 ngày cho khách chưa đăng ký được chủ trung tâm đồng ý trong cuộc trao đổi04/11/2026. Người chịu trách nhiệm Nguyễn Cảnh Thọ và địa chỉ48 Yên Lạc, Phường Hai Bà Trưng, Hà Nội đã được chủ trung tâm cung cấp; đã được chủ trung tâm duyệt công khai ngày04/11/2026. Đang chuẩn bị phát hành; chưa có bằng chứng URL production. Không chấp nhận điều khoản Meta hoặc đăng quảng cáo trong đợt công bố chính sách. Bằng chứng local được ghi tại `docs/MESSENGER_PRIVACY_PREVIEW.md`.
+
 ## Supabase04/11 — đã khởi tạo lại và nhập lớp/hồ sơ
 
 Theo phạm vi mới thay quyết định03/11, đã xóa lớp/học sinh/phụ huynh/liên kết/phát sinh; giữ toàn bộ Auth, tutor ID/hồ sơ/Storage, intake/lịch sử, chương trình/default/registry và audit. Backup823.719 byte tại `F:\csat_backup\2026-11-04_before-reinitialize_2026-11-04T05-43-47-362Z`; phục hồi/so count+digest90 bảng và diễn tập reset+import đạt trước khi ghi. Trên Supabase hiện tại, reset và nhập qua RPC cùng transaction, kiểm fingerprint bảo toàn; không chạy lại migration hoặc sửa CSATOJ.

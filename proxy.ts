@@ -8,7 +8,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.json({ error: 'Portal đang bảo trì. Vui lòng quay lại sau.' }, { status: 503, headers: { 'Cache-Control': 'no-store', 'Retry-After': '300', 'X-Robots-Tag': 'noindex' } })
   }
   if (path === '/google8e5ffbef59a10505.html') return NextResponse.next({ request })
-  if (path === '/dang-ky-hoc' || path === '/' || path === '/hoc-lieu-mien-phi' || path === '/thanh-tich' || path === '/gia-su' || path === '/bai-dang' || /^\/bai-dang\/[a-z0-9-]+$/.test(path) || path === '/lo-trinh' || /^\/lo-trinh\/(a|b|c|e|k|co-ban|nang-cao|advanced|basic|hsgqg|voi|prevoi|custom|tuy-chinh)$/.test(path) || path === '/sitemap.xml' || path === '/robots.txt' || path === '/llms.txt' || path === '/api/consultations' || path === '/api/consultations/status' || path === '/api/cron/monthly-reviews') {
+  if (path === '/chinh-sach-quyen-rieng-tu' || path === '/dang-ky-hoc' || path === '/' || path === '/hoc-lieu-mien-phi' || path === '/thanh-tich' || path === '/gia-su' || path === '/bai-dang' || /^\/bai-dang\/[a-z0-9-]+$/.test(path) || path === '/lo-trinh' || /^\/lo-trinh\/(a|b|c|e|k|co-ban|nang-cao|advanced|basic|hsgqg|voi|prevoi|custom|tuy-chinh)$/.test(path) || path === '/sitemap.xml' || path === '/robots.txt' || path === '/llms.txt' || path === '/api/consultations' || path === '/api/consultations/status' || path === '/api/cron/monthly-reviews') {
     return NextResponse.next({ request })
   }
   if (path === '/api/auth/login') {
