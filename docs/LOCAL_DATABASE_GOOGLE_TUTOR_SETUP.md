@@ -1,6 +1,6 @@
 # Chạy local, cấu hình Google và chuẩn bị hồ sơ gia sư
 
-Cập nhật03/11:19/21/22/29–32 đã áp Supabase hiện tại sau backup/phục hồi/rehearsal; thông tin thiếu schema bên dưới là kết quả kiểm trước chuyển đổi. Không chạy lại migration đã có. Ứng dụng chưa deploy; lookup DB cũ đã bị thu hồi nên cần mã mới để đăng nhập phụ huynh. Bucket/avatar và nhập hồ sơ chưa thực hiện.
+Cập nhật04/11:19/21/22/29–32 đã áp Supabase hiện tại sau backup/phục hồi/rehearsal và kiểm lại đạt; thông tin thiếu schema bên dưới là kết quả lịch sử. Không chạy lại migration đã có. Mã Google tương thích đã deploy, smoke entry/callback đạt; chưa nghiệm thu phiên/claim thật. Lookup DB cũ bị thu hồi. Bucket/avatar và nhập hồ sơ chưa thực hiện; xem [checklist](PORTAL_DEPLOYMENT_STEP_BY_STEP.md).
 
 Chủ trung tâm đã chốt dùng Supabase hiện tại, sao lưu về máy, giữ lớp và thông tin hiện có; chỉ xóa chốt sổ/buổi/điểm danh/phát sinh. Phạm vi và công cụ mới ở runbook; không dùng reset rộng trước đây.
 

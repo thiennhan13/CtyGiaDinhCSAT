@@ -2,7 +2,7 @@
 
 ## Google, grants và reset
 
-Migration mới30–32 đã triển khai local: Google/phone claim một–một, contact/student atomic, certificates, tutor receipts và OJ accounts. [Runbook chuyển đổi/reset](../docs/PORTAL_GOOGLE_GRANTS_ROLLOUT.md). Đã áp19/21/22/29/30/31/32 trên Supabase hiện tại ngày03/11 sau backup/phục hồi và rehearsal; registry27 phiên bản, mới nhất32. Không chạy lại các migration này; ứng dụng chưa deploy. Không chạy lại26 để triển khai Google. Migration28 cũ được giữ lịch sử,32 thu hồi RPC bindings nếu có.
+Migration30–32 gồm Google/phone claim một–một, contact/student atomic, certificates, tutor receipts và OJ accounts. [Runbook chuyển đổi/reset](../docs/PORTAL_GOOGLE_GRANTS_ROLLOUT.md). Đã áp19/21/22/29/30/31/32 trên Supabase hiện tại ngày03/11 sau backup/phục hồi và rehearsal; registry27 phiên bản, mới nhất32. Kiểm lại04/11 đạt; ứng dụng tương thích đã deploy, nghiệm thu phiên/Storage/OJ thật còn chờ. Không chạy lại các migration này hoặc26 để triển khai Google. Migration28 cũ được giữ lịch sử,32 thu hồi RPC bindings nếu có.
 
 Reset mới03/11 dùng `scripts/portal-activity-reset.cjs` preview/apply, không nằm trong migration. Đích là Supabase hiện tại; sao lưu về máy và thử phục hồi trước. Giữ lớp/cấu hình/thành viên/giá/giáo trình lớp, học sinh/phụ huynh/liên kết và Auth/tutors/hồ sơ/avatar/Storage/intake/lịch sử/dữ liệu nền; chỉ xóa chốt sổ/buổi/điểm danh/phát sinh. `portal-reset.cjs --apply` cũ bị chặn vì phạm vi xóa rộng đã hết hiệu lực.
 

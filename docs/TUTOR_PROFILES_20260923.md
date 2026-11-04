@@ -16,7 +16,7 @@ Khi có xung đột, form giữ nội dung nhập và khóa Lưu. Chọn “Tả
 
 ## Database và Storage
 
-Schema22/31 đã áp trên Supabase hiện tại03/11 cùng dependency19/21/29/30/32; certificates và RPC đã kiểm quyền. Chưa tạo bucket/policy avatar, chưa nhập hồ sơ và chưa deploy ứng dụng. Không chạy lại migration đã có; Storage setup là thao tác riêng.
+Schema22/31 đã áp trên Supabase hiện tại03/11 cùng dependency19/21/29/30/32; certificates và RPC đã kiểm quyền. Mã tương thích đã deploy04/11. Chưa tạo bucket/policy avatar, chưa nhập hồ sơ; Storage thật chưa nghiệm thu. Không chạy lại migration đã có; Storage setup là thao tác riêng.
 
 Migration `20260923_22_tutor_profiles.sql` sau 21; không sửa migration cũ. Mở rộng tutor_public_profiles, RPC save_tutor_profile kiểm tra ownership/background/revision, giữ audit_business_write, mở rộng JSON parent_learning_portal nhưng giữ chữ ký. Đường ghi profile cũ của admin_learning_settings bị chặn để tránh bỏ qua revision.
 

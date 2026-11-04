@@ -2,7 +2,7 @@
 
 ## Hướng danh tính và tích hợp CSATOJ
 
-Schema19/21/22/29–32 đã áp Supabase hiện tại03/11/2026 sau backup/phục hồi và rehearsal; kiểm chỉ đọc04/11 đạt. Chủ trung tâm đã cấu hình Google OAuth và cho phép commit/push để Vercel tự deploy mã tương thích. Quyền lookup cũ đã bị thu hồi trong DB. Trạng thái deployment/kiểm thử thực ở PROJECT_STATUS.
+Schema19/21/22/29–32 đã áp Supabase hiện tại03/11/2026 sau backup/phục hồi và rehearsal; kiểm chỉ đọc04/11 đạt. Mã tương thích đã push/deploy04/11, smoke Google entry/callback đạt; phiên/claim thật, OJ và Storage chưa nghiệm thu. Quyền lookup cũ đã bị thu hồi trong DB. Trạng thái deployment/kiểm thử thực ở PROJECT_STATUS.
 
 Đích đã chốt: Google → số điện thoại khớp hồ sơ phụ huynh → tự liên kết với học sinh; không mã mời/OTP/admin duyệt. Học sinh Portal nối tài khoản OJ bằng mã do admin OJ tạo và admin Portal đổi. Danh tính phụ huynh, quan hệ với học sinh và grant OJ là các lớp độc lập. [Bản đồ database và kế hoạch chuyển đổi](PARENT_IDENTITY_DATABASE_DESIGN.md).
 
@@ -10,7 +10,7 @@ Migration30: `parent_identity_links` nối Auth với parent; unique Auth/parent
 
 Migration32: `student_oj_accounts`, `oj_connection_operations`, `oj_class_organizations`, `oj_session_contests`; quota nội bộ theo instance. Operation UUID/digest lưu trước HTTP, receipt phục hồi; mapping pending không đọc. `oj_account_context` service-only tái kiểm actor trong Auth/DB, không lộ roster peers. Read/manage key tách riêng; kiểm instance/schema/grant và quyền trước/sau fetch. Thu hồi parent độc lập grant OJ. Giao diện tải theo phần và thao tác, không polling. Mã cũ28 giữ lịch sử migration nhưng các RPC cũ bị thu hồi.
 
-Reset độc lập migration; quyết định03/11 giữ lớp/cấu hình/thành viên/giá/giáo trình lớp, học sinh/phụ huynh/liên kết và Auth/tutors/hồ sơ/Storage/intake/template/registry. Công cụ activity reset chỉ xóa phát sinh, dùng snapshot/digest và backup đã phục hồi; CLI reset rộng cũ bị chặn. Đích là Supabase hiện tại do chủ trung tâm chỉ định, kiểm URL/ref trước thao tác. [Luồng và vận hành](PORTAL_GOOGLE_GRANTS_ROLLOUT.md). Chưa phát hành các thay đổi local này.
+Reset độc lập migration; quyết định03/11 giữ lớp/cấu hình/thành viên/giá/giáo trình lớp, học sinh/phụ huynh/liên kết và Auth/tutors/hồ sơ/Storage/intake/template/registry. Công cụ activity reset chỉ xóa phát sinh, dùng snapshot/digest và backup đã phục hồi; CLI reset rộng cũ bị chặn. Đích là Supabase hiện tại do chủ trung tâm chỉ định, kiểm URL/ref trước thao tác. [Luồng và vận hành](PORTAL_GOOGLE_GRANTS_ROLLOUT.md).
 
 Một ứng dụng Next.js phục vụ website công khai và admin/gia sư/phụ huynh. Không cần tách dịch vụ hoặc repository chỉ để chia frontend/backend. Trạng thái triển khai ở [PROJECT_STATUS](PROJECT_STATUS.md), quy trình ở [frontend](FRONTEND_WORKFLOW.md) và [backend](BACKEND_WORKFLOW.md).
 

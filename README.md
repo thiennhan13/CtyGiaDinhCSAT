@@ -6,9 +6,9 @@ Website giới thiệu, tuyển sinh và quản lý việc học của CSAT: l�
 
 ## Hiện trạng và hướng phát triển
 
-Website công khai, thư viện chuyên đề phụ huynh, tiếp nhận đăng ký/tư vấn và CAPTCHA đăng nhập đã phát hành. Đăng ký và tư vấn lưu chung, email thông báo chưa bật. Giao diện website hiện vẫn là tra cứu phone, nhưng migration30 đã thu hồi lookup DB cũ ngày03/11; cần deploy mã Google tương thích để phụ huynh dùng lại. Gia sư/admin giữ Supabase Auth.
+Website công khai, thư viện chuyên đề phụ huynh, tiếp nhận đăng ký/tư vấn và CAPTCHA đăng nhập đã phát hành. Đăng ký và tư vấn lưu chung, email thông báo chưa bật. Mã Google/claim đã deploy04/11: giao diện có nút Google, callback hoạt động và lookup phone cũ đã bị thu hồi. Nghiệm thu tài khoản Google/claim thật còn chờ. Gia sư/admin giữ Supabase Auth.
 
-Ưu tiên đã chốt: chuẩn bị Supabase thử/khả năng phục hồi; chuẩn hóa liên hệ phụ huynh; Google + nhập số khớp để tự liên kết; nối học sinh CSATOJ bằng mã admin và hoàn thiện Portal phụ huynh; chuẩn hóa lớp/điểm danh/học phí, quyền gia sư ghi nhận thu. Mã local đã có Google/grants, certificates và gia sư thu toàn bộ dư nợ; schema19/21/22/29–32 đã áp Supabase hiện tại03/11, ứng dụng chưa deploy. Lookup DB cũ đã bị thu hồi, cần mã mới tương thích. [Runbook](docs/PORTAL_GOOGLE_GRANTS_ROLLOUT.md). [Bản đồ dữ liệu và chuyển đổi](docs/PARENT_IDENTITY_DATABASE_DESIGN.md). Email, hồ sơ/avatar và giáo trình E/K/PreVOI là backlog riêng; trạng thái môi trường/bằng chứng ở [PROJECT_STATUS](docs/PROJECT_STATUS.md).
+Ưu tiên đã chốt: nghiệm thu Google + nhập số khớp để tự liên kết; nối học sinh CSATOJ bằng mã admin; hoàn thiện hồ sơ/avatar gia sư và pilot lớp/điểm danh/học phí, quyền gia sư ghi nhận thu. Mã Google/grants/certificates/thu dư nợ đã deploy, schema19/21/22/29–32 đã áp Supabase hiện tại03/11 và kiểm lại04/11. OJ chưa được nghiệm thu kết nối thật. [Runbook](docs/PORTAL_GOOGLE_GRANTS_ROLLOUT.md). [Checklist sau deploy](docs/PORTAL_DEPLOYMENT_STEP_BY_STEP.md). Email và giáo trình E/K/PreVOI là backlog riêng; trạng thái môi trường/bằng chứng ở [PROJECT_STATUS](docs/PROJECT_STATUS.md).
 
 ## Phạm vi chức năng
 

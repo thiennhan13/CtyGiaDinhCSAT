@@ -30,7 +30,7 @@ const json=(route,body,status=200)=>route.fulfill({status,contentType:'applicati
   await new Promise(r=>mock.listen(0,'127.0.0.1',r));const mockOrigin='http://127.0.0.1:'+mock.address().port;
   const origin='http://127.0.0.1:'+await port();
   const env={...process.env,NEXT_PUBLIC_SUPABASE_URL:mockOrigin,NEXT_PUBLIC_SUPABASE_ANON_KEY:'synthetic-anon',SUPABASE_SERVICE_ROLE_KEY:'synthetic-service',APP_ORIGIN:origin,CSAT_OJ_ENABLED:'false',CONSULTATIONS_ENABLED:'false',CONSULTATIONS_EMAIL_ENABLED:'false',TURNSTILE_LOGIN_ENABLED:'false',NEXT_TELEMETRY_DISABLED:'1'};
-  server=spawn(process.execPath,[root+'/node_modules/next/dist/bin/next','dev','--webpack','--hostname','127.0.0.1','--port',new URL(origin).port],{cwd:root,env,windowsHide:true,stdio:['ignore','pipe','pipe']});server.stdout.pipe(log,{end:false});server.stderr.pipe(log,{end:false});
+  server=spawn(process.execPath,[root+'/node_modules/next/dist/bin/next','dev','--webpack','--hostname','127.0.0.1','--port',new URL(origin).port],{cwd:root,env,windowsHide:true,detached:process.platform!=='win32',stdio:['ignore','pipe','pipe']});server.stdout.pipe(log,{end:false});server.stderr.pipe(log,{end:false});
   let ready=false;for(let n=0;n<90;n++){if(server.exitCode!==null)throw Error('Preview exited');try{if((await fetch(origin+'/login')).ok){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,500));}assert(ready,'preview ready');
   browser=await chromium.launch({headless:true,channel:process.env.CSAT_BROWSER_CHANNEL||'msedge'});
   const context=await browser.newContext({viewport:{width:1440,height:1000}});
@@ -77,5 +77,5 @@ const json=(route,body,status=200)=>route.fulfill({status,contentType:'applicati
   await page.goto(origin+'/admin/parents/provisioning',{waitUntil:'networkidle'});await page.getByText(/Phụ huynh đăng nhập Google rồi nhập số điện thoại khớp hồ sơ/).waitFor();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'reconciliation mobile overflow');
   assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,viewports:[320,375,768,1440],checks:['exchange UUID','single write','class and contest ranks','no polling','revocation clears data','phone conflict','full receipt confirmation','keyboard','reduced motion','certificates form to parent card','Google reconciliation copy'],output}));
  }catch(error){if(page){console.error('URL',page.url());await page.screenshot({path:path.join(output,'failure.png'),fullPage:true,timeout:5000}).catch(()=>{});console.error((await page.locator('body').innerText({timeout:5000}).catch(()=>'' )).slice(-4000));}console.error(errors);throw error;
- }finally{await browser?.close();if(server?.pid)try{execFileSync('taskkill',['/PID',String(server.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});}catch{}mock.close();log.end();}
+ }finally{await browser?.close();if(server?.pid)try{if(process.platform==='win32')execFileSync('taskkill',['/PID',String(server.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});else process.kill(-server.pid,'SIGTERM');}catch{server.kill();}mock.close();log.end();}
 })().catch(e=>{console.error(e.message);process.exitCode=1;});

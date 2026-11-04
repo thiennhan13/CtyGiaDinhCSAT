@@ -1,6 +1,6 @@
 # Chuyển CSAT Portal sang Google và CSATOJ grants
 
-Mã local gồm migration30–32, OAuth/claim, dữ liệu OJ accounts, chứng chỉ gia sư, thu toàn bộ dư nợ và công cụ reset. Đã áp19/21/22/29–32 trên Supabase hiện tại03/11 sau backup/phục hồi/rehearsal; ứng dụng chưa deploy. Activity reset giữ lớp đã chạy trước đó, xem PROJECT_STATUS. Bằng chứng chạy và các cổng nghiệm thu ở [PROJECT_STATUS](PROJECT_STATUS.md).
+Mã gồm migration30–32, OAuth/claim, dữ liệu OJ accounts, chứng chỉ gia sư, thu toàn bộ dư nợ và công cụ reset. Đã áp19/21/22/29–32 trên Supabase hiện tại03/11 sau backup/phục hồi/rehearsal; mã tương thích đã deploy04/11, smoke Google entry/callback đạt. Phiên/claim Google, OJ/Storage thật còn chờ nghiệm thu. Activity reset giữ lớp đã chạy trước đó. Bằng chứng và các cổng nghiệm thu ở [PROJECT_STATUS](PROJECT_STATUS.md); thao tác còn lại ở [checklist sau deploy](PORTAL_DEPLOYMENT_STEP_BY_STEP.md).
 
 [Hướng dẫn thao tác từng bước](PORTAL_DEPLOYMENT_STEP_BY_STEP.md) dùng cho người vận hành: tạo project thử, chạy SQL theo registry, cấu hình Google/Supabase/Vercel/OJ và nhập gói18 hồ sơ đã chuẩn bị. Không bỏ qua cổng nghiệm thu/backup/restore của runbook này.
 

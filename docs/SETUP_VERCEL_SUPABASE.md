@@ -1,6 +1,6 @@
 # Thiết lập Vercel–Supabase và phát hành CSAT Portal
 
-Cấu hình mới Google/grants và reset được mô tả ở [runbook hiện hành](PORTAL_GOOGLE_GRANTS_ROLLOUT.md). Mã local yêu cầu migration30–32; chưa phát hành. Các bước lookup27 bên dưới là hướng dẫn chuyển đổi lịch sử, không dùng để cấp quyền Google.
+Cấu hình Google/grants và reset ở [runbook hiện hành](PORTAL_GOOGLE_GRANTS_ROLLOUT.md). Schema19/21/22/29–32 đã áp03/11, mã tương thích đã deploy04/11; nghiệm thu tài khoản/Storage/OJ thật còn chờ. Xem [checklist sau deploy](PORTAL_DEPLOYMENT_STEP_BY_STEP.md). Các bước lookup27 bên dưới là hướng dẫn lịch sử, không dùng để cấp quyền Google.
 
 ## Phát hành giao diện công khai
 

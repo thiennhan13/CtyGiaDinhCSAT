@@ -2,7 +2,7 @@
 
 ## Việc cần hoàn thành sau push04/11
 
-Google OAuth đã được chủ trung tâm cấu hình với Supabase. Kiểm chỉ đọc04/11 xác nhận provider bật, schema đến32 và quyền/ràng buộc đạt. Không chạy lại migration hoặc reset. Commit/push đã được cho phép để Vercel tự deploy; trạng thái thực ở [PROJECT_STATUS](PROJECT_STATUS.md).
+Google OAuth đã được chủ trung tâm cấu hình với Supabase. Kiểm chỉ đọc04/11 xác nhận provider bật, schema đến32 và quyền/ràng buộc đạt. Mã tương thích đã commit/push/deploy; tên miền chính có Google entry/callback, kiểm không Auth/CAPTCHA đạt. Không chạy lại migration hoặc reset. Đăng nhập/claim thật và OJ/Storage còn chờ; bằng chứng ở [PROJECT_STATUS](PROJECT_STATUS.md).
 
 1. **Kiểm deployment mới:** Vercel project `cty-gia-dinh-csat`, Production branch `main`, domain `portal.csatoj.vn`. Chọn deployment đúng commit và đợi Ready; Node.js24 theo engines. `/login` phải có “Tiếp tục với Google”; `/auth/callback` thiếu code phải chuyển về `/login?error=google`, không404. Không đổi project Supabase khi redeploy.
 2. **Kiểm ba địa chỉ đăng nhập:** Vercel Production `APP_ORIGIN=https://portal.csatoj.vn`; Supabase Authentication → URL Configuration: Site URL `https://portal.csatoj.vn`, Redirect URLs có chính xác `https://portal.csatoj.vn/auth/callback`; Google Web client có Authorized redirect URI `https://bndjvzrssogwdhoumvgb.supabase.co/auth/v1/callback`. Google Client Secret chỉ nằm trong Supabase provider. Nếu sửa env Vercel, redeploy để có hiệu lực. Đối chiếu [Google provider](https://supabase.com/docs/guides/auth/social-sign-in/auth-google) và [redirect allowlist](https://supabase.com/docs/guides/auth/redirect-urls).
