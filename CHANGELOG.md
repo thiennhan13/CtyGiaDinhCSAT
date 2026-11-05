@@ -1,9 +1,13 @@
 # Thay đổi và phiên bản
 
-Lịch sử mã nguồn được lưu trong Git. Tệp này là điểm dẫn, không duy trì một danh sách “Unreleased” song song dễ lệch với bản đã phát hành.
+Gói nguồn, checksum và trạng thái phát hành nằm tại [GitHub Releases](https://github.com/thiennhan13/CtyGiaDinhCSAT/releases). Quy trình đóng gói ở [RELEASES](docs/RELEASES.md); nghiệm thu môi trường ở [PROJECT_STATUS](docs/PROJECT_STATUS.md).
 
-- [Tiến độ và bằng chứng phát hành](docs/PROJECT_STATUS.md): mã đã kiểm chứng, môi trường, giới hạn và backlog.
-- [Quyết định hiện hành](docs/DECISIONS.md): định hướng sản phẩm/kỹ thuật cần giữ.
-- [Quy trình phát hành](docs/SETUP_VERCEL_SUPABASE.md): phụ thuộc schema, cấu hình, kiểm chứng và phục hồi.
+## 2.1.0
 
-Khi có bản phát hành mới, cập nhật bằng chứng tương ứng trong PROJECT_STATUS; dùng commit/PR để tra diff và lý do thay đổi. Không coi commit, CI đạt hoặc file migration tồn tại là bằng chứng đã triển khai production.
+- Trang phụ huynh: nền trắng, palette CSAT, lịch lượt nộp ô vuông, ba ô luyện tập tách màu, chỉ số ngày cố định12 tháng.
+- Lộ trình: thanh pixel theo nội dung giáo án, tối đa100%; điện thoại đọc danh sách và mở bản đồ lớp tại route riêng có kiểm quyền.
+- CSATOJ: bản gọn tiếng Việt, chi tiết rating mở sẵn, tải mới mỗi lượt truy cập và giữ trạng thái thiếu/thu hồi.
+- Chuẩn hóa repository chính thức, metadata package, giấy phép sử dụng nội bộ, liên hệ và tài liệu release/SEO.
+- Đồng bộ fixture CI với nhãn, tiến độ, danh sách mobile và request OJ hiện hành.
+
+Node.js24. Không thêm migration hoặc yêu cầu reset. OJ/activity thật, phiên Google với bộ dữ liệu mới và pilot học phí tiếp tục theo cổng nghiệm thu; release mã nguồn không xác nhận các bước đó đã xong.

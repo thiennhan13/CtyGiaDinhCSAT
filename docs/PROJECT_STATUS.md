@@ -1,5 +1,13 @@
 # Tiến độ và việc tiếp theo
 
+## Repository chính thức và phát hành2.1.0
+
+Repository GitHub đã public khi kiểm05/11/2026; đã đồng bộ About/homepage/topics; bật secret scanning/push protection, dependency alerts và private vulnerability reporting. Giữ cài đặt nhánh hiện có, chưa bật ruleset. Chuẩn hóa README, giấy phép nội bộ CSAT, metadata package/lock cùng phiên bản2.1.0, liên hệ ba email và công cụ gói nguồn từ commit có manifest/SHA-256. [Release/runbook](RELEASES.md), [SEO hiện hành](PUBLIC_SEO.md). Release mã nguồn không thay nghiệm thu production.
+
+CI commit44a1a9e được đọc từ GitHub: PostgreSQL Windows đạt, Quality lỗi ở fixture chuyên đề phụ huynh do nhãn/chú thích cũ, danh sách no-JS mở sẵn và request OJ chưa được mock. Đã sửa fixture theo hành vi được duyệt; local Node24.22.1/Edge đạt39 nhóm/4.103 assertions, repo44/44, database/API291/291 không skip, typecheck/lint strict/build đạt; HTTP SEO17 trang và ba email ở320/1440px đạt. Chờ hai job GitHub của commit phát hành. Quét106 commit/2.157 blob không khớp mẫu secret của guard, nhưng có đường dẫn nội bộ/prototype/media trong lịch sử đã xóa; chưa kiểm chứng toàn bộ nội dung trace/ảnh. Chưa làm sạch lịch sử hoặc thay visibility; gói nguồn chỉ lấy cây commit hiện tại. Không coi đây là chứng nhận lịch sử sạch dữ liệu.
+
+HTTP public05/11: trang chủ/lộ trình/sitemap/robots/tệp Google xác minh đều200, canonical đúng và17 URL public trong sitemap. Chưa có quyền đọc Search Console nên chưa xác nhận index/CWV. Thông tin liên hệ mới cần kiểm sau deploy.
+
 ## Phụ huynh — palette mới, chỉ số đầu trang và tiến độ pixel
 
 Đã cập nhật mã theo yêu cầu05/11: palette phụ huynh `#1F06AC #0F42C0 #5882E8 #E3EF4F #E3F2FD`, Archivo, menu trái và neo brutalism; nền trang mặc định trắng, bỏ nền trang trí phía sau. Sách thay chữ đầu tên; ô **CSAT cùng con luyện tập** có số ngày nộp trong12 tháng gần nhất, chữ ngày dưới số, không hiện chú thích kỳ và không đổi khi lọc năm. Nhịp luyện tập trọn ngang/ô vuông, ba ô tách riêng: lượt nộp trong kỳ nền xanh, bài đã thử tích lũy nền xanh nhạt và bài giải đúng tích lũy nền vàng; bộ chọn năm cùng hàng tiêu đề. Bỏ chú thích lặp; chi tiết thi đấu mở sẵn, lịch sử60px có màu. **Định hướng phát triển của lớp** xuống cuối Đồng hành cùng con. Điện thoại mở sẵn nội dung lớp, dùng nút sang trang bản đồ riêng; desktop giữ bản đồ tại chỗ. Không đổi palette public/staff.

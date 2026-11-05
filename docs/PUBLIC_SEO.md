@@ -12,13 +12,25 @@ Phạm vi: website công khai tại `https://portal.csatoj.vn`. Giữ thiết k�
 
 ## URL và lập chỉ mục
 
-Sitemap chỉ chứa trang công khai chuẩn, hiện 15 URL. Không chứa alias, query/hash, đăng nhập, nghiệp vụ hoặc 54 bài chuyên đề phụ huynh. Không cập nhật lastmod theo thời điểm build khi nội dung chưa thay đổi.
+Sitemap chỉ chứa trang công khai chuẩn, hiện17 URL. Không chứa alias, query/hash, đăng nhập, nghiệp vụ hoặc 54 bài chuyên đề phụ huynh. Không cập nhật lastmod theo thời điểm build khi nội dung chưa thay đổi.
 
 Alias chuyển 308: nang-cao/advanced → C; custom/tuy-chinh → K; co-ban/basic → tổng quan; hsgqg/voi/prevoi → đăng ký chung. Alias C/K giữ các lựa chọn level/goal/background hợp lệ; bỏ query khác. Không đổi tên lớp quản lý hoặc giáo án C/D vì làm sạch URL công khai.
 
 Trang đăng nhập được crawl để Google đọc noindex. Robots vẫn hạn chế admin/tutor/parents/API; noindex ở metadata và header riêng tư bổ sung cho kiểm tra quyền. Robots/noindex không phải cơ chế bảo vệ dữ liệu. Giữ private/no-store, xác thực và liên kết học sinh–lớp ở luồng phụ huynh.
 
 `/llms.txt` là văn bản công khai dựng tĩnh từ catalog và các tóm tắt đã duyệt. Chỉ dẫn đến nội dung public; không xuất docs nội bộ, API, hồ sơ hoặc bài riêng tư. Đây là quy ước hỗ trợ công cụ AI, không thay sitemap và không hứa tăng thứ hạng tìm kiếm.
+
+## Thông tin nhận diện và liên hệ
+
+Domain chuẩn là `https://portal.csatoj.vn/`, tên CSAT Tutor. `lib/public-contact.ts` là nguồn email dùng chung cho giao diện; email chính `contact@csatoj.vn`, bổ sung `csattutor@gmail.com` và `phantranthiennhan1310@gmail.com`. JSON-LD Organization dùng email chính. Không dùng email tự khai hoặc thông tin học sinh/gia sư làm dữ liệu SEO.
+
+Repository chính thức và phiên bản phần mềm được mô tả trên GitHub; việc công khai repo không đổi domain/canonical hoặc yêu cầu tạo thuộc tính Search Console mới. Không gắn địa chỉ của cá nhân phụ trách chính sách Messenger thành địa chỉ cơ sở đào tạo khi chưa xác nhận.
+
+## Kiểm chứng website public05/11/2026
+
+Đọc HTTP chỉ từ bên ngoài: trang chủ, `/lo-trinh`, `/sitemap.xml`, `/robots.txt` và tệp xác minh HTML đều200. Trang chủ/lộ trình có title/canonical đúng domain và JSON-LD. Sitemap có17 URL public, không có trang admin/gia sư/phụ huynh/API; robots cho public và hạn chế các vùng này. Email chính và Gmail trung tâm đã có trên bản hosted được đọc; Gmail bảo trì được bổ sung trong mã của bản phát hành mới, cần kiểm lại sau deploy.
+
+Không có phiên Search Console của chủ trung tâm trong lần kiểm này. Kết quả tìm `site:` không đủ để kết luận đã hoặc chưa index; không dùng nó thay báo cáo Search Console. Chưa xác nhận Core Web Vitals thực hoặc toàn bộ17 URL được Google chọn canonical/lập chỉ mục.
 
 ## Search Console
 
@@ -31,7 +43,11 @@ Các bước chủ trung tâm thực hiện:
 1. Kiểm tra `https://portal.csatoj.vn/google8e5ffbef59a10505.html` trả 200 với nội dung đúng và không yêu cầu đăng nhập.
 2. Trong tài khoản Google của chủ trung tâm, hoàn tất xác minh tệp HTML cho thuộc tính URL-prefix trên. Giữ tệp sau xác minh để Google kiểm tra lại.
 3. Gửi `https://portal.csatoj.vn/sitemap.xml` tại Sitemaps.
-4. Dùng URL Inspection cho trang chủ, /lo-trinh và /lo-trinh/a; kiểm tra canonical Google chọn, crawl và lập chỉ mục. Ghi nhận trạng thái thực tế, không coi gửi sitemap là đã index.
+4. Sau deploy, dùng URL Inspection cho trang chủ, /lo-trinh, /lo-trinh/a và /tu-hoc; chạy Test live URL, đối chiếu canonical, robots/noindex và kết quả render. Có thể yêu cầu lập chỉ mục cho các trang chính đã thay đổi.
+5. Theo dõi Page indexing, Sitemaps, Core Web Vitals, Manual actions và Security issues. Chỉ xử lý URL public cần index; không yêu cầu index /parents, /admin, /tutor hoặc API.
+6. Kiểm quyền Users and permissions của thuộc tính hiện có; chỉ thêm hai tài khoản Gmail nếu chủ trung tâm muốn họ quản trị Search Console. Hiển thị email trên website không tự cấp quyền Google. Không chia sẻ mật khẩu/verification token trong Issue.
+
+Gửi sitemap hoặc yêu cầu index chỉ là đề nghị crawl; Google không bảo đảm lập chỉ mục hoặc thứ hạng. Giữ sitemap URL cũ khi chỉ đổi email/mã nguồn; không cần tạo property mới hay thay tệp xác minh.
 
 Nếu chuyển sang phương thức meta tag sau này, helper trang chủ hỗ trợ `GOOGLE_SITE_VERIFICATION`: chỉ dùng giá trị content của thẻ, không dùng dòng nội dung tệp HTML; biến phải có trước build/deploy. Không cần cấu hình biến này cho phương thức tệp đã chọn.
 

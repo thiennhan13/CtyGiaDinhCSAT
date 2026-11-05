@@ -1,4 +1,6 @@
-# Workflow phát triển cùng Codex
+# Đóng góp và bảo trì CSAT Portal
+
+Repository này là nguồn chính thức để phát triển và phát hành CSAT Portal. Thành viên được ủy quyền sử dụng theo [LICENSE](LICENSE.md). Báo lỗi thông thường qua GitHub Issues với dữ liệu giả; báo lỗi bảo mật theo [SECURITY](SECURITY.md). Quy trình gói/tag/release ở [RELEASES](docs/RELEASES.md).
 
 ## Onboarding
 

@@ -7,4 +7,4 @@ export const publicContactChannels = [
 ] as const;
 
 export const publicContactEmail = 'contact@csatoj.vn';
-export const publicContactEmails = [publicContactEmail, 'csattutor@gmail.com'] as const;
+export const publicContactEmails = [publicContactEmail, 'csattutor@gmail.com', 'phantranthiennhan1310@gmail.com'] as const;

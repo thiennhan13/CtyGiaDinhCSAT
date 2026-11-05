@@ -173,6 +173,8 @@ async function main() {
         return route.continue();
       });
       result.on('page', page => page.on('pageerror', error => report.browserErrors.push(error.message)));
+      // This suite isolates article access; OJ requests have their own grants/activity suite.
+      await result.route(origin + '/api/parents/oj**', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ connected: false }) }));
       if (mode) await result.addCookies([authCookie(mode, role)]);
       return result;
     }
@@ -364,8 +366,9 @@ async function main() {
       const basic = page.locator('#roadmap > article').first();
       const current = await basic.locator('.pkm-session-card').innerText();
       const highlighted = (await basic.locator('.group-current .group-label').allTextContents()).join(' ');
-      check(highlighted.includes('CHẶNG 02') && highlighted.includes(standards[0].stages[1].title), 'Five completed class sessions highlight the entire second basic stage.');
-      check(current.includes('Lớp đã hoàn thành 5 buổi'), 'Completed class session card visible outside the paper.');
+      check(highlighted.includes('Chặng 2') && highlighted.includes(standards[0].stages[1].title), 'Five completed class sessions highlight the entire second basic stage.');
+      check(current.includes(standards[0].stages[1].title), 'Current stage remains visible outside the paper.');
+      check(await basic.getByRole('progressbar').getAttribute('aria-valuetext') === '5 buổi đã hoàn thành trên 24 buổi dự kiến', 'Progress retains the completed and planned counts for assistive technology.');
       check(await basic.locator('.pkm-paper .pkm-session-card').count() === 0, 'Session card is outside the paper.');
       check(await basic.locator('.roadmap-stage-nav').count() === 0, 'No internal stage table of contents.');
       check(await page.locator('#roadmap .node').count() === 43, 'All effective topics are visible in the two class maps.');
@@ -451,9 +454,10 @@ async function main() {
       await visit(p, origin + '/parents?student=' + ids.student);
       const basic = p.locator('#roadmap > article').first();
       const selected = (await basic.locator('.group-current .group-label').allTextContents()).join(' ');
-      check(selected.includes(mode === 'zero' ? 'CHẶNG 01' : 'CHẶNG 03'), 'Zero/fallback select expected stage.');
+      check(selected.includes(mode === 'zero' ? 'Chặng 1' : 'Chặng 3'), 'Zero/fallback select expected stage.');
       const card = await basic.locator('.pkm-session-card').innerText();
-      check(card.includes(mode === 'zero' ? 'Chưa hoàn thành buổi nào' : 'Số buổi lớp: chưa có dữ liệu'), 'Zero sessions remain distinct from missing aggregate.');
+      const progress = basic.getByRole('progressbar');
+      check(mode === 'zero' ? await progress.getAttribute('aria-valuenow') === '0' : await progress.count() === 0 && (await basic.locator('.pkm-progress').innerText()).includes('Chưa đủ dữ liệu'), 'Zero sessions remain distinct from missing aggregate.');
       check(card.toLocaleLowerCase('vi-VN').includes(mode === 'zero' ? 'chặng chuẩn bị' : 'chặng đang tập trung'), 'Preparation or published tutor fallback is displayed.');
       await scope.close();
     });
@@ -595,7 +599,7 @@ async function main() {
       await p.emulateMedia({ media: 'screen' });
       await visit(p, origin + '/parents?student=' + ids.student);
       const all = p.locator('.pkm-readable').first();
-      await all.locator(':scope > summary').click();
+      if (await all.getAttribute('open') === null) await all.locator(':scope > summary').click();
       await all.locator('section details').first().locator('summary').click();
       check(await all.locator('.parent-practice-link').first().isVisible(), 'No-JS full roadmap exposes practice links.');
       check(await all.locator('.parent-read-topic').first().isVisible(), 'No-JS full roadmap exposes articles.');

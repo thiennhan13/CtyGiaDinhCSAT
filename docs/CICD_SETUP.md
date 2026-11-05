@@ -59,4 +59,6 @@ Dùng project thử hoặc terminal được cấu hình biến giả khi build.
 
 ## Bàn giao một release
 
+Tag, package nguồn, manifest/checksum và công bố GitHub Releases theo [quy trình phát hành](RELEASES.md). Giữ npm publishing tắt; không gộp secret hoặc dữ liệu thật vào gói.
+
 PR cần nêu commit/phạm vi, test thực đã chạy, migration thiếu, tác động runtime/cờ tính năng và rollback tương thích. Sau khi được phép phát hành, ghi ngày, deployment, registry thực, smoke test và phần còn chờ vào PROJECT_STATUS. Log chi tiết nhạy cảm lưu nội bộ; không đính vào changelog.

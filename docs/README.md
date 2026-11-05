@@ -15,6 +15,7 @@ Mỗi tài liệu sở hữu một loại thông tin. Bắt đầu từ [HANDOFF
 | [DECISIONS](DECISIONS.md) | Quyết định đã chốt và giới hạn phạm vi |
 | [PROJECT_STATUS](PROJECT_STATUS.md) | Trạng thái theo môi trường, bằng chứng và backlog |
 | [AGENTS](../AGENTS.md), [CONTRIBUTING](../CONTRIBUTING.md) | Quy tắc làm việc, kiểm thử, review và bàn giao |
+| [Release](RELEASES.md), [giấy phép](../LICENSE.md) | Gói nguồn, tag/checksum, quyền sử dụng nội bộ và cấu hình GitHub |
 | [SECURITY](../SECURITY.md) | Secret/dữ liệu nội bộ, quyền thao tác và xử lý lộ thông tin |
 | [ARCHITECTURE](ARCHITECTURE.md) | Bản đồ website/route, ranh giới module, luồng dữ liệu và quyền |
 | [Đối chiếu Portal](PORTAL_DEVELOPMENT_REVIEW.md), [danh tính và database](PARENT_IDENTITY_DATABASE_DESIGN.md) | Hiện trạng so với hướng Google + tự liên kết theo số, học sinh–phụ huynh–OJ, schema và kế hoạch chuyển đổi |

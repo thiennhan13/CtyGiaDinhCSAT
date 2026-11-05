@@ -11,7 +11,7 @@ Không đưa vào GitHub, PR, CI artifact hoặc prompt:
 - Prototype, Excel nguồn, tài liệu nội bộ, ảnh QA chứa người học/số điện thoại.
 - `scratch/`, `internal/`, `docs/internal/`, `private-data/` và cấu hình công cụ/tài khoản local như `.agents/`.
 
-Repo private vẫn phải giữ các ranh giới này. `.gitignore` chỉ ngăn commit vô ý, không mã hóa hoặc kiểm soát quyền truy cập máy.
+Repository chính thức được công khai; các ranh giới này áp dụng cho cả cây hiện tại, lịch sử, release và artifact. `.gitignore` chỉ ngăn commit vô ý, không mã hóa hoặc kiểm soát quyền truy cập máy.
 
 Video được duyệt `public/media/writing-960.webm` là ngoại lệ media có guard riêng cho đường dẫn, header, giới hạn 2 MB và checksum. Nguồn 4K và video chưa duyệt nằm ngoài Git/gói deploy; không mở rộng allowlist để bỏ qua review.
 
@@ -47,6 +47,10 @@ node scripts/check-repository.cjs --staged
 Guard kiểm đường dẫn, mẫu secret/credential/JWT và liên kết Markdown tương đối; chế độ staged đọc index. Output chỉ file/dòng/loại lỗi. Review diff vẫn bắt buộc vì guard không nhận ra mọi mật khẩu/PII; không mở allowlist rộng cho tests.
 
 Việc lược dữ liệu khỏi bản hiện tại không xóa lịch sử Git, clone, fork hoặc CI artifact. Không coi kết quả quét local là chứng nhận toàn hệ thống an toàn; xử lý lịch sử cần phạm vi được duyệt riêng.
+
+## Báo cáo riêng
+
+Liên hệ phantranthiennhan1310@gmail.com, contact@csatoj.vn hoặc csattutor@gmail.com; dùng private vulnerability reporting của GitHub nếu đã bật. Không đăng secret/hồ sơ trong Issue công khai. Chỉ gửi mô tả, phạm vi và cách liên lạc ban đầu, không gửi mật khẩu hoặc token.
 
 ## Khi phát hiện lộ secret hoặc dữ liệu
 

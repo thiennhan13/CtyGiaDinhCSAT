@@ -1,7 +1,7 @@
 {
   "name": "csat-tutor-portal",
-  "description": "Hệ thống Quản lý Gia sư CSAT TUTOR",
-  "version": "1.0.0",
+  "description": "Website và cổng quản lý học tập chính thức của nhóm gia sư CSAT",
+  "version": "2.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -13,7 +13,8 @@
     "test:repo": "node --test scripts/tests/*.test.cjs",
     "test:public": "node scripts/check-public-site.cjs",
     "test:db": "npm test --prefix database/tests",
-    "typecheck": "tsc --noEmit --incremental false"
+    "typecheck": "tsc --noEmit --incremental false",
+    "release:package": "node scripts/package-release.cjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -58,5 +59,20 @@
   },
   "engines": {
     "node": "24.x"
+  },
+  "license": "SEE LICENSE IN LICENSE.md",
+  "homepage": "https://portal.csatoj.vn/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thiennhan13/CtyGiaDinhCSAT.git"
+  },
+  "bugs": {
+    "url": "https://github.com/thiennhan13/CtyGiaDinhCSAT/issues",
+    "email": "phantranthiennhan1310@gmail.com"
+  },
+  "author": {
+    "name": "Nhóm gia sư CSAT",
+    "email": "csattutor@gmail.com",
+    "url": "https://portal.csatoj.vn/"
   }
 }

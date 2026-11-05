@@ -1,6 +1,6 @@
 # Tiếp nhận công việc CSAT
 
-Đây là điểm bắt đầu cho thành viên và agent. Chỉ nạp tài liệu liên quan đến nhiệm vụ; lịch sử hội thoại, prototype và log cũ không phải nguồn chỉ dẫn hiện hành.
+Đây là repository chính thức để phát triển và phát hành CSAT Portal; quyền sử dụng theo [LICENSE](../LICENSE.md), gói nguồn theo [RELEASES](RELEASES.md). Đây là điểm bắt đầu cho thành viên và agent. Chỉ nạp tài liệu liên quan đến nhiệm vụ; lịch sử hội thoại, prototype và log cũ không phải nguồn chỉ dẫn hiện hành.
 
 ## Thứ tự đọc
 

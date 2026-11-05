@@ -26,6 +26,8 @@ Tên component/CSS không có tiền tố nằm trong components/marketing/. CSS
 
 ## Nguồn dữ liệu và trách nhiệm
 
+Các email công khai được cung cấp: `contact@csatoj.vn`, `csattutor@gmail.com`, `phantranthiennhan1310@gmail.com`; khai báo tập trung tại `lib/public-contact.ts`. Email chính dùng cho JSON-LD và liên hệ nhanh.
+
 Zalo trung tâm dùng số **0917791599**, khai báo tại `lib/public-contact.ts` và tái sử dụng cho website/đăng nhập. Đây là thay đổi riêng kênh Zalo, không thay số điện thoại liên lạc hoặc hồ sơ cá nhân. Portal tương thích với URL Zalo trung tâm cũ trong cấu hình database, chuyển liên kết hiển thị sang số mới mà không sửa lịch sử/migration đã phát hành.
 
 | Nguồn | Sở hữu |

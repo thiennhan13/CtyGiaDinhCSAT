@@ -4,6 +4,8 @@ Tóm tắt các lựa chọn chủ trung tâm đã chốt. Quy định chi tiế
 
 ## Website và nhận diện
 
+Repository này là nguồn phát triển/phát hành chính thức. Mã nguồn công khai; quyền sử dụng nội bộ nhóm gia sư CSAT theo [LICENSE](../LICENSE.md). Gói nguồn, version/tag và checksum theo [RELEASES](RELEASES.md). Email công khai: contact@csatoj.vn, csattutor@gmail.com và phantranthiennhan1310@gmail.com; không tự cấp quyền Google/GitHub từ việc công bố email.
+
 - Phát triển trực tiếp bằng Next.js/React. Prototype phục vụ duyệt, không là dependency runtime.
 - Website công khai dùng **neobrutalism / playful edtech**: viền rõ, bóng cứng, typography mạnh, art code/mạch/pixel; phối editorial, bento, sơ đồ theo nội dung. Giữ Archivo, logo và bảng màu đã duyệt. Không dùng KVANT cho chữ UI.
 - Portal ưu tiên dữ liệu, thao tác và khả năng đọc; không áp hero/hiệu ứng marketing lên giao diện nghiệp vụ. Chi tiết ở [design system](PUBLIC_UI_DESIGN_SYSTEM.md).
