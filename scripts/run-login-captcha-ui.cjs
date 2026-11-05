@@ -23,6 +23,19 @@ const widgetScript = `(() => {
  },remove(id){widgets.get(id)?.remove();widgets.delete(id);}};
 })();`;
 
+async function selectRole(page, name) {
+  const radio = page.getByRole('radio', { name, exact: true });
+  const value = await radio.getAttribute('value');
+  // Click the visible label and allow Next's native-history integration to settle.
+  // The one-pixel native radio may be restored until useSearchParams updates.
+  await radio.locator('..').click();
+  await page.waitForFunction(expected => {
+    const selected = document.querySelector('input[name="entry-role"]:checked');
+    const role = new URLSearchParams(location.search).get('role') === 'tutor' ? 'tutor' : 'parent';
+    return selected?.value === expected && role === expected;
+  }, value);
+}
+
 async function main() {
   await fs.mkdir(output, { recursive: true });
   try { await fetch(origin); throw Error('QA port already in use; refusing to test an unknown server.'); } catch (error) { if (error.message.startsWith('QA port')) throw error; }
@@ -98,7 +111,7 @@ async function main() {
     check(activity.posts.length === 1 && activity.posts[0].data.captchaToken.startsWith('fixture-parent_login-'), 'Parent sends action token');
     check(Object.keys(activity.posts[0].data).join(',') === 'captchaToken', 'OAuth start sends no phone or student identity');
     check(await google.isDisabled(), 'Used token reset for retry');
-    await p.getByRole('radio', { name: 'Gia sư / Admin', exact: true }).check();
+    await selectRole(p, 'Gia sư / Admin');
     const staff = p.locator('#entry-tutor');
     await staff.getByRole('button', { name: 'Xác minh thử nghiệm' }).waitFor();
     check(await p.locator('[data-fixture-widget]').count() === 1, 'Only visible form has widget');
@@ -134,7 +147,7 @@ async function main() {
     check(await staff.locator('#tutor-email').inputValue() === 'tutor@example.test', 'Widget retry retains email');
     await staff.getByRole('button', { name: 'Xác minh thử nghiệm', exact: true }).click();
     check(await staff.getByRole('button', { name: 'Đăng nhập hệ thống' }).isEnabled(), 'Successful retry enables login');
-    await p.getByRole('radio', { name: 'Phụ huynh', exact: true }).check();
+    await selectRole(p, 'Phụ huynh');
     check(await google.isVisible(), 'Role switch restores Google entry');
     check(await google.isDisabled(), 'Role switch discards old verification');
     check(activity.errors.length === 0 && activity.unexpected.length === 0, 'No browser errors or unmocked network');
@@ -152,7 +165,7 @@ async function main() {
     await limited.p.goto(origin + '/login', { waitUntil: 'networkidle' });
     await limited.p.setViewportSize({ width: 320, height: 900 });
     for (const role of ['Phụ huynh', 'Gia sư / Admin']) {
-      await limited.p.getByRole('radio', { name: role, exact: true }).check();
+      await selectRole(limited.p, role);
       const form = limited.p.locator(role === 'Phụ huynh' ? '#entry-parent' : '#entry-tutor');
       if (role !== 'Phụ huynh') { await form.locator('#tutor-email').fill('tutor@example.test'); await form.locator('#tutor-password').fill('synthetic-password'); }
       await form.getByRole('button', { name: 'Xác minh thử nghiệm', exact: true }).click();

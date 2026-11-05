@@ -4,7 +4,9 @@
 
 Repository GitHub đã public khi kiểm05/11/2026; đã đồng bộ About/homepage/topics; bật secret scanning/push protection, dependency alerts và private vulnerability reporting. Giữ cài đặt nhánh hiện có, chưa bật ruleset. Chuẩn hóa README, giấy phép nội bộ CSAT, metadata package/lock cùng phiên bản2.1.0, liên hệ ba email và công cụ gói nguồn từ commit có manifest/SHA-256. [Release/runbook](RELEASES.md), [SEO hiện hành](PUBLIC_SEO.md). Release mã nguồn không thay nghiệm thu production.
 
-CI commit44a1a9e đã được đối chiếu và fixture được sửa; local Node24.22.1/Edge đạt39 nhóm/4.103 assertions. Gói chuẩn3f9cbf4 chạy CI; trước khi gắn stable phát hiện6 cảnh báo Dependabot và cập nhật có mục tiêu Next.js/eslint-config-next16.4.1, Zod4.6.6, minimatch11.0.1, postcss-selector-parser6.1.5. npm audit báo0 vulnerability (runtime/dev), repo44/44, lint strict và build trên Node24.22.1/Next16.4.1 đạt. CI của commit chứa bản vá là điều kiện công bố release. Không có migration mới.
+Chuẩn hóa fixture theo nhãn/chú thích và danh sách no-JS hiện hành, mock request OJ trong suite chuyên đề; chuyển vai trò CAPTCHA chờ radio và URL đồng bộ thay kiểm ngay sau native click. Local Node24.22.1/Edge:39 nhóm/4.103 assertions chuyên đề,75 assertions CAPTCHA. Repo44/44, database/API291/291 không skip, HTTP SEO17 trang và ba email320/1440px đã kiểm.
+
+Vá6 cảnh báo Dependabot bằng Next.js/eslint-config-next16.4.1, Zod4.6.6, minimatch11.0.1 và postcss-selector-parser6.1.5. npm audit báo0 vulnerability (runtime/dev); repo44/44, typecheck/lint strict và build trên Node24.22.1/Next16.4.1 đạt. Không có migration mới. Công bố stable yêu cầu cả hai job CI của đúng commit đạt; bằng chứng cuối và gói/checksum tra [GitHub Releases](https://github.com/thiennhan13/CtyGiaDinhCSAT/releases).
 
 Quét106 commit/2.157 blob không khớp mẫu secret của guard; GitHub secret scanning hiện0 cảnh báo mở khi đọc05/11. Lịch sử vẫn có đường dẫn nội bộ/prototype/media đã xóa, chưa kiểm chứng toàn bộ trace/ảnh. Chưa làm sạch lịch sử; gói nguồn chỉ lấy cây commit hiện tại và không có lịch sử Git. Không coi các phép quét này là chứng nhận sạch dữ liệu.
 
