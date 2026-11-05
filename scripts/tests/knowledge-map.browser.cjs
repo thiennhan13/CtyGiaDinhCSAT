@@ -28,7 +28,9 @@ try {
   assert.equal(requests.filter(url => /diagram-.*\.svg/.test(url)).length, 1, 'Only the initial diagram is fetched.');
   assert.equal(requests.filter(url => /roadmap\..*\.json/.test(url)).length, 1, 'Data preload is reused.');
   await page.screenshot({ path: path.join(results, 'desktop.png') });
+  await page.evaluate(() => history.replaceState({ ...history.state, csatMapContext: 'preserve' }, '', location.href));
   await page.locator('[data-view=A]').click(); await page.waitForFunction(() => document.querySelectorAll('#stage [data-node]').length === 9);
+  assert.equal(await page.evaluate(() => history.state.csatMapContext), 'preserve', 'Map navigation preserves existing opaque history state.');
   assert.equal(await page.locator('#stage [data-node]').count(), 9);
   await page.locator('#plus').click();
   await page.evaluate(() => window.scrollTo({top:200,behavior:'instant'}));
@@ -78,7 +80,12 @@ try {
   await page.waitForFunction(() => document.querySelector('#topic-dialog').open && new URLSearchParams(location.hash.slice(1)).get('tag') === 'B02');
   await page.goBack();
   // The dialog closes before the asynchronous view restore has finished.
-  await page.waitForFunction(() => !document.querySelector('#topic-dialog').open && document.querySelectorAll('#list [data-node]').length === 15);
+  try {
+    await page.waitForFunction(() => !document.querySelector('#topic-dialog').open && document.querySelectorAll('#list [data-node]').length === 15);
+  } catch (error) {
+    console.error('History restore state:', await page.evaluate(() => ({ hash: location.hash, display: document.querySelector('.self-study-roadmap')?.dataset.display, listCount: document.querySelectorAll('#list [data-node]').length, dialog: document.querySelector('#topic-dialog')?.open, historyKeys: Object.keys(history.state ?? {}) })));
+    throw error;
+  }
   assert.equal(await page.locator('#list [data-node]').count(), 15);
   await page.goForward(); await page.waitForFunction(() => document.querySelector('#topic-dialog').open && document.querySelector('#topic-code').textContent.startsWith('B02'));
   assert.equal(await page.locator('#topic-title').textContent(), nodes.find(node => node.id === 'B02').title);
