@@ -19,7 +19,7 @@ Giới hạn: một phụ huynh – một số điện thoại – một học s
 | Công khai | Giới thiệu, A/B/C/E/K, đăng ký học, đội ngũ, thành tích, bài viết và học liệu |
 | Admin | Học sinh, gia sư, lớp, tiếp nhận đơn, chương trình, học phí và chốt sổ có audit |
 | Gia sư | Buổi học, điểm danh, giáo án, nhận xét tháng, hồ sơ và lương |
-| Phụ huynh | Nội dung đã công bố, chặng học, 43 chủ đề/54 bài riêng tư, gia sư và học phí |
+| Phụ huynh | Google/liên kết hồ sơ, lịch luyện tập và kết quả CSATOJ, nhận xét/lộ trình công bố, chuyên đề riêng tư, gia sư và học phí |
 
 Quyết định sản phẩm và giới hạn phạm vi ở [DECISIONS](docs/DECISIONS.md). Website dùng **neobrutalism / playful edtech**, giữ Archivo và nhận diện CSAT; Portal ưu tiên dữ liệu và khả năng đọc theo [design system](docs/PUBLIC_UI_DESIGN_SYSTEM.md).
 

@@ -19,15 +19,17 @@ interface Props {
  canonical?: boolean;
  articleLinks?: Record<string, string>;
  practiceLinks?: Record<string, string>;
+ mobileMapHref?: string;
 }
 
 /** Receives only the published, effective curriculum and authorized actions from its server caller. */
-export function ParentKnowledgeMap({body, template, progress, canonical = false, articleLinks = {}, practiceLinks = {}}: Props) {
+export function ParentKnowledgeMap({body, template, progress, canonical = false, articleLinks = {}, practiceLinks = {}, mobileMapHref}: Props) {
  const prefix = 'parent-map-' + useId().replace(/:/g, '') + '-';
  const viewport = useRef<HTMLDivElement>(null);
  const drawer = useRef<HTMLDialogElement>(null);
  const detailHeading = useRef<HTMLHeadingElement>(null);
  const returnFocus = useRef<SVGElement | null>(null);
+ const readable = useRef<HTMLDetailsElement>(null);
  const manualScale = useRef(false);
  const [scale, setScale] = useState(1);
  const [selected, setSelected] = useState<string | null>(null);
@@ -52,12 +54,19 @@ export function ParentKnowledgeMap({body, template, progress, canonical = false,
   }));
   const groups = effective.map((stage, index) => ({
    id: stage.id ?? `stage-${stage.originalIndex}`,
-   title: `CHẶNG ${String(index + 1).padStart(2, '0')} / ${stage.title}${stage.originalIndex === progress.stage?.originalIndex ? (progress.preparing ? ' · CHUẨN BỊ' : ' · ĐANG TẬP TRUNG') : ''}`,
+   title: `Chặng ${index + 1} / ${stage.title}${stage.originalIndex === progress.stage?.originalIndex ? (progress.preparing ? ' · Chuẩn bị' : ' · Đang tập trung') : ''}`,
    current: stage.originalIndex === progress.stage?.originalIndex,
   }));
   return {records, nodes, groups, layout: layoutRoadmap(nodes, groups), svg: renderRoadmapSvg(nodes, groups, {idPrefix: prefix})};
  }, [template, body, canonical, progress.stage?.originalIndex, progress.preparing, prefix]);
  const detail = graph.records.find(record => record.id === selected);
+ useEffect(() => {
+  if (!mobileMapHref) return;
+  const media = window.matchMedia('(max-width:767px)');
+  const update = () => { if (readable.current) readable.current.open = media.matches; };
+  update(); media.addEventListener('change', update);
+  return () => media.removeEventListener('change', update);
+ }, [mobileMapHref]);
  useEffect(() => {if (selected) detailHeading.current?.focus({preventScroll: true});}, [selected]);
  useEffect(() => {
   const region = viewport.current;
@@ -91,21 +100,28 @@ export function ParentKnowledgeMap({body, template, progress, canonical = false,
   if (!box) return;
   viewport.current.scrollTo({top: Math.max(0, box.y * scale - 16), left: Math.max(0, (box.x + box.width / 2) * scale - viewport.current.clientWidth / 2), behavior: 'instant'});
  }
- return <div className="parent-knowledge-map">
+ return <div className={'parent-knowledge-map' + (mobileMapHref ? ' pkm-inline-report' : '')}>
   <noscript><style>{'.parent-knowledge-map .pkm-paper,.parent-knowledge-map .pkm-jump{display:none!important}'}</style></noscript>
   <div className="pkm-program">{body.program && <span>{PROGRAMS[body.program]}</span>}{body.format && <span>{body.format === 'individual' ? 'Học 1–1' : 'Học nhóm'}</span>}</div>
   <div className="pkm-session-card">
-   <div><p>{progress.completedSessions === null ? 'Số buổi lớp: chưa có dữ liệu' : progress.completedSessions === 0 ? 'Chưa hoàn thành buổi nào' : `Lớp đã hoàn thành ${progress.completedSessions} buổi`}</p><span>{progress.preparing ? 'Chặng chuẩn bị' : 'Chặng đang tập trung'}</span><strong>{current?.title ?? 'Chưa xác nhận'}</strong></div>
+   <div><span>{progress.preparing ? 'Chặng chuẩn bị' : 'Chặng đang tập trung'}</span><strong>{current?.title ?? 'Chưa xác nhận'}</strong></div>
    {current && <button className="pkm-jump" type="button" onClick={jump}><ArrowDownToLine size={18} aria-hidden="true"/>Đến chặng hiện tại</button>}
   </div>
+  <div className="pkm-progress">
+   <div className="pkm-progress-label"><span>Tiến độ lộ trình lớp</span><strong>{progress.percent === null ? 'Chưa đủ dữ liệu' : `${Math.floor(progress.percent)}%`}</strong></div>
+   {progress.percent !== null && <div className="pkm-pixel-track" role="progressbar" aria-label="Tiến độ lộ trình lớp" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.floor(progress.percent)} aria-valuetext={`${progress.completedSessions} buổi đã hoàn thành trên ${progress.plannedSessions} buổi dự kiến`}>
+    {Array.from({length:20}, (_, index) => <span key={index} aria-hidden="true"><i style={{width:`${Math.max(0,Math.min(100,((progress.percent ?? 0) - index * 5) * 20))}%`}}/></span>)}
+   </div>}
+  </div>
   {graph.nodes.length > 0 ? <>
+   {mobileMapHref && <Link href={mobileMapHref} className="pkm-mobile-map"><BookOpen size={20} aria-hidden="true"/>Xem bản đồ kiến thức <span aria-hidden="true">→</span></Link>}
    <div className="pkm-paper">
     <div className="pkm-controls" aria-label="Điều chỉnh bản đồ"><span>{graph.nodes.length} chủ đề</span><div><button type="button" onClick={() => changeScale(Math.max(.35, scale - .15))} disabled={scale <= .35} aria-label="Thu nhỏ bản đồ"><Minus size={18}/></button><output aria-live="polite">{Math.round(scale * 100)}%</output><button type="button" onClick={() => changeScale(Math.min(1.6, scale + .15))} disabled={scale >= 1.6} aria-label="Phóng to bản đồ"><Plus size={18}/></button><button type="button" onClick={() => changeScale(Math.min(1, Math.max(.2, ((viewport.current?.clientWidth ?? 600) - 24) / graph.layout.width)))} aria-label="Vừa chiều ngang"><Scan size={18}/></button></div></div>
     <div className="pkm-viewport" ref={viewport} tabIndex={0} role="region" aria-label="Bản đồ nội dung học của lớp, cuộn để xem các chặng">
      <div className="pkm-diagram" style={{width: graph.layout.width * scale, height: graph.layout.height * scale}} onClick={event => openNode(event.target)} onKeyDown={event => {if ((event.key === 'Enter' || event.key === ' ') && event.target instanceof Element && event.target.closest('[data-node]')) {event.preventDefault(); openNode(event.target);}}} dangerouslySetInnerHTML={{__html: graph.svg}}/>
     </div>
    </div>
-   <details className="pkm-readable"><summary>Nội dung học của lớp</summary><div>{stages.map(stage => <section key={stage.id ?? stage.originalIndex}><h4>{stage.title}</h4>{stage.description && <p>{stage.description}</p>}{stage.lessons.map((lesson, index) => <details key={lesson.code ?? index}><summary>{lesson.code ? lesson.code + ' · ' : ''}{lesson.title}</summary><div>{lesson.description && <p>{lesson.description}</p>}{actions(lesson.code, lesson.title)}</div></details>)}</section>)}</div></details>
+   <details className="pkm-readable" ref={readable} open={!!mobileMapHref}><summary>Nội dung học của lớp</summary><div>{stages.map(stage => <section key={stage.id ?? stage.originalIndex}><h4>{stage.title}</h4>{stage.description && <p>{stage.description}</p>}{stage.lessons.map((lesson, index) => <details key={lesson.code ?? index}><summary>{lesson.code ? lesson.code + ' · ' : ''}{lesson.title}</summary><div>{lesson.description && <p>{lesson.description}</p>}{actions(lesson.code, lesson.title)}</div></details>)}</section>)}</div></details>
   </> : <p className="pkm-empty">{body.program === 'voi' ? 'Khung PreVOI chờ giáo án riêng được trung tâm xác nhận.' : 'Gia sư chưa công bố nội dung học của lớp.'}</p>}
   <aside className="pkm-focus"><h4>Trọng tâm đồng hành</h4><p>{body.goal || 'Gia sư sẽ bổ sung mục tiêu sau khi trao đổi và ghi nhận quá trình học.'}</p>{body.focus_tags.length > 0 && <div>{body.focus_tags.map(id => <span key={id}>{getReviewTag(id)?.label || id}</span>)}</div>}{body.next_step && <p><strong>Bước tiếp theo: </strong>{body.next_step}</p>}</aside>
   <dialog className="pkm-drawer" ref={drawer} aria-labelledby={prefix + 'detail-title'} onClose={() => {setSelected(null); returnFocus.current?.focus({preventScroll: true});}} onClick={event => {if (event.target === event.currentTarget) drawer.current?.close();}}>

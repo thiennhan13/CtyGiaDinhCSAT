@@ -2,9 +2,9 @@
 
 ## Phạm vi giao diện đã chốt
 
-Chủ trung tâm chọn bản gọn, Việt hóa và có giải thích phụ. Lịch **Nhịp luyện tập của con** nằm ngay sau hồ sơ học sinh, trọn chiều ngang nội dung. Các phần còn lại giữ thứ tự: nhận xét, lộ trình, định hướng, buổi học, kết quả OJ, gia sư và học phí. Kết quả OJ giữ **Bài đã làm thử**, **Bài giải đúng**, **Lượt nộp**, rồi kết quả/xếp hạng theo buổi và lịch sử cuộc thi. Điểm rating và hạng rating nằm trong **Chi tiết thi đấu**. Không hiển thị hạng performance, số cuộc thi mới đăng ký hoặc tổ chức ở hàng chỉ số chính; bỏ nút tổ chức và bảng số liệu ngày khỏi giao diện phụ huynh. Không xóa trường API cũ chỉ vì UI ẩn chúng.
+Chủ trung tâm chọn bản gọn và Việt hóa. Lịch **Nhịp luyện tập của con** nằm ngay sau hồ sơ, trọn chiều ngang. Ô **CSAT cùng con luyện tập** dùng số ngày có nộp bài của12 tháng gần nhất từ summary gốc, đơn vị ngày dưới số; không đổi theo năm lịch, không lặp chú thích kỳ. Nhịp luyện tập bổ sung bài đã làm thử/giải đúng tích lũy từ `learning.learning_total`; lượt nộp trong kỳ vẫn lấy `activity.total_submissions`. Ba ô tách riêng bằng màu xanh, xanh nhạt và vàng, không đổi ý nghĩa hoặc kỳ thống kê. Kết quả OJ giữ3 số tích lũy, chi tiết thi đấu mở sẵn, xếp hạng theo buổi và lịch sử cuộc thi. Định hướng của lớp nằm cuối Đồng hành cùng con. Không hiện performance/tổ chức/bảng ngày ở phụ huynh; bỏ chú thích lặp và nút làm mới thông thường, tải summary mới một lần mỗi lượt mở. Chọn năm/buổi/lịch sử vẫn fetch theo yêu cầu. Giữ cảnh báo giới hạn/lỗi/thu hồi, thử lại khi lỗi. Không đổi API hay xóa trường chỉ vì UI ẩn chúng.
 
-Tiêu đề dùng cobalt `#2b50e0`, lime `#d9e64c`, mint hiện có, viền rõ và bóng cứng; giữ Archivo. Màu phân cấp nội dung, không thay trạng thái công bố/quyền hoặc suy ra mức thành thạo. Số lượt nộp phản ánh hoạt động; tiến bộ cần đọc cùng bài giải đúng, kết quả từng cuộc thi và nhận xét gia sư.
+Palette phụ huynh `#1F06AC #0F42C0 #5882E8 #E3EF4F #E3F2FD`, viền rõ/bóng cứng và Archivo. Lịch dùng thang xanh sáng–đậm, ô vuông; vàng dành cho điểm nhấn. Màu không thay trạng thái công bố/quyền hoặc suy ra mức thành thạo. Số lượt nộp phản ánh hoạt động; tiến bộ cần đọc cùng bài giải đúng, kết quả cuộc thi và nhận xét.
 
 ## Trạng thái bàn giao
 

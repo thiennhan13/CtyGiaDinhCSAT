@@ -16,7 +16,7 @@ Mỗi tài liệu sở hữu một loại thông tin. Bắt đầu từ [HANDOFF
 | [PROJECT_STATUS](PROJECT_STATUS.md) | Trạng thái theo môi trường, bằng chứng và backlog |
 | [AGENTS](../AGENTS.md), [CONTRIBUTING](../CONTRIBUTING.md) | Quy tắc làm việc, kiểm thử, review và bàn giao |
 | [SECURITY](../SECURITY.md) | Secret/dữ liệu nội bộ, quyền thao tác và xử lý lộ thông tin |
-| [ARCHITECTURE](ARCHITECTURE.md) | Ranh giới module, luồng dữ liệu và quyền |
+| [ARCHITECTURE](ARCHITECTURE.md) | Bản đồ website/route, ranh giới module, luồng dữ liệu và quyền |
 | [Đối chiếu Portal](PORTAL_DEVELOPMENT_REVIEW.md), [danh tính và database](PARENT_IDENTITY_DATABASE_DESIGN.md) | Hiện trạng so với hướng Google + tự liên kết theo số, học sinh–phụ huynh–OJ, schema và kế hoạch chuyển đổi |
 | [Frontend](FRONTEND_WORKFLOW.md), [backend](BACKEND_WORKFLOW.md) | Workflow theo phạm vi |
 

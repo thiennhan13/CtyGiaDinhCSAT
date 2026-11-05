@@ -1,5 +1,77 @@
 # Audit giao diện phụ huynh
 
+## Điều chỉnh05/11 — palette mới và tiến độ lớp
+
+Đích màn hình: **Con có duy trì luyện tập, và lớp đang đi đến đâu?** Giữ hướng **Accent ladder**, seed **849983658**, không redraw; áp palette chủ trung tâm chọn, Archivo và bố cục hiện tại. Ngoại lệ có chủ đích với giới hạn màu/bóng của skill: neo brutalism, menu trái dạng mục lục và xanh tím `#1F06AC` được yêu cầu trực tiếp. Không thêm ảnh, số liệu thật hoặc chuyển động marketing.
+
+| Màu | Vai trò |
+|---|---|
+| `#1F06AC` | Viền nhận diện, dữ liệu đậm nhất, nhấn chữ trên nền nhạt |
+| `#0F42C0` | Nút chính, tiêu đề xanh, số bài đúng |
+| `#5882E8` | Mức trung gian của lịch, điểm nhấn phụ |
+| `#E3EF4F` | Nhịp luyện tập/lộ trình và các điểm dẫn chính |
+| `#E3F2FD` | Nền ô dữ liệu nhẹ; nền trang mặc định trắng |
+
+Chữ dài dùng mực trung tính, thẻ trắng; giữ các màu trạng thái nghiệp vụ. Không dùng chữ trắng cỡ nhỏ trên `#5882E8` (chỉ3,64:1), hoặc trên vàng/nền nhạt. Chữ trắng trên `#0F42C0` đạt8,20:1; trên `#1F06AC` đạt12,50:1 theo phép tính tương phản. Không dùng vàng để biểu thị cường độ lượt nộp; các mức lịch dùng sáng–đậm và legend cùng tooltip/số lượt.
+
+Đã bỏ avatar chữ đầu, hai liên kết hồ sơ và chú thích lặp; thay bằng sách + ô **CSAT cùng con luyện tập**, chữ ngày dưới số. Theo chốt bổ sung, số ngày luôn dùng12 tháng gần nhất từ summary gốc, không hiện chú thích kỳ và không đổi khi chọn năm của lịch. Nhịp luyện tập tách ba ô: lượt nộp trong kỳ nền xanh, bài đã thử tích lũy nền xanh nhạt, bài giải đúng tích lũy nền vàng; khoảng cách và viền riêng giữ rõ trên điện thoại. Bộ chọn năm cùng hàng tiêu đề, phần ngày/giờ không còn hiển thị. Kết quả có3 số tích lũy, chi tiết thi đấu mở sẵn, xếp hạng theo buổi rồi lịch sử60px có màu. **Định hướng phát triển của lớp** nằm cuối Đồng hành cùng con. Nội dung định hướng vẫn chỉ là mục tiêu chương trình.
+
+Điện thoại dưới768px: danh sách nội dung theo chặng mở sẵn, nút **Xem bản đồ kiến thức** thay SVG/điều khiển tại báo cáo. Trang `/parents/lo-trinh/[classId]` mở cùng renderer đầy đủ, kiểm lại parent active/giáo án công bố từ RPC và giữ context khi quay lại. Desktop giữ bản đồ tại chỗ. Không đổi API hoặc gán nội dung buổi từ số buổi đã qua.
+
+Thanh pixel: **số buổi completed đã kết thúc từ đầu lớp / tổng số nội dung các chặng hiệu lực ×100**, tối đa100%. Tổng dự kiến theo nội dung giáo án đã chọn, không theo số buổi được tạo trong lịch, tháng đang xem hoặc điểm danh riêng của con. Giữ số buổi thật khi vượt dự kiến; thiếu số buổi/mẫu số không vẽ tỷ lệ giả. Thanh chỉ hiện tên, phần trăm và pixel, bỏ chú thích số buổi; aria vẫn giữ tỷ lệ và số đếm để đọc bằng công nghệ hỗ trợ. Đây là quyết định chủ trung tâm sau thảo luận, không thêm trường kế hoạch. Chặng vẫn theo resolver hiện hành; nội dung thực học của một buổi chỉ lấy từ bản công bố của buổi đó, không gán tự động từ tỷ lệ.
+
+ROUND 1
+
+Seen in one second: Lịch xanh và số ngày luyện tập dẫn mắt; nhận diện mạnh hơn nhưng còn khoảng trống quanh bộ chọn năm.
+
+Idea (one sentence): Lượt nộp thật và số buổi của lớp trở thành hai thước đọc khác nhau: nhịp luyện tập và nhịp lộ trình CSAT.
+
+Live thing: Đổi năm/chọn ngày, mở chi tiết thi đấu, xem xếp hạng theo buổi và lịch sử cuộc thi.
+
+Layout words by section: hồ sơ=identity + count / hoạt động=calendar / nhận xét=list / lộ trình=stage + pixel + map / buổi học=table / OJ=metrics + rating + results / đồng hành=profiles + ledger + directions.
+
+Scores: design7.2 · usability7.5 · creativity7.0 · content8.5 → overall6.0 do còn FAIL (tự đánh giá).
+
+Caps applied: App screen, không áp sàn ảnh/chuyển động của landing page; nhãn SVG10px bị inspector đánh FAIL.
+
+Top three problems (most visible first), each with the screenshot it shows in and the fix:
+
+1. `scratch/parent-blue-production/practice-1440.png`: bộ chọn năm ở một hàng riêng dưới tiêu đề làm lịch cao thừa → đưa cùng hàng tiêu đề, bỏ tên biểu đồ lặp.
+2. `scratch/parent-blue-final/report-1440.png`: lộ trình từng lặp số buổi ở thẻ chặng và thanh tiến độ → thẻ chặng chỉ định hướng hiện tại, thanh chỉ giữ phần trăm/pixel theo yêu cầu mới nhất; số đếm giữ trong aria.
+3. `scratch/parent-blue-final-inspect/report.json`: nhãn Chủ đề của24 node SVG10px → tăng12px scoped ở Portal; nhãn định hướng đổi sentence case, loại font mono trong stylesheet phụ huynh.
+
+ROUND 2
+
+Seen in one second: Hồ sơ/số ngày dẫn vào lịch trọn ngang; các nhóm thông tin có màu và chức năng rõ.
+
+Idea (one sentence): Nhịp nộp bài mở báo cáo, số buổi và giáo án hiệu lực giải thích nhịp lớp, kết quả thi là phần chứng cứ riêng.
+
+Live thing: Chọn năm/ngày và đọc kết quả theo buổi; một summary mới khi mở cổng, không polling.
+
+Layout words by section: hồ sơ=count split / hoạt động=calendar / nhận xét=list / lộ trình=pixel + map / buổi học=table / OJ=metrics + open rating + results / đồng hành=profiles + ledger + directions.
+
+Scores: design7.8 · usability8.2 · creativity7.2 · content8.5 → overall7.9, tự đánh giá, không phải chấm độc lập.
+
+Caps applied: Chỉ quy tắc app screen; ngoại lệ palette tím/bóng cứng/nút được yêu cầu. Cổng nghiệm thu inspector cuối và các ảnh xem bên dưới; không suy từ kết quả local thành phát hành.
+
+Top three problems (most visible first), each with the screenshot it shows in and the fix:
+
+1. Báo cáo nhiều mục dưới fold (`desktop-page-01/02`) → giữ theo phạm vi được duyệt, menu nhóm bên trái hỗ trợ đi thẳng; chưa chuyển thành nhiều màn hình.
+2. Danh sách giáo án trên điện thoại dài khi mở đủ24 nội dung (`mobile-page-01`) → giữ đầy đủ theo yêu cầu, có từng mục gấp/mở và nút bản đồ riêng; desktop/tablet giữ bản đồ cuộn trong vùng riêng.
+3. Form/thẻ học phí còn radius cũ (`desktop-page-02`) → giữ component hiện có trong đợt này; nút/heading/mặt dữ liệu mới dùng góc4–7px và viền nhất quán.
+
+Bằng chứng dưới đây có trước điều chỉnh cuối sang nền trắng/bỏ SiteBackground; chủ trung tâm yêu cầu không chạy lại kiểm thử cho thay đổi nền.
+
+Kiểm thực tế: Node24.22.1, repo42/42; database/API291/291 không skip, gồm PostgreSQL concurrency local. Typecheck/lint strict/production build đạt. Edge build cuối `scratch/parent-practice-cards-production/` kiểm320/375/390/768/1440, nhãn CSAT mới,3 ô màu riêng/khoảng cách mobile, bỏ chú thích số buổi, ô vuông tất cả ngày, năm nhuận/0/null/thiếu activity/lỗi giữ kỳ, ngày12 tháng không đổi khi chọn năm, thu hồi xóa cả3 vùng, một summary mỗi lượt mở, chi tiết thi đấu mở/đóng, menu/keyboard/dark/reduced motion và các luồng thu tiền/chứng chỉ/claim. Bản đồ mới200/private/no-store/noindex; sai học sinh/lớp và nháp404, bị khóa/chưa Auth chuyển hướng; node/chuyên đề/quay lại context hoạt động. Test resolver kiểm50%,0%,100% vượt dự kiến, scope loại trừ và dữ liệu thiếu; helper chỉ nhận giáo án lớp công bố trong projection được phép. Fixture:1 học sinh giả, lớp A+B24 nội dung/12 buổi, hoạt động tính từ dòng giả;1 buổi/1 contest hạng2/10 và5/50. Không dùng hồ sơ thật.
+
+Inspector cuối ở `scratch/parent-practice-cards-inspect-{1440,768,390}/`: **0 FAIL** từng viewport, đã mở đủ9 ảnh; Archivo100%. Lượt gộp viewport trước đó lỗi CDP capture, không tính pass; chạy từng viewport Edge độc lập giữ đủ kiểm tra. Snapshot dùng CSS/font build thật; thêm script chỉ khôi phục căn giữa SVG và trạng thái danh sách theo viewport như component thật, không thêm số liệu hoặc sửa CSS để qua kiểm tra. Các tương tác/kiểm quyền chạy trên Next production server trong runner, không trên snapshot.
+
+Có5 nhóm WARN còn lại: nền cream của body/header public dùng chung (canvas Portal đã xanh nhạt), viền đậm và tỷ lệ màu được yêu cầu neo brutalism, radius cũ ở form/học phí, báo cáo nhiều mục dưới fold được yêu cầu giữ. Ngoại lệ inspector chỉ `heavy-shadow`, `button-fx`, `palette-purple` theo nhận diện người dùng chọn. Lint skill app ở4 file trực tiếp sửa lần cuối:0 FAIL,10 WARN về bóng cứng có chủ đích. Không cho qua lỗi tương phản/font/overflow/tiny-text.
+
+HTML local `docs/prototypes/parent-blue/index.html` là bản xem bố cục dữ liệu giả, không kết nối API; bộ lọc/thao tác tài khoản/link bản đồ mới chỉ đọc, không giả gọi backend hoặc dẫn tới route production chưa phát hành. Đã kiểm font, ô vuông, menu/sáng tối và nội dung mobile ở320/390/768/1440. Bản đồ riêng thật đã được kiểm trên ứng dụng local. Không đưa prototype/ảnh QA vào Git/runtime. Chưa nghiệm thu OJ thật hoặc giao diện production sau cập nhật; commit/push đã được chủ trung tâm yêu cầu.
+
+## Bằng chứng bố cục trước05/11
+
 ## Phạm vi và phương án
 
 Audit và chỉnh trực tiếp giao diện đang có theo yêu cầu chủ trung tâm; giữ Next.js/React, CSS Module/CSS scoped, Archivo và palette CSAT. Không đổi dữ liệu học tập, quyền, schema hoặc số liệu OJ. Dữ liệu trong ảnh QA là fixture giả của `scripts/run-oj-ui.cjs`, không phải hồ sơ thật.

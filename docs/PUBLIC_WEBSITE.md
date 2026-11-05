@@ -18,7 +18,7 @@ Metadata/canonical, sitemap/robots, schema, ảnh chia sẻ logo CSAT và llms.t
 | /bai-dang và /bai-dang/[slug] | app/bai-dang/, lib/public-posts.ts, posts.css | Danh mục/trang bài viết frontend; [hướng dẫn](PUBLIC_POSTS.md) |
 | /hoc-lieu-mien-phi | LearningMaterialsExperience.tsx, PracticeVideo.tsx | Không gian luyện tập, video và form chuẩn bị nhu cầu; chưa tự gửi tài liệu |
 | /tu-hoc | app/tu-hoc/page.tsx, SelfStudyRoadmap.tsx, self-study-roadmap.css | Cây dọc 43 chủ đề, node cắt góc, giấy kẻ toàn trang, cuộn document, mục lục/CTA nổi trái và toolbar nổi dưới; tìm/lọc/drawer và CSATOJ; [nguồn và ranh giới](KNOWLEDGE_MAP.md) |
-| /login | components/auth/ContactEntry.tsx, ParentLoginForm.tsx, TutorLoginForm.tsx | Switch Phụ huynh/Gia sư; phụ huynh lookup số điện thoại, staff Auth, Turnstile cho hai form |
+| /login | components/auth/ContactEntry.tsx, ParentLoginForm.tsx, TutorLoginForm.tsx | Phụ huynh Google PKCE rồi liên kết số tại /parents; staff Auth, Turnstile cho đăng nhập; phiên hợp lệ được tiếp tục |
 | Shell/menu/theme/footer | PublicShell.tsx, PublicHeader.tsx, PublicNavigation.tsx, RoadmapNavigation.tsx | Menu chung, theme, liên hệ thật; không thay quyền |
 | Form/select/motion/ảnh | PublicConsultation.tsx, PublicSelect.tsx, PublicMotion.tsx, PublicFeedback.tsx, CoursePosterPreview.tsx | Tái sử dụng tương tác, bàn phím và fallback |
 

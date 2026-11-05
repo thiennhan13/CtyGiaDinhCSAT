@@ -7,7 +7,10 @@ const dateLabel = (date: string) => new Intl.DateTimeFormat('vi-VN', { day: 'num
 const countLabel = (count: number | null) => count === null ? 'Chưa có dữ liệu' : new Intl.NumberFormat('vi-VN').format(count);
 const level = (count: number | null) => count === null ? 'unknown' : count === 0 ? '0' : count < 5 ? '1' : count < 10 ? '2' : count < 20 ? '3' : '4';
 
-export function SubmissionHeatmap({ activity, year, busy, onYearChange, standalone = true }: { activity: OJActivity | null; year: string; busy: boolean; onYearChange: (year: string) => void; standalone?: boolean }) {
+export function ActivityPeriodSelect({ activity, year, busy, onYearChange }: { activity: OJActivity; year: string; busy: boolean; onYearChange: (year: string) => void }) {
+  return <label className={styles.periodSelect}>Thời gian<select aria-label="Thời gian hoạt động" value={year} disabled={busy} onChange={event => onYearChange(event.target.value)}><option value="">12 tháng gần nhất</option>{[...new Set([...activity.available_years, ...(year ? [Number(year)] : [])])].sort((a, b) => b - a).map(value => <option key={value} value={value}>{value}</option>)}</select></label>;
+}
+export function SubmissionHeatmap({ activity, year, busy, onYearChange, standalone = true, showActiveDays = true, showControls = true, learningTotals }: { activity: OJActivity | null; year: string; busy: boolean; onYearChange: (year: string) => void; standalone?: boolean; showActiveDays?: boolean; showControls?: boolean; learningTotals?: { attempted_count: number | null; solved_count: number | null } }) {
   const grid = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<number | null>(null);
   useEffect(() => {
@@ -22,11 +25,11 @@ export function SubmissionHeatmap({ activity, year, busy, onYearChange, standalo
   const months = days.flatMap((day, index) => index === 0 || day.date.endsWith('-01') ? [{ label: 'Th' + Number(day.date.slice(5, 7)), column: Math.floor((index + offset) / 7) }] : []).filter((month, index, all) => index !== 0 || !all[1] || all[1].column - month.column >= 3);
   const description = (index: number) => `${dateLabel(days[index].date)}: ${days[index].submission_count === null ? 'chưa có dữ liệu' : countLabel(days[index].submission_count) + ' lượt nộp'}${activity.status === 'limited' ? ' (dữ liệu chưa đầy đủ)' : ''}`;
   return <section className={styles.activity} aria-label="Lượt nộp bài theo ngày">
-    <div className={styles.activityHeading}><div>{standalone && <h3 id="submission-activity-title" className={styles.subheading}>Nhịp luyện tập của con</h3>}<p>Lượt nộp bài theo ngày</p><p className={styles.range}>{dateLabel(activity.start_date)} – {dateLabel(activity.end_date)} · Giờ Việt Nam</p></div>
-      <label>Thời gian<select aria-label="Thời gian hoạt động" value={year} disabled={busy} onChange={event => onYearChange(event.target.value)}><option value="">12 tháng gần nhất</option>{[...new Set([...activity.available_years, ...(year ? [Number(year)] : [])])].sort((a, b) => b - a).map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-    </div>
+    {(standalone || showControls) && <div className={styles.activityHeading}><div>{standalone && <h3 id="submission-activity-title" className={styles.subheading}>Nhịp luyện tập của con</h3>}<p>Lượt nộp bài theo ngày</p></div>
+      {showControls && <ActivityPeriodSelect activity={activity} year={year} busy={busy} onYearChange={onYearChange}/>}
+    </div>}
     {activity.status === 'unavailable' ? <p>Chưa có dữ liệu hoạt động cho khoảng thời gian này.</p> : <>
-      <dl className={styles.activityTotals}><div><dt>Lượt nộp trong kỳ</dt><dd>{countLabel(activity.total_submissions)}</dd></div><div><dt>Ngày có nộp bài</dt><dd>{countLabel(activity.active_days)}</dd></div></dl>
+      <dl className={`${styles.activityTotals} ${learningTotals ? styles.practiceMetrics : !showActiveDays ? styles.singleTotal : ''}`}><div><dt>Lượt nộp trong kỳ</dt><dd>{countLabel(activity.total_submissions)}</dd></div>{learningTotals && <><div><dt>Bài đã làm thử<span className="sr-only"> tích lũy</span></dt><dd>{countLabel(learningTotals.attempted_count)}</dd></div><div><dt>Bài giải đúng<span className="sr-only"> tích lũy</span></dt><dd>{countLabel(learningTotals.solved_count)}</dd></div></>}{showActiveDays && <div><dt>Ngày có nộp bài</dt><dd>{countLabel(activity.active_days)}</dd></div>}</dl>
       {activity.status === 'limited' && <p role="status">Dữ liệu chưa đầy đủ: một phần hoạt động chưa được phép công bố. Ô chưa có dữ liệu khác với ngày không nộp bài.</p>}
       <div className={styles.calendarLayout} style={{ '--weeks': weeks } as CSSProperties}><div className={styles.weekdays} aria-hidden="true">{['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(label => <span key={label}>{label}</span>)}</div>
         <div className={styles.calendarScroll}>

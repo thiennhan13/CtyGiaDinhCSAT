@@ -45,15 +45,14 @@ export function ParentDevelopment({ plans }: { plans: ParentLearningData['plans'
   })).filter(group => group.classes.length > 0);
 
   return <section id="development" className="parent-card" aria-labelledby="development-heading">
-    <p className="parent-eyebrow mb-3 text-primary">TỪ NỀN TẢNG ĐẾN MỤC TIÊU</p>
-    <h2 id="development-heading" className="parent-section-title parent-section-title--mint">Định hướng phát triển của con</h2>
-    <p className="parent-development-intro">Định hướng theo chương trình lớp; mục tiêu riêng của con được trao đổi dựa trên bài làm, nhận xét của gia sư và mong muốn của gia đình.</p>
+    <h2 id="development-heading" className="parent-section-title parent-section-title--mint">Định hướng phát triển của lớp</h2>
+    <p className="parent-development-intro">Định hướng của chương trình, chưa phải đánh giá năng lực hiện tại của con.</p>
     {groups.map(({ program, classes }) => <div className="parent-development-program" key={program}>
       <h3>{directions[program].name}</h3>
       <p className="parent-development-classes">{classes.map(plan => plan.class_name).join(' · ')}</p>
       <ol className="parent-development-path">
         {directions[program].milestones.map(milestone => <li key={milestone.title}>
-          <p className="parent-eyebrow text-primary">{milestone.label}</p>
+          <p className="parent-development-label">{milestone.label}</p>
           <h4>{milestone.title}</h4>
           <p>{milestone.content}</p>
           <p className="parent-development-next">{milestone.next}</p>
@@ -61,6 +60,5 @@ export function ParentDevelopment({ plans }: { plans: ParentLearningData['plans'
       </ol>
     </div>)}
     {!groups.length && <p className="text-sm leading-7 text-muted-foreground">Gia sư và gia đình sẽ cùng xác nhận hướng phát triển sau khi chương trình lớp được công bố. Với lớp luyện thi tùy chỉnh, định hướng được trao đổi theo mục tiêu cụ thể.</p>}
-    {groups.length > 0 && <p className="parent-development-note">Nội dung thực học theo các chặng và chủ đề đã chọn ở lộ trình phía trên. “Định hướng hiện tại” mô tả mục tiêu của chương trình, không xác nhận con đã đạt mức thi tương ứng. Gia sư sẽ điều chỉnh bước tiếp theo dựa trên việc học thực tế.</p>}
   </section>;
 }

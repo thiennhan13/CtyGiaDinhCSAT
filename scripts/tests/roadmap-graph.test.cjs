@@ -59,19 +59,28 @@ test('class session pacing handles boundaries, filtered scope, missing values an
  const body = {curriculum,stage_index:null};
  const progress = n => ({class_id:'fixture',completed_sessions:n,as_of:'2026-10-17T00:00:00Z'});
  assert.equal(resolve(template,body,progress(0)).preparing,true);
+ assert.equal(resolve(template,body,progress(0)).percent,0);
+ assert.equal(resolve(template,body,progress(12)).plannedSessions,24);
+ assert.equal(resolve(template,body,progress(12)).percent,50);
  assert.equal(resolve(template,body,progress(1)).topicCode,'A01');
  const boundary = template.stages[0].lessons.length;
  assert.equal(resolve(template,body,progress(boundary)).stage.id,template.stages[0].id);
  assert.equal(resolve(template,body,progress(boundary+1)).stage.id,template.stages[1].id);
  assert.equal(resolve(template,body,progress(999)).topicCode,'B15');
+ assert.equal(resolve(template,body,progress(999)).percent,100);
+ const selectedProgress=resolve(template,{...body,curriculum:{...curriculum,parts:['B'],excluded_topic_codes:['B01']}},progress(7));
+ assert.equal(selectedProgress.plannedSessions,14);
+ assert.equal(selectedProgress.percent,50);
  assert.equal(resolve(template,{...body,curriculum:{...curriculum,parts:['B'],excluded_topic_codes:['B01']}},progress(1)).topicCode,'B02');
  const published = {...body,curriculum:{...curriculum,current_stage_id:template.stages[2].id}};
  for (const absent of [undefined,null,progress(-1),progress(NaN)]) {
   const value = resolve(template,published,absent);
   assert.equal(value.source,'published'); assert.equal(value.completedSessions,null);
+  assert.equal(value.percent,null);
   assert.equal(value.stage.id,template.stages[2].id);
  }
  assert.equal(resolve(template,body).source,'none');
+ assert.equal(resolve(null,body,progress(3)).percent,null);
 });
 test('connectors bend below the tallest card on their row, never through a longer title', () => {
  const nodes = [

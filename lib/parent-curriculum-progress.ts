@@ -9,6 +9,8 @@ export interface ParentCurriculumProgress {
  source: 'sessions' | 'published' | 'none';
  preparing: boolean;
  completedSessions: number | null;
+ plannedSessions: number | null;
+ percent: number | null;
  topicCode: string | null;
  asOf: string | null;
 }
@@ -20,9 +22,16 @@ export function resolveParentCurriculumProgress(
  progress?: ParentClassProgress | null,
 ): ParentCurriculumProgress {
  const stages = effectiveStages(template, body);
+ // The approved pacing baseline is one planned session per effective content item.
+ // It measures class pacing, never what was actually taught or student mastery.
+ const plannedSessions = stages.reduce((total, stage) => total + stage.lessons.length, 0) || null;
+ const completedSessions = progress && Number.isSafeInteger(progress.completed_sessions) && progress.completed_sessions >= 0
+  ? progress.completed_sessions : null;
  const empty: ParentCurriculumProgress = {
   stage: null, source: 'none', preparing: false,
-  completedSessions: null, topicCode: null, asOf: null,
+  completedSessions, plannedSessions,
+  percent: completedSessions === null || plannedSessions === null ? null : Math.min(100, completedSessions / plannedSessions * 100),
+  topicCode: null, asOf: progress?.as_of ?? null,
  };
  // Missing/invalid values are not evidence that a class has completed zero sessions.
  if (isStructuredCurriculum(template) && progress &&
@@ -31,6 +40,7 @@ export function resolveParentCurriculumProgress(
   if (!topics.length) return empty;
   const topic = topics[Math.min(Math.max(progress.completed_sessions - 1, 0), topics.length - 1)];
   return {
+   ...empty,
    stage: topic.stage, source: 'sessions', preparing: progress.completed_sessions === 0,
    completedSessions: progress.completed_sessions, topicCode: topic.lesson.code ?? null,
    asOf: progress.as_of,

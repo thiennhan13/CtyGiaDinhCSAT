@@ -18,7 +18,24 @@ Một ứng dụng Next.js phục vụ website công khai và admin/gia sư/ph�
 
 Workspace OJ kiểm cấu hình tại máy chủ và chỉ trả boolean `connection_ready` cho admin, không trả giá trị env/key. UI cảnh báo và chặn lưu kết nối khi cấu hình chưa hợp lệ; API vẫn kiểm lại độc lập trước ghi pending/gọi OJ. Boolean không xác nhận kết nối mạng hoặc grant. Nút Lưu kết nối thực hiện exchange rồi lưu mapping, retry giữ UUID/mã và Kiểm tra kết quả phục hồi qua receipt.
 
-Trang phụ huynh đặt lịch lượt nộp ngay sau hồ sơ học sinh, trọn bề ngang vùng nội dung. `ParentOJProvider` chia sẻ một state/request controller giữa `ParentOJActivity` ở đầu và `ParentOJPanel` tại vị trí kết quả cũ; không tạo hai summary fetch, polling hoặc cache công khai. Thu hồi quyền xóa cả hai vùng. UI kết quả giữ3 số tích lũy bài đã thử/giải đúng/lượt nộp và hạng theo từng buổi/cuộc thi; rating nằm trong disclosure, performance không hiển thị. Summary nhận phần mở rộng optional `activity`, kiểm ngày liên tiếp/tổng/null/timezone. `kind=activity&year` ở API Portal dùng bộ lọc from/until của summary OJ hiện có, cùng quyền/grant và kiểm trước/sau fetch; chỉ cập nhật lịch, không thay tổng quan. Heatmap không có dữ liệu thì báo thiếu, không giả ô0. [Contract và trạng thái OJ chưa triển khai](CSATOJ_PARENT_DATA_CONTRACT.md).
+Trang phụ huynh đặt lịch lượt nộp ngay sau hồ sơ học sinh, trọn bề ngang vùng nội dung. `ParentOJProvider` chia sẻ state/request controller giữa `ParentOJActiveDays`, `ParentOJActivity` và `ParentOJPanel`; tải summary mới một lần khi mount cổng, không polling/cache công khai. Ô hồ sơ dùng `summary.data.activity.active_days` của12 tháng gần nhất; lịch dùng state `activity` riêng cho kỳ được chọn. Tổng bài đã thử/giải đúng lấy từ summary tích lũy, lặp cùng nguồn ở Nhịp luyện tập và Kết quả CSATOJ. `kind=activity&year` chỉ đổi lịch/lượt nộp trong kỳ. Chi tiết rating mở sẵn; thu hồi xóa cả3 vùng, thiếu dữ liệu không giả0. Staff giữ lazy load/làm mới/tổ chức. [Contract và trạng thái OJ](CSATOJ_PARENT_DATA_CONTRACT.md).
+
+## Bản đồ website và quyền truy cập
+
+Bản đồ này mô tả route trong mã, không xác nhận đã phát hành. Trạng thái môi trường ở [PROJECT_STATUS](PROJECT_STATUS.md); component và nội dung công khai ở [PUBLIC_WEBSITE](PUBLIC_WEBSITE.md).
+
+| Khu vực | Route chính | Quyền và dữ liệu |
+|---|---|---|
+| Công khai | `/`, `/lo-trinh`, `/lo-trinh/[program]`, `/tu-hoc`, `/dang-ky-hoc`, `/gia-su`, `/thanh-tich`, `/bai-dang`, `/bai-dang/[slug]`, `/hoc-lieu-mien-phi`, `/chinh-sach-quyen-rieng-tu` | Catalog/nội dung đã duyệt; sitemap chỉ lấy `publicPagePaths` |
+| Đăng nhập | `/login`, `/auth/callback` | Google phụ huynh hoặc Auth staff; không lập chỉ mục |
+| Báo cáo phụ huynh | `/parents` | Auth + liên kết active; chưa liên kết vào bước nhập số; một học sinh |
+| Bản đồ lớp | `/parents/lo-trinh/[classId]` | Kiểm lại Auth/liên kết/học sinh và giáo án lớp đã công bố; private/no-store/noindex |
+| Chuyên đề | `/parents/chuyen-de/[slug]` | Quyền phụ huynh hiện hành; không đưa nội dung riêng tư vào sitemap |
+| Quản trị | `/admin/**`, gồm `/admin/oj` | Admin; quản lý hồ sơ/lớp/liên kết/ledger có revision và audit |
+| Gia sư | `/tutor/**` | Auth, ownership/phân công và RPC tương ứng |
+| API | `/api/**` | Kiểm phiên, vai trò, Origin và phạm vi độc lập với menu/trang |
+
+Trong `/parents`: tổng quan → Nhịp luyện tập → Nhận xét → Lộ trình → Buổi học → Kết quả CSATOJ → Đồng hành cùng con (gia sư, học phí, định hướng lớp). Bản đồ lớp và chuyên đề là trang đọc riêng; không thêm mục menu trùng hoặc đưa chúng vào sitemap công khai.
 
 ## Phân chia trách nhiệm
 
@@ -99,10 +116,10 @@ flowchart LR
 |---|---|---|
 | Admin | Supabase Auth; role từ `app_metadata`, API và RPC kiểm tra quyền | `lib/business-api.ts`, `lib/auth-routing.ts`, `lib/supabase/server.ts` |
 | Gia sư | Supabase Auth; `tutors.auth_uid`, hoạt động/phân công hoặc quyền lịch sử theo RPC | `app/api/tutor/`, `features/attendance/`, migrations quyền |
-| Phụ huynh hiện tại | Google PKCE + phone claim một–một; quyền DB hiện hành, không nhận lookup cookie cũ | `lib/parent-auth.ts`, `lib/parent-lookup.ts`, `app/api/parents/auth/route.ts`, `app/parents/page.tsx` |
+| Phụ huynh hiện tại | Google PKCE + phone claim một–một; quyền DB hiện hành, không nhận lookup cookie cũ | `lib/parent-auth.ts`, `app/api/parents/link/route.ts`, `app/parents/page.tsx` |
 | Tác vụ máy chủ | Service-role client sau kiểm tra quyền/secret và điều kiện nghiệp vụ | `lib/supabase/service.ts`, email/profile API |
 
-Phụ huynh chỉ nhập số điện thoại đã đăng ký; máy chủ gọi `start_parent_phone_session`, trang đọc gọi `parent_phone_session_valid` và RPC kiểm tra liên kết. Không xác minh sở hữu số; SEC-02 vẫn mở. Token ngẫu nhiên chỉ lưu hash ở DB, không dùng số điện thoại làm cookie. Gia sư/admin giữ Auth, hai luồng dùng chung ngân sách nguồn trong `consume_auth_attempt`. Migration27 thu hồi phiên lookup cũ và quyền RPC provisioning/Auth cũ; giữ tài khoản và lịch sử. Xem [luồng hiện hành](PARENT_PHONE_ACCESS.md).
+Phụ huynh đăng nhập Google qua Supabase Auth; `parentSession()` xác thực `getUser` và đọc `parent_access`. Tài khoản chưa liên kết nhập số tại `/parents`, API `/api/parents/link` gọi RPC claim atomic; các reader kiểm liên kết active hiện hành. Số tự nhập chưa được xác minh sở hữu, SEC-02 vẫn mở. Lookup27 và RPC phiên theo số là lịch sử đã thu hồi, không dùng làm đường truy cập. Gia sư/admin giữ Auth; budget đăng nhập vẫn kiểm tại máy chủ/DB.
 
 Hai bảng nội bộ `csat_internal.auth_attempts` và `csat_internal.parent_auth_provisioning` bật RLS, không có policy cho client và thu hồi quyền truy cập trực tiếp. Hàm SECURITY DEFINER chạy bằng chủ sở hữu bảng thực hiện nghiệp vụ qua quyền EXECUTE giới hạn; không dùng FORCE RLS để thay cho kiểm tra quyền trong RPC. RLS này bổ sung khả năng chặn client nếu vô tình được cấp quyền bảng sau này, không chặn vai trò BYPASSRLS.
 
@@ -127,11 +144,13 @@ Tên đầy đủ, kiểu và chữ ký hàm phải đọc SQL hiện hành; `ty
 
 **Lộ trình:** nội dung đã duyệt trong `lib/learning-curriculum-20260922.json` và [tài liệu đào tạo](CHUONG_TRINH_DAO_TAO.md) → template/default theo chương trình → cấu hình lớp → bản công bố cho phụ huynh. Migration25 thêm mã A/B/AB/C/E/PREVOI/K, revision/history; AB hiển thị A+B. A/B/AB dùng basic, C advanced C+D; PREVOI dùng voi và giáo án riêng, không E; E/K custom. Đổi phân loại không viết lại tên lớp, giáo án, đơn giá hoặc lịch sử. Gia sư/admin chủ động chọn chặng đang học; chặng đang xem trên UI là trạng thái khác. Template/tag cũ được giữ để bảo toàn lịch sử.
 
-**Phụ huynh:** Supabase Auth + identity active → RPC `parent_portal` kiểm tra học sinh thuộc liên kết → JSON do `lib/parent-learning.ts` định nghĩa → `ParentPortalView`. Thứ tự: học sinh → nhận xét → lộ trình → định hướng → buổi học → CSATOJ → gia sư/học phí. Thẻ gia sư gộp theo tutor ID, không lộ liên hệ riêng. Logo bên trái, shell/menu riêng.
+**Phụ huynh:** Supabase Auth + identity active → RPC `parent_portal` kiểm tra học sinh thuộc liên kết → JSON do `lib/parent-learning.ts` định nghĩa → `ParentPortalView`. Thứ tự: học sinh/ngày có nộp bài → lịch luyện tập → nhận xét → lộ trình → buổi học → CSATOJ → gia sư/học phí/định hướng. Thẻ gia sư gộp theo tutor ID, không lộ liên hệ riêng. Logo bên trái, shell/menu riêng; palette phụ huynh scoped, không đổi public/staff.
 
 **Chuyên đề phụ huynh:** danh mục có kiểu `lib/parent-topics.ts` ghép metadata trong `lib/parent-topic-catalog/` với 54 Markdown cho 43 mã tại `content/parent-topics/`, chỉ trên khung chuẩn và giáo án hiệu lực đã công bố. `/parents/chuyen-de/[slug]` kiểm tra Auth, quyền parent hiện hành, học sinh, lớp và topic qua RPC ở máy chủ rồi mới đọc toàn văn; SSR private/no-store/noindex, không chung catalog bài đăng công khai. Markdown không HTML/MDX, Shiki server-only tạo các token code; quy ước blockquote câu hỏi được chuyển thành native disclosure bằng `lib/parent-topic-questions.ts`. Client chỉ nhận bài được phép đọc và thao tác sao chép. Next file tracing đóng gói Markdown. [Quyết định và giới hạn](PARENT_TOPICS.md).
 
-Migration 23 bổ sung `class_progress?` theo toàn bộ session completed đã kết thúc của lớp được phép xem. UI suy ra chặng định hướng theo giáo án hiệu lực, không phụ thuộc tháng hoặc nghỉ riêng, không ghi trạng thái thành thạo. Thiếu aggregate fallback chặng gia sư công bố, không biến thành zero. Trạng thái áp dụng ở PROJECT_STATUS.
+**Bản đồ lớp riêng:** dưới768px, báo cáo mở sẵn danh sách nội dung theo chặng, ẩn SVG/điều khiển bản đồ và thay bằng link `/parents/lo-trinh/[classId]`. Route mới kiểm Auth/parent active, xác thực tham số, gọi lại `parent_portal`, đối chiếu student ID rồi chỉ nhận giáo án lớp đã công bố thuộc projection được phép. `lib/parent-roadmap.ts` chia sẻ lựa chọn giáo án/link chuyên đề hiệu lực giữa hai màn hình; không nhận giáo án từ client. Route private/no-store/noindex, giữ tháng/trang khi quay lại. Desktop vẫn dùng bản đồ trong báo cáo; trang riêng dùng cùng renderer trên mọi kích thước.
+
+Migration23 bổ sung `class_progress?` theo toàn bộ session completed đã kết thúc của lớp được phép xem. UI suy ra chặng theo giáo án hiệu lực, không phụ thuộc tháng/nghỉ riêng. Thanh pixel dùng `min(100, completed_sessions / số nội dung hiệu lực ×100)`; mỗi nội dung là một buổi dự kiến theo quyết định05/11. Thiếu aggregate hoặc mẫu số thì không hiện%; chặng vẫn fallback gia sư công bố. Không ghi nội dung buổi, thành thạo hoặc điều chỉnh giáo án từ phép tính này. Không cần migration mới; trạng thái nghiệm thu ở PROJECT_STATUS.
 
 **Ảnh gia sư:** form multipart → API kiểm tra ownership/revision → Sharp kiểm tra ảnh, xoay/cắt 512×512, WebP ≤200 KiB → Storage → RPC lưu profile → dọn ảnh cũ sau thành công. `tutor_avatar_assets` theo dõi vòng đời để xử lý kết quả ghi không chắc chắn. Bucket public để xem, client không được ghi trực tiếp.
 

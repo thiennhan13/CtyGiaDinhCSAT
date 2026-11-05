@@ -1,4 +1,5 @@
-import { ParentOJPanel, ParentOJProvider, ParentOJActivity } from '@/components/oj/ParentOJPanel';
+import { ParentOJPanel, ParentOJProvider, ParentOJActivity, ParentOJActiveDays } from '@/components/oj/ParentOJPanel';
+import { BookOpen } from 'lucide-react';
 import { ParentTutors } from '@/components/tutors/ParentTutors';
 import Link from 'next/link';
 import { classProgramLabel } from '@/lib/class-programs';
@@ -9,10 +10,8 @@ import { getReviewTag } from '@/lib/student-reviews';
 import { ParentAttendance } from './ParentAttendance';
 import { ParentShell } from './ParentShell';
 import { ParentDevelopment } from './ParentDevelopment';
-import { effectiveStages } from '@/lib/curriculum';
 import { resolveParentCurriculumProgress } from '@/lib/parent-curriculum-progress';
-import { articlesForTopic, isParentTopicFramework, parentTopicHref } from '@/lib/parent-topics';
-import { csatojPracticeUrl } from '@/lib/csatoj-practice';
+import { parentRoadmapHref, parentRoadmapLinks } from '@/lib/parent-roadmap';
 
 const money = (value:number|null) => value === null ? 'Chưa đủ dữ liệu' : new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND',maximumFractionDigits:0}).format(value);
 const card='parent-card';
@@ -23,9 +22,9 @@ export function ParentPortalView({portal}:{portal:ParentLearningData}){
  const totals=portal.invoices.reduce((s,p)=>({amount:s.amount+Number(p.amount),received:s.received+Number(p.amount)-Number(p.balance),owed:s.owed+Math.max(0,Number(p.balance)),credit:s.credit+Math.max(0,-Number(p.balance))}),{amount:0,received:0,owed:0,credit:0});
  return <ParentOJProvider key={student.student_id+portal.month} studentId={student.student_id}><ParentShell>
    <header id="overview" className="parent-welcome"><h1>Hành trình học tập của con.</h1></header>
-   <section className="parent-profile" aria-label="Thông tin học sinh"><div className="parent-profile-main"><div className="parent-avatar" aria-hidden="true">{student.name.trim().split(/\s+/).slice(-1)[0]?.slice(0,1)}</div><div className="min-w-0"><p className="parent-eyebrow">HỌC SINH</p><h2>{student.name}</h2><div className="parent-chips">{portal.enrolledClasses.map(c=><span key={c.class_id}>{c.classes?.name}</span>)}</div><a className="parent-metric-note underline" href="#oj">Xem kết quả CSATOJ</a></div></div><div className="parent-profile-goal"><p className="parent-eyebrow">ĐỒNG HÀNH CÙNG GIA ĐÌNH</p><a href="#reviews">Xem ghi nhận mới nhất ↓</a></div></section>
+   <section className="parent-profile" aria-label="Thông tin học sinh"><div className="parent-profile-main"><div className="parent-avatar" aria-hidden="true"><BookOpen size={30} strokeWidth={2}/></div><div className="min-w-0"><h2>{student.name}</h2><div className="parent-chips">{portal.enrolledClasses.map(c=><span key={c.class_id}>{c.classes?.name}</span>)}</div></div></div><ParentOJActiveDays/></section>
    <ParentOJActivity/>
-   <section id="reviews" className={card}><h2 className="parent-section-title parent-section-title--blue">Nhận xét từ gia sư</h2><p className="my-4 text-sm leading-7 text-muted-foreground">Mức độ nắm bài được ghi nhận qua bài làm và nhận xét của gia sư.</p>
+   <section id="reviews" className={card}><h2 className="parent-section-title parent-section-title--blue mb-4">Nhận xét từ gia sư</h2>
     <div className="space-y-4">{portal.reviews.map(r=><article key={r.review_id} className="rounded-xl border p-5"><div className="mb-4 flex flex-wrap justify-between gap-3"><strong>{r.classes?.name} · {r.month_year}</strong><span className="text-xs text-muted-foreground">Gia sư: {r.tutors?.name || 'Chưa cập nhật'}</span></div><ReviewContent review={r}/></article>)}</div>
     {!portal.reviews.length && <p className="rounded-lg border border-dashed p-5 text-sm">Chưa có nhận xét tháng được công bố.</p>}
     <div className="mt-5 flex flex-wrap gap-3 print:hidden">{portal.reviewPage>0 && <Link className="csat-btn text-xs" href={query(portal.reviewPage-1)}>Mới hơn</Link>}{(portal.reviewPage+1)*12<portal.reviewCount && <Link className="csat-btn text-xs" href={query(portal.reviewPage+1)}>Nhận xét trước đó</Link>}</div>
@@ -33,20 +32,12 @@ export function ParentPortalView({portal}:{portal:ParentLearningData}){
    <section id="roadmap" className={card}><h2 className="parent-section-title parent-section-title--lime mb-4">Lộ trình và trọng tâm học tập</h2>
     {portal.plans.filter(p=>p.kind==='class').map(p=>{
       const progress=resolveParentCurriculumProgress(p.template,p.body,portal.class_progress?.find(item=>item.class_id===p.class_id));
-      const articleLinks:Record<string,string>={};
-      const practiceLinks:Record<string,string>={};
-      if(p.published_at&&isParentTopicFramework(p.template,p.body))for(const stage of effectiveStages(p.template,p.body))for(const lesson of stage.lessons){
-        const first=lesson.code?articlesForTopic(lesson.code)[0]:undefined;
-        if(first&&lesson.code)articleLinks[lesson.code]=parentTopicHref(first.slug,{student:student.student_id,classId:p.class_id,month:portal.month,page:portal.reviewPage});
-        const practiceUrl=lesson.code?csatojPracticeUrl(lesson.code):undefined;
-        if(lesson.code&&practiceUrl)practiceLinks[lesson.code]=practiceUrl;
-      }
-      return <article key={p.class_id} className="mb-7 space-y-4 last:mb-0"><h3 className="text-xl font-bold text-primary">{p.class_name}</h3>{p.program_code && <p className="text-sm font-semibold">Chương trình {classProgramLabel(p.program_code)}</p>}<ParentKnowledgeMap body={p.body} template={p.template} progress={progress} canonical={isParentTopicFramework(p.template,p.body)} articleLinks={articleLinks} practiceLinks={practiceLinks}/></article>;
+      const context={student:student.student_id,classId:p.class_id,month:portal.month,page:portal.reviewPage};
+      return <article key={p.class_id} className="mb-7 space-y-4 last:mb-0"><h3 className="text-xl font-bold text-primary">{p.class_name}</h3>{p.program_code && <p className="text-sm font-semibold">Chương trình {classProgramLabel(p.program_code)}</p>}<ParentKnowledgeMap body={p.body} template={p.template} progress={progress} {...parentRoadmapLinks(p,context)} mobileMapHref={parentRoadmapHref(context)}/></article>;
     })}
     {!portal.plans.some(p=>p.kind==='class') && <p className="text-sm leading-7 text-muted-foreground">Gia sư chưa công bố lộ trình lớp. Thông tin sẽ được bổ sung sau khi xác nhận chương trình và mục tiêu học.</p>}
     {portal.plans.filter(p=>p.kind==='student').map(p=><article key={p.class_id} className="mt-6 space-y-3 rounded-xl bg-accent p-5"><h3 className="font-bold">Trọng tâm riêng · {p.class_name}</h3><p className="whitespace-pre-wrap text-sm leading-7">{p.body.goal}</p><div className="flex flex-wrap gap-2">{p.body.focus_tags.map(id=><span className="rounded-lg border bg-card p-2 text-xs" key={id}>{getReviewTag(id)?.label || id}</span>)}</div>{p.body.next_step && <p className="whitespace-pre-wrap text-sm leading-7"><strong>Bước tiếp theo: </strong>{p.body.next_step}</p>}</article>)}
    </section>
-   <ParentDevelopment plans={portal.plans}/>
    <section id="attendance" className={card}><div className="mb-5 flex flex-wrap items-end justify-between gap-4"><h2 className="parent-section-title parent-section-title--blue">Buổi học · {portal.month}</h2><form className="flex flex-wrap items-end gap-2 print:hidden" action="/parents"><input type="hidden" name="student" value={student.student_id}/><label className="text-xs">Tháng xem<input type="month" name="month" defaultValue={portal.month} required className="mt-2 block min-h-11 rounded-lg border bg-background px-3"/></label><button className="csat-btn text-sm" type="submit">Xem buổi học</button></form></div>
     <ParentAttendance sessions={portal.attendance}/>
    </section>
@@ -59,6 +50,7 @@ export function ParentPortalView({portal}:{portal:ParentLearningData}){
     {!portal.invoices.length && <p className="my-4 text-sm text-muted-foreground">Chưa có kỳ học phí đã chốt.</p>}
     <h3 className="mb-3 mt-6 font-bold">Tạm tính · Chưa chốt</h3><div className="space-y-3">{portal.provisional.map((p,i)=><div key={i} className="flex flex-wrap justify-between gap-3 rounded-xl border border-dashed p-4"><div><strong className="text-sm">{p.class_name} · {p.month}</strong><p className="mt-2 text-xs text-muted-foreground">{p.unknown>0?p.unknown+' buổi còn thiếu điểm danh hoặc học phí; số tiền dưới đây chưa đầy đủ.':'Theo buổi học và mức phí đã ghi nhận; chờ đối chiếu.'}</p></div><span className="font-bold">{money(p.amount)}</span></div>)}</div>{!portal.provisional.length && <p className="text-sm text-muted-foreground">Chưa có khoản tạm tính từ các buổi đã diễn ra.</p>}
    </section>
+   <ParentDevelopment plans={portal.plans}/>
    </div>
    <footer className="parent-footer">CSAT · Gia đình và gia sư cùng đồng hành trong việc học của con.</footer>
  </ParentShell></ParentOJProvider>;

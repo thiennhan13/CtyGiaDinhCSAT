@@ -100,9 +100,10 @@ jobs:
           CSAT_BROWSER_CHANNEL: chromium
         run: node scripts/run-parent-topics-ui.cjs
 
-      - name: Parent identity, OJ grants and tutor receipt browser fixtures
+      - name: Parent Portal production build, access and OJ browser fixtures
         env:
           CSAT_BROWSER_CHANNEL: chromium
+          CSAT_UI_PRODUCTION: '1'
         run: node scripts/run-oj-ui.cjs
 
   postgres:
