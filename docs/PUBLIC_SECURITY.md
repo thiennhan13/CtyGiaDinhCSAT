@@ -9,7 +9,7 @@ Phạm vi: bảo vệ HTTP, chống tự động hóa, dependency và giới h�
 | API | Origin, schema strict, giới hạn body; login tối đa 4 KiB | Không thay quyền nghiệp vụ/RPC |
 | Đăng nhập | Turnstile trước rate limit/Auth/RPC; budget nguồn dùng chung trong DB | Chỉ hai API ứng dụng; không bảo vệ mọi đường gọi Supabase Auth trực tiếp |
 | Đăng ký/tư vấn | Consent, honeypot, validation, request ID, giới hạn nguồn/số | Không CAPTCHA; email đơn mới chưa triển khai |
-| Dữ liệu phụ huynh | Cookie HttpOnly/Secure/SameSite, token ngẫu nhiên lưu hash, phiên/link/published kiểm tại server; private/no-store | Số điện thoại không chứng minh danh tính |
+| Dữ liệu phụ huynh | Google/Supabase Auth qua cookie SSR; phiên/link active/published kiểm tại server; private/no-store | Số điện thoại không chứng minh danh tính |
 | Secret | Service client có `server-only`, không truyền key/token vào client/log/URL | Guard không thay kiểm quyền khi dùng service role |
 | HTTP | HTTPS/HSTS; nosniff, X-Frame-Options DENY, strict-origin-when-cross-origin | CSP đang Report-Only, chưa chặn tài nguyên |
 | Bot | Vercel Bot Protection Log; DDoS mitigation nền tảng | Log không chặn; chưa Challenge, custom rate rule, Attack Mode hoặc BotID SDK |
@@ -18,7 +18,7 @@ CSP chỉ quan sát tại trình duyệt, không có collector lưu URL riêng t
 
 ## Giới hạn danh tính
 
-Theo quyết định hiện hành, người biết đúng số phụ huynh có thể mở dữ liệu học tập/học phí liên kết. Rate limit, CAPTCHA, robots và WAF không xác minh sở hữu số. **SEC-02 vẫn mở**; không tự khôi phục mật khẩu/OTP/Auth hoặc gọi đây là lỗi đã được giải quyết.
+Theo quyết định hiện hành, tài khoản Google biết đúng số phụ huynh chưa được nhận liên kết có thể tự nhận quyền xem hồ sơ khi số khớp. Rate limit, CAPTCHA, robots và WAF không xác minh sở hữu số. **SEC-02 vẫn mở**; không tự khôi phục mật khẩu/OTP/Auth hoặc gọi đây là lỗi đã được giải quyết.
 
 Gia sư/admin giữ Supabase Auth. SEC-01 cần phương án thay mật khẩu khởi tạo bằng số điện thoại và xử lý tài khoản cũ, chưa reset hàng loạt.
 
@@ -30,7 +30,9 @@ Gia sư/admin giữ Supabase Auth. SEC-01 cần phương án thay mật khẩu k
 - Service Supabase có `server-only`; không tạo helper client vượt ranh giới quyền.
 - Không dùng `audit fix --force` hoặc hạ phiên bản công cụ tự động chỉ để xóa advisory.
 
-Lần audit ghi nhận trong PROJECT_STATUS: runtime 0 cảnh báo, dev/build còn 7 (5 high, 2 moderate), ở chuỗi braces/micromatch/fast-glob của ESLint Next và postcss-selector-parser của typography. Đây không phải chứng nhận không có lỗ hổng; audit registry không bao phủ đầy đủ package CDN. Tái kiểm advisory và đường sử dụng khi sửa dependency.
+Đợt phát hành2.1.0 đối chiếu Dependabot05/11/2026: cập nhật Next.js/eslint-config-next16.4.1, Zod4.6.6; override đúng dải minimatch bị ảnh hưởng lên11.0.1 và postcss-selector-parser lên6.1.5. Override minimatch không thay nhánh3.x của ESLint; bản11 được kiểm trên Node24 bằng lint/build/test. Không dùng audit fix --force. Nguồn advisory: [Next.js cache](https://github.com/advisories/GHSA-673q-mjm6-r5xr), [Next.js image](https://github.com/advisories/GHSA-2464-fhr4-w9xw), [Zod](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5), [minimatch](https://github.com/advisories/GHSA-g3hv-75wg-m249), [selector parser](https://github.com/advisories/GHSA-rj75-hqrm-r3gf).
+
+Sau cập nhật, npm audit trên Node24.22.1 báo0 vulnerability (cả runtime và dev). Build/typecheck/lint/repo đạt; GitHub và CI của commit phát hành được ghi ở PROJECT_STATUS/Release. Kết quả registry không bao phủ toàn bộ package CDN hoặc chứng minh ứng dụng không có lỗ hổng. GitHub secret scanning/push protection và báo cáo bảo mật riêng đã bật; không tự sửa lịch sử Git từ kết quả quét.
 
 ## Phần cần duyệt hoặc nghiệm thu tiếp
 
