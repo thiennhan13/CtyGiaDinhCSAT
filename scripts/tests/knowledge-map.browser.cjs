@@ -58,6 +58,7 @@ try {
   await page.locator('[data-mode=list]').click(); await page.locator('[data-mode=diagram]').click();
   assert.deepEqual(await viewport(), savedViewport, 'Changing display mode preserves the viewport.');
   await page.locator('[data-mode=list]').click(); await page.locator('[data-view=full]').click();
+  await page.waitForFunction(() => document.querySelectorAll('#list [data-node]').length === 43);
   assert.equal(await page.locator('#list [data-node]').count(), 43);
   for (const node of nodes) {
     await page.locator(`#list [data-node="${node.id}"]`).click();
@@ -71,10 +72,15 @@ try {
   await page.locator('#search').fill('khong-co-kien-thuc-nay'); await page.locator('#notice').waitFor();
   assert.equal(await page.locator('#list [data-node]').count(), 0);
   await page.locator('#clear-search').click();
-  await page.goto(base + '#view=B&mode=list'); await page.locator('#list [data-node=B02]').click();
-  await page.goBack(); await page.waitForFunction(() => !document.querySelector('#topic-dialog').open);
+  await page.goto(base + '#view=B&mode=list');
+  await page.waitForFunction(() => document.querySelectorAll('#list [data-node]').length === 15);
+  await page.locator('#list [data-node=B02]').click();
+  await page.waitForFunction(() => document.querySelector('#topic-dialog').open && new URLSearchParams(location.hash.slice(1)).get('tag') === 'B02');
+  await page.goBack();
+  // The dialog closes before the asynchronous view restore has finished.
+  await page.waitForFunction(() => !document.querySelector('#topic-dialog').open && document.querySelectorAll('#list [data-node]').length === 15);
   assert.equal(await page.locator('#list [data-node]').count(), 15);
-  await page.goForward(); await page.waitForFunction(() => document.querySelector('#topic-dialog').open);
+  await page.goForward(); await page.waitForFunction(() => document.querySelector('#topic-dialog').open && document.querySelector('#topic-code').textContent.startsWith('B02'));
   assert.equal(await page.locator('#topic-title').textContent(), nodes.find(node => node.id === 'B02').title);
   let destination;
   await context.route('https://csatoj.vn/**', route => { destination = route.request().url(); return route.fulfill({ status: 200, contentType: 'text/html', body: '<title>Navigation test</title>' }); });
