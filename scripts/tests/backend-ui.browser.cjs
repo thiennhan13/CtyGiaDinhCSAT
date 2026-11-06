@@ -19,7 +19,7 @@ module.exports = async function backendUi({ context, origin, run, check, output 
         attempts.push(route.request().postDataJSON()); await pause();
         return json(route, attempts.length < 3 ? 503 : 200, attempts.length < 3 ? { error: 'Lỗi fixture, vui lòng thử lại.' } : { ok: true });
       });
-      await p.goto(origin + '/dang-ky-hoc?course=C', { waitUntil: 'networkidle' });
+      await p.goto(origin + '/enroll?course=C', { waitUntil: 'networkidle' });
       const form = p.locator('.public-intake form');
       await form.locator('[name=name]').fill('Phụ huynh dữ liệu giả');
       await form.locator('[name=phone]').fill('0912345678');
@@ -54,13 +54,13 @@ module.exports = async function backendUi({ context, origin, run, check, output 
       await layout(p,'backend-registration',width);
     } finally { await c.close(); }
   });
-  for (const pathname of ['/lo-trinh', '/lo-trinh/a']) await run('backend consultation direct send ' + pathname, async () => {
+  for (const pathname of ['/roadmap', '/roadmap/a']) await run('backend consultation direct send ' + pathname, async () => {
     const c=await context(null,{viewport:{width:375,height:900}}),p=await c.newPage();
     try {
       let calls=0;
       await p.route(origin+'/api/consultations',async route=>{
         calls++;const body=route.request().postDataJSON();check(body.source_path===pathname,'Shared form retains source');
-        if(pathname==='/lo-trinh/a')check(body.course==='A','Detail course stays selected');
+        if(pathname==='/roadmap/a')check(body.course==='A','Detail course stays selected');
         return json(route,200,{ok:true});
       });
       await p.goto(origin+pathname,{waitUntil:'networkidle'});
@@ -112,7 +112,7 @@ module.exports = async function backendUi({ context, origin, run, check, output 
   for (const width of widths) await run('backend admin intake filters and revision conflict ' + width, async () => {
     const c = await context('valid', { viewport: { width, height: 900 } }, 'admin'), p = await c.newPage();
     try {
-      const requests = [], row = { request_id: '30000000-0000-4000-8000-000000000001', data: { name: 'Liên hệ dữ liệu giả', phone: '0912345678', role: 'parent', course: 'K', level: 'thcs', message: 'Nhu cầu kiểm thử.', source_path: '/dang-ky-hoc' }, status: 'new', revision: 1, created_at: '2026-10-13T01:00:00Z', consultation_status_history: [] };
+      const requests = [], row = { request_id: '30000000-0000-4000-8000-000000000001', data: { name: 'Liên hệ dữ liệu giả', phone: '0912345678', role: 'parent', course: 'K', level: 'thcs', message: 'Nhu cầu kiểm thử.', source_path: '/enroll' }, status: 'new', revision: 1, created_at: '2026-10-13T01:00:00Z', consultation_status_history: [] };
       let writes = 0;
       await p.route(origin + '/api/admin/consultations**', async route => {
         const request = route.request();

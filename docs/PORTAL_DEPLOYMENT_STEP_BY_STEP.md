@@ -1,5 +1,7 @@
 # Triển khai Portal: từng bước từ cấu hình đến nhập hồ sơ
 
+Đợt tách ba cổng và đổi URL dùng [quy trình migration 33–34 và nghiệm thu](PORTAL_ACCESS_AND_ROUTES.md). Các bước dưới đây ghi lại mốc triển khai trước đó.
+
 ## Việc cần hoàn thành sau push04/11
 
 Google OAuth đã được chủ trung tâm cấu hình với Supabase. Kiểm chỉ đọc04/11 xác nhận provider bật, schema đến32 và quyền/ràng buộc đạt. Mã tương thích đã commit/push/deploy; tên miền chính có Google entry/callback, kiểm không Auth/CAPTCHA đạt. Chủ trung tâm đã thử Google → nhập số → thấy đúng học sinh trên production. Còn kiểm refresh/logout/đăng nhập lại, Gmail thứ hai bị từ chối cùng số và chuyển/khóa quyền; OJ/Storage vẫn cần nghiệm thu. Không chạy lại migration hoặc reset. Bằng chứng ở [PROJECT_STATUS](PROJECT_STATUS.md).

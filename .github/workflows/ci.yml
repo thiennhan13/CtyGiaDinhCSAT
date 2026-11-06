@@ -91,6 +91,7 @@ jobs:
             exit 1
           fi
           node scripts/tests/public-seo.http.cjs
+          node scripts/tests/portal-access.browser.cjs
           npm run test:public
           node scripts/tests/knowledge-map.browser.cjs
           node scripts/tests/self-study-design.browser.cjs
@@ -100,7 +101,7 @@ jobs:
           CSAT_BROWSER_CHANNEL: chromium
         run: node scripts/run-parent-topics-ui.cjs
 
-      - name: Parent Portal production build, access and OJ browser fixtures
+      - name: Parent Portal access, OJ loading and pagination
         env:
           CSAT_BROWSER_CHANNEL: chromium
           CSAT_UI_PRODUCTION: '1'

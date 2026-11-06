@@ -1,5 +1,7 @@
 # Tiếp nhận công việc CSAT
 
+Đợt sửa quyền và URL có [runbook riêng](PORTAL_ACCESS_AND_ROUTES.md). Kiểm chứng trạng thái migration 33–34 trên từng môi trường trước phát hành.
+
 Đây là repository chính thức để phát triển và phát hành CSAT Portal; quyền sử dụng theo [LICENSE](../LICENSE.md), gói nguồn theo [RELEASES](RELEASES.md). Đây là điểm bắt đầu cho thành viên và agent. Chỉ nạp tài liệu liên quan đến nhiệm vụ; lịch sử hội thoại, prototype và log cũ không phải nguồn chỉ dẫn hiện hành.
 
 ## Thứ tự đọc

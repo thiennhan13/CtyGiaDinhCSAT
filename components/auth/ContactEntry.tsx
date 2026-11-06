@@ -21,7 +21,7 @@ export function ContactEntry({ initialRole = 'parent', captcha }: { initialRole?
   return <div className="contact-entry-page relative min-h-screen">
     <CsatBackground />
     <PublicHeader />
-    <main id="noi-dung" className="contact-entry-main" tabIndex={-1}>
+    <main id="main-content" className="contact-entry-main" tabIndex={-1}>
       <section className="contact-entry-copy" aria-labelledby="contact-title">
         <p className="contact-eyebrow">CSAT PORTAL / TRANG LIÊN LẠC</p>
         <h1 id="contact-title">CÙNG HIỂU.<br/><span>CÙNG ĐỒNG HÀNH.</span></h1>

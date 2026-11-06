@@ -1,3 +1,3 @@
 import type { MetadataRoute } from 'next';
 import { publicUrl } from '@/lib/public-seo';
-export default function robots():MetadataRoute.Robots{return {rules:{userAgent:'*',allow:'/',disallow:['/admin','/tutor','/parents','/api/']},sitemap:publicUrl('/sitemap.xml')};}
+export default function robots():MetadataRoute.Robots{return {rules:{userAgent:'*',allow:'/',disallow:['/admin','/tutor','/parents','/parent','/api/']},sitemap:publicUrl('/sitemap.xml')};}

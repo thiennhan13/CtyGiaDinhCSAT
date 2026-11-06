@@ -17,7 +17,7 @@ function FlagshipMark() {
 export function FlagshipCourseSection({ chapter }: { chapter: string }) {
   const course = publicCourses.find(item => item.code === 'E')!;
   const content = publicRoadmapContent.E;
-  return <section className="rm-class-section rm-editorial-class rm-class-e rm-flagship rm-flagship-feature" id="lop-e" aria-labelledby="class-e-title">
+  return <section className="rm-class-section rm-editorial-class rm-class-e rm-flagship rm-flagship-feature" id="class-e" aria-labelledby="class-e-title">
     <div className="e-background-art" aria-hidden="true"><Code2 className="e-art-code" /><Braces className="e-art-braces" /><Binary className="e-art-binary" /><Medal className="e-art-medal" /></div>
     <Reveal className="wrap rm-section-reveal" variant="rise">
       <div className="e-chapter"><span className="mono">{chapter} / LỚP E</span><span>CHỌN LỌC TỪ LỚP C</span></div>

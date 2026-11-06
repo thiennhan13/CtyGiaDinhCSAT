@@ -8,7 +8,7 @@ import { grantRequest, grantErrorResponse } from '@/lib/oj-grants-server';
 import { ojContext, ojSummary, ojOrganizations, ojContests, ojClassResults, type OJActivity } from '@/lib/oj-grants';
 const json = (data: unknown, status = 200) => NextResponse.json(data, { status, headers: { 'Cache-Control': 'private, no-store' } });
 export async function readOJAccount(request: Request, parentOnly: boolean) {
-  const auth = await businessSession(false); if (auth.response) return auth.response;
+  const auth = await businessSession(parentOnly ? 'parent' : 'staff'); if (auth.response) return auth.response;
   const actorId = auth.user.id;
   try {
     const today = new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10), currentYear = Number(today.slice(0, 4));

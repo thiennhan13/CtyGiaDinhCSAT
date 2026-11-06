@@ -15,7 +15,7 @@ export async function GET(){
  try{return NextResponse.json(await snapshot(session.supabase),{headers:{'Cache-Control':'private, no-store'}});}catch(e){return businessError(e);}
 }
 export async function POST(request:Request){
- const session=await businessSession(true,request);if(session.response)return session.response;
+ const session=await businessSession('admin',request);if(session.response)return session.response;
  const input=z.object({token:z.string().regex(/^[a-f0-9]{64}$/),student_ids:z.array(z.string().uuid()).min(1).max(1000)}).strict().safeParse(await request.json().catch(()=>null));
  if(!input.success)return NextResponse.json({error:'Danh sách nhập không hợp lệ.'},{status:422});
  try{

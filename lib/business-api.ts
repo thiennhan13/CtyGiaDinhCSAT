@@ -1,3 +1,4 @@
+import { portalRole, type PortalRole } from '@/lib/auth-routing';
 import { isSameOrigin } from '@/lib/parents';
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
@@ -8,12 +9,17 @@ export function businessError(error: unknown) {
     : ['22003', '22023', '22P02', '22007', '22008', '23502', '23503'].includes(e.code ?? '') ? 422 : 500;
   return NextResponse.json({ error: status === 500 ? 'Không thể hoàn tất thao tác. Vui lòng thử lại.' : e.message, code: e.code }, { status });
 }
-export async function businessSession(adminOnly = true, request?: Request) {
+export async function businessSession(required: PortalRole | 'staff' = 'admin', request?: Request) {
   if (request && !isSameOrigin(request)) return { response: NextResponse.json({ error: 'Nguồn yêu cầu không hợp lệ.' }, { status: 403 }) };
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) return { response: NextResponse.json({ error: 'Chưa đăng nhập.' }, { status: 401 }) };
-  if (adminOnly && user.app_metadata?.role !== 'admin')
+  const role = portalRole(user);
+  if (!role || (required === 'staff' ? role === 'parent' : role !== required))
     return { response: NextResponse.json({ error: 'Quyền truy cập bị từ chối.' }, { status: 403 }) };
+  if (role === 'tutor') {
+    const tutor = await supabase.rpc('current_tutor_id');
+    if (tutor.error || !tutor.data) return { response: NextResponse.json({ error: 'Chưa xác minh được quyền gia sư.' }, { status: tutor.error ? 503 : 403 }) };
+  }
   return { supabase, user };
 }

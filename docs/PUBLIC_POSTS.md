@@ -2,18 +2,18 @@
 
 ## Phạm vi hiện tại
 
-`/gia-su` giới thiệu đội ngũ, dùng chung hero và thẻ gia sư trong `TutorShowcase.tsx` với trang chủ. Nội dung và thành tích là thông tin công khai đã được trung tâm cung cấp; không đọc hồ sơ riêng hay thay dữ liệu `tutor_public_profiles`. Menu Trang liên lạc dẫn `/login`; `/tutor` giữ entry kiểm tra phiên và chuyển người chưa đăng nhập tới `/login?role=tutor`.
+`/team` giới thiệu đội ngũ, dùng chung hero và thẻ gia sư trong `TutorShowcase.tsx` với trang chủ. Nội dung và thành tích là thông tin công khai đã được trung tâm cung cấp; không đọc hồ sơ riêng hay thay dữ liệu `tutor_public_profiles`. Menu Trang liên lạc dẫn `/login`; `/tutor` giữ entry kiểm tra phiên và chuyển người chưa đăng nhập tới `/login?role=tutor`.
 
-`/bai-dang` có lưới bài viết và `/bai-dang/[slug]` có trang bài với tên CSAT, văn bản, một ảnh và liên kết đọc tiếp. Ba bài đầu là nội dung giới thiệu chương trình, cách học và đội ngũ từ tài liệu đã duyệt; không tạo ngày đăng, bình luận hoặc số tương tác. Bài không tồn tại trả 404. Đây là khung frontend, chưa có database hay công cụ đăng bài.
+`/posts` có lưới bài viết và `/posts/[slug]` có trang bài với tên CSAT, văn bản, một ảnh và liên kết đọc tiếp. Ba bài đầu là nội dung giới thiệu chương trình, cách học và đội ngũ từ tài liệu đã duyệt; không tạo ngày đăng, bình luận hoặc số tương tác. Bài không tồn tại trả 404. Đây là khung frontend, chưa có database hay công cụ đăng bài.
 
 ## Nơi sửa
 
 | Nội dung | File |
 |---|---|
 | Hero/thẻ gia sư dùng chung | `components/marketing/TutorShowcase.tsx` |
-| Trang đội ngũ | `app/gia-su/page.tsx` |
+| Trang đội ngũ | `app/team/page.tsx` |
 | Dữ liệu bài: slug, nhóm, đầu đề, đoạn văn, ảnh, liên kết | `lib/public-posts.ts` |
-| Lưới/trang bài | `app/bai-dang/page.tsx`, `app/bai-dang/[slug]/page.tsx` |
+| Lưới/trang bài | `app/posts/page.tsx`, `app/posts/[slug]/page.tsx` |
 | Bố cục bài | `components/marketing/posts.css` |
 
 Giữ văn bản thuần; ảnh chỉ dùng tài nguyên tối ưu được phép. Slug ổn định, duy nhất và gồm chữ thường không dấu/số/dấu gạch ngang. Sitemap lấy bài từ cùng nguồn dữ liệu. Quy tắc thiết kế chung ở [nhận diện](PUBLIC_UI_DESIGN_SYSTEM.md).

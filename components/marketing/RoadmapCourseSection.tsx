@@ -19,7 +19,7 @@ export function RoadmapCourseSection({ code, chapter }: { code: PublicCourseCode
   if (code === 'E') return <FlagshipCourseSection chapter={chapter} />;
   const course = publicCourses.find(item => item.code === code)!;
   const content = publicRoadmapContent[code];
-  return <section className={`rm-class-section rm-editorial-class rm-class-${code.toLowerCase()}`} id={`lop-${code.toLowerCase()}`} aria-labelledby={`class-${code.toLowerCase()}-title`}>
+  return <section className={`rm-class-section rm-editorial-class rm-class-${code.toLowerCase()}`} id={`class-${code.toLowerCase()}`} aria-labelledby={`class-${code.toLowerCase()}-title`}>
     <Reveal className="wrap rm-section-reveal" variant={code === 'B' ? 'right' : code === 'C' ? 'rise' : 'left'}>
       <div className="rm-chapter mono"><span>{chapter} / LỚP {code} · {course.name.toLocaleUpperCase('vi')}</span><span>{course.scope.toLocaleUpperCase('vi')}</span></div>
       <div className="rm-description-band">

@@ -17,7 +17,7 @@ test('PostgreSQL: Google claims, tutor receipts, grant completion race and reset
  try{
   execFileSync(path.join(bin,'initdb.exe'),['-D',dataDir,'-U',config.user,'--pwfile='+passwordFile,'--auth=scram-sha-256','--encoding=UTF8','--locale=C'],{windowsHide:true,stdio:'pipe'});
   execFileSync(path.join(bin,'pg_ctl.exe'),['-D',dataDir,'-l',path.join(runtime,'server.log'),'-o','-h 127.0.0.1 -p '+config.port,'-w','-t','30','start'],{windowsHide:true,stdio:'ignore',timeout:40000});started=true;
-  const a=await connect();a.close=async()=>{};await portalDB('20261031_32',a);const b=await connect();
+  const a=await connect();a.close=async()=>{};await portalDB('20261105_34',a);const b=await connect();
   await value(a,'select admin_save_parent(null,$1,$2,$3,true,null)',['Parent','0912345678',id(10)]);
   await parent(a,80);await parent(b,81);
   const claims=await Promise.all([value(a,"select claim_parent_phone('+84912345678')"),value(b,"select claim_parent_phone('0084912345678')")]);

@@ -1,3 +1,4 @@
+import aliases from './lib/route-aliases.json';
 import type { NextConfig } from 'next';
 
 // Public endpoint only; never include an API key in a response header.
@@ -24,7 +25,18 @@ const cspReportOnly = [
 
 const nextConfig: NextConfig = {
   redirects() {
-    return [{ source: '/ban-do-kien-thuc', destination: '/tu-hoc', permanent: true }];
+    const redirect = (source: string, destination: string) => ({ source, destination, permanent: true });
+    const programs = { a:'a', b:'b', c:'c', e:'e', k:'k', advanced:'c', 'nang-cao':'c', custom:'k', 'tuy-chinh':'k' };
+    return [
+      ...Object.entries(aliases.topics).flatMap(([old, slug]) => ['parent','parents'].map(area => redirect('/'+area+'/chuyen-de/'+old, '/parents/topics/'+slug))),
+      ...Object.entries(aliases.posts).map(([old, slug]) => redirect('/bai-dang/'+old, '/posts/'+slug)),
+      ...Object.entries(programs).map(([old, slug]) => redirect('/lo-trinh/'+old, '/roadmap/'+slug)),
+      ...['basic','co-ban'].map(old => redirect('/lo-trinh/'+old, '/roadmap')),
+      ...['voi','prevoi','hsgqg'].map(old => redirect('/lo-trinh/'+old, '/enroll#details')),
+      ...['parent','parents'].map(area => redirect('/'+area+'/lo-trinh/:id', '/parents/roadmap/:id')),
+      redirect('/parent/:path*', '/parents/:path*'),
+      ...Object.entries(aliases.pages).map(([old, slug]) => redirect('/'+old, '/'+slug)),
+    ];
   },
   reactStrictMode: true,
   async headers() {
@@ -40,7 +52,7 @@ const nextConfig: NextConfig = {
     }];
   },
   outputFileTracingIncludes: {
-    '/parents/chuyen-de/*': ['./content/parent-topics/*.md'],
+    '/parents/topics/*': ['./content/parent-topics/*.md'],
   },
   typescript: {
     ignoreBuildErrors: false,

@@ -9,7 +9,7 @@ export function PublicSectionNavigation() {
   const path = usePathname();
   const sections = useRef<HTMLElement[]>([]);
   const [position, setPosition] = useState({ index: 0, count: 0 });
-  const supported = path === '/dang-ky-hoc' || path.startsWith('/lo-trinh');
+  const supported = path === '/enroll' || path.startsWith('/roadmap');
   useEffect(() => {
     if (!supported) { sections.current = []; setPosition({ index: 0, count: 0 }); return; }
     let frame: number | null = null;

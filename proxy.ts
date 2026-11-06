@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { authRedirect } from '@/lib/auth-routing'
+import { authRedirect, portalRole } from '@/lib/auth-routing'
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
@@ -8,7 +8,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.json({ error: 'Portal đang bảo trì. Vui lòng quay lại sau.' }, { status: 503, headers: { 'Cache-Control': 'no-store', 'Retry-After': '300', 'X-Robots-Tag': 'noindex' } })
   }
   if (path === '/google8e5ffbef59a10505.html') return NextResponse.next({ request })
-  if (path === '/chinh-sach-quyen-rieng-tu' || path === '/dang-ky-hoc' || path === '/' || path === '/hoc-lieu-mien-phi' || path === '/thanh-tich' || path === '/gia-su' || path === '/bai-dang' || /^\/bai-dang\/[a-z0-9-]+$/.test(path) || path === '/lo-trinh' || /^\/lo-trinh\/(a|b|c|e|k|co-ban|nang-cao|advanced|basic|hsgqg|voi|prevoi|custom|tuy-chinh)$/.test(path) || path === '/sitemap.xml' || path === '/robots.txt' || path === '/llms.txt' || path === '/api/consultations' || path === '/api/consultations/status' || path === '/api/cron/monthly-reviews') {
+  if (path === '/privacy-policy' || path === '/enroll' || path === '/' || path === '/self-study' || path === '/free-resources' || path === '/achievements' || path === '/team' || path === '/posts' || /^\/posts\/[a-z0-9-]+$/.test(path) || path === '/roadmap' || /^\/roadmap\/(a|b|c|e|k|co-ban|nang-cao|advanced|basic|hsgqg|voi|prevoi|custom|tuy-chinh)$/.test(path) || path === '/sitemap.xml' || path === '/robots.txt' || path === '/llms.txt' || path === '/api/consultations' || path === '/api/consultations/status' || path === '/api/cron/monthly-reviews') {
     return NextResponse.next({ request })
   }
   if (path === '/api/auth/login') {
@@ -18,7 +18,7 @@ export async function proxy(request: NextRequest) {
     return response
   }
   let supabaseResponse = NextResponse.next({ request })
-  const privatePath = ['/admin', '/tutor', '/api/admin', '/api/tutor', '/api/oj', '/parents', '/api/parents', '/auth', '/login'].some(prefix => path === prefix || path.startsWith(`${prefix}/`))
+  const privatePath = ['/admin', '/tutor', '/api/admin', '/api/tutor', '/api/oj', '/parents', '/api/parents', '/auth', '/login', '/access-denied', '/api/learning', '/api/attendance'].some(prefix => path === prefix || path.startsWith(`${prefix}/`))
   const protectIndexing = (response: NextResponse) => {
     if (privatePath) { response.headers.set('X-Robots-Tag', 'noindex, noarchive'); response.headers.set('Cache-Control', 'private, no-store') }
     return response
@@ -46,11 +46,24 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
 
-  const destination = authRedirect(pathname, user)
+  const role = portalRole(user)
+  const tutorId = role === 'tutor' && privatePath && !path.startsWith('/api/auth/') && !path.startsWith('/auth/') && path !== '/access-denied'
+    ? await supabase.rpc('current_tutor_id') : null
+  const activeTutor = !tutorId || (!tutorId.error && !!tutorId.data)
+  const area = path.split('/')[2]
+  if (path.startsWith('/api/') && ['admin','tutor','parents','oj','learning','attendance'].includes(area)
+      && !['/api/parents/auth','/api/parents/logout'].includes(path)) {
+    const allowed = area === 'parents' ? role === 'parent' : area === 'admin' || area === 'tutor'
+      ? role === area : role === 'admin' || role === 'tutor'
+    if (!user || !allowed || !activeTutor) {
+      const denied = NextResponse.json({ error: user ? 'Quyền truy cập bị từ chối.' : 'Chưa đăng nhập.' }, { status: user ? 403 : 401 })
+      supabaseResponse.cookies.getAll().forEach(cookie => denied.cookies.set(cookie))
+      return protectIndexing(denied)
+    }
+  }
+  const destination = authRedirect(pathname, user, activeTutor)
   if (destination) {
-    const url = request.nextUrl.clone()
-    url.pathname = destination
-    url.search = ''
+    const url = new URL(destination, request.url)
     const response = NextResponse.redirect(url)
     // Keep token refresh/deletion cookies on redirects as well as normal responses.
     supabaseResponse.cookies.getAll().forEach(cookie => response.cookies.set(cookie))

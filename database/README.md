@@ -1,5 +1,7 @@
 # Database: đọc và thay đổi đúng phiên bản
 
+Bản sửa ba cổng có migration 33–34. Đã áp trên Supabase production ngày 06/11/2026, kiểm lại registry và quyền sau khi áp. Không chạy lại. [Quy trình nghiệm thu](../docs/PORTAL_ACCESS_AND_ROUTES.md).
+
 ## Google, grants và reset
 
 Migration30–32 gồm Google/phone claim một–một, contact/student atomic, certificates, tutor receipts và OJ accounts. [Runbook chuyển đổi/reset](../docs/PORTAL_GOOGLE_GRANTS_ROLLOUT.md). Đã áp19/21/22/29/30/31/32 trên Supabase hiện tại ngày03/11 sau backup/phục hồi và rehearsal; registry27 phiên bản, mới nhất32. Kiểm lại04/11 đạt; ứng dụng tương thích đã deploy, nghiệm thu phiên/Storage/OJ thật còn chờ. Không chạy lại các migration này hoặc26 để triển khai Google. Migration28 cũ được giữ lịch sử,32 thu hồi RPC bindings nếu có.
@@ -41,6 +43,8 @@ Registry bắt đầu từ 05; thiếu dòng 01–04 không có nghĩa phải ch
 | 30 | Google parent identity một–một, contact/student RPC, revision/audit, retire lookup; cần29 |
 | 31 | Certificates và tutor receipts; cần22 và30 |
 | 32 | OJ accounts/grants, operation/receipt, quota, server context; cần31 |
+| 33 | Tách quyền admin/gia sư/Google phụ huynh, bảo vệ RPC và RLS; cần 32 |
+| 34 | Chấp nhận URL đăng ký tiếng Anh và URL cũ; cần 24 |
 
 20 chỉ phụ thuộc 17, nên có thể có 20 trong khi 18/19 chưa áp dụng. 21 cần 19 và 20; 22 cần 21; 23 chỉ cần 20 và bảo toàn các trường 21/22 nếu có. Có thể phát hành 23 độc lập; kiểm thử xác nhận 21/22 áp sau vẫn giữ aggregate. Dependency hồ sơ là **19 →21 →22** (cần18/20 theo precondition); chuỗi này đã có trong registry hiện tại, không chạy lại. Xác minh registry trước mọi thao tác. Không chỉnh migration đã phát hành; sửa bằng migration mới sau số cuối thực tế. Migration26 đã áp cùng RLS, mọi sửa đổi tiếp theo dùng migration mới.
 

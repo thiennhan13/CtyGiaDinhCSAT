@@ -34,10 +34,10 @@ export function RoadmapNavigation({ onNavigate }: { onNavigate: () => void }) {
         event.currentTarget.querySelector('summary')?.focus();
       }
     }}>
-    <summary aria-current={path.startsWith('/lo-trinh') ? 'page' : undefined}><Route className="nav-icon nav-icon-roadmap" size={18} strokeWidth={2.4} aria-hidden="true" />Lộ trình <ChevronDown size={14} aria-hidden="true" /></summary>
+    <summary aria-current={path.startsWith('/roadmap') ? 'page' : undefined}><Route className="nav-icon nav-icon-roadmap" size={18} strokeWidth={2.4} aria-hidden="true" />Lộ trình <ChevronDown size={14} aria-hidden="true" /></summary>
     <div className="nav-roadmap-panel">
-      <Link href="/lo-trinh" aria-current={path === '/lo-trinh' ? 'page' : undefined} onClick={close}>Tìm hiểu lộ trình <ArrowUpRight size={16} aria-hidden="true" /></Link>
-      {courses.map(([code, title]) => <Link key={code} href={`/lo-trinh/${code}`} aria-current={path === `/lo-trinh/${code}` ? 'page' : undefined} onClick={close}><span className="nav-course-code">{code.toUpperCase()}</span><span>{title}</span></Link>)}
+      <Link href="/roadmap" aria-current={path === '/roadmap' ? 'page' : undefined} onClick={close}>Tìm hiểu lộ trình <ArrowUpRight size={16} aria-hidden="true" /></Link>
+      {courses.map(([code, title]) => <Link key={code} href={`/roadmap/${code}`} aria-current={path === `/roadmap/${code}` ? 'page' : undefined} onClick={close}><span className="nav-course-code">{code.toUpperCase()}</span><span>{title}</span></Link>)}
     </div>
   </details>;
 }

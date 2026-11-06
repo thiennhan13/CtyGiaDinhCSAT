@@ -23,6 +23,7 @@ async function authorize(classId: string, studentId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { response: json({ error: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' }, 401) };
+  if (user.app_metadata?.role !== 'tutor') return { response: json({ error: 'Cần quyền gia sư.' }, 403) };
   const { data: tutor, error: tutorError } = await supabase.from('tutors').select('tutor_id')
     .eq('auth_uid', user.id).eq('status', 'active').not('is_deleted', 'is', true).maybeSingle();
   if (tutorError) return { response: databaseError(tutorError) };

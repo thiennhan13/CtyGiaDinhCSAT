@@ -17,7 +17,7 @@ export async function GET(){
  return result.error?businessError(result.error):reply(result.data);
 }
 export async function POST(request:Request){
- const session=await businessSession(true,request);if(session.response)return session.response;
+ const session=await businessSession('admin',request);if(session.response)return session.response;
  const raw=await request.text();
  let body:unknown;try{body=raw?JSON.parse(raw):{action:'drain'};}catch{return reply({error:'Dữ liệu không hợp lệ.'},422);}
  const parsed=schema.safeParse(body);if(!parsed.success)return reply({error:'Dữ liệu không hợp lệ.'},422);

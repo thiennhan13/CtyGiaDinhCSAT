@@ -25,8 +25,8 @@ export async function GET(request:Request){
  let query=session.supabase.from('consultation_requests').select('request_id,data,created_at,status,revision,updated_at,consultation_status_history(old_status,new_status,revision,created_at)',{count:'exact'}).order('created_at',{ascending:false}).order('request_id').range(offset,offset+49);
  if(status&&['new','contacted','completed'].includes(status))query=query.eq('status',status);
  if(course&&['undecided','A','B','C','E','K'].includes(course))query=query.eq('data->>course',course);
- if(source==='enrollment')query=query.eq('data->>source_path','/dang-ky-hoc');
- if(source==='roadmap')query=query.like('data->>source_path','/lo-trinh%');
+ if(source==='enrollment')query=query.or('data->>source_path.eq./enroll,data->>source_path.eq./dang-ky-hoc');
+ if(source==='roadmap')query=query.or('data->>source_path.like./roadmap%,data->>source_path.like./lo-trinh%');
  if(source==='legacy')query=query.is('data->>source_path',null);
  if(q){
   // Whitelist above excludes PostgREST expression delimiters and wildcard injection.
@@ -42,7 +42,7 @@ export async function GET(request:Request){
  return NextResponse.json({data:result.data,total:result.count,newCount:newCount.count,contactedCount:contactedCount.count,completedCount:completedCount.count},{headers:{'Cache-Control':'private, no-store'}});
 }
 export async function POST(request:Request){
- const session=await businessSession(true,request);if(session.response)return session.response;
+ const session=await businessSession('admin',request);if(session.response)return session.response;
  const parsed=schema.safeParse(await request.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:'Yêu cầu không hợp lệ.'},{status:422});
  const data=parsed.data;
  if(data.action==='status'){

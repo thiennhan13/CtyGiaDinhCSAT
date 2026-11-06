@@ -10,7 +10,7 @@ export function accessibleParentRoadmap(portal: ParentLearningData, classId: str
   return portal.plans.find(plan => plan.class_id === classId && plan.kind === 'class' && !!plan.published_at) ?? null;
 }
 export function parentRoadmapHref(context: ParentTopicContext): string {
-  return '/parents/lo-trinh/' + context.classId + '?' + new URLSearchParams({ student: context.student, month: context.month, page: String(context.page) });
+  return '/parents/roadmap/' + context.classId + '?' + new URLSearchParams({ student: context.student, month: context.month, page: String(context.page) });
 }
 export function parentRoadmapLinks(plan: ClassPlan, context: ParentTopicContext) {
   const articleLinks: Record<string, string> = {}, practiceLinks: Record<string, string> = {};

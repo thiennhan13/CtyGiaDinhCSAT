@@ -1,3 +1,4 @@
+import aliases from './route-aliases.json';
 import frameworks from './learning-curriculum-20260922.json';
 import { effectiveStages } from './curriculum';
 import type { LearningBody, LearningTemplate } from './learning';
@@ -39,7 +40,7 @@ export function articlesForTopic(code: string): readonly ParentTopicArticle[] {
 
 export interface ParentTopicContext { student: string; classId: string; month: string; page: number }
 export function parentTopicHref(slug: string, context: ParentTopicContext): string {
-  return '/parents/chuyen-de/' + slug + '?' + new URLSearchParams({ student: context.student, class: context.classId, month: context.month, page: String(context.page) });
+  return '/parents/topics/' + (aliases.topics[slug as keyof typeof aliases.topics] ?? slug) + '?' + new URLSearchParams({ student: context.student, class: context.classId, month: context.month, page: String(context.page) });
 }
 export function parentTopicReturnHref(context: ParentTopicContext): string {
   return '/parents?' + new URLSearchParams({ student: context.student, month: context.month, page: String(context.page) }) + '#roadmap';

@@ -12,7 +12,7 @@ function load(file,s){
  mod.require=name=>{
   if(name==='next/server')return {NextResponse:{json:(d,o)=>Response.json(d,o)}};
   if(name==='@/lib/supabase/server')return {createClient:async()=>({auth:{getUser:async()=>({data:{user:s.user}})},
-   rpc:async(name,params)=>{s.calls.push({name,params});return {data:s.rpcData??{ok:true},error:s.rpcError??null};},
+   rpc:async(name,params)=>{if(name==='current_tutor_id')return {data:s.inactive?null:id(2),error:null};s.calls.push({name,params});return {data:s.rpcData??{ok:true},error:s.rpcError??null};},
    from(){throw new Error('Unexpected direct table access');}})};
   if(name==='@/lib/supabase/service')throw new Error('Business writes must use the authenticated user client');
   if(name.startsWith('@/'))return load(name.slice(2)+'.ts',s);

@@ -14,7 +14,7 @@ const schema = z.discriminatedUnion('action', [
 ]);
 const json = (body: unknown) => NextResponse.json(body, { headers: { 'Cache-Control': 'private, no-store' } });
 export async function GET(request: Request) {
-  const session = await businessSession(false); if (session.response) return session.response;
+  const session = await businessSession('staff'); if (session.response) return session.response;
   const params = new URL(request.url).searchParams;
   const classId = z.uuid().nullable().safeParse(params.get('class'));
   if (!classId.success) return NextResponse.json({ error: 'Lớp không hợp lệ.' }, { status: 422 });
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
   return json({ ...result.data, connection_ready: connectionReady });
 }
 export async function POST(request: Request) {
-  const session = await businessSession(false, request); if (session.response) return session.response;
+  const session = await businessSession('staff', request); if (session.response) return session.response;
   const parsed = schema.safeParse(await readLoginBody(request));
   if (!parsed.success) return NextResponse.json({ error: 'Dữ liệu kết nối không hợp lệ.' }, { status: 422 });
   const p = parsed.data;

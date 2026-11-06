@@ -40,7 +40,7 @@ export function LearningMaterialsExperience() {
           <a className="text-link" href="https://csatoj.vn" target="_blank" rel="noopener noreferrer">Khám phá CSATOJ <ArrowUpRight /></a>
           <PracticeVideo />
         </Reveal>
-        <Reveal variant="right" className="materials-card" id="nhan-tai-lieu">
+        <Reveal variant="right" className="materials-card" id="get-resources">
           <div className="materials-top"><span className="materials-icon"><BookOpen aria-hidden="true" /></span><span className="mono">BẮT ĐẦU TỪ ĐIỀU BẠN MUỐN HỌC</span></div>
           <h2>Nhận tài liệu học<br /><span>cùng CSAT.</span></h2>
           <p>Chọn nội dung bạn quan tâm, kiểm tra thông tin rồi chủ động nhắn CSAT qua Zalo hoặc Facebook để trao đổi cách nhận tài liệu.</p>

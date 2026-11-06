@@ -7,7 +7,7 @@ Chủ trung tâm đã chọn **bố cục 3 — nhãn gắn cạnh ảnh**, phon
 | Phần | Nguồn |
 |---|---|
 | Danh mục | lib/public-achievements.ts, publicAchievements |
-| Hero/nội dung/HTML | app/thanh-tich/page.tsx |
+| Hero/nội dung/HTML | app/achievements/page.tsx |
 | Layout/tag/art/motion | components/marketing/achievements.css |
 | Ảnh đã chọn | public/images/site/achievements/ |
 | Lời mời học liệu | PublicNavigation.tsx ẩn riêng trên trang này để không che thẻ |

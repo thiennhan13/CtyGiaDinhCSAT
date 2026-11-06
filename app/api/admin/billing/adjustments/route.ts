@@ -5,7 +5,7 @@ const base = z.object({ itemId: z.uuid(), status: z.enum(['attended', 'absent'])
 const schema = z.discriminatedUnion('action', [base.extend({ action: z.literal('preview') }),
   base.extend({ action: z.literal('apply'), reason: z.string().trim().min(1).max(2000), previewToken: z.string().min(1), requestId: z.uuid() })]);
 export async function POST(request: Request) {
-  const session = await businessSession(true, request); if (session.response) return session.response;
+  const session = await businessSession('admin', request); if (session.response) return session.response;
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: 'Thông tin điều chỉnh không hợp lệ.' }, { status: 422 });
   const p = parsed.data;

@@ -8,7 +8,7 @@ const nodes = JSON.parse(fs.readFileSync(path.join(root, 'public/self-study', da
 const results = path.join(root, 'scratch/knowledge-map-qa'); fs.mkdirSync(results, { recursive: true });
 const origin = process.env.PUBLIC_QA_BASE_URL || 'http://127.0.0.1:3100';
 if (!['127.0.0.1', 'localhost'].includes(new URL(origin).hostname)) throw Error('Loopback preview required');
-const base = origin + '/tu-hoc';
+const base = origin + '/self-study';
 (async () => {
 let browser;
 try {

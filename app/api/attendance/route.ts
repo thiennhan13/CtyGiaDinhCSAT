@@ -5,7 +5,7 @@ const schema = z.object({ sessionId: z.uuid(), attendanceData: z.array(z.object(
   session_id: z.uuid(), student_id: z.uuid(), status: z.enum(['attended','absent']), notes: z.string().max(10000).optional().nullable()
 }).strip()).min(1) });
 export async function POST(request: Request) {
-  const session = await businessSession(false, request); if (session.response) return session.response;
+  const session = await businessSession('staff', request); if (session.response) return session.response;
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success || parsed.data.attendanceData.some(a => a.session_id !== parsed.data.sessionId))
     return NextResponse.json({ error: 'Dữ liệu điểm danh không hợp lệ.' }, { status: 422 });

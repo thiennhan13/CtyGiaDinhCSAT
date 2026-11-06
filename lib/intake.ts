@@ -16,7 +16,7 @@ export const intakeSchema = z.object({
   goal: z.enum(['undecided', 'beginner', 'thcs', 'specialist', 'province']),
   background: z.enum(['undecided', 'none', 'syntax', 'independent']),
   school_year: z.string().trim().max(50), message: z.string().trim().max(2000),
-  source_path: z.string().regex(/^\/(?:dang-ky-hoc|lo-trinh(?:\/[abcek])?)?$/),
+  source_path: z.string().regex(/^\/(?:enroll|dang-ky-hoc|(?:roadmap|lo-trinh)(?:\/[abcek])?)?$/),
   consent: z.literal(true), website: z.string().max(0),
 }).strict();
 export type IntakeInput = z.infer<typeof intakeSchema>;

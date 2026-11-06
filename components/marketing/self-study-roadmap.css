@@ -18,7 +18,7 @@ body:has(.self-study-page){overflow-x:auto}
 .csat-public.self-study-page{overflow:visible;min-width:100%;width:max-content;min-height:100dvh;background:#fffdf3 linear-gradient(#d9dddf 1px,transparent 1px) 0 0 / 100% 24px;--map-header-bottom:116px;--map-toolbar-height:100px}
 .csat-public.self-study-page .site-header{position:fixed;inset:0 0 auto;z-index:40;width:100vw}
 .csat-public.self-study-page .contact-dock{display:none}
-.csat-public.self-study-page #noi-dung{padding:0;min-height:100dvh}
+.csat-public.self-study-page #main-content{padding:0;min-height:100dvh}
 .csat-public .self-study-roadmap .study-workspace{display:block;min-height:100dvh}
 .csat-public .self-study-roadmap .study-rail{position:fixed;z-index:25;top:var(--map-header-bottom);left:20px;width:218px;max-height:calc(100dvh - var(--map-header-bottom) - var(--map-toolbar-height) - 24px);overflow:auto;background:var(--study-orange);border:2px solid #191917;box-shadow:5px 5px 0 #191917;color:#191917}
 .csat-public .self-study-roadmap .study-rail>summary{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;font-size:14px;font-weight:800;line-height:1.5;list-style:none}

@@ -5,7 +5,7 @@ const root=path.resolve(__dirname,'..'),output=path.join(root,process.env.CSAT_U
 const {chromium}=require(root+'/node_modules/playwright');
 const id=n=>`20000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const exp=Math.floor(Date.now()/1000)+7200,encode=v=>Buffer.from(JSON.stringify(v)).toString('base64url');
-const user={id:id(1),aud:'authenticated',role:'authenticated',app_metadata:{role:'admin'},user_metadata:{name:'Admin dữ liệu giả'},created_at:'2026-01-01T00:00:00Z'};
+const user={id:id(1),aud:'authenticated',role:'authenticated',app_metadata:{role:'admin',provider:'google'},user_metadata:{name:'Admin dữ liệu giả'},created_at:'2026-01-01T00:00:00Z'};
 const token=encode({alg:'HS256',typ:'JWT'})+'.'+encode({sub:id(1),aud:'authenticated',role:'authenticated',exp,iat:exp-7200})+'.'+Buffer.from('fixture-only').toString('base64url');
 const auth={access_token:token,token_type:'bearer',refresh_token:'unused-fixture',expires_in:7200,expires_at:exp,user};
 const student={student_id:id(10),name:'Học sinh kiểm thử',date_of_birth:null,province:null,status:'Đang học',parent_name:'Phụ huynh kiểm thử',parent_number:'0912345678'};
@@ -29,6 +29,7 @@ async function port(){const s=net.createServer();await new Promise(r=>s.listen(0
 const json=(route,body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
 (async()=>{fs.mkdirSync(output,{recursive:true});let server,browser,page;const errors=[];
  const mock=http.createServer((req,res)=>{res.setHeader('Content-Type','application/json');if(req.url==='/auth/v1/user'){res.end(JSON.stringify(user));return;}
+  if(req.url==='/rest/v1/rpc/current_tutor_id'){res.end(JSON.stringify(id(20)));return;}
   if(req.url==='/rest/v1/rpc/parent_access'){res.end(JSON.stringify({state:parentState,student_id:student.student_id}));return;}
   if(req.url==='/rest/v1/rpc/parent_portal'){res.end(JSON.stringify(portal));return;}
   res.end('[]');
@@ -95,6 +96,7 @@ const json=(route,body,status=200)=>route.fulfill({status,contentType:'applicati
   assert.equal(await page.getByLabel('Mã kết nối từ admin OJ').inputValue(),'');await page.getByRole('button',{name:'Kiểm tra kết quả',exact:true}).click();await page.getByText('Đã lưu kết nối.',{exact:true}).waitFor();assert.equal(writes,3);
   for(const width of [320,375,768,1440]){await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'admin overflow '+width);await page.screenshot({path:path.join(output,'admin-'+width+'.png'),fullPage:true});}
   await page.evaluate(()=>document.documentElement.classList.add('dark'));await page.setViewportSize({width:320,height:1000});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.screenshot({path:path.join(output,'admin-dark-320.png'),fullPage:true});await page.evaluate(()=>document.documentElement.classList.remove('dark'));
+  user.app_metadata.role='parent';
   const parentReads=reads;await page.goto(origin+'/parents?month=2026-06#oj',{waitUntil:'networkidle'});await page.locator('#oj').scrollIntoViewIfNeeded();await page.locator('#oj').getByText('Tài khoản · student_fixture',{exact:true}).waitFor();assert.equal(reads,parentReads+1,'one shared summary request');
   const panel=page.locator('#oj'),practice=page.locator('#practice'),grid=practice.getByRole('group',{name:'Lịch lượt nộp bài theo ngày'});await grid.waitFor();assert.equal(await grid.getByRole('button').count(),365);
   assert.equal(await page.locator('.parent-section-title').count(),8);assert.equal(await panel.getByRole('heading',{name:'Kết quả CSATOJ',exact:true}).evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(15, 66, 192)');
@@ -127,6 +129,32 @@ const json=(route,body,status=200)=>route.fulfill({status,contentType:'applicati
   activityMode='legacy';const legacyReads=reads;await page.reload({waitUntil:'networkidle'});await practice.getByText(/CSATOJ chưa cung cấp dữ liệu lượt nộp theo ngày/).waitFor();assert.equal(reads,legacyReads+1,'fresh summary on visit');assert.equal(await grid.count(),0);assert.equal(await panel.locator('dl').first().innerText(),mainTotal);assert.equal(await page.locator('.parent-active-days dd').first().innerText(),'Chưa có dữ liệu');
   activityMode='available';await page.reload({waitUntil:'networkidle'});await grid.waitFor();
   await panel.getByRole('button',{name:'Lịch sử cuộc thi'}).click();await panel.getByText('2 / 10',{exact:true}).waitFor();assert(await panel.getByText('5 / 50',{exact:true}).isVisible());
+  // Hold the next page in flight while another section completes its own request.
+  let releasePage;
+  const delayedPage = new Promise(resolve => { releasePage = resolve; });
+  const pagedContests = async route => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get('kind') !== 'contests') return route.fallback();
+    if (!url.searchParams.has('cursor')) return json(route,{connected:true,data:{items:[contest],next_cursor:'page2'}});
+    await delayedPage;
+    const nextContest = {...contest, contest:{...contest.contest,contest_id:'fixture-second',name:'Cuộc thi trang hai'}};
+    return json(route,{connected:true,data:{items:[nextContest],next_cursor:null}});
+  };
+  await context.route(origin+'/api/parents/oj**',pagedContests);
+  await panel.getByRole('button',{name:'Lịch sử cuộc thi'}).click();
+  await panel.getByRole('button',{name:'Xem thêm lượt tham gia'}).click();
+  await panel.getByRole('button',{name:'Đang tải…',exact:true}).waitFor();
+  assert.equal(await panel.getByText('2 / 10',{exact:true}).count(),1,'first page stays visible while loading');
+  assert.equal(await panel.locator('dl').first().innerText(),mainTotal);
+  await practice.getByLabel('Thời gian hoạt động').selectOption('2024');
+  await page.waitForFunction(()=>document.querySelectorAll('#practice [data-index]').length===366);
+  releasePage();
+  await panel.getByText('Cuộc thi trang hai',{exact:true}).waitFor();
+  assert.equal(await panel.getByText('2 / 10',{exact:true}).count(),2,'next page appends without replacing history');
+  assert.equal(await practice.getByLabel('Thời gian hoạt động').inputValue(),'2024','finishing the page preserves the calendar');
+  await context.unroute(origin+'/api/parents/oj**',pagedContests);
+  await practice.getByLabel('Thời gian hoạt động').selectOption('');
+  await page.waitForFunction(()=>document.querySelectorAll('#practice [data-index]').length===365);
   assert.equal(await page.getByText('Xem bảng số liệu theo ngày',{exact:true}).count(),0);
   assert.equal(await page.getByRole('button',{name:'Xem tổ chức đang tham gia'}).count(),0);
   assert(await page.evaluate(()=>document.querySelector('#practice').compareDocumentPosition(document.querySelector('#reviews'))&Node.DOCUMENT_POSITION_FOLLOWING),'practice before reviews');
@@ -181,14 +209,14 @@ const json=(route,body,status=200)=>route.fulfill({status,contentType:'applicati
   const initialReads=reads;await page.waitForTimeout(11000);assert.equal(reads,initialReads,'no polling');
   denied=true;await panel.getByRole('button',{name:'Lịch sử cuộc thi'}).click();await panel.getByText('Quyền truy cập đã được thu hồi.').waitFor();assert.equal(await page.locator('#oj').getByText('2 / 10',{exact:true}).count(),0);assert.equal(await grid.count(),0);assert.equal(await page.locator('.parent-active-days dd').first().innerText(),'Chưa có dữ liệu');
   parentState='unlinked';await page.reload({waitUntil:'networkidle'});await page.getByLabel('Số điện thoại').fill('0912345678');await Promise.all([page.waitForResponse(r=>r.url().endsWith('/api/parents/link')),page.getByRole('button',{name:'Liên kết học sinh'}).click()]);await page.getByRole('alert').filter({hasText:'Số điện thoại đã được liên kết'}).waitFor();
-  await page.goto(origin+'/tutor/payments',{waitUntil:'networkidle'});await page.getByRole('button',{name:'Đã thu tiền',exact:true}).click();await page.getByRole('region',{name:'Xác nhận thu tiền'}).waitFor();assert.equal(paid,false);await page.getByRole('button',{name:'Xác nhận đã thu đủ'}).click();await page.getByText('Đã ghi nhận tiền đã thu.',{exact:true}).waitFor();assert.equal(paid,true);
+  user.app_metadata.role='tutor';await page.goto(origin+'/tutor/payments',{waitUntil:'networkidle'});await page.getByRole('button',{name:'Đã thu tiền',exact:true}).click();await page.getByRole('region',{name:'Xác nhận thu tiền'}).waitFor();assert.equal(paid,false);await page.getByRole('button',{name:'Xác nhận đã thu đủ'}).click();await page.getByText('Đã ghi nhận tiền đã thu.',{exact:true}).waitFor();assert.equal(paid,true);
   assert(await page.getByRole('button',{name:'Đã thu tiền',exact:true}).isDisabled());
-  await page.goto(origin+'/tutor/profile',{waitUntil:'networkidle'});await page.getByLabel('Chứng chỉ · mỗi dòng một chứng chỉ').fill('Chứng chỉ thử 1\nChứng chỉ thử 2');await page.getByRole('button',{name:'Lưu và hiển thị',exact:true}).click();await page.getByRole('status').filter({hasText:'Đã lưu.'}).waitFor();
+  user.app_metadata.role='tutor';await page.goto(origin+'/tutor/profile',{waitUntil:'networkidle'});await page.getByLabel('Chứng chỉ · mỗi dòng một chứng chỉ').fill('Chứng chỉ thử 1\nChứng chỉ thử 2');await page.getByRole('button',{name:'Lưu và hiển thị',exact:true}).click();await page.getByRole('status').filter({hasText:'Đã lưu.'}).waitFor();
   assert.equal(profile.certificates,'Chứng chỉ thử 1\nChứng chỉ thử 2');portal.tutors=[{...profile,class_name:'Lớp thử'}];parentState='active';denied=false;
-  await page.goto(origin+'/parents',{waitUntil:'networkidle'});await page.locator('#contact').getByText('Chứng chỉ thử 1',{exact:true}).waitFor();await page.locator('#contact').getByText('Chứng chỉ thử 2',{exact:true}).waitFor();
+  user.app_metadata.role='parent';await page.goto(origin+'/parents',{waitUntil:'networkidle'});await page.locator('#contact').getByText('Chứng chỉ thử 1',{exact:true}).waitFor();await page.locator('#contact').getByText('Chứng chỉ thử 2',{exact:true}).waitFor();
   await page.setViewportSize({width:320,height:1000});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.locator('#contact').screenshot({path:path.join(output,'certificates-320.png')});
-  await page.goto(origin+'/admin/parents/provisioning',{waitUntil:'networkidle'});await page.getByText(/Phụ huynh đăng nhập Google rồi nhập số điện thoại khớp hồ sơ/).waitFor();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'reconciliation mobile overflow');
-  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,viewports:[320,375,390,768,1440],checks:['disabled configuration prevents writes','visible save button','retry preserves code and UUID','receipt recovery without code','practice first with shared request state','fresh summary per parent visit','full-width square calendar at every viewport','grouped left navigation and mobile toggle','removed daily table and organizations','book icon and activity KPI','pixel curriculum ratio','development in companion group','three parent metrics','expanded Vietnamese rating details','colored contest history action','daily submission counts','leap year','unknown versus zero','legacy activity absent','year failure retains data','roving calendar keyboard','light/dark contrast','session selector and results','class and contest ranks','no polling','revocation clears heatmap and results','phone conflict','full receipt confirmation','reduced motion','certificates form to parent card'],output}));
+  user.app_metadata.role='admin';await page.goto(origin+'/admin/parents/provisioning',{waitUntil:'networkidle'});await page.getByText(/Phụ huynh đăng nhập Google rồi nhập số điện thoại khớp hồ sơ/).waitFor();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'reconciliation mobile overflow');
+  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,viewports:[320,375,390,768,1440],checks:['disabled configuration prevents writes','visible save button','retry preserves code and UUID','receipt recovery without code','slow pagination preserves rows and independent activity','practice first with shared request state','fresh summary per parent visit','full-width square calendar at every viewport','grouped left navigation and mobile toggle','removed daily table and organizations','book icon and activity KPI','pixel curriculum ratio','development in companion group','three parent metrics','expanded Vietnamese rating details','colored contest history action','daily submission counts','leap year','unknown versus zero','legacy activity absent','year failure retains data','roving calendar keyboard','light/dark contrast','session selector and results','class and contest ranks','no polling','revocation clears heatmap and results','phone conflict','full receipt confirmation','reduced motion','certificates form to parent card'],output}));
  }catch(error){if(page){console.error('URL',page.url());await page.screenshot({path:path.join(output,'failure.png'),fullPage:true,timeout:5000}).catch(()=>{});console.error((await page.locator('body').innerText({timeout:5000}).catch(()=>'' )).slice(-4000));}console.error(errors);throw error;
  }finally{await browser?.close();if(server?.pid)try{if(process.platform==='win32')execFileSync('taskkill',['/PID',String(server.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});else process.kill(-server.pid,'SIGTERM');}catch{server.kill();}mock.close();log.end();}
 })().catch(e=>{console.error(e.message);process.exitCode=1;});

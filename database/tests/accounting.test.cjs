@@ -25,7 +25,7 @@ async function setup(existing,{migrate=true}={}){
  const db=existing??new PGlite();
  await bootstrap(db);
  await db.exec(read('fixtures/schema-before-accounting.sql').replace('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";',''));
- await db.exec(`insert into auth.users(id) values('${id(1)}'),('${id(2)}'),('${id(3)}');
+ await db.exec(`insert into auth.users(id,raw_app_meta_data) values('${id(1)}','{"role":"admin"}'),('${id(2)}','{"role":"tutor"}'),('${id(3)}','{"role":"tutor"}');
  insert into tutors(tutor_id,auth_uid,name) values('${id(20)}','${id(2)}','Tutor A'),('${id(21)}','${id(3)}','Tutor B');
  insert into students(student_id,name) values('${id(10)}','Student A'),('${id(11)}','Student B');
  insert into classes(class_id,tutor_id,name,start_date,end_date,csat_fee_per_session) values('${id(30)}','${id(20)}','Class A','2026-01-01','2026-12-31',30000);

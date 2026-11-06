@@ -1,4 +1,7 @@
+import { Suspense } from 'react';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { LoadingStatus } from '@/components/ui/LoadingStatus';
 import Link from 'next/link';
 import { z } from 'zod';
 import { ParentLinkForm } from '@/components/auth/ParentLinkForm';
@@ -9,7 +12,13 @@ import { ParentShell } from '@/components/learning/ParentShell';
 import { ParentLogoutButton } from './logout-button';
 import { ParentPortalView } from '@/components/learning/ParentPortalView';
 export const dynamic = 'force-dynamic';
-export default async function ParentPortal({searchParams}:{searchParams:Promise<{student?:string;month?:string;page?:string}>}){
+type PortalProps = { searchParams: Promise<{student?:string;month?:string;page?:string}> };
+export default async function ParentPortal(props: PortalProps) {
+ // A full document must remain readable without the script that reveals streamed HTML.
+ if ((await headers()).get('sec-fetch-dest') !== 'empty') return <ParentOverview {...props} />;
+ return <Suspense fallback={<LoadingStatus>Đang mở cổng phụ huynh…</LoadingStatus>}><ParentOverview {...props} /></Suspense>;
+}
+async function ParentOverview({searchParams}: PortalProps){
  const session=await parentSession();if(!session)redirect('/login');
  if(session.access.state==='unlinked')return <ParentShell navigationEnabled={false}><ParentLinkForm/></ParentShell>;
  if(session.access.state!=='active')return <AccessMessage message="Liên kết đã bị khóa. Vui lòng liên hệ CSAT để kiểm tra."/>;

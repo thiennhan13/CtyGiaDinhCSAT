@@ -4,7 +4,7 @@ import { businessError, businessSession } from '@/lib/business-api';
 const schema = z.object({ paymentId: z.uuid(), requestId: z.uuid(), expectedBalance: z.number(),
   reason: z.string().trim().min(1).max(2000).default('Ghi nhận thanh toán'), reverseEventId: z.uuid().optional() });
 export async function POST(request: Request) {
-  const session = await businessSession(true, request); if (session.response) return session.response;
+  const session = await businessSession('admin', request); if (session.response) return session.response;
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: 'Thông tin giao dịch không hợp lệ.' }, { status: 422 });
   const p = parsed.data;

@@ -17,7 +17,7 @@ export const selfStudyMarkup = `
         <button data-view="DP" aria-pressed="false">Quy hoạch động <small>07</small></button>
       </nav>
       <div class="map-meta"><span id="view-code">A → B → C</span><h2 id="view-title">Toàn lộ trình</h2></div>
-      <div class="study-rail-enrollment"><p>Đăng kí ngay để truy cập các bài giảng chuyên sâu, code mẫu và hình thành tư duy lập trình thi đấu!</p><a href="/lo-trinh#tu-van">Đăng kí ngay ${icon('<path d="M7 17 17 7M7 7h10v10"/>')}</a></div>
+      <div class="study-rail-enrollment"><p>Đăng kí ngay để truy cập các bài giảng chuyên sâu, code mẫu và hình thành tư duy lập trình thi đấu!</p><a href="/roadmap#consultation">Đăng kí ngay ${icon('<path d="M7 17 17 7M7 7h10v10"/>')}</a></div>
     </div>
   </details>
   <section class="study-board" aria-label="Bản đồ kiến thức">

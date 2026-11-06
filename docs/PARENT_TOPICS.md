@@ -26,7 +26,7 @@ Cuối mỗi bài có **Tự kiểm tra** với hai câu hỏi ngắn về lý t
 
 ## Đọc bài riêng
 
-`/parents/chuyen-de/[slug]?student=<uuid>&class=<uuid>&month=YYYY-MM&page=N` kiểm tra cookie lookup và RPC hiện hành ở máy chủ. Học sinh phải thuộc phiên, lớp có giáo án đã công bố, chủ đề thuộc giáo án hiệu lực sau lựa chọn/loại trừ. Bản nháp, khung tùy chỉnh, chủ đề bị loại và liên kết đã thu hồi không mở được bằng URL trực tiếp. Proxy chỉ gắn header, không thay kiểm tra quyền.
+`/parents/topics/[slug]?student=<uuid>&class=<uuid>&month=YYYY-MM&page=N` kiểm tra cookie lookup và RPC hiện hành ở máy chủ. Học sinh phải thuộc phiên, lớp có giáo án đã công bố, chủ đề thuộc giáo án hiệu lực sau lựa chọn/loại trừ. Bản nháp, khung tùy chỉnh, chủ đề bị loại và liên kết đã thu hồi không mở được bằng URL trực tiếp. Proxy chỉ gắn header, không thay kiểm tra quyền.
 
 Không phiên → về login; phiên hết hạn/thu hồi → thông báo truy cập; slug/ngữ cảnh không hợp lệ hoặc chuyên đề không thuộc lớp → 404. Lỗi dịch vụ → thông báo thử lại, không trả bài. Không log/hash/token/số điện thoại vào URL. Trang private/no-store, noindex/noarchive, không có trong sitemap/bài đăng công khai. Nội dung tĩnh trong repo, trang đọc động kiểm tra phiên; không phải public SSG.
 

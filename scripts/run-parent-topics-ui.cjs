@@ -15,6 +15,7 @@ const { gzipSync } = require('node:zlib');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 
 const root = path.resolve(__dirname, '..');
+const { topics: publicSlugs } = require('../lib/route-aliases.json');
 const output = path.join(root, 'scratch', 'parent-topics-qa');
 const ids = {
   parent: '20000000-0000-4000-8000-000000000001',
@@ -46,7 +47,7 @@ const report = { filter: filter?.source || null, assertions: 0, checks: [], fail
 const check = (value, message) => { report.assertions++; assert.ok(value, message); };
 // Synthetic Auth transport only; this does not certify a real Supabase login.
 const sessions = Object.fromEntries(['parent', 'admin'].flatMap(role => modes.map(mode => {
-  const user = { id: ids.parent, aud: 'authenticated', role: 'authenticated', app_metadata: { role }, user_metadata: { name: 'Người dùng dữ liệu giả' }, created_at: '2026-01-01T00:00:00Z' };
+  const user = { id: ids.parent, aud: 'authenticated', role: 'authenticated', app_metadata: { role, provider: 'google' }, user_metadata: { name: 'Người dùng dữ liệu giả' }, created_at: '2026-01-01T00:00:00Z' };
   const expires = Math.floor(Date.now() / 1000) + (mode === 'refresh' ? -120 : 7200);
   const encode = value => Buffer.from(JSON.stringify(value)).toString('base64url');
   const access_token = encode({ alg: 'HS256', typ: 'JWT' }) + '.' + encode({ sub: user.id, aud: 'authenticated', role: 'authenticated', session_id: ids.session, app_metadata: user.app_metadata, exp: expires, iat: expires - 7200 }) + '.' + Buffer.from('synthetic-fixture-signature-' + mode).toString('base64url');
@@ -178,7 +179,7 @@ async function main() {
       if (mode) await result.addCookies([authCookie(mode, role)]);
       return result;
     }
-    const articleUrl = (slug, classId, overrides = {}) => origin + '/parents/chuyen-de/' + slug + '?' + new URLSearchParams({
+    const articleUrl = (slug, classId, overrides = {}) => origin + '/parents/topics/' + (require('../lib/route-aliases.json').topics[slug] || slug) + '?' + new URLSearchParams({
       student: ids.student, class: classId, month: '2026-09', page: '2', ...overrides,
     });
     const visit = async (page, url) => {
@@ -229,7 +230,7 @@ async function main() {
         images[src] = 'data:' + (response.headers.get('content-type') || 'application/octet-stream') + ';base64,' + Buffer.from(await response.arrayBuffer()).toString('base64');
         images[image.src] = images[src];
       }
-      const html = await page.evaluate(({ styles, images, slugs }) => {
+      const html = await page.evaluate(({ styles, images, slugs, aliases }) => {
         const clone = document.documentElement.cloneNode(true);
         clone.querySelectorAll('script,link').forEach(node => node.remove());
         clone.querySelectorAll('img').forEach(node => {
@@ -239,14 +240,15 @@ async function main() {
         });
         clone.querySelectorAll('a').forEach(node => {
           const href = node.getAttribute('href') || '';
-          if (href.startsWith('/parents/chuyen-de/')) {
-            const target = new URL(href, location.origin).pathname.split('/').pop();
+          if (href.startsWith('/parents/topics/')) {
+            const english = new URL(href, location.origin).pathname.split('/').pop();
+            const target = Object.keys(aliases).find(key => aliases[key] === english);
             node.setAttribute('href', slugs.includes(target) ? target + '.html' : 'index.html');
           } else if (href.startsWith('/parents')) node.setAttribute('href', 'index.html');
         });
         const style = document.createElement('style'); style.textContent = styles.join('\n'); clone.querySelector('head').append(style);
         return '<!doctype html>\n' + clone.outerHTML;
-      }, { styles, images, slugs: allArticles.map(article => article[0]) });
+      }, { styles, images, slugs: allArticles.map(article => article[0]), aliases: require('../lib/route-aliases.json').topics });
       await fs.writeFile(path.join(review, slug + '.html'), html);
       await fs.writeFile(path.join(review, 'index.html'), '<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CSAT · Chuyên đề học tập</title><style>body{max-width:900px;margin:40px auto;padding:0 24px;font:17px/1.8 system-ui;background:#fffaf1;color:#132440}a{color:#244fd7}li{margin:15px 0}b{font-size:13px;color:#5c6270}h2{margin-top:32px}</style><h1>Chuyên đề học tập CSAT</h1><p>54 bài cho 43 chủ đề. Bản HTML nội bộ dùng dữ liệu giả để xem nội dung và bố cục; trang phụ huynh thật vẫn yêu cầu phiên và quyền đọc.</p>' + ['A', 'B', 'C'].map(group => '<h2>Chương trình ' + group + '</h2><ul>' + library.filter(article => group === 'C' ? /^[CD]/.test(article.topicCode) : article.topicCode.startsWith(group)).map(article => '<li><b>' + article.topicCode + ' · ' + article.order + '</b> <a href="' + article.slug + '.html">' + article.title + '</a></li>').join('') + '</ul>').join('') + '</html>');
     }
@@ -258,10 +260,12 @@ async function main() {
       await c.addCookies([{ name: 'csat_parent_lookup', value: 'a'.repeat(43), domain: '127.0.0.1', path: '/' }]);
       await visit(p, articleUrl(...samples[0])); check(new URL(p.url()).pathname === '/login', 'Legacy phone cookie cannot replace Auth.');
       await c.addCookies([authCookie()]);
-      await visit(p, articleUrl(...samples[0])); check(new URL(p.url()).pathname.includes('/parents/chuyen-de/'), 'Current authenticated parent access opens article.');
+      await visit(p, articleUrl(...samples[0])); check(new URL(p.url()).pathname.includes('/parents/topics/'), 'Current authenticated parent access opens article.');
       await c.close();
-      const wrongRole = await context('valid', {}, 'admin'), adminPage = await wrongRole.newPage();
-      await visit(adminPage, articleUrl(...samples[0])); check(new URL(adminPage.url()).pathname.includes('/parents/chuyen-de/'), 'Staff can read an article only through additional parent access.');
+      const wrongRole = await context('valid', {}, 'admin');
+      const rejected = await wrongRole.request.get(articleUrl(...samples[0]), { maxRedirects: 0 });
+      check(rejected.status() === 307 && new URL(rejected.headers().location, origin).pathname === '/admin/dashboard', 'Staff redirects to its own portal even with a parent link.');
+      check(!(await rejected.text()).includes('parent-topic-content'), 'No private article for staff.');
       await wrongRole.close();
     });
     await run('remembered parent session refreshes, survives reopening and ends on logout', async () => {
@@ -283,7 +287,7 @@ async function main() {
       await reopened.route(origin + '/api/parents/logout', route => route.continue());
       await page.getByRole('button', { name: 'Đóng tra cứu', exact: true }).first().click();
       await page.waitForURL(url => url.pathname === '/login');
-      check(await page.getByRole('button', { name: 'Đăng nhập bằng Google', exact: true }).isVisible(), 'Explicit logout returns to Google entry.');
+      await page.getByRole('button', { name: 'Đăng nhập bằng Google', exact: true }).waitFor();
       await visit(page, origin + '/parents');
       check(new URL(page.url()).pathname === '/login', 'Logout prevents automatic re-entry.');
       await reopened.close();
@@ -330,13 +334,13 @@ async function main() {
         if (mode === 'revoked') check(await p.locator('.parent-topic-content').count() === 0 && (await p.locator('main').innerText()).includes('bị khóa'), 'Remembering Auth does not reopen blocked access.');
         if (mode === 'valid') {
           await visit(p, origin + '/login?role=tutor');
-          check(new URL(p.url()).pathname === '/login' && await p.locator('#entry-tutor').isVisible(), 'Explicit staff login remains available.');
+          check(new URL(p.url()).pathname === '/parents', 'Existing parent session stays in its authorized portal.');
         }
         await c.close();
       }
-      const staff = await context('unlinked', {}, 'admin'), page = await staff.newPage();
-      await visit(page, origin + '/login');
-      check(await page.getByRole('button', { name: 'Đăng nhập bằng Google', exact: true }).isVisible(), 'An unlinked staff identity can still start its Google parent flow.');
+      const staff = await context('unlinked', {}, 'admin');
+      const response = await staff.request.get(origin + '/login', { maxRedirects: 0 });
+      check(response.status() === 307 && new URL(response.headers().location, origin).pathname === '/admin/dashboard', 'Staff resumes its own portal.');
       await staff.close();
     });
     for (const mode of ['expired', 'revoked', 'excluded', 'old', 'withdrawn', 'draft', 'nullStudent']) await run('private article denied: ' + mode, async () => {
@@ -376,12 +380,12 @@ async function main() {
       check(!await page.locator('.contact-dock').isVisible(), 'Marketing contact dock does not cover parent dashboard.');
       const hrefs = await page.locator('#roadmap .parent-read-topic').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')));
       for (const [slug, classId] of library.filter(article => article.order === 1).map(article => [article.slug, /^[AB]/.test(article.topicCode) ? ids.basicClass : ids.advancedClass])) {
-        const href = hrefs.find(value => value.includes('/' + slug + '?'));
+        const href = hrefs.find(value => value.includes('/' + publicSlugs[slug] + '?'));
         check(!!href, 'Dashboard links first article for ' + slug);
         const url = new URL(href, origin);
         check(url.searchParams.get('student') === ids.student && url.searchParams.get('class') === classId && url.searchParams.get('month') === '2026-09' && url.searchParams.get('page') === '2', 'Article link carries dashboard context.');
       }
-      check(!hrefs.some(href => /c01-cong-don-hai-chieu|d03-cai-tui-khong-gioi-han/.test(href)), 'Dashboard opens each series from its first article.');
+      check(!hrefs.some(href => /c01-two-dimensional-prefix-sums|d03-unbounded-knapsack/.test(href)), 'Dashboard opens each series from its first article.');
       const practice = await page.locator('#roadmap .parent-practice-link').evaluateAll(nodes => nodes.map(node => ({ href: node.href, rel: node.rel, target: node.target })));
       check(new Set(practice.map(link => link.href)).size === 43, 'All 43 published topics have practice links.');
       check(practice.every(link => link.href.startsWith('https://csatoj.vn/problems/?tag=') && !/student|class|month|page=/.test(link.href) && link.target === '_blank' && link.rel.includes('noreferrer')), 'Practice links carry no parent context and open safely.');
@@ -501,11 +505,11 @@ async function main() {
     });
     await run('series, section links and preserved return context', async () => {
       await visit(page, articleUrl(...samples[4]));
-      const next = page.locator('a[href*="d03-cai-tui-khong-gioi-han"]').first();
+      const next = page.locator('a[href*="d03-unbounded-knapsack"]').first();
       check(await next.count() > 0, 'Series provides next article.');
       const nextUrl = new URL(await next.getAttribute('href'), origin);
       check(nextUrl.searchParams.get('student') === ids.student && nextUrl.searchParams.get('class') === ids.advancedClass, 'Series keeps child/class context.');
-      await next.click(); await page.waitForURL(url => url.pathname.endsWith('d03-cai-tui-khong-gioi-han'));
+      await next.click(); await page.waitForURL(url => url.pathname.endsWith('d03-unbounded-knapsack'));
       const back = page.locator('a[href^="/parents?"]').first();
       check(await back.count() > 0, 'Back-to-parent link exists.');
       const backUrl = new URL(await back.getAttribute('href'), origin);

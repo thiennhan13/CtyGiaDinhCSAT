@@ -16,7 +16,7 @@ const icons = { new: Inbox, contacted: Phone, completed: CheckCircle2 };
 const date = (v: string) => new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(v));
 function label(group: Record<string, string>, value: unknown) { return group[String(value)] || String(value || 'Chưa cung cấp'); }
 function courseName(d: Row['data']) { return d.course ? label(intakeChoices.course, d.course) : label({ 'co-ban': 'Cơ bản (hồ sơ cũ)', 'nang-cao': 'Nâng cao (hồ sơ cũ)', hsgqg: 'HSGQG (hồ sơ cũ)', consultation: 'Cần tư vấn' }, d.program); }
-function sourceName(d: Row['data']) { const path = String(d.source_path || ''); return path === '/dang-ky-hoc' ? 'Trang đăng ký học' : path.startsWith('/lo-trinh/') ? `Lộ trình lớp ${path.split('/').at(-1)?.toUpperCase()}` : path === '/lo-trinh' ? 'Tổng quan lộ trình' : path === '/' ? 'Trang giới thiệu' : 'Form cũ'; }
+function sourceName(d: Row['data']) { const path = String(d.source_path || '').replace('/dang-ky-hoc','/enroll').replace('/lo-trinh','/roadmap'); return path === '/enroll' ? 'Trang đăng ký học' : path.startsWith('/roadmap/') ? `Lộ trình lớp ${path.split('/').at(-1)?.toUpperCase()}` : path === '/roadmap' ? 'Tổng quan lộ trình' : path === '/' ? 'Trang giới thiệu' : 'Form cũ'; }
 function Badge({ status }: { status: Status }) { return <span className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs font-semibold ${tones[status]}`}>{consultationStatuses[status]}</span>; }
 
 export default function ConsultationsAdmin() {

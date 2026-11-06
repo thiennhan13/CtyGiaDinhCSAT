@@ -12,7 +12,7 @@ const messages: Record<string, string> = {
   RATE_LIMITED: 'Vui lòng chờ 15 phút trước khi thử lại.',
 };
 export async function POST(request: Request) {
-  const access = await businessSession(false, request); if (access.response) return access.response;
+  const access = await businessSession('parent', request); if (access.response) return access.response;
   const input = z.object({ phone: parentPhoneSchema }).strict().safeParse(await readLoginBody(request));
   if (!input.success) return NextResponse.json({ error: 'Số điện thoại không hợp lệ.' }, { status: 422 });
   const budget = await createAdminClient().rpc('consume_auth_attempt', authAttemptKeys(request, 'parent-link:' + access.user.id));

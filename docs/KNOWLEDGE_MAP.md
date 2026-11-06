@@ -1,6 +1,6 @@
 # Bản đồ kiến thức dọc
 
-`/tu-hoc` giữ nguyên 43 chủ đề, nội dung và quan hệ của project `csat-roadmap`, trình bày cây dọc trên toàn trang giấy kẻ. Portal phụ huynh dùng cùng hình học/node, nhưng nội dung lấy từ giáo án công bố hiệu lực của lớp.
+`/self-study` giữ nguyên 43 chủ đề, nội dung và quan hệ của project `csat-roadmap`, trình bày cây dọc trên toàn trang giấy kẻ. Portal phụ huynh dùng cùng hình học/node, nhưng nội dung lấy từ giáo án công bố hiệu lực của lớp.
 
 ## Nguồn và ranh giới
 
@@ -16,11 +16,11 @@ Snapshot public quyết định tên/mô tả/chi tiết/kiến thức trước/
 
 ## Tự học
 
-Menu chính website cố định phía trên. Mục lục Tất cả/A/B/C/DP và liên kết đăng ký không ô màu dẫn `/lo-trinh#tu-van` nổi bên trái trên sơ đồ; mobile thu gọn bằng native disclosure. Thanh điều chỉnh nổi phía dưới gồm tìm kiếm, Sơ đồ/Danh sách, vừa chiều ngang, zoom và tải SVG. Không có vùng canvas cuộn lồng: thanh cuộn trang và thao tác cuộn/kéo nền di chuyển sơ đồ. Chừa khoảng trống trên/dưới để chủ đề không nằm sau menu.
+Menu chính website cố định phía trên. Mục lục Tất cả/A/B/C/DP và liên kết đăng ký không ô màu dẫn `/roadmap#tu-van` nổi bên trái trên sơ đồ; mobile thu gọn bằng native disclosure. Thanh điều chỉnh nổi phía dưới gồm tìm kiếm, Sơ đồ/Danh sách, vừa chiều ngang, zoom và tải SVG. Không có vùng canvas cuộn lồng: thanh cuộn trang và thao tác cuộn/kéo nền di chuyển sơ đồ. Chừa khoảng trống trên/dưới để chủ đề không nằm sau menu.
 
 Mặc định desktop 100%, mobile 85%; Vừa khung chỉ vừa chiều ngang khả dụng, không ép toàn cây dài vào chiều cao. Các nhánh vẫn có thể rộng hơn màn hình. Khi tìm từ khóa nhấn Enter, node được đưa vào vùng nhìn giữa các menu.
 
-Tìm không dấu trên mã/tên/mô tả/chi tiết, không tải lại SVG hoặc reset vị trí. Chỉ tải SVG view đang dùng, cache trong component; lưu zoom/vị trí trang riêng từng view. Hash `#view=C&mode=list&q=...&tag=D03`, back/forward, anchor cũ `#chu-de-D03` và alias `/ban-do-kien-thuc` được giữ. Node hỗ trợ Tab/Enter/Space, drawer đóng Escape/trả focus. Kéo chuột từ nền hoặc node không chọn chữ, không kích hoạt drawer khi đang kéo; click thường vẫn mở chủ đề. Chặn chọn chữ chỉ trong canvas, drawer/danh sách vẫn sao chép được. Cảm ứng dùng cuộn tự nhiên, không kéo đổi tọa độ node.
+Tìm không dấu trên mã/tên/mô tả/chi tiết, không tải lại SVG hoặc reset vị trí. Chỉ tải SVG view đang dùng, cache trong component; lưu zoom/vị trí trang riêng từng view. Hash `#view=C&mode=list&q=...&tag=D03`, back/forward, anchor cũ `#chu-de-D03` và alias `/self-study` được giữ. Node hỗ trợ Tab/Enter/Space, drawer đóng Escape/trả focus. Kéo chuột từ nền hoặc node không chọn chữ, không kích hoạt drawer khi đang kéo; click thường vẫn mở chủ đề. Chặn chọn chữ chỉ trong canvas, drawer/danh sách vẫn sao chép được. Cảm ứng dùng cuộn tự nhiên, không kéo đổi tọa độ node.
 
 No-JS hiện ảnh/liên kết SVG dọc đầy đủ và CTA thật; ẩn các điều khiển cần JS. In giữ sơ đồ/danh sách, ẩn menu nổi. Dark mode đổi giấy/đường nối/drawer, node public giữ mặt sáng dễ đọc. Không khóa cuộn trang.
 

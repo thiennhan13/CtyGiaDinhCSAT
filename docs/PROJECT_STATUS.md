@@ -1,5 +1,11 @@
 # Tiến độ và việc tiếp theo
 
+## Tách ba cổng và chuyển URL sang tiếng Anh
+
+Bản làm việc đã tách quyền trang, API và RPC, sửa CAPTCHA dựng lại sau đăng nhập, cập nhật footer và danh mục công khai 10 gia sư. Supabase production đã áp 33–34 ngày 06/11/2026 sau sao lưu và diễn tập rollback. Registry đạt 20261105_34, quyền gọi helper nội bộ và quy tắc URL đăng ký đã kiểm lại sau commit SQL. Nghiệm thu phiên thật của ba vai trò và CSATOJ còn chờ. [Ma trận quyền, bản đồ URL và quy trình nghiệm thu](PORTAL_ACCESS_AND_ROUTES.md).
+
+**Kiểm chứng local ngày 06/11/2026.** Node 24 đạt 47 kiểm thử repo và 294 kiểm thử database/API, gồm PostgreSQL thật. Edge đạt 206 kiểm tra phân quyền, địa chỉ cũ, footer và danh mục ở 320/390/768/1440 px. CAPTCHA đạt 77 kiểm tra với dịch vụ giả lập. Chuyên đề đạt 39 nhóm và 4.103 kiểm tra, gồm đọc khi tắt JavaScript, in, phiên được làm mới, mở lại và đăng xuất. Kiểm HTTP đủ 17 trang công khai và 41 nhóm UI công khai với 658 kiểm tra. Tự học đạt 320 kiểm tra trên 20 bố cục sáng/tối. Bộ tích hợp OJ giả lập trên bản build đạt các ca mapping, thu hồi quyền, báo cáo phụ huynh, xác nhận thu và hiển thị chứng chỉ. Repo guard, TypeScript, lint strict và build đạt.
+
 ## Repository chính thức và phát hành2.1.0
 
 Repository GitHub đã public khi kiểm05/11/2026; đã đồng bộ About/homepage/topics; bật secret scanning/push protection, dependency alerts và private vulnerability reporting. Giữ cài đặt nhánh hiện có, chưa bật ruleset. Chuẩn hóa README, giấy phép nội bộ CSAT, metadata package/lock cùng phiên bản2.1.0, liên hệ ba email và công cụ gói nguồn từ commit có manifest/SHA-256. [Release/runbook](RELEASES.md), [SEO hiện hành](PUBLIC_SEO.md). Release mã nguồn không thay nghiệm thu production.

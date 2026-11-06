@@ -26,7 +26,7 @@ test('intake requires the database to confirm the saved request ID',async()=>{en
 function adminFixture(failedIndex=-1) {
  const queries=[];
  return {queries,adminDb:{from(table){const index=queries.length,steps=[['from',table]];queries.push(steps);const chain={};
-  for(const method of ['select','order','range','eq','like','ilike','gte','lt','is'])chain[method]=(...args)=>{steps.push([method,...args]);return chain;};
+  for(const method of ['select','order','range','or','eq','like','ilike','gte','lt','is'])chain[method]=(...args)=>{steps.push([method,...args]);return chain;};
   chain.then=(resolve,reject)=>Promise.resolve({data:index===0?[]:null,count:index===0?0:3,error:index===failedIndex?{code:'offline'}:null}).then(resolve,reject);return chain;
  }}};
 }
@@ -34,7 +34,7 @@ const listRequest=query=>new Request('https://portal.example.test/api/admin/cons
 test('admin intake filters use bounded pagination, normalized phone, source and Vietnam date boundaries',async()=>{
  const s=adminFixture(),r=await load('app/api/admin/consultations/route.ts',s).GET(listRequest({q:'+84 912-345-678',status:'new',course:'K',source:'roadmap',from:'2026-10-01',to:'2026-10-14',offset:'50'}));
  assert.equal(r.status,200);assert.equal(r.headers.get('cache-control'),'private, no-store');
- const steps=s.queries[0];for(const expected of [['range',50,99],['eq','status','new'],['eq','data->>course','K'],['like','data->>source_path','/lo-trinh%'],['ilike','data->>phone','%0912345678%'],['gte','created_at','2026-10-01T00:00:00+07:00'],['lt','created_at','2026-10-14T17:00:00.000Z']])assert.ok(steps.some(step=>JSON.stringify(step)===JSON.stringify(expected)),JSON.stringify(expected));
+ const steps=s.queries[0];for(const expected of [['range',50,99],['eq','status','new'],['eq','data->>course','K'],['or','data->>source_path.like./roadmap%,data->>source_path.like./lo-trinh%'],['ilike','data->>phone','%0912345678%'],['gte','created_at','2026-10-01T00:00:00+07:00'],['lt','created_at','2026-10-14T17:00:00.000Z']])assert.ok(steps.some(step=>JSON.stringify(step)===JSON.stringify(expected)),JSON.stringify(expected));
  const body=await r.json();assert.equal(body.completedCount,3);assert.equal(s.queries.length,4);assert.ok(s.queries.slice(1).every(steps=>!steps.some(step=>step[0]==='ilike'||step[0]==='gte')),'Summary covers all requests, not only filtered results');
 });
 test('admin intake rejects malformed dates, reversed dates, expressions and unbounded filters before querying',async()=>{

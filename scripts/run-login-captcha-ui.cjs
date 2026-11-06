@@ -12,7 +12,7 @@ const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54329'
 const widgetScript = `(() => {
  let serial=0; const widgets=new Map();
  window.turnstile={ready(){throw Error('Turnstile.ready is incompatible with async/defer');},render(container,options){
-  const id=String(++serial),box=document.createElement('div');box.dataset.fixtureWidget=options.action;
+  console.info('[fixture widget rendered]',options.action);const id=String(++serial),box=document.createElement('div');box.dataset.fixtureWidget=options.action;
   box.style.cssText='border:1px solid #aaa;padding:12px;box-sizing:border-box;width:'+(options.size==='compact'?'150px':'100%');
   const solve=document.createElement('button');solve.type='button';solve.textContent='Xác minh thử nghiệm';solve.onclick=()=>options.callback('fixture-'+options.action+'-'+id);
   const expire=document.createElement('button');expire.type='button';expire.textContent='Hết hạn thử nghiệm';expire.onclick=()=>options['expired-callback']();
@@ -47,12 +47,12 @@ async function main() {
     for (let i = 0; i < 60; i++) { try { if ((await fetch(origin + '/login')).ok) { ready = true; break; } } catch {} await new Promise(r => setTimeout(r, 500)); }
     check(ready, 'Preview started');
     browser = await chromium.launch({ headless: true, channel: process.env.CSAT_BROWSER_CHANNEL || 'msedge' });
-    async function context(failFirst = false, javaScriptEnabled = true, rateLimited = false) {
+    async function context(failFirst = false, javaScriptEnabled = true, rateLimited = false, success = false) {
       const c = await browser.newContext({ viewport: { width: 1440, height: 1000 }, javaScriptEnabled });
-      const activity = { scripts: 0, posts: [], errors: [], unexpected: [], logs: [] };
+      const activity = { scripts: 0, renders: 0, posts: [], errors: [], unexpected: [], logs: [] };
       c.on('page', p => {
         p.on('pageerror', e => activity.errors.push(e.message));
-        p.on('console', message => { if (message.text().startsWith('[CSAT Turnstile]')) activity.logs.push(message.text()); });
+        p.on('console', message => { if (message.text().startsWith('[fixture widget rendered]')) activity.renders++; if (message.text().startsWith('[CSAT Turnstile]')) activity.logs.push(message.text()); });
       });
       await c.route('**/*', async route => {
         const request = route.request(), url = new URL(request.url());
@@ -64,15 +64,31 @@ async function main() {
         if (url.origin !== origin) { activity.unexpected.push(url.origin); return route.abort(); }
         if (['/api/auth/login', '/api/parents/auth'].includes(url.pathname) && request.method() === 'POST') {
           activity.posts.push({ path: url.pathname, data: request.postDataJSON() });
+          if (success) {
+            await new Promise(resolve => setTimeout(resolve, 350));
+            return route.fulfill({status:200,json:{redirectUrl:'/auth-fixture-complete'}});
+          }
           return route.fulfill({ status: rateLimited ? 429 : 401, headers: rateLimited ? { 'Retry-After': '900' } : {}, json: { error: rateLimited ? 'Đã vượt quá số lượt đăng nhập cho phép với thông tin hoặc mạng đang sử dụng. Vui lòng chờ 15 phút rồi thử lại. Nếu cần hỗ trợ, hãy liên hệ CSAT.' : 'Đăng nhập thử nghiệm bị từ chối.' } });
         }
+        if (url.pathname === '/auth-fixture-complete') return route.fulfill({status:200,contentType:'text/html',body:'<html lang="vi"><title>Fixture</title><main>Đã mở cổng</main></html>'});
         if (!['GET', 'HEAD'].includes(request.method())) { activity.unexpected.push(url.pathname); return route.abort(); }
         return route.continue();
       });
       return { c, activity, p: await c.newPage() };
     }
+    const completed = await context(false, true, false, true);
+    await completed.p.goto(origin+'/login?role=tutor');
+    await completed.p.getByRole('button',{name:'Xác minh thử nghiệm',exact:true}).click();
+    await completed.p.getByLabel('Email / Tên đăng nhập').fill('fixture@example.test');
+    await completed.p.getByLabel('Mật khẩu',{exact:true}).fill('fixture-password');
+    const initialRenders = completed.activity.renders;
+    await completed.p.getByRole('button',{name:'Đăng nhập hệ thống',exact:true}).click();
+    await completed.p.waitForURL(origin+'/auth-fixture-complete');
+    check(completed.activity.renders === initialRenders, 'Successful login never resets CAPTCHA while navigating');
+    check(completed.activity.posts.length === 1, 'Successful login submitted once');
+    await completed.c.close();
     const { c, p, activity } = await context();
-    for (const pathname of ['/', '/dang-ky-hoc', '/lo-trinh/a']) {
+    for (const pathname of ['/', '/enroll', '/roadmap/a']) {
       await p.goto(origin + pathname, { waitUntil: 'networkidle' });
       check(activity.scripts === 0, 'No CAPTCHA script outside login');
       check(await p.locator('[data-login-captcha]').count() === 0, 'No widget outside login');

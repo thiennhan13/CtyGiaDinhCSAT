@@ -1,5 +1,7 @@
 # SEO và khả năng khám phá website CSAT
 
+URL công khai chuẩn trong bản mới dùng tiếng Anh. Sau triển khai, kiểm 308, canonical và sitemap mới qua Search Console. [Ánh xạ và thứ tự triển khai](PORTAL_ACCESS_AND_ROUTES.md).
+
 Phạm vi: website công khai tại `https://portal.csatoj.vn`. Giữ thiết kế, nội dung đào tạo đã duyệt và ranh giới dữ liệu Portal. Trạng thái/bằng chứng ở [PROJECT_STATUS](PROJECT_STATUS.md); quy trình UI ở [FRONTEND_WORKFLOW](FRONTEND_WORKFLOW.md).
 
 ## Nguồn và cấu trúc

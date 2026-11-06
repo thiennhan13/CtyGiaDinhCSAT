@@ -1,32 +1,10 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { NextRequest, NextResponse } from 'next/server'
-
-export async function POST(request: NextRequest) {
-  const cookieStore = await cookies()
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
-          } catch {
-            // IGNORE
-          }
-        },
-      },
-    }
-  )
-
-  await supabase.auth.signOut()
-
-  return NextResponse.redirect(new URL('/tutor', request.url), { status: 303 })
+import { NextResponse } from 'next/server';
+import { isSameOrigin } from '@/lib/parents';
+import { createClient } from '@/lib/supabase/server';
+export async function POST(request: Request) {
+  if (!isSameOrigin(request)) return NextResponse.json({ error: 'Nguồn yêu cầu không hợp lệ.' }, { status: 403 });
+  const db = await createClient();
+  const { error } = await db.auth.signOut({ scope: 'local' });
+  if (error) return NextResponse.json({ error: 'Chưa đăng xuất được. Vui lòng thử lại.' }, { status: 503 });
+  return NextResponse.redirect(new URL('/login', request.url), { status: 303 });
 }

@@ -1,3 +1,4 @@
+import { portalHome, portalRole } from '@/lib/auth-routing';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { TutorLayoutClient } from '@/components/layout/TutorLayoutClient';
@@ -9,18 +10,16 @@ export default async function TutorLayout({ children }: { children: React.ReactN
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect('/tutor');
-  }
-
-  const rawRole = user.app_metadata?.role || 'parent';
-  if (rawRole === 'parent') redirect('/login');
-  const role = rawRole === 'admin' ? 'Admin' : 'Gia Sư';
+  if (!user) redirect('/login?role=tutor');
+  const role = portalRole(user);
+  if (role !== 'tutor') redirect(portalHome(role));
+  const tutor = await supabase.rpc('current_tutor_id');
+  if (tutor.error || !tutor.data) redirect('/access-denied');
   const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Người dùng';
   const initials = name.substring(0, 2).toUpperCase();
 
   return (
-    <TutorLayoutClient user={{ name, role, initials }}>
+    <TutorLayoutClient user={{ name, role: 'Gia Sư', initials }}>
       {children}
     </TutorLayoutClient>
   );

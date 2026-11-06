@@ -29,7 +29,7 @@ function queryFor(selection: Selection, course?: Course) {
   if (course || selection.course) query.set('course', course || selection.course!);
   return query.toString();
 }
-function coursePath(course: Course) { return `/lo-trinh/${course.toLowerCase()}`; }
+function coursePath(course: Course) { return `/roadmap/${course.toLowerCase()}`; }
 function recommendation(selection: Selection): { title: string; description: string; choices: Course[] } {
   if (selection.background === 'new' || selection.goal === 'start') return { title: 'Làm quen với C++ từ lớp A.', description: 'Lớp A xây dựng nền tảng qua nhập, xuất dữ liệu, điều kiện và vòng lặp; tiếp đến là mảng, hàm và xâu. Cùng gia sư trao đổi về quá trình học trước khi chọn lớp tiếp theo.', choices: ['A'] };
   if (selection.background === 'syntax') return { title: 'Từ hiểu câu lệnh đến chọn cách giải.', description: 'Phần A giúp bạn nhìn lại mảng, hàm và xâu; phần B mở rộng sang số học, sắp xếp và tìm kiếm. Các bài bạn đã làm là cơ sở để cùng gia sư trao đổi phần nên học tiếp.', choices: ['A', 'B'] };
@@ -53,7 +53,7 @@ function useRoadmapState() {
       if (allowed(backgrounds, params.get('background'))) clean.set('background', next.background);
       if (next.course) clean.set('course', next.course);
       if (params.get('show') === '1') clean.set('show', '1');
-      if (params.toString() !== clean.toString()) window.history.replaceState(null, '', `/lo-trinh${clean.size ? `?${clean}` : ''}${window.location.hash}`);
+      if (params.toString() !== clean.toString()) window.history.replaceState(null, '', `/roadmap${clean.size ? `?${clean}` : ''}${window.location.hash}`);
       setSelection(next);
       setDraft(next);
       setSubmitted(params.get('show') === '1');
@@ -66,7 +66,7 @@ function useRoadmapState() {
     event.preventDefault();
     const query = new URLSearchParams(queryFor(draft));
     query.set('show', '1');
-    window.history.replaceState(null, '', `/lo-trinh?${query}${window.location.hash}`);
+    window.history.replaceState(null, '', `/roadmap?${query}${window.location.hash}`);
     setSelection(draft);
     setSubmitted(true);
     requestAnimationFrame(() => resultRef.current?.focus({ preventScroll: true }));
@@ -92,7 +92,7 @@ export function RoadmapDetailsLink({ code, className, children }: { code: Course
 }
 export function RoadmapSelector() {
   const { draft, setDraft, submitted, resultRef, submit, result, href } = useRoadmapSelection();
-  return <section className="rm-choose" id="chon-lo-trinh"><Reveal className="wrap rm-section-reveal" variant="rise">
+  return <section className="rm-choose" id="choose-roadmap"><Reveal className="wrap rm-section-reveal" variant="rise">
       <div className="rm-chapter mono"><span>01 / CHỌN ĐIỂM BẮT ĐẦU</span><span aria-hidden="true">+</span></div>
       <div className="rm-selector rm-glass"><div className="rm-selector-copy"><p className="eyebrow">Lộ trình từ chính bạn</p><GlyphHeading>Mục tiêu của bạn.<br />Nền tảng <em>đã có.</em></GlyphHeading><p>Chọn cấp học, mục tiêu và những gì đã từng học. Từ đó, bạn có thể tìm hiểu vài hướng trước khi trao đổi cụ thể cùng gia sư.</p><CodeIcon name="branch" /><p className="rm-small">Gợi ý để tìm hiểu chương trình; việc chọn lớp cần trao đổi thêm.</p></div>
         <form className="rm-selector-form" onSubmit={submit}>
@@ -102,10 +102,10 @@ export function RoadmapSelector() {
           <button className="btn" type="submit">Xem hướng học <ArrowRight aria-hidden="true" size={18} /></button>
         </form>
       </div>
-      <div className="rm-result" ref={resultRef} tabIndex={-1} aria-live="polite" aria-atomic="true"><div><p className="eyebrow">Gợi ý ban đầu</p><h3>{submitted ? result.title : 'Bạn muốn bắt đầu từ đâu?'}</h3><p>{submitted ? result.description : 'Điền ba lựa chọn phía trên để xem gợi ý, hoặc khám phá từng nhóm kiến thức bên dưới. Bạn luôn có thể tìm hiểu lớp khác.'}</p></div><div className="rm-result-links">{(submitted ? result.choices : ['A', 'B', 'C'] as Course[]).map(course => <Link className="rm-result-course" key={course} href={href(course)}><b>{course}</b><span>{courses[course]}</span><ArrowUpRight aria-hidden="true" size={18} /></Link>)}{submitted && result.choices.length === 0 && <a className="rm-result-course" href="#tu-van"><b>↗</b><span>Chia sẻ mục tiêu với CSAT</span></a>}</div></div>
+      <div className="rm-result" ref={resultRef} tabIndex={-1} aria-live="polite" aria-atomic="true"><div><p className="eyebrow">Gợi ý ban đầu</p><h3>{submitted ? result.title : 'Bạn muốn bắt đầu từ đâu?'}</h3><p>{submitted ? result.description : 'Điền ba lựa chọn phía trên để xem gợi ý, hoặc khám phá từng nhóm kiến thức bên dưới. Bạn luôn có thể tìm hiểu lớp khác.'}</p></div><div className="rm-result-links">{(submitted ? result.choices : ['A', 'B', 'C'] as Course[]).map(course => <Link className="rm-result-course" key={course} href={href(course)}><b>{course}</b><span>{courses[course]}</span><ArrowUpRight aria-hidden="true" size={18} /></Link>)}{submitted && result.choices.length === 0 && <a className="rm-result-course" href="#consultation"><b>↗</b><span>Chia sẻ mục tiêu với CSAT</span></a>}</div></div>
     </Reveal></section>;
 }
 export function RoadmapConsultation() {
   const { selection, serialized, context } = useRoadmapSelection();
-  return <section className="rm-consult-section" id="tu-van"><Reveal className="wrap rm-section-reveal" variant="right"><div className="rm-chapter mono"><span>07 / CÙNG CHỌN BƯỚC TIẾP THEO</span><span>CSAT</span></div><div className="rm-consult-layout"><div><h2>Chọn bước tiếp theo.<br /><em>Cùng CSAT.</em></h2><p>Kể một chút về việc học của bạn: những bài đã làm, câu hỏi còn vướng và mục tiêu muốn theo đuổi. Đó là điểm khởi đầu để cùng đội ngũ trao đổi lộ trình.</p><div className="rm-consult-context"><span className="mono">NỘI DUNG QUAN TÂM</span><p>{context}</p></div><span className="rm-consult-symbol" aria-hidden="true"><CodeIcon name="brackets" />+</span></div><PublicConsultation kind="consultation" context={serialized ? context : undefined} defaultCourse={publicCourseCode(selection.course)} /></div></Reveal></section>;
+  return <section className="rm-consult-section" id="consultation"><Reveal className="wrap rm-section-reveal" variant="right"><div className="rm-chapter mono"><span>07 / CÙNG CHỌN BƯỚC TIẾP THEO</span><span>CSAT</span></div><div className="rm-consult-layout"><div><h2>Chọn bước tiếp theo.<br /><em>Cùng CSAT.</em></h2><p>Kể một chút về việc học của bạn: những bài đã làm, câu hỏi còn vướng và mục tiêu muốn theo đuổi. Đó là điểm khởi đầu để cùng đội ngũ trao đổi lộ trình.</p><div className="rm-consult-context"><span className="mono">NỘI DUNG QUAN TÂM</span><p>{context}</p></div><span className="rm-consult-symbol" aria-hidden="true"><CodeIcon name="brackets" />+</span></div><PublicConsultation kind="consultation" context={serialized ? context : undefined} defaultCourse={publicCourseCode(selection.course)} /></div></Reveal></section>;
 }

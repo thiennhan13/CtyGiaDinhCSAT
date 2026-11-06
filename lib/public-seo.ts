@@ -25,10 +25,10 @@ export const publicCourseDescriptions: Record<PublicCourseCode, string> = {
 };
 
 export const publicPagePaths = [
-  '/', '/chinh-sach-quyen-rieng-tu', '/hoc-lieu-mien-phi', '/thanh-tich', '/gia-su', '/bai-dang',
-  ...publicPosts.map(post => `/bai-dang/${post.slug}`),
-  '/dang-ky-hoc', '/lo-trinh', '/tu-hoc',
-  ...publicCourses.map(course => `/lo-trinh/${course.code.toLowerCase()}`),
+  '/', '/privacy-policy', '/free-resources', '/achievements', '/team', '/posts',
+  ...publicPosts.map(post => `/posts/${post.slug}`),
+  '/enroll', '/roadmap', '/self-study',
+  ...publicCourses.map(course => `/roadmap/${course.code.toLowerCase()}`),
 ];
 
 export function publicPageMetadata({ path, title, description, type = 'website' }: {

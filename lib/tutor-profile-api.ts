@@ -8,7 +8,7 @@ import { normalizeTutorAvatar } from './tutor-avatar';
 
 const json = (data: unknown, status = 200) => NextResponse.json(data, { status, headers: { 'Cache-Control': 'private, no-store' } });
 async function authorize(tutorId?: string, request?: Request) {
-  const session = await businessSession(!!tutorId, request);
+  const session = await businessSession(tutorId ? 'admin' : 'tutor', request);
   if (session.response) return session;
   if (tutorId && !z.string().uuid().safeParse(tutorId).success) return { response: json({ error: 'Gia sư không hợp lệ.' }, 422) };
   let query = session.supabase.from('tutors').select('tutor_id,name').not('is_deleted', 'is', true);

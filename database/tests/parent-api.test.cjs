@@ -20,7 +20,7 @@ function client(s) {
   const call = (name, payload, result) => { s.calls.push({name,payload}); return Promise.resolve(result); };
   return {
     auth:{
-      exchangeCodeForSession:code=>call('exchangeCode',code,{data:{session:null},error:s.exchangeError||null}),
+      exchangeCodeForSession:code=>call('exchangeCode',code,{data:{session:null,user:s.user},error:s.exchangeError||null}),
       signInWithOAuth:payload=>call('oauth',payload,{data:{url:'https://accounts.google.com/synthetic'},error:s.oauthError||null}),
       getClaims:()=>call('claims',null,{data:{claims:{session_id:id(50)}}}),
       getUser:()=>call('getUser',null,{data:{user:s.user}}),
@@ -59,6 +59,8 @@ function load(relative,s) {
     if(name==='@/lib/login-security') return load('lib/login-security.ts',s);
     if(name==='@/lib/login-captcha') return load('lib/login-captcha.ts',s);
     if(name==='@/lib/business-api') return load('lib/business-api.ts',s);
+    if(name==='@/lib/auth-routing') return load('lib/auth-routing.ts',s);
+    if(name==='next/navigation') return {redirect: url => {throw new Error('redirect:'+url);}};
     if(name==='@/lib/parent-auth') return load('lib/parent-auth.ts',s);
     if(name==='next/server') return {NextResponse:{json:(body,init)=>Response.json(body,init),redirect:url=>Response.redirect(url,307)}};
     if(name==='next/headers') return {cookies:async()=>({set:(...args)=>s.cookies.push(args),get:name=>s.cookieValues?.[name]?{value:s.cookieValues[name]}:undefined})};
@@ -199,7 +201,7 @@ test('Google OAuth starts PKCE with fixed callback and rejects legacy phone logi
 test('parent session requires verified Auth and current DB linkage; legacy cookie grants nothing',async()=>{
  const old={csat_parent_lookup:'a'.repeat(43),parent_session:'0912345678'};
  assert.equal(await load('lib/parent-auth.ts',state({user:null,cookieValues:old})).parentSession(),null);
- const s=state({rpcResults:{parent_access:{state:'active',student_id:id(11)}}});
+ const s=state({user:{id:id(1),app_metadata:{provider:'google'}},rpcResults:{parent_access:{state:'active',student_id:id(11)}}});
  const session=await load('lib/parent-auth.ts',s).parentSession();assert.equal(session.access.student_id,id(11));
  assert.equal(did(s,'getUser').length,1);assert.equal(did(s,'parent_access').length,1);
  await assert.rejects(()=>load('lib/parent-auth.ts',state({rpcError:{code:'offline'}})).parentSession());
@@ -208,11 +210,11 @@ test('parent session requires verified Auth and current DB linkage; legacy cooki
 test('parent phone claim is authenticated, bounded and does not reveal owner identity',async()=>{
  const route='app/api/parents/link/route.ts';
  assert.equal((await post(route,state({user:null}),{phone:'0912345678'})).status,401);
- const s=state({rpcResults:{claim_parent_phone:{code:'PHONE_ALREADY_LINKED'}}});
+ const s=state({user:{id:id(1),app_metadata:{provider:'google'}},rpcResults:{claim_parent_phone:{code:'PHONE_ALREADY_LINKED'}}});
  const response=await post(route,s,{phone:'+84 912 345 678'});assert.equal(response.status,409);
  assert.equal((await response.json()).code,'PHONE_ALREADY_LINKED');
  assert.deepEqual(did(s,'claim_parent_phone')[0].payload,{p_phone:'0912345678'});
- assert.equal((await post(route,state(),{phone:'0912345678',studentId:id(11)})).status,422);
+ assert.equal((await post(route,state({user:{id:id(1),app_metadata:{provider:'google'}}}),{phone:'0912345678',studentId:id(11)})).status,422);
 });
 
 test('logout ends the local Supabase session and clears obsolete lookup cookies',async()=>{
@@ -223,14 +225,24 @@ test('logout ends the local Supabase session and clears obsolete lookup cookies'
  assert.equal((await post('app/api/parents/logout/route.ts',state({logoutError:{message:'offline'}}),{})).status,503);
 });
 
-test('parent page validates lookup separately; admin/tutor routing stays protected',()=>{
-  const {authRedirect}=load('lib/auth-routing.ts',state());
-  for(const user of [null,{app_metadata:{role:'parent'}},{app_metadata:{role:'admin'}}]) for(const route of ['/parents','/parents/account','/login'])assert.equal(authRedirect(route,user),null);
-  for(const route of ['/admin/parents','/tutor/dashboard','/tutor']) assert.equal(authRedirect(route,{app_metadata:{role:'parent'}}),'/parents');
-  assert.equal(authRedirect('/admin/parents',null),'/tutor');
-  assert.equal(authRedirect('/admin/parents',{app_metadata:{role:'tutor'}}),'/tutor/dashboard');
-  assert.equal(authRedirect('/admin/parents',{user_metadata:{role:'admin'}}),'/parents');
-  const page=fs.readFileSync(path.join(root,'app/parents/page.tsx'),'utf8');assert.match(page,/parentSession/);assert.match(page,/parent_portal/);assert.doesNotMatch(page,/get_parent_portal|auth.getUser|parent_session/);
+test('all three portals reject cross-role entry and resume only their own sessions',()=>{
+ const {authRedirect}=load('lib/auth-routing.ts',state());
+ for(const role of ['parent','admin','tutor']){
+  const user={app_metadata:{role,provider:'google'}};
+  const own=role==='parent'?'parents':role;
+  const home=role==='parent'?'/parents':'/'+role+'/dashboard';
+  for(const area of ['admin','tutor','parents']){
+   for(const suffix of ['/dashboard','/classes/example','/account']){
+    assert.equal(authRedirect('/'+area+suffix,user),area===own?null:home);
+   }
+  }
+  assert.equal(authRedirect('/login',user),home);
+ }
+ assert.equal(authRedirect('/parents',null),'/login');
+ assert.equal(authRedirect('/tutor/classes',null),'/login?role=tutor');
+ assert.equal(authRedirect('/admin/parents',{user_metadata:{role:'admin'}}),'/access-denied');
+ assert.equal(authRedirect('/tutor/dashboard',{app_metadata:{role:'invalid'}}),'/access-denied');
+ assert.equal(authRedirect('/tutor/dashboard',{app_metadata:{role:'tutor'}},false),'/access-denied');
 });
 test('same-origin checks use forwarded authority and reject foreign or opaque origins',()=>{
   const {isSameOrigin}=load('lib/parents.ts',state());const req=origin=>new Request('http://localhost:3000/api',{headers:{host:'portal.test','x-forwarded-proto':'https',origin}});
@@ -303,9 +315,9 @@ test('tutor account partial failures preserve Auth and do not report a completed
 test('Google callback exchanges PKCE once, ignores client redirect and hides provider errors',async()=>{
  const route='app/auth/callback/route.ts';
  for(const role of [undefined,'tutor','admin']){
-  const s=state({user:{id:id(1),app_metadata:{role}}});
+  const s=state({user:{id:id(1),app_metadata:{role,provider:'google'}}});
   const r=await load(route,s).GET(new Request('https://portal.test/auth/callback?code=synthetic&next=https://outside.test'));
-  assert.equal(r.headers.get('location'),'https://portal.test/parents');assert.deepEqual(did(s,'exchangeCode').map(c=>c.payload),['synthetic']);
+  assert.equal(r.headers.get('location'),'https://portal.test'+(role?'/'+role+'/dashboard':'/parents'));assert.deepEqual(did(s,'exchangeCode').map(c=>c.payload),['synthetic']);
   assert.equal(did(s,'updateUserById').length,0);assert.equal(did(s,'updateUser').length,0);
  }
  for(const url of ['?error=access_denied','?code='+('x'.repeat(2048)),'?code=expired']){
@@ -347,4 +359,20 @@ test('contact import marks shared normalized phone for review even when parent n
  const source=[{student_id:id(11),name:'Student A',parent_name:'Parent',parent_number:'0912345678'},{student_id:id(12),name:'Student B',parent_name:'Parent',parent_number:'+84912345678'}];
  assert.ok(previewParentImport(source,[]).every(row=>row.status==='review'));
  assert.equal(previewParentImport(source.slice(0,1),[])[0].status,'ready');
+});
+
+test('API roles reject other portals before RPC and local staff logout enforces Origin', async()=>{
+ const requirements=['admin','tutor','parent','staff'];
+ for(const role of ['admin','tutor','parent','unknown']){
+  for(const required of requirements){
+   const s=state({user:{id:id(1),app_metadata:{role,provider:'google'}}});
+   const session=await load('lib/business-api.ts',s).businessSession(required);
+   const permitted=required==='staff'?['admin','tutor'].includes(role):role===required;
+   assert.equal(session.response?.status,permitted?undefined:403);
+   if(!permitted)assert.equal(s.calls.filter(c=>c.name!=='getUser').length,0);
+  }
+ }
+ const route=load('app/api/auth/signout/route.ts',state());
+ const foreign=new Request('https://portal.test/api/auth/signout',{method:'POST',headers:{Origin:'https://foreign.test'}});
+ assert.equal((await route.POST(foreign)).status,403);
 });

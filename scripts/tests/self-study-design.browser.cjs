@@ -24,7 +24,7 @@ function check(value, label) { assertions++; assert(value, label); }
    const page = await context.newPage(); page.on('pageerror', e => errors.push(e.message));
    for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto(origin + '/tu-hoc');
+    await page.goto(origin + '/self-study');
     await page.locator('#stage [data-node]').first().waitFor();
     await page.evaluate(() => document.fonts.ready);
     check(await page.locator('[data-site-background]').count() === 0, 'paper replaces public decorative background');
@@ -49,7 +49,7 @@ function check(value, label) { assertions++; assert(value, label); }
      return rail.top >= header.bottom && toolbar.left >= 0 && toolbar.right <= innerWidth + 1 && toolbar.bottom <= innerHeight && rail.bottom < toolbar.top;
     });
     check(fixed, 'floating menu and toolbar fit viewport '+width);
-    check(await page.locator('.study-rail-enrollment a').getAttribute('href') === '/lo-trinh#tu-van', 'registration preserved');
+    check(await page.locator('.study-rail-enrollment a').getAttribute('href') === '/roadmap#consultation', 'registration preserved');
     check(await page.locator('.study-rail-enrollment a').evaluate(el=>{const css=getComputedStyle(el);return css.backgroundColor==='rgba(0, 0, 0, 0)'&&css.boxShadow==='none'&&!el.querySelector('span')}),'registration has no blue box or word highlight');
     const buttons = await page.locator('.study-toolbar button:not([hidden])').evaluateAll(els => els.filter(el=>el.getClientRects().length).map(el=>({id:el.id,w:el.getBoundingClientRect().width,h:el.getBoundingClientRect().height})));
     check(buttons.every(b=>b.w>=43 && b.h>=43), '44px toolbar hitboxes '+JSON.stringify(buttons));
@@ -65,7 +65,7 @@ function check(value, label) { assertions++; assert(value, label); }
     layouts.push({theme,width});
    }
    await page.setViewportSize({width:1440,height:900});
-   await page.goto(origin+'/tu-hoc#view=DP'); await page.locator('#graph-D07').waitFor();
+   await page.goto(origin+'/self-study#view=DP'); await page.locator('#graph-D07').waitFor();
    await page.locator('#graph-D06').press('Enter'); await page.locator('#topic-details summary').click();
    check(await page.locator('#detail-list li').count()===8,'long DP drawer');
    await page.screenshot({path:path.join(output,`vertical-drawer-${theme}.png`)});
@@ -106,11 +106,11 @@ function check(value, label) { assertions++; assert(value, label); }
    await page.locator('.site-header .brand').click(); await page.waitForURL(origin+'/');
    check(await page.locator('.self-study-page').count()===0,'route unmount');
    check(await page.evaluate(()=>getComputedStyle(document.body).overflowX==='hidden'),'document overflow override cleans itself');
-   await page.locator('.site-header a[href="/tu-hoc"]').click(); await page.locator('#graph-A01').waitFor();
+   await page.locator('.site-header a[href="/self-study"]').click(); await page.locator('#graph-A01').waitFor();
    check(await page.locator('.study-toolbar').count()===1,'client remount binds once');
    await context.close();
   }
-  const noJS=await browser.newContext({javaScriptEnabled:false}); const p=await noJS.newPage(); await p.goto(origin+'/tu-hoc');
+  const noJS=await browser.newContext({javaScriptEnabled:false}); const p=await noJS.newPage(); await p.goto(origin+'/self-study');
   const href=await p.locator('.self-study-roadmap noscript a').getAttribute('href');
   check(href.startsWith('/self-study/notebook/'),'no-JS vertical SVG'); check((await p.request.get(origin+href)).status()===200,'no-JS SVG served');
   check(await p.locator('.study-static-map').isVisible(),'no-JS full map visible'); await noJS.close();

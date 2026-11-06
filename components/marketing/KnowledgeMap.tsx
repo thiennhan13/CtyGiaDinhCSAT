@@ -19,7 +19,7 @@ export function KnowledgeMap({ stages }: { stages: KnowledgeStage[] }) {
   useEffect(() => {
     const readLocation = () => {
       const url = new URL(window.location.href);
-      const requested = url.hash.replace('#chu-de-', '');
+      const requested = url.hash.replace(/^#(?:chu-de|topic)-/, '');
       const topic = stages.some(stage => stage.topics.some(item => item.code === requested)) ? requested : '';
       const level = url.searchParams.get('lop');
       const group = /^#nhom-[ABC]$/.test(url.hash) ? url.hash.slice(1) : '';
@@ -41,7 +41,7 @@ export function KnowledgeMap({ stages }: { stages: KnowledgeStage[] }) {
     }
     if (!focusTopic.current || !view.topic) return;
     focusTopic.current = false;
-    const summary = map.current?.querySelector<HTMLElement>(`#chu-de-${view.topic} > summary`);
+    const summary = map.current?.querySelector<HTMLElement>(`#topic-${view.topic} > summary`);
     summary?.focus({ preventScroll: true });
     summary?.scrollIntoView({ block: 'start' });
   }, [view]);
@@ -53,7 +53,7 @@ export function KnowledgeMap({ stages }: { stages: KnowledgeStage[] }) {
     url.searchParams.delete('q');
     if (next.level !== 'all') url.searchParams.set('lop', next.level);
     if (next.query) url.searchParams.set('q', next.query);
-    url.hash = next.topic ? `chu-de-${next.topic}` : 'kham-pha';
+    url.hash = next.topic ? `topic-${next.topic}` : 'explore';
     if (replace) window.history.replaceState(null, '', url);
     else window.history.pushState(null, '', url);
   }
@@ -64,12 +64,12 @@ export function KnowledgeMap({ stages }: { stages: KnowledgeStage[] }) {
   }
 
   function topicLinks(codes: string[]) {
-    return <ul className="km-related">{codes.map(code => <li key={code}><a href={`#chu-de-${code}`} onClick={event => { event.preventDefault(); selectTopic(code); }}><b>{code}</b> {topics.find(topic => topic.code === code)?.title}</a></li>)}</ul>;
+    return <ul className="km-related">{codes.map(code => <li key={code}><a href={`#topic-${code}`} onClick={event => { event.preventDefault(); selectTopic(code); }}><b>{code}</b> {topics.find(topic => topic.code === code)?.title}</a></li>)}</ul>;
   }
 
   const count = stages.filter(stage => view.level === 'all' || stage.level === view.level).flatMap(stage => stage.topics).filter(topic => matchesKnowledgeTopic(topic, view.query)).length;
 
-  return <section className="km-explorer" id="kham-pha" aria-labelledby="km-explore-title" ref={map}>
+  return <section className="km-explorer" id="explore" aria-labelledby="km-explore-title" ref={map}>
     <div className="km-explorer-heading"><h2 id="km-explore-title">Bạn muốn học gì?</h2><p>Mở một chủ đề để bắt đầu.</p></div>
     <div className="km-controls" hidden={!ready}>
       <div className="km-filters" role="group" aria-label="Lọc phần kiến thức">
@@ -87,7 +87,7 @@ export function KnowledgeMap({ stages }: { stages: KnowledgeStage[] }) {
         <div className="km-level-heading"><span className="km-level-code" aria-hidden="true">{level.code}</span><div><p>PHẦN {level.code}</p><h3 id={`km-level-${level.code}`}>{level.label}</h3></div><span className="km-level-total">{stages.filter(stage => stage.level === level.code).flatMap(stage => stage.topics).length} chủ đề</span></div>
         <div className="km-stages">{visibleStages.map(stage => <section key={stage.id} className="km-stage" aria-labelledby={`km-${stage.id}`}>
           <div className="km-stage-heading"><h4 id={`km-${stage.id}`}>{stage.title}</h4><p>{stage.description}</p></div>
-          <div className="km-topics">{stage.topics.map(topic => <details key={topic.code} id={`chu-de-${topic.code}`} className="km-topic" open={view.topic === topic.code}>
+          <div className="km-topics">{stage.topics.map(topic => <details key={topic.code} id={`topic-${topic.code}`} className="km-topic" open={view.topic === topic.code}>
             <summary onClick={event => { event.preventDefault(); navigate({ ...view, topic: view.topic === topic.code ? '' : topic.code }); }}><span className="km-topic-code">{topic.code}</span><span><strong>{topic.title}</strong><span className="km-topic-purpose">{topic.purpose}</span></span><ChevronDown size={18} aria-hidden="true" /></summary>
             <div className="km-topic-body">
               {topic.description && <p className="km-topic-scope">{topic.description}</p>}
@@ -96,7 +96,7 @@ export function KnowledgeMap({ stages }: { stages: KnowledgeStage[] }) {
               <h5>Nền tảng nên ôn</h5>{topic.prerequisites.length ? topicLinks(topic.prerequisites) : <p>Bạn có thể bắt đầu tại đây, từ việc làm quen môi trường lập trình.</p>}
               {topic.next.length > 0 && <><h5>Có thể tìm hiểu tiếp</h5>{topicLinks(topic.next)}</>}
               <a className="km-practice" href={topic.practiceUrl} target="_blank" rel="noopener noreferrer">Luyện {topic.code} trên CSATOJ <ArrowUpRight size={18} aria-hidden="true" /><span className="sr-only"> (mở tab mới)</span></a>
-              <a className="km-permalink" href={`#chu-de-${topic.code}`} onClick={event => { event.preventDefault(); selectTopic(topic.code); }}>Liên kết đến {topic.code}</a>
+              <a className="km-permalink" href={`#topic-${topic.code}`} onClick={event => { event.preventDefault(); selectTopic(topic.code); }}>Liên kết đến {topic.code}</a>
             </div>
           </details>)}</div>
         </section>)}</div>

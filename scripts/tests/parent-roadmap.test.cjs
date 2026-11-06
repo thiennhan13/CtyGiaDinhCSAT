@@ -13,7 +13,7 @@ test('standalone roadmap accepts only a published class plan in the authorized p
 });
 test('roadmap links preserve parent context and expose only the effective canonical topics',()=>{
  const plan=fixture().plans[0],context={student:'authorized-student',classId:'authorized-class',month:'2026-11',page:2,unsafe:'ignored'};
- const url=new URL(parentRoadmapHref(context),'https://example.test');assert.equal(url.pathname,'/parents/lo-trinh/authorized-class');assert.equal(url.searchParams.get('student'),'authorized-student');assert.equal(url.searchParams.get('page'),'2');assert.equal(url.searchParams.has('unsafe'),false);
+ const url=new URL(parentRoadmapHref(context),'https://example.test');assert.equal(url.pathname,'/parents/roadmap/authorized-class');assert.equal(url.searchParams.get('student'),'authorized-student');assert.equal(url.searchParams.get('page'),'2');assert.equal(url.searchParams.has('unsafe'),false);
  const links=parentRoadmapLinks(plan,context);assert(links.canonical);assert.equal(links.articleLinks.A01,undefined);assert.equal(links.articleLinks.B01,undefined);assert(links.articleLinks.B02.includes('class=authorized-class'));
  plan.template.stages[0].lessons[0].title='Nội dung riêng';assert.deepEqual(parentRoadmapLinks(plan,context),{canonical:false,articleLinks:{},practiceLinks:{}});
 });

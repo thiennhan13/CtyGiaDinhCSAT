@@ -30,7 +30,7 @@ async function renderDocument(markdown: string, topicCode: string) {
       for (const child of node.children) {
         if (child.type !== 'element') continue;
         if (child.tagName === 'h2' || child.tagName === 'h3') {
-          const title = textOf(child), id = headingId(title, headings.length);
+          const title = textOf(child), id = headingId(headings.length);
           child.properties.id = id;
           headings.push({ id, title, depth: Number(child.tagName[1]) });
         }

@@ -1,4 +1,5 @@
 'use client';
+import { LoadingSpinner } from '@/components/ui/LoadingStatus';
 import { useState } from 'react';
 import { useLoginCaptcha, type LoginCaptchaConfig } from './LoginCaptcha';
 export function ParentLoginForm({ captcha, active = true }: { captcha?: LoginCaptchaConfig; active?: boolean }) {
@@ -9,7 +10,7 @@ export function ParentLoginForm({ captcha, active = true }: { captcha?: LoginCap
     event.preventDefault(); if (busy || !verification.ready) return;
     setBusy(true); setError('');
     try {
-      const response = await fetch('/api/parents/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ captchaToken: verification.token }) });
+      const response = await fetch('/api/parents/auth', { method: 'POST', signal: AbortSignal.timeout(20000), headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ captchaToken: verification.token }) });
       const data = await response.json();
       if (!response.ok || !data.url) throw new Error(data.error || 'Chưa mở được đăng nhập Google.');
       window.location.assign(data.url);
@@ -20,7 +21,7 @@ export function ParentLoginForm({ captcha, active = true }: { captcha?: LoginCap
     <button className="parent-google-button" disabled={busy || !verification.ready} type="submit" aria-busy={busy} aria-describedby={captcha?.enabled ? 'parent-google-verification-help' : undefined}>
       {/* Official Google sign-in asset; decorative alongside the visible label. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/images/auth/google-g.png" width={20} height={20} alt="" aria-hidden="true" />
+      {busy ? <LoadingSpinner compact /> : <img src="/images/auth/google-g.png" width={20} height={20} alt="" aria-hidden="true" />}
       <span>{busy ? 'Đang mở Google…' : 'Đăng nhập bằng Google'}</span>
     </button>
     {captcha?.enabled && <p id="parent-google-verification-help" className="text-sm text-muted-foreground">Hoàn tất xác minh bên dưới để đăng nhập.</p>}

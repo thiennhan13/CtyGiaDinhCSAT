@@ -30,7 +30,7 @@ export async function GET(){
  return NextResponse.json({templates:results[0].data,defaults:results[1].data,settings:results[2].data,tutors:results[3].data,profiles:results[4].data,classes:results[5].data,emails:results[6].data,emailOperationsReady,emailConfigured:!!(process.env.RESEND_API_KEY && process.env.CSAT_EMAIL_FROM && process.env.APP_ORIGIN && process.env.CSAT_EMAIL_REPLY_TO && process.env.CRON_SECRET)},{headers:{'Cache-Control':'private, no-store'}});
 }
 export async function POST(request:Request){
- const session=await businessSession(true,request);if(session.response)return session.response;
+ const session=await businessSession('admin',request);if(session.response)return session.response;
  const parsed=schema.safeParse(await request.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:parsed.error.issues[0].message},{status:422});
  const v=parsed.data;
  if(v.action==='settings' && v.email_enabled && (!v.admin_emails.length || !process.env.RESEND_API_KEY || !process.env.CSAT_EMAIL_FROM || !process.env.APP_ORIGIN || !process.env.CSAT_EMAIL_REPLY_TO || !process.env.CRON_SECRET))

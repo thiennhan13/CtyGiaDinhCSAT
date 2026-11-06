@@ -1,3 +1,4 @@
+import { LegacyFragment } from '@/components/LegacyFragment';
 import type { Metadata } from 'next';
 import './globals.css';
 import { Archivo } from 'next/font/google';
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           enableSystem
           disableTransitionOnChange={false}
         >
+          <LegacyFragment />
           {children}
           <SpeedInsights />
         </ThemeProvider>

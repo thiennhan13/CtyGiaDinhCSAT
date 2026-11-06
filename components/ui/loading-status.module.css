@@ -1,0 +1,25 @@
+.status {
+  --loading-accent: #e3ef4f;
+  --loading-ink: #1f06ac;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  min-height: 88px;
+  font-weight: 600;
+}
+.spinner, .compact {
+  display: block;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border: 4px solid var(--loading-ink, #1f06ac);
+  border-top-color: var(--loading-accent, #e3ef4f);
+  background: var(--loading-accent, #e3ef4f);
+  border-radius: 50%;
+  animation: turn 850ms linear infinite;
+}
+.compact { width: 18px; height: 18px; flex-basis: 18px; border-width: 3px; }
+@keyframes turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner, .compact { animation: none; } }

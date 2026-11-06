@@ -1,7 +1,8 @@
 'use client';
 import { publicZaloUrl } from '@/lib/public-contact';
+import { LoadingSpinner } from '@/components/ui/LoadingStatus';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Users, LogIn, Eye, EyeOff } from 'lucide-react';
@@ -15,7 +16,7 @@ export function TutorLoginForm({ captcha, active = true }: { captcha?: LoginCapt
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  const router = useRouter();
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,11 +26,10 @@ export function TutorLoginForm({ captcha, active = true }: { captcha?: LoginCapt
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, captchaToken: verification.token }) });
+      const response = await fetch('/api/auth/login', { method: 'POST', signal: AbortSignal.timeout(20000), headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, captchaToken: verification.token }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Chưa đăng nhập được.');
-      router.push(result.redirectUrl);
-      router.refresh();
+      window.location.replace(result.redirectUrl);
     } catch (err: unknown) {
       if (err instanceof Error) {
         if (err.message.includes('Invalid login credentials')) {
@@ -40,7 +40,6 @@ export function TutorLoginForm({ captcha, active = true }: { captcha?: LoginCapt
       } else {
         setError('Đã xảy ra lỗi không xác định.');
       }
-    } finally {
       verification.reset();
       setLoading(false);
     }
@@ -107,15 +106,13 @@ export function TutorLoginForm({ captcha, active = true }: { captcha?: LoginCapt
       {verification.widget}
       <button
         type="submit"
+        aria-busy={loading}
         disabled={loading || !verification.ready}
         className="csat-btn csat-btn--primary w-full h-11 flex justify-center items-center text-[0.95em]"
       >
         {loading ? (
           <>
-            <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
+            <LoadingSpinner compact />
             Đang đăng nhập...
           </>
         ) : (

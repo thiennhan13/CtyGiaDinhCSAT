@@ -6,7 +6,7 @@ const actions = ['create','archive','hard_delete','extend','edit_session','chang
 const schema = z.object({ action: z.enum(actions), class_id: z.uuid().optional(), session_id: z.uuid().optional(),
   requestId: z.uuid().optional() }).passthrough();
 export async function POST(request: Request) {
-  const session = await businessSession(false, request); if (session.response) return session.response;
+  const session = await businessSession('admin', request); if (session.response) return session.response;
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: 'Thao tác hoặc định danh không hợp lệ.' }, { status: 422 });
   const { action, class_id, requestId, ...details } = parsed.data;

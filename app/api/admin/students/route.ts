@@ -20,7 +20,7 @@ const schema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('delete'), student_id: z.uuid(), revision: z.number().int().positive() }).strict(),
 ]);
 export async function POST(request: Request) {
-  const session = await businessSession(true, request); if (session.response) return session.response;
+  const session = await businessSession('admin', request); if (session.response) return session.response;
   const parsed = schema.safeParse(await readLoginBody(request));
   if (!parsed.success) return NextResponse.json({ error: 'Kiểm tra hồ sơ và revision hiện tại.' }, { status: 422 });
   const input = parsed.data;

@@ -1,5 +1,7 @@
 # Quyết định sản phẩm và kỹ thuật
 
+Ba cổng admin, gia sư và phụ huynh có quyền riêng. Nhân sự dùng Google vẫn vào cổng nhân sự. URL chuẩn dùng tiếng Anh, nội dung giao diện tiếng Việt. Trang Đội ngũ chỉ công khai thông tin nghề nghiệp của 10 hồ sơ hoạt động đã đối chiếu. [Quy tắc, URL và nghiệm thu](PORTAL_ACCESS_AND_ROUTES.md).
+
 Tóm tắt các lựa chọn chủ trung tâm đã chốt. Quy định chi tiết nằm ở tài liệu được dẫn; trạng thái triển khai ở [PROJECT_STATUS](PROJECT_STATUS.md). Mã cũ hoặc prototype không tự thay thế quyết định hiện hành.
 
 ## Website và nhận diện

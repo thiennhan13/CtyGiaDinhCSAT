@@ -54,9 +54,9 @@ const tutorNavItems: NavItem[] = [
 // ── Guest/Landing nav items ─────────────────────────────────────
 const guestNavItems: NavItem[] = [
  { href: '/', label: 'Giới thiệu', icon: Home, iconColor: '#2b50e0', activeBg: '', activeText: '' },
- { href: '/lo-trinh', label: 'Lộ trình học tập', icon: BookOpen, iconColor: '#2b50e0', activeBg: '', activeText: '' },
+ { href: '/roadmap', label: 'Lộ trình học tập', icon: BookOpen, iconColor: '#2b50e0', activeBg: '', activeText: '' },
  { href: 'https://csatoj.vn', label: 'CSATOJ', icon: Trophy, iconColor: '#b45309', activeBg: '', activeText: '' },
- { href: '/lo-trinh#tu-van', label: 'Tư vấn', icon: Info, iconColor: '#108a51', activeBg: '', activeText: '' },
+ { href: '/roadmap#consultation', label: 'Tư vấn', icon: Info, iconColor: '#108a51', activeBg: '', activeText: '' },
  { href: '/login', label: 'Phụ huynh', icon: Users, iconColor: '#7d2fc4', activeBg: '', activeText: '' },
  { href: '/tutor', label: 'Gia sư', icon: GraduationCap, iconColor: '#108a51', activeBg: '', activeText: '' },
 ];

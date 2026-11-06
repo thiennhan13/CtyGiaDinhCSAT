@@ -1,0 +1,159 @@
+[
+  {
+    "name": "Nguyễn Ngọc Bảo Toàn",
+    "image": "/images/team/nguyen-ngoc-bao-toan.webp",
+    "school": "THPT Chuyên Phan Bội Châu",
+    "cohort": "K52",
+    "university": "Đại học Công nghệ – ĐHQGHN",
+    "username": "dyzets",
+    "achievements": [
+      "Giải Ba HSG quốc gia môn Tin học năm học 2024-2025",
+      "Giải Nhì HSG quốc gia môn Tin học năm học 2025-2026"
+    ]
+  },
+  {
+    "name": "Ngô Tuấn Hiệp",
+    "image": "/images/team/ngo-tuan-hiep.webp",
+    "school": "THPT Chuyên Phan Bội Châu",
+    "cohort": "K52",
+    "university": "Đại học Công Nghệ",
+    "username": "lmaobruh",
+    "achievements": [
+      "Giải Nhất huyện môn Tin học lớp 9",
+      "Giải Nhất tỉnh môn Tin học lớp 9 (Thủ Khoa)",
+      "Giải Khuyến khích quốc gia Tin học trẻ bảng chuyên",
+      "Giải Nhất Olympic Đại học Công Nghệ",
+      "Giải Nhì Olympic HSGS - VNU",
+      "Huy chương Vàng Olympic Làng Sen",
+      "Huy chương Đồng ICPC bảng cấp 3",
+      "Giải Nhì HSG quốc gia (TST)",
+      "Huy chương Vàng ICPC Miền Bắc"
+    ]
+  },
+  {
+    "name": "Nguyễn Lê Huy Hoàng",
+    "image": "/images/team/nguyen-le-huy-hoang.webp",
+    "school": "THPT Chuyên Phan Bội Châu",
+    "cohort": "K52",
+    "university": "Trường Đại học Công nghệ – Đại học Quốc gia Hà Nội (UET-VNU)",
+    "username": "hoangnoobpro",
+    "achievements": [
+      "Giải Nhì HSG tỉnh lớp 9",
+      "Giải Nhất Tin học trẻ cấp tỉnh lớp 10",
+      "Huy chương Bạc Olympic Khoa học Tự nhiên",
+      "Giải Nhì VOI lớp 11 và lớp 12; lớp 12 thuộc top 16 TST",
+      "Huy chương Vàng Olympic Làng Sen",
+      "Huy chương Bạc Tin học trẻ Newton mở rộng",
+      "Giải Đồng ICPC National khối THPT",
+      "Master Codeforces, rating 2125"
+    ]
+  },
+  {
+    "name": "Nguyễn Thành Phú",
+    "image": "/images/team/nguyen-thanh-phu.webp",
+    "school": "THPT Chuyên Phan Bội Châu",
+    "cohort": "K52",
+    "university": "Đại học Bách khoa Hà Nội",
+    "username": "ThanhPhu",
+    "achievements": [
+      "Cấp 3:",
+      "Giải Khuyến khích môn Tin học Olympic bậc THPT của Đại học Quốc gia Hà Nội năm học 2024-2025",
+      "Giải Ba kỳ thi Tin học trẻ tỉnh Nghệ An năm 2025",
+      "Giải Nhất HSG tỉnh Nghệ An môn Tin học năm học 2025-2026",
+      "Giải Nhì Trại hè Olympic Bắc Trung Bộ 2024",
+      "Cấp 2:",
+      "Giải Ba HSG tỉnh Nghệ An lớp 9",
+      "Giải Nhất Tin học trẻ bảng THCS lớp 9"
+    ]
+  },
+  {
+    "name": "Phạm Nguyễn Khánh Vy",
+    "image": "/images/team/pham-nguyen-khanh-vy.webp",
+    "school": "THPT Chuyên Phan Bội Châu",
+    "cohort": "K52",
+    "university": "Đại học Bách khoa Hà Nội",
+    "username": "khnhvy0506",
+    "achievements": [
+      "Giải Khuyến khích HSG  Thành phố lớp 9 môn Toán",
+      "Giải Nhì HSG tỉnh lớp 12 môn Tin học",
+      "Huy chương Đồng Olympic HSGS 2024",
+      "Huy chương Đồng Olympic HSGS 2025"
+    ]
+  },
+  {
+    "name": "Võ Nguyễn Anh Quân",
+    "image": "/images/team/vo-nguyen-anh-quan.webp",
+    "school": "THPT Chuyên Phan Bội Châu",
+    "cohort": "K52",
+    "university": "Đại học Quốc gia Hà Nội",
+    "username": "vquan4774",
+    "achievements": [
+      "Giải Ba HSG lớp 9 cấp Tỉnh môn Tin Học",
+      "Giải Ba Tin học trẻ cấp tỉnh bảng B",
+      "Giải Khuyến khích Tin học trẻ cấp tỉnh bảng C1 2023",
+      "Giải Khuyến khích Tin học trẻ cấp tỉnh bảng C1 2024",
+      "Giải Khuyến khích Tin học trẻ cấp khu vực  bảng C1 2025",
+      "Huy chương Bạc Olympic HSGS - VNU",
+      "Giải Nhì HSG 12 cấp Tỉnh môn Tin học"
+    ]
+  },
+  {
+    "name": "Cao Tiến Thành Đạt",
+    "image": "/images/team/cao-tien-thanh-dat.webp",
+    "school": "THPT Chuyên Phan Bội Châu",
+    "cohort": "K52",
+    "university": "Đại học Bách khoa Hà Nội",
+    "username": "acdev1508",
+    "achievements": [
+      "Giải Ba HSG THCS thành phố Vinh",
+      "Giải Khuyến khích HSG THCS thành phố Vinh",
+      "Giải Nhì HSG THPT tỉnh Nghệ An",
+      "Top 5 đầu vào THPT Chuyên Phan Bội Châu"
+    ]
+  },
+  {
+    "name": "Trần Đăng Quang",
+    "image": "/images/team/tran-dang-quang.webp",
+    "school": "THPT Chuyên Phan Bội Châu",
+    "cohort": "K52",
+    "university": "Trường Đại học Công nghệ – ĐHQGHN",
+    "username": "trandangquang",
+    "achievements": [
+      "Giải Nhì HSG tỉnh lớp 9 môn Tin Học",
+      "Giải Nhì HSG quốc gia lớp 11 môn Tin Học",
+      "Giải Nhì HSG quốc gia lớp 12 môn Tin Học"
+    ]
+  },
+  {
+    "name": "Trần Hải Đăng",
+    "image": "/images/team/tran-hai-dang.webp",
+    "school": "THPT Chuyên Phan Bội Châu",
+    "cohort": "K52",
+    "university": "Đại học Bách khoa Hà Nội",
+    "username": "hd4866596",
+    "achievements": [
+      "Giải Khuyến khích môn Toán cấp huyện lớp 7",
+      "Huy chương Bạc PhIMO năm 2021",
+      "Giải Nhì HSG huyện môn Toán lớp 9",
+      "Giải Ba kỳ thi Olympic bậc THPT của ĐHQGHN năm học 2024/2025",
+      "Giải Nhất HSG tỉnh lớp 12"
+    ]
+  },
+  {
+    "name": "Nguyễn Anh Tuấn",
+    "image": "/images/team/nguyen-anh-tuan.webp",
+    "school": "THPT Chuyên Phan Bội Châu",
+    "cohort": "K51",
+    "university": "Đại học Quốc gia Hà Nội",
+    "username": "tiduan",
+    "achievements": [
+      "10 điểm Toán thi vào THPT",
+      "Đội dự tuyển HSG quốc gia",
+      "Giải Khuyến khích HSG thành phố lớp 9 môn Tin học",
+      "Giải Ba HSG tỉnh lớp 9  môn Tin học",
+      "Giải Nhất HSG tỉnh lớp 12  môn Tin học",
+      "Huy chương Đồng Olympiad HSGS - VNU",
+      "Giải Nhất Olympiad Trại hè miền Bắc"
+    ]
+  }
+]

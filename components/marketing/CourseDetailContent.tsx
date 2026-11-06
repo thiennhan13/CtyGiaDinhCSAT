@@ -16,7 +16,7 @@ export function CourseOutcomes({ code }: { code: RoadmapCode }) {
     { title: 'Thuật toán & mức độ', text: content.methods, Icon: Code2 },
     { title: 'Nền tảng để đi tiếp', text: content.next, Icon: Route },
   ];
-  return <section className="wrap rm-course-outcomes" id="muc-tieu-cuoi-khoa" aria-labelledby="outcomes-title">
+  return <section className="wrap rm-course-outcomes" id="outcomes" aria-labelledby="outcomes-title">
     <div className="rm-outcomes-heading"><div><p className="eyebrow">Điểm đến của hành trình / {code}</p><h2 id="outcomes-title">Mục tiêu cuối khoá</h2></div><p>Quá trình học hướng đến sự tiến bộ trong cách suy nghĩ, lựa chọn phương pháp và tự kiểm tra lời giải — để mỗi kiến thức trở thành một công cụ có thể vận dụng.</p></div>
     <ol>{aims.map(({ title, text, Icon }, index) => <li key={title}><div className="rm-outcome-marker"><span>{String(index + 1).padStart(2, '0')}</span><Icon size={26} aria-hidden="true" /></div><h3>{title}</h3><p>{text}</p></li>)}</ol>
     <Link className="text-link" href={content.href}>{content.linkLabel}<ArrowUpRight size={18} aria-hidden="true" /></Link>
@@ -30,7 +30,7 @@ export function CoursePathway({ code }: { code: RoadmapCode }) {
 
 export function CourseCurriculum({ code, stages }: { code: RoadmapCode; stages: Stage[] }) {
   const count = stages.reduce((sum, stage) => sum + stage.lessons.length, 0);
-  return <section className="rm-course-curriculum"><div className="wrap"><div className="rm-chapter mono"><span>NỘI DUNG HỌC TẬP / {code}</span><span>{count} CHỦ ĐỀ / {stages.length} CHẶNG</span></div><div className="rm-curriculum-heading"><h2>Kiến thức có trình tự.<br /><em>Tư duy có chiều sâu.</em></h2><Link className="btn rm-self-study-link" href={`/tu-hoc#view=${code}`}>Tham khảo lộ trình Tự học<ArrowUpRight size={20} aria-hidden="true" /></Link></div><CourseStageNavigation stages={stages.map(stage => ({ id: stage.id, title: stage.title }))} /><div className="rm-curriculum-stages">{stages.map((stage, index) => {
+  return <section className="rm-course-curriculum"><div className="wrap"><div className="rm-chapter mono"><span>NỘI DUNG HỌC TẬP / {code}</span><span>{count} CHỦ ĐỀ / {stages.length} CHẶNG</span></div><div className="rm-curriculum-heading"><h2>Kiến thức có trình tự.<br /><em>Tư duy có chiều sâu.</em></h2><Link className="btn rm-self-study-link" href={`/self-study#view=${code}`}>Tham khảo lộ trình Tự học<ArrowUpRight size={20} aria-hidden="true" /></Link></div><CourseStageNavigation stages={stages.map(stage => ({ id: stage.id, title: stage.title }))} /><div className="rm-curriculum-stages">{stages.map((stage, index) => {
     const editorial = roadmapStageContent[stage.id];
     return <details className="rm-curriculum-stage" id={stage.id} key={stage.id} open={index === 0}><summary><span className="rm-stage-index mono">{String(index + 1).padStart(2, '0')} / {code}</span><span><strong>{stage.title}</strong><small>{stage.lessons.length} chủ đề · {stage.lessons[0].code}–{stage.lessons.at(-1)!.code}</small></span><span className="rm-stage-toggle" aria-hidden="true">+</span></summary><div className="rm-stage-body"><div className="rm-stage-skills"><ul className="rm-focus-tags" aria-label={`Kỹ năng ${stage.title}`}>{editorial.skills.map(skill => <li key={skill}>{skill}</li>)}</ul></div><ol>{stage.lessons.map(lesson => {
       const text = roadmapLessonContent[lesson.code];

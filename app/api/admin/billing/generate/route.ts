@@ -7,7 +7,7 @@ export async function GET() {
   return NextResponse.json({ error: 'Chốt sổ yêu cầu POST và xác nhận dữ liệu xem trước.' }, { status: 405, headers: { Allow: 'POST' } });
 }
 export async function POST(request: Request) {
-  const session = await businessSession(true, request); if (session.response) return session.response;
+  const session = await businessSession('admin', request); if (session.response) return session.response;
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: 'Thông tin chốt sổ không hợp lệ.' }, { status: 422 });
   const p = parsed.data;

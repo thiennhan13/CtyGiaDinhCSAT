@@ -91,5 +91,5 @@ export function publicCourseCode(value: unknown): PublicCourseCode | undefined {
 }
 
 export function enrollmentHref(code?: PublicCourseCode) {
-  return `/dang-ky-hoc${code ? `?course=${code}#thong-tin` : ''}`;
+  return `/enroll${code ? `?course=${code}#details` : ''}`;
 }

@@ -13,7 +13,7 @@ export type PublicPost = {
 
 export const publicPosts: readonly PublicPost[] = [
   {
-    slug: 'tu-dong-code-dau-tien', category: 'Lộ trình học tập',
+    slug: 'your-first-line-of-code', category: 'Lộ trình học tập',
     title: 'Từ dòng code đầu tiên đến một lời giải của riêng mình',
     excerpt: 'Làm quen C++, đọc hiểu đề và từng bước kết nối kiến thức với bài toán. Khám phá điểm bắt đầu cùng CSAT.',
     image: '/images/site/basic-class.webp', imageAlt: 'Học lập trình bên màn hình máy tính',
@@ -22,15 +22,15 @@ export const publicPosts: readonly PublicPost[] = [
       'Lớp A giúp người mới học làm quen với C++ qua chín chủ đề đã được xây dựng. Lớp B tiếp nối bằng mười lăm chủ đề thi đấu cơ bản, đưa kiến thức nền vào quá trình phân tích và giải bài.',
       'Tại CSAT, chương trình Cơ bản mặc định gồm A+B. Điểm bắt đầu và mục tiêu ôn luyện được trao đổi theo nền tảng hiện tại của người học; lựa chọn trên website là một gợi ý để tìm hiểu, không phải kết quả xếp trình độ.',
     ],
-    link: { href: '/lo-trinh', label: 'Khám phá lộ trình học tập' },
+    link: { href: '/roadmap', label: 'Khám phá lộ trình học tập' },
     relatedLinks: [
-      { href: '/lo-trinh/a', label: 'Lớp A — Nhập môn lập trình' },
-      { href: '/lo-trinh/b', label: 'Lớp B — Lập trình thi đấu cơ bản' },
-      { href: '/bai-dang/luyen-bai-cung-csatoj', label: 'Đọc đề, thử ý tưởng, kiểm chứng trên CSATOJ' },
+      { href: '/roadmap/a', label: 'Lớp A — Nhập môn lập trình' },
+      { href: '/roadmap/b', label: 'Lớp B — Lập trình thi đấu cơ bản' },
+      { href: '/posts/practice-with-csatoj', label: 'Đọc đề, thử ý tưởng, kiểm chứng trên CSATOJ' },
     ],
   },
   {
-    slug: 'luyen-bai-cung-csatoj', category: 'Cách học tại CSAT',
+    slug: 'practice-with-csatoj', category: 'Cách học tại CSAT',
     title: 'Đọc đề, thử ý tưởng, kiểm chứng trên CSATOJ',
     excerpt: 'Viết chương trình là một bước trong quá trình giải bài. Kết quả chấm giúp học sinh xem lại cách làm và tiếp tục luyện tập.',
     image: '/images/site/writing-poster.webp', imageAlt: 'Ghi chép ý tưởng bên màn hình lập trình',
@@ -39,14 +39,14 @@ export const publicPosts: readonly PublicPost[] = [
       'Nếu kết quả chưa đúng, việc học tiếp tục bằng cách đối chiếu ví dụ, xem lại ý tưởng và tìm những trường hợp chương trình chưa xử lý được. Gia sư cùng học sinh trao đổi chỗ còn vướng, chữa bài và nhận xét cách làm.',
       'Một buổi học CSAT đi từ link Google Meet, lý thuyết và contest bài tập đến điểm danh, giảng bài, luyện tập trên CSATOJ và chữa bài. Record cùng bài tập về nhà giúp học sinh tiếp tục xem lại sau buổi học.',
     ],
-    link: { href: '/#buoi-hoc', label: 'Tìm hiểu một buổi học CSAT' },
+    link: { href: '/#lesson', label: 'Tìm hiểu một buổi học CSAT' },
     relatedLinks: [
-      { href: '/lo-trinh/b', label: 'Lớp B — Lập trình thi đấu cơ bản' },
-      { href: '/bai-dang/tu-dong-code-dau-tien', label: 'Từ dòng code đầu tiên đến một lời giải của riêng mình' },
+      { href: '/roadmap/b', label: 'Lớp B — Lập trình thi đấu cơ bản' },
+      { href: '/posts/your-first-line-of-code', label: 'Từ dòng code đầu tiên đến một lời giải của riêng mình' },
     ],
   },
   {
-    slug: 'gia-su-chuyen-phan', category: 'Đội ngũ CSAT',
+    slug: 'meet-the-phan-boi-chau-tutors', category: 'Đội ngũ CSAT',
     title: 'Gia sư chuyên Phan, cùng bạn học Tin',
     excerpt: 'CSAT được xây dựng bởi các gia sư cựu học sinh chuyên Tin THPT Chuyên Phan Bội Châu, cùng học sinh tìm hiểu lập trình và thuật toán.',
     image: '/images/site/tutor-dang-quang.webp', imageAlt: 'Poster giới thiệu gia sư Trần Đăng Quang',
@@ -55,10 +55,10 @@ export const publicPosts: readonly PublicPost[] = [
       'Trong buổi học, gia sư hướng dẫn lý thuyết, cùng học sinh làm bài và lý giải những điểm chưa rõ. Việc chữa bài và nhận xét giúp người học có thêm cơ sở để xem lại cách làm của mình.',
       'Phụ huynh đồng hành qua Portal: theo dõi nhận xét của gia sư, nội dung học, lộ trình và học phí của con. Thông tin được hiển thị theo dữ liệu và nội dung đã công bố trong hệ thống.',
     ],
-    link: { href: '/gia-su', label: 'Gặp đội ngũ gia sư CSAT' },
+    link: { href: '/team', label: 'Gặp đội ngũ gia sư CSAT' },
     relatedLinks: [
-      { href: '/lo-trinh', label: 'Lộ trình học tập cùng CSAT' },
-      { href: '/bai-dang/tu-dong-code-dau-tien', label: 'Từ dòng code đầu tiên đến một lời giải của riêng mình' },
+      { href: '/roadmap', label: 'Lộ trình học tập cùng CSAT' },
+      { href: '/posts/your-first-line-of-code', label: 'Từ dòng code đầu tiên đến một lời giải của riêng mình' },
     ],
   },
 ];

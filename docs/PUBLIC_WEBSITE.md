@@ -9,15 +9,15 @@ Metadata/canonical, sitemap/robots, schema, ảnh chia sẻ logo CSAT và llms.t
 | Route/chức năng | Nơi sửa chính | Hành vi hiện tại |
 |---|---|---|
 | / — Giới thiệu | app/page.tsx, HomeExperience.tsx, home-experience.css | Hero, bốn lý do, đội ngũ, hệ sinh thái, lớp học, sáu bước buổi học, phụ huynh, tư vấn |
-| /lo-trinh — Tìm hiểu | RoadmapExperience.tsx, RoadmapCourseSection.tsx, CourseKnowledge.tsx | Selector, năm mục A/B/C/E/K, tag/roadmap; ảnh nền không tương tác |
+| /roadmap — Tìm hiểu | RoadmapExperience.tsx, RoadmapCourseSection.tsx, CourseKnowledge.tsx | Selector, năm mục A/B/C/E/K, tag/roadmap; ảnh nền không tương tác |
 | E tổng quan | FlagshipCourseSection.tsx, flagship-course.css, course-e-theme.css | Một mục nổi bật, banner/sơ đồ đầu vào/ba trọng tâm/CTA |
-| /lo-trinh/[program] | app/lo-trinh/[program]/page.tsx, CourseDetailContent.tsx, CourseStageNavigation.tsx, course-detail.css | Facts, tag tư duy của chặng và chủ đề chuẩn, bỏ dòng Kỹ năng rèn luyện; nút Tự học theo lớp; mục tiêu cuối khoá trước tư vấn; poster flexible và mở ảnh |
-| /dang-ky-hoc | EnrollmentExperience.tsx, enrollment.css | Năm thẻ 3/2/1 cột, giá/tag/đối tượng, khóa quan tâm mặc định theo ngữ cảnh |
-| /thanh-tich | app/thanh-tich/page.tsx, achievements.css, lib/public-achievements.ts | HTML tĩnh và WebP; bố cục 3 nhãn cạnh ảnh; [hướng dẫn](PUBLIC_ACHIEVEMENTS.md) |
-| /gia-su | app/gia-su/page.tsx, TutorShowcase.tsx | Đội ngũ dùng chung trang chủ, thành tích cá nhân có nguồn |
-| /bai-dang và /bai-dang/[slug] | app/bai-dang/, lib/public-posts.ts, posts.css | Danh mục/trang bài viết frontend; [hướng dẫn](PUBLIC_POSTS.md) |
-| /hoc-lieu-mien-phi | LearningMaterialsExperience.tsx, PracticeVideo.tsx | Không gian luyện tập, video và form chuẩn bị nhu cầu; chưa tự gửi tài liệu |
-| /tu-hoc | app/tu-hoc/page.tsx, SelfStudyRoadmap.tsx, self-study-roadmap.css | Cây dọc 43 chủ đề, node cắt góc, giấy kẻ toàn trang, cuộn document, mục lục/CTA nổi trái và toolbar nổi dưới; tìm/lọc/drawer và CSATOJ; [nguồn và ranh giới](KNOWLEDGE_MAP.md) |
+| /roadmap/[program] | app/roadmap/[program]/page.tsx, CourseDetailContent.tsx, CourseStageNavigation.tsx, course-detail.css | Facts, tag tư duy của chặng và chủ đề chuẩn, bỏ dòng Kỹ năng rèn luyện; nút Tự học theo lớp; mục tiêu cuối khoá trước tư vấn; poster flexible và mở ảnh |
+| /enroll | EnrollmentExperience.tsx, enrollment.css | Năm thẻ 3/2/1 cột, giá/tag/đối tượng, khóa quan tâm mặc định theo ngữ cảnh |
+| /achievements | app/achievements/page.tsx, achievements.css, lib/public-achievements.ts | HTML tĩnh và WebP; bố cục 3 nhãn cạnh ảnh; [hướng dẫn](PUBLIC_ACHIEVEMENTS.md) |
+| /team | app/team/page.tsx, TutorShowcase.tsx, TutorDirectory.tsx | Giới thiệu và danh mục công khai 10 hồ sơ đã đối chiếu |
+| /posts và /posts/[slug] | app/posts/, lib/public-posts.ts, posts.css | Danh mục/trang bài viết frontend; [hướng dẫn](PUBLIC_POSTS.md) |
+| /free-resources | LearningMaterialsExperience.tsx, PracticeVideo.tsx | Không gian luyện tập, video và form chuẩn bị nhu cầu; chưa tự gửi tài liệu |
+| /self-study | app/self-study/page.tsx, SelfStudyRoadmap.tsx, self-study-roadmap.css | Cây dọc 43 chủ đề, node cắt góc, giấy kẻ toàn trang, cuộn document, mục lục/CTA nổi trái và toolbar nổi dưới; tìm/lọc/drawer và CSATOJ; [nguồn và ranh giới](KNOWLEDGE_MAP.md) |
 | /login | components/auth/ContactEntry.tsx, ParentLoginForm.tsx, TutorLoginForm.tsx | Phụ huynh Google PKCE rồi liên kết số tại /parents; staff Auth, Turnstile cho đăng nhập; phiên hợp lệ được tiếp tục |
 | Shell/menu/theme/footer | PublicShell.tsx, PublicHeader.tsx, PublicNavigation.tsx, RoadmapNavigation.tsx | Menu chung, theme, liên hệ thật; không thay quyền |
 | Form/select/motion/ảnh | PublicConsultation.tsx, PublicSelect.tsx, PublicMotion.tsx, PublicFeedback.tsx, CoursePosterPreview.tsx | Tái sử dụng tương tác, bàn phím và fallback |
@@ -62,8 +62,8 @@ Chi tiết/đăng ký cho mở poster với nút đóng/Escape/trả focus; khô
 ## Điều hướng và ngữ cảnh đăng ký
 
 - Menu: Giới thiệu, dropdown Lộ trình, Đăng ký học, Thành tích, Đội ngũ, Bài đăng, Trang liên lạc, CSATOJ, theme. Disclosure native dùng hover/click/bàn phím, Escape trả focus; no-JS vẫn mở.
-- CTA từ lớp X tới /dang-ky-hoc?course=X#thong-tin; server chỉ nhận A/B/C/E/K. Trang chi tiết xác định khóa bằng route, query khác không thay khóa mặc định. Người dùng vẫn đổi lựa chọn form được.
-- /lo-trinh/basic và /lo-trinh/co-ban về tổng quan; /lo-trinh/hsgqg, /voi, /prevoi về đăng ký chung, không tự chọn E. Đối chiếu alias thực trong route trước sửa.
+- CTA từ lớp X tới /enroll?course=X#thong-tin; server chỉ nhận A/B/C/E/K. Trang chi tiết xác định khóa bằng route, query khác không thay khóa mặc định. Người dùng vẫn đổi lựa chọn form được.
+- /roadmap/basic và /roadmap/co-ban về tổng quan; /roadmap/hsgqg, /voi, /prevoi về đăng ký chung, không tự chọn E. Đối chiếu alias thực trong route trước sửa.
 - /tutor kiểm tra phiên qua proxy; người chưa đăng nhập về /login?role=tutor. Đổi switch không gộp phiên/quyền.
 - Dock/lời mời học liệu không render tại login/tutor entry. Lời mời học liệu ẩn tại trang đích, đăng ký và Thành tích để tránh che nội dung. Không popup tự mở hoặc số tin giả.
 - Footer dùng liên hệ đã xác nhận; không tự thêm địa chỉ, pháp nhân hoặc giờ hỗ trợ chưa được cung cấp.
@@ -100,4 +100,4 @@ Preview/QA theo [frontend workflow](FRONTEND_WORKFLOW.md). Kiểm tra UI Next.js
 
 ## Chính sách tư vấn Messenger — đã duyệt nội dung
 
-`/chinh-sach-quyen-rieng-tu` là trang Server Component tĩnh dùng PublicShell và CSS Module riêng. Nội dung ở `lib/public-privacy.ts`, áp dụng cho tư vấn Messenger, không ghi dữ liệu hoặc đổi consent của form website. Footer/sitemap dẫn đến route; proxy cho route chính xác đi thẳng, không khởi tạo Supabase Auth. Chỉ có bản local; điều kiện công bố ở `MESSENGER_PRIVACY_PREVIEW.md`.
+`/privacy-policy` là trang Server Component tĩnh dùng PublicShell và CSS Module riêng. Nội dung ở `lib/public-privacy.ts`, áp dụng cho tư vấn Messenger, không ghi dữ liệu hoặc đổi consent của form website. Footer/sitemap dẫn đến route; proxy cho route chính xác đi thẳng, không khởi tạo Supabase Auth. Chỉ có bản local; điều kiện công bố ở `MESSENGER_PRIVACY_PREVIEW.md`.

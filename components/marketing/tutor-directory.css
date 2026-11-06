@@ -1,0 +1,23 @@
+.csat-public .tutor-directory > h2 { font-size:clamp(28px,3.4vw,48px); line-height:1.1; margin-bottom:32px; }
+.csat-public .tutor-directory-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:28px; align-items:start; }
+.csat-public .tutor-directory-profile { min-width:0; padding:28px; background:var(--surface); border:3px solid var(--ink); box-shadow:6px 6px 0 var(--ink); }
+.csat-public .tutor-directory-profile header { display:flex; align-items:center; gap:20px; }
+.csat-public .tutor-directory-profile header > div { min-width:0; }
+.csat-public .tutor-directory-profile img { width:96px; height:96px; object-fit:cover; border:2px solid var(--ink); flex-shrink:0; }
+.csat-public .tutor-directory-profile h3 { font-size:clamp(22px,2vw,28px); line-height:1.2; margin:0 0 10px; }
+.csat-public .tutor-directory-profile p { font-size:16px; line-height:1.5; }
+.csat-public .tutor-directory-details { margin-top:24px; }
+.csat-public .tutor-directory-university { font-weight:650; margin-bottom:16px; }
+.csat-public .tutor-directory-username { display:flex; flex-wrap:wrap; gap:4px 12px; padding:12px 16px; background:var(--lime); color:#171717; border:2px solid var(--ink); }
+.csat-public .tutor-directory-username strong { overflow-wrap:anywhere; }
+.csat-public .tutor-directory-profile h4 { margin:24px 0 10px; font-size:18px; }
+.csat-public .tutor-directory-profile ul { padding-left:22px; list-style:disc; font-size:16px; line-height:1.65; }
+.csat-public .tutor-directory-profile li + li { margin-top:8px; }
+@media(max-width:900px) { .csat-public .tutor-directory-list { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:600px) {
+ .csat-public .tutor-directory-profile { padding:20px; }
+ .csat-public .tutor-directory-profile header { gap:14px; align-items:start; }
+ .csat-public .tutor-directory-profile img { width:72px; height:72px; }
+}
+
+@media(max-width:380px) { .csat-public .tutor-directory-profile header { flex-direction:column; } }
