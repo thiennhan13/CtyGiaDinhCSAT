@@ -70,6 +70,16 @@ function check(value, label) { assertions++; assert(value, label); }
    check(await page.locator('#detail-list li').count()===8,'long DP drawer');
    await page.screenshot({path:path.join(output,`vertical-drawer-${theme}.png`)});
    await page.keyboard.press('Escape');
+   await page.locator('#graph-D06').press('Enter');
+   const keptSearchFocus = await page.evaluate(async () => {
+    const dialog = document.querySelector('#topic-dialog'), search = document.querySelector('#search');
+    const closed = new Promise(resolve => dialog.addEventListener('close',resolve,{once:true}));
+    document.querySelector('#close-dialog').click();
+    search.focus();
+    await closed;
+    return document.activeElement === search;
+   });
+   check(keptSearchFocus,'closing the drawer respects a newer search focus');
    await page.locator('#search').fill('D07'); await page.locator('#search').press('Enter');
    check(await page.evaluate(()=>document.activeElement.dataset.node==='D07'),'search locates distant node');
    const visible=await page.locator('#graph-D07').evaluate(el=>{const r=el.getBoundingClientRect();return r.top>document.querySelector('.site-header').getBoundingClientRect().bottom && r.bottom<document.querySelector('.study-toolbar').getBoundingClientRect().top});
